@@ -17,6 +17,8 @@ import fr.scanneat.data.local.db.medication.MedicationLogDao
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import fr.scanneat.data.local.db.price.PriceDao
 import fr.scanneat.data.local.db.price.PriceEntity
+import fr.scanneat.data.local.db.recall.RecallDao
+import fr.scanneat.data.local.db.recall.RecallEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.OnlineSearchCacheDao
@@ -44,8 +46,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         ScanScoreHistoryEntity::class,
         PriceEntity::class,
         OnlineSearchCacheEntity::class,
+        RecallEntity::class,
     ],
-    version = 29,
+    version = 30,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -61,6 +64,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun scanScoreHistoryDao(): ScanScoreHistoryDao
     abstract fun priceDao(): PriceDao
     abstract fun onlineSearchCacheDao(): OnlineSearchCacheDao
+    abstract fun recallDao(): RecallDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -461,6 +465,29 @@ val MIGRATION_28_29 = object : Migration(28, 29) {
                 "`sourceJson` TEXT NOT NULL, " +
                 "`warningsJson` TEXT NOT NULL DEFAULT '[]', " +
                 "`cachedAt` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`barcode`))"
+        )
+    }
+}
+
+val MIGRATION_29_30 = object : Migration(29, 30) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v29 → v30: new `recall_cache` table - barcode-keyed local cache for
+        // RappelConso (official French government product-recall) lookups, so
+        // a scan can be checked against real recall notices even offline once
+        // previously fetched, and so repeat scans of the same barcode don't
+        // re-hit the network every time - see RecallEntity's own doc comment.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `recall_cache` (" +
+                "`barcode` TEXT NOT NULL, " +
+                "`found` INTEGER NOT NULL, " +
+                "`productLabel` TEXT, " +
+                "`recallReason` TEXT, " +
+                "`risks` TEXT, " +
+                "`publicationDate` TEXT, " +
+                "`consumerInstructions` TEXT, " +
+                "`recallSheetUrl` TEXT, " +
+                "`checkedAt` INTEGER NOT NULL, " +
                 "PRIMARY KEY(`barcode`))"
         )
     }

@@ -71,6 +71,7 @@ fun ScanScreen(
     val todayScanCount = viewModel.todayScanCount.collectAsStateWithLifecycle()
     val cachedPreview  = viewModel.cachedPreview.collectAsStateWithLifecycle()
     val cachedPreviewWarning = viewModel.cachedPreviewWarning.collectAsStateWithLifecycle()
+    val recallWarning = viewModel.recallWarning.collectAsStateWithLifecycle()
     val visibleBarcodeCachedPreviews = viewModel.visibleBarcodeCachedPreviews.collectAsStateWithLifecycle()
     val captureErrorMessage = stringResource(R.string.scan_capture_error)
     // User-reported: tapping a Premium-gated control did nothing visible - the
@@ -239,6 +240,23 @@ fun ScanScreen(
 
             barcode.value?.let { bc ->
                 ScanBarcodeChip(barcode = bc, topInset = topInset, cachedPreview = cachedPreview.value, warning = cachedPreviewWarning.value)
+            }
+
+            // Official RappelConso (French government) product-recall alert -
+            // population-level safety information, shown unconditionally the
+            // instant a recalled barcode is in frame, not gated behind tapping
+            // Score. See ScanViewModel.recallWarning's own doc comment for why
+            // this is entirely independent of the main scan/score pipeline.
+            recallWarning.value?.let { recall ->
+                val message = buildString {
+                    append(if (language.value == "en") "Official recall (RappelConso)" else "Rappel officiel (RappelConso)")
+                    recall.productLabel?.let { append(" — $it") }
+                    recall.reasonFr?.let { append(" : $it") }
+                }
+                ErrorBanner(
+                    message = message,
+                    modifier = Modifier.padding(top = topInset + Spacing.XXL, start = Spacing.M, end = Spacing.M),
+                )
             }
 
             // ── Photo queue — floats below the header, distinct corner from the button cluster ──

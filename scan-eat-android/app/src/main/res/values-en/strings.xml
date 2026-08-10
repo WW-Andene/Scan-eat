@@ -681,6 +681,7 @@
     <string name="profile_condition_group_neurological">Neurological</string>
     <string name="profile_condition_group_other">Other</string>
     <string name="profile_condition_group_nutrient">Nutrient deficiencies</string>
+    <string name="profile_condition_group_cross_reactive">Cross-reactive allergies</string>
     <string name="condition_diabetes">Diabetes</string>
     <string name="condition_hypertension">Hypertension</string>
     <string name="condition_pregnancy">Pregnancy</string>
@@ -697,6 +698,8 @@
     <string name="condition_anemia">Iron-deficiency anemia</string>
     <string name="condition_osteoporosis">Osteoporosis</string>
     <string name="condition_hair_loss">Hair loss</string>
+    <string name="condition_latex_allergy">Latex allergy</string>
+    <string name="condition_pollen_food_syndrome">Pollen-food (oral allergy) syndrome</string>
     <string name="sex_male">Male</string>
     <string name="sex_female">Female</string>
     <string name="sex_not_specified">Not specified</string>

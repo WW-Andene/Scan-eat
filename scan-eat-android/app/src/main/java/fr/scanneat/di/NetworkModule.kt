@@ -115,4 +115,18 @@ object NetworkModule {
     @Provides @Singleton
     fun provideOpfApi(@Named("opf") retrofit: Retrofit): OpenProductsFactsApi =
         retrofit.create(OpenProductsFactsApi::class.java)
+
+    // French government official product-recall open data (RappelConso) —
+    // see RappelConsoApi.kt's own header comment.
+    @Provides @Singleton @Named("rappelconso")
+    fun provideRappelConsoRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://data.economie.gouv.fr/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides @Singleton
+    fun provideRappelConsoApi(@Named("rappelconso") retrofit: Retrofit): RappelConsoApi =
+        retrofit.create(RappelConsoApi::class.java)
 }

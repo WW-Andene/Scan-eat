@@ -11,6 +11,8 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.health.MedicationRepository
+import fr.scanneat.data.repository.recall.RecallEntry
+import fr.scanneat.data.repository.recall.RecallRepository
 import fr.scanneat.data.repository.scan.NonFoodProductException
 import fr.scanneat.data.repository.scan.ProductNotFoundException
 import fr.scanneat.data.repository.scan.ScanRepository
@@ -50,6 +52,7 @@ class ScanViewModel @Inject constructor(
     private val connectivityManager: ConnectivityManager,
     internal val medicationRepo: MedicationRepository,
     private val priceRepo: PriceRepository,
+    private val recallRepo: RecallRepository,
     @ApplicationContext internal val appContext: Context,
 ) : ViewModel() {
 
@@ -126,6 +129,20 @@ class ScanViewModel @Inject constructor(
      */
     val cachedPreview: StateFlow<ScanResult?> = _scannedBarcode
         .flatMapLatest { barcode -> flow { emit(barcode?.let { scanRepo.getCachedByBarcode(it, lang = language.value) }) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /**
+     * Official RappelConso (French government) product-recall check — fires
+     * alongside [cachedPreview] on the same barcode-in-frame signal, entirely
+     * independent of the main scan/score pipeline so a RecallRepository
+     * outage or offline device can never block or alter Scanning/Success/
+     * Error (see RecallRepository's own doc comment: checkBarcode never
+     * throws, returns null on any failure or "no recall found"). Population-
+     * level safety information, not gated behind Profile.healthConditions —
+     * a real government recall applies to anyone holding this exact product.
+     */
+    val recallWarning: StateFlow<RecallEntry?> = _scannedBarcode
+        .flatMapLatest { barcode -> flow { emit(barcode?.let { recallRepo.checkBarcode(it) }) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // Same allergen/diet warning already surfaced on History/Dashboard/Diary/

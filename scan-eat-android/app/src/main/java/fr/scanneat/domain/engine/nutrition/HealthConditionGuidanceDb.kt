@@ -208,6 +208,51 @@ private val OSTEOPOROSIS_GUIDANCE: List<ConditionGuidance> = listOf(
         "Caffeine: high intake modestly increases urinary calcium excretion - worth consuming in moderation with osteoporosis (NOF guidance)."),
 )
 
+// EAACI (European Academy of Allergy and Clinical Immunology) cross-
+// reactivity guidance: latex-fruit syndrome — IgE raised against latex
+// proteins cross-reacts with structurally similar plant proteins in these
+// specific foods (documented in an estimated 30-50% of latex-allergic
+// individuals). Framed as "if you have a latex allergy", not a general food
+// caution - this only matters to someone who declared this specific allergy.
+private val LATEX_FRUIT_SYNDROME_GUIDANCE: List<ConditionGuidance> = listOf(
+    ConditionGuidance(listOf("avocat", "avocado"),
+        "Avocat : réaction croisée documentée avec l'allergie au latex (syndrome latex-fruits, EAACI) - jusqu'à 30 à 50 % des personnes allergiques au latex réagissent aussi à ces aliments.",
+        "Avocado: a documented cross-reaction with latex allergy (latex-fruit syndrome, EAACI) - an estimated 30-50% of latex-allergic individuals also react to these foods."),
+    ConditionGuidance(listOf("banane", "banana"),
+        "Banane : réaction croisée documentée avec l'allergie au latex (syndrome latex-fruits, EAACI).",
+        "Banana: a documented cross-reaction with latex allergy (latex-fruit syndrome, EAACI)."),
+    ConditionGuidance(listOf("kiwi"),
+        "Kiwi : réaction croisée documentée avec l'allergie au latex (syndrome latex-fruits, EAACI).",
+        "Kiwi: a documented cross-reaction with latex allergy (latex-fruit syndrome, EAACI)."),
+    ConditionGuidance(listOf("chataigne", "châtaigne", "chestnut", "marron"),
+        "Châtaigne : réaction croisée documentée avec l'allergie au latex (syndrome latex-fruits, EAACI).",
+        "Chestnut: a documented cross-reaction with latex allergy (latex-fruit syndrome, EAACI)."),
+)
+
+// EAACI birch-pollen / Pollen-Food (Oral Allergy) Syndrome guidance: birch
+// pollen IgE cross-reacts with the Bet v 1 homologue proteins in these raw
+// foods - typically mild oral itching/swelling and specific to the RAW form
+// (the responsible proteins are heat-labile, so the cooked version is
+// usually tolerated - a distinction this guidance deliberately keeps, unlike
+// a blanket avoidance claim).
+private val POLLEN_FOOD_SYNDROME_GUIDANCE: List<ConditionGuidance> = listOf(
+    ConditionGuidance(listOf("pomme crue", "raw apple", "pomme fraiche", "pomme fraîche"),
+        "Pomme crue : réaction croisée fréquente avec le pollen de bouleau (syndrome oral, EAACI) - généralement toléré une fois cuit (protéine thermolabile).",
+        "Raw apple: a frequent cross-reaction with birch pollen (oral allergy syndrome, EAACI) - usually tolerated once cooked (the responsible protein is heat-labile)."),
+    ConditionGuidance(listOf("noisette", "hazelnut"),
+        "Noisette : réaction croisée fréquente avec le pollen de bouleau (syndrome oral, EAACI).",
+        "Hazelnut: a frequent cross-reaction with birch pollen (oral allergy syndrome, EAACI)."),
+    ConditionGuidance(listOf("carotte crue", "raw carrot"),
+        "Carotte crue : réaction croisée documentée avec le pollen de bouleau (syndrome oral, EAACI) - généralement tolérée une fois cuite.",
+        "Raw carrot: a documented cross-reaction with birch pollen (oral allergy syndrome, EAACI) - usually tolerated once cooked."),
+    ConditionGuidance(listOf("celeri cru", "céleri cru", "raw celery"),
+        "Céleri cru : réaction croisée documentée avec le pollen de bouleau (syndrome oral, EAACI) - généralement toléré une fois cuit.",
+        "Raw celery: a documented cross-reaction with birch pollen (oral allergy syndrome, EAACI) - usually tolerated once cooked."),
+    ConditionGuidance(listOf("peche crue", "pêche crue", "raw peach", "abricot cru", "raw apricot", "cerise crue", "raw cherry", "prune crue", "raw plum"),
+        "Fruit à noyau cru (pêche, abricot, cerise, prune) : réaction croisée fréquente avec le pollen de bouleau (syndrome oral, EAACI).",
+        "Raw stone fruit (peach, apricot, cherry, plum): a frequent cross-reaction with birch pollen (oral allergy syndrome, EAACI)."),
+)
+
 private val GUIDANCE_BY_CONDITION: Map<String, List<ConditionGuidance>> = mapOf(
     "pregnancy" to PREGNANCY_GUIDANCE,
     "cancer" to CANCER_GUIDANCE,
@@ -217,6 +262,8 @@ private val GUIDANCE_BY_CONDITION: Map<String, List<ConditionGuidance>> = mapOf(
     "chronic_migraine" to CHRONIC_MIGRAINE_GUIDANCE,
     "dental_problems" to DENTAL_PROBLEMS_GUIDANCE,
     "osteoporosis" to OSTEOPOROSIS_GUIDANCE,
+    "latex_allergy" to LATEX_FRUIT_SYNDROME_GUIDANCE,
+    "pollen_food_syndrome" to POLLEN_FOOD_SYNDROME_GUIDANCE,
 )
 
 /**

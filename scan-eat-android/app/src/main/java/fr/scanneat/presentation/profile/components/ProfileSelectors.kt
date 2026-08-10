@@ -220,6 +220,15 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     "anemia" to stringResource(R.string.condition_anemia),
     "osteoporosis" to stringResource(R.string.condition_osteoporosis),
     "hair_loss" to stringResource(R.string.condition_hair_loss),
+    // Cross-reactive allergy syndromes (EAACI) - distinct from the EU Annex II
+    // allergenLabels() selector above: these aren't a mandatory-label food
+    // allergy but a documented IgE cross-reaction between a non-food allergen
+    // (latex) or a pollen and specific foods sharing a similar protein
+    // structure. Real, sourced ingredient-level guidance in
+    // HealthConditionGuidanceDb.kt's LATEX_FRUIT_SYNDROME_GUIDANCE/
+    // POLLEN_FOOD_SYNDROME_GUIDANCE - not a no-op label.
+    "latex_allergy" to stringResource(R.string.condition_latex_allergy),
+    "pollen_food_syndrome" to stringResource(R.string.condition_pollen_food_syndrome),
     // Anorexia/bulimia were tried and removed (user-reported): the only safe
     // effect available - a caution on Biolism's fasting/ketosis toggles - only
     // ever fires for a user who *also* enables one of those two rarely-used
@@ -251,6 +260,7 @@ private fun conditionGroups(): List<Pair<String, List<String>>> = listOf(
     // (anemia, osteoporosis, hair_loss) sharing the same underlying pattern -
     // see conditionLabels()'s own doc comment on why they're grouped.
     stringResource(R.string.profile_condition_group_nutrient) to listOf("anemia", "osteoporosis", "hair_loss"),
+    stringResource(R.string.profile_condition_group_cross_reactive) to listOf("latex_allergy", "pollen_food_syndrome"),
     stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression", "dental_problems"),
 )
 

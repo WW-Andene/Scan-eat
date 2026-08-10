@@ -6,6 +6,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.health.MedicationRepository
+import fr.scanneat.data.repository.recall.RecallRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.Profile
 import io.mockk.coEvery
@@ -41,6 +42,7 @@ class ScanViewModelTest {
     private val connectivityManager = mockk<ConnectivityManager>(relaxed = true)
     private val medicationRepo = mockk<MedicationRepository>(relaxed = true)
     private val priceRepo = mockk<PriceRepository>(relaxed = true)
+    private val recallRepo = mockk<RecallRepository>(relaxed = true)
     private val appContext = mockk<Context>(relaxed = true)
 
     private lateinit var viewModel: ScanViewModel
@@ -52,8 +54,9 @@ class ScanViewModelTest {
         every { prefs.profile } returns flowOf(Profile())
         every { scanRepo.observeTodayScanCount() } returns flowOf(0)
         coEvery { scanRepo.getCachedByBarcode(any(), any()) } returns null
+        coEvery { recallRepo.checkBarcode(any()) } returns null
 
-        viewModel = ScanViewModel(scanRepo, prefs, connectivityManager, medicationRepo, priceRepo, appContext)
+        viewModel = ScanViewModel(scanRepo, prefs, connectivityManager, medicationRepo, priceRepo, recallRepo, appContext)
     }
 
     @After
