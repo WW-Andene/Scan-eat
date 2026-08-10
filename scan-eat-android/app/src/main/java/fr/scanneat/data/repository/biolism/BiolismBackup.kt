@@ -59,11 +59,19 @@ internal class BackupStore(
             // main profile the restore just overwrote. Always clear first, same
             // key set as clearProfileOverride(), then conditionally reapply.
             p.remove(BiolismRepository.K_SEX); p.remove(BiolismRepository.K_AGE); p.remove(BiolismRepository.K_HEIGHT); p.remove(BiolismRepository.K_WEIGHT); p.remove(BiolismRepository.K_ACTIVITY)
+            // Every field below previously landed straight in DataStore from the parsed
+            // backup with no bound check - BiolismProfileScreen/BiolismOnboardingScreen
+            // both clamp these same fields to the same ranges before ever constructing a
+            // profile (age 1-120, height 50-250cm, weight 20-400kg, waist/hip 0-250cm,
+            // neck 0-100cm), the same class of live-save-vs-import validation gap already
+            // found and fixed this session for BackupRepository's weight_log/custom_foods
+            // import path. A hand-edited or corrupted Biolism backup could otherwise feed
+            // an implausible measurement straight into MetabolicsCalculator's BF%/TDEE math.
             if (data.hasProfileOverride) {
                 data.sex?.let         { p[BiolismRepository.K_SEX] = it }
-                data.ageYears?.let    { p[BiolismRepository.K_AGE] = it }
-                data.heightCm?.let    { p[BiolismRepository.K_HEIGHT] = it }
-                data.weightKg?.let    { p[BiolismRepository.K_WEIGHT] = it }
+                data.ageYears?.let    { p[BiolismRepository.K_AGE] = it.coerceIn(1, 120) }
+                data.heightCm?.let    { p[BiolismRepository.K_HEIGHT] = it.coerceIn(50f, 250f) }
+                data.weightKg?.let    { p[BiolismRepository.K_WEIGHT] = it.coerceIn(20f, 400f) }
                 data.activityId?.let  { p[BiolismRepository.K_ACTIVITY] = it }
             }
             // Biolism-exclusive body-composition fields (waist/hip/neck/ethnicity/
@@ -77,9 +85,9 @@ internal class BackupStore(
             // branch. Always clear first, same as the profile-override fields above.
             p.remove(BiolismRepository.K_ETHNICITY); p.remove(BiolismRepository.K_WAIST); p.remove(BiolismRepository.K_HIP); p.remove(BiolismRepository.K_NECK); p.remove(BiolismRepository.K_CYCLE_DAY)
             data.ethnicityId?.let { p[BiolismRepository.K_ETHNICITY] = it }
-            data.waistCm?.let     { p[BiolismRepository.K_WAIST] = it }
-            data.hipCm?.let       { p[BiolismRepository.K_HIP] = it }
-            data.neckCm?.let      { p[BiolismRepository.K_NECK] = it }
+            data.waistCm?.let     { p[BiolismRepository.K_WAIST] = it.coerceIn(0f, 250f) }
+            data.hipCm?.let       { p[BiolismRepository.K_HIP] = it.coerceIn(0f, 250f) }
+            data.neckCm?.let      { p[BiolismRepository.K_NECK] = it.coerceIn(0f, 100f) }
             data.cycleDay?.let    { p[BiolismRepository.K_CYCLE_DAY] = it }
             if (data.manualHR != null) p[BiolismRepository.K_MANUAL_HR] = data.manualHR else p.remove(BiolismRepository.K_MANUAL_HR)
             // Previously only written `if (data.sessions.isNotEmpty())`, same "forgot to
