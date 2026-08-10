@@ -47,25 +47,37 @@ data class OfficialRecipe(
     val totalSugarsG: Double get() = sum { it.sugarsG }
     val totalSaltG: Double get() = sum { it.saltG }
 
-    /** Synthetic Product so checkDiet()/checkUserAllergens() can run against an official recipe before it's even cloned/logged. */
-    fun toCheckProduct(): fr.scanneat.domain.model.Product = fr.scanneat.domain.model.Product(
-        name        = nameFr,
-        category    = fr.scanneat.domain.model.ProductCategory.OTHER,
-        novaClass   = fr.scanneat.domain.model.NovaClass.UNPROCESSED,
-        ingredients = ingredients.map { ing ->
+    /**
+     * Synthetic Product so checkDiet()/checkUserAllergens() can run against an official recipe before it's even cloned/logged.
+     * category/novaClass previously hardcoded to OTHER/UNPROCESSED - see the
+     * identical fix and rationale on RecipeModels.kt's own toCheckProduct().
+     * Many OFFICIAL_RECIPE_DB names (lasagne, gratin, curry, chili con carne,
+     * paella, soupe...) are exactly the names CategoryThresholds.kt's
+     * inferCategoryFromName already recognizes for READY_MEAL/SOUP.
+     */
+    fun toCheckProduct(): fr.scanneat.domain.model.Product {
+        val inferredCategory = fr.scanneat.domain.engine.scoring.inferCategoryFromName(nameFr)
+        val ingredientList = ingredients.map { ing ->
             fr.scanneat.domain.model.Ingredient(name = ing.foodName, category = fr.scanneat.domain.model.IngredientCategory.FOOD)
-        },
-        nutrition   = fr.scanneat.domain.model.NutritionPer100g(
-            energyKcal    = totalKcal * 100.0 / totalGrams.coerceAtLeast(1.0),
-            fatG          = totalFatG * 100.0 / totalGrams.coerceAtLeast(1.0),
-            saturatedFatG = totalSaturatedFatG * 100.0 / totalGrams.coerceAtLeast(1.0),
-            carbsG        = totalCarbsG * 100.0 / totalGrams.coerceAtLeast(1.0),
-            sugarsG       = totalSugarsG * 100.0 / totalGrams.coerceAtLeast(1.0),
-            fiberG        = totalFiberG * 100.0 / totalGrams.coerceAtLeast(1.0),
-            proteinG      = totalProteinG * 100.0 / totalGrams.coerceAtLeast(1.0),
-            saltG         = totalSaltG * 100.0 / totalGrams.coerceAtLeast(1.0),
-        ),
-    )
+        }
+        val preliminary = fr.scanneat.domain.model.Product(
+            name        = nameFr,
+            category    = inferredCategory,
+            novaClass   = fr.scanneat.domain.model.NovaClass.UNPROCESSED,
+            ingredients = ingredientList,
+            nutrition   = fr.scanneat.domain.model.NutritionPer100g(
+                energyKcal    = totalKcal * 100.0 / totalGrams.coerceAtLeast(1.0),
+                fatG          = totalFatG * 100.0 / totalGrams.coerceAtLeast(1.0),
+                saturatedFatG = totalSaturatedFatG * 100.0 / totalGrams.coerceAtLeast(1.0),
+                carbsG        = totalCarbsG * 100.0 / totalGrams.coerceAtLeast(1.0),
+                sugarsG       = totalSugarsG * 100.0 / totalGrams.coerceAtLeast(1.0),
+                fiberG        = totalFiberG * 100.0 / totalGrams.coerceAtLeast(1.0),
+                proteinG      = totalProteinG * 100.0 / totalGrams.coerceAtLeast(1.0),
+                saltG         = totalSaltG * 100.0 / totalGrams.coerceAtLeast(1.0),
+            ),
+        )
+        return preliminary.copy(novaClass = fr.scanneat.domain.engine.scoring.inferNovaClassWithConfidence(preliminary).nova)
+    }
 }
 
 /**

@@ -359,13 +359,16 @@ private fun buildFlags(audit: ScoreAudit, lang: String = "en"): Pair<List<String
         if (b.points >= 2) green += b.reason
     }
 
-    val eco = audit.eco
-    if (eco?.grade != null) {
-        when (eco.grade.lowercase()) {
-            "a", "b" -> green += (if (en) "Eco-score ${eco.grade.uppercase()} — low environmental impact" else "Éco-score ${eco.grade.uppercase()} — faible impact environnemental")
-            "d", "e" -> red += (if (en) "Eco-score ${eco.grade.uppercase()} — high environmental impact" else "Éco-score ${eco.grade.uppercase()} — impact environnemental élevé")
-        }
-    }
+    // Eco-score deliberately NOT injected into red/green here (removed a
+    // prior version that did) - Eco-Score is an environmental-impact scale
+    // (packaging/transport/land use), unrelated to and never actually
+    // contributing to this pillar-based health/nutrition Grade's score
+    // (audit.eco's value is display-only, never added into `score`
+    // anywhere in this file). Mixing its text into the SAME red/green list
+    // used to explain "why did the health Grade land here" silently implied
+    // environmental impact was one of the reasons, when the app already
+    // surfaces Eco-Score correctly and distinctly as its own badge chip
+    // (ScoreBadgesRow.kt's ecoscore LetterGradeChip) right next to NutriScore.
 
     // "Critical:", not "VETO:" - the veto still hard-caps the score exactly
     // as before (no softening of the judgment), this only stops leaking this

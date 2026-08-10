@@ -49,6 +49,26 @@ internal fun checkPregnancyCondition(
             category = AdjustmentCategory.CONDITION,
         )
     }
+    // ANSES's listeriosis/toxoplasmosis/mercury/vitamin-A-teratogenicity
+    // guidance (raw meat/fish, unpasteurized soft cheese, high-mercury fish,
+    // liver, unheated deli meat, raw sprouts) was already cited in the hint
+    // panel (HealthConditionGuidanceDb.kt's PREGNANCY_GUIDANCE) but never
+    // affected the score - a raw-milk soft cheese or a smoked-salmon product
+    // scored identically to a pasteurized/safe equivalent here, the same
+    // hint-text-but-no-score-effect gap the caffeine check above already
+    // closed for its own risk. Not a veto (unlike alcohol, which has no safe
+    // threshold) since some of these are a matter of degree/preparation
+    // (thorough reheating neutralizes the deli-meat risk) rather than an
+    // absolute contraindication - a real, disclosed point deduction instead.
+    val containsListeriaRisk = product.ingredients.any { ing -> PREGNANCY_LISTERIA_RISK_PATTERN.containsMatchIn(normalizeForMatching(ing.name)) }
+    if (containsListeriaRisk) {
+        adjustments += PersonalAdjustment(
+            points = -4.0,
+            reason = if (lang == "en") "May carry listeriosis/toxoplasmosis/mercury risk — ANSES recommends caution with raw/unpasteurized/high-mercury foods during pregnancy"
+                     else "Peut présenter un risque de listériose/toxoplasmose/mercure — l'ANSES recommande la prudence avec les aliments crus, au lait cru ou riches en mercure pendant la grossesse",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
     return veto to dietReason
 }
 

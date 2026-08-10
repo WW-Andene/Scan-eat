@@ -144,15 +144,25 @@ fun RecipesViewModel.logOfficial(recipe: OfficialRecipe, mealSlot: MealSlot, por
                     productName = recipe.nameFr,
                     barcode     = null,
                     portionG    = basis * portionFraction,
+                    // saturatedFatG/sugarsG/saltG previously hardcoded to 0.0
+                    // despite OfficialRecipe exposing correctly-summed
+                    // totalSaturatedFatG/totalSugarsG/totalSaltG right on the
+                    // same object (used correctly by cloneOfficial()'s
+                    // equivalent path) - a salt-cured/pastry/fried official
+                    // recipe (quiche, moules-frites, ...) logged straight to
+                    // the diary via this one-tap path recorded as containing
+                    // zero salt/sugar/sat-fat, silently defeating the
+                    // hypertension/diabetes daily-budget features for
+                    // exactly the users who need them.
                     nutrition   = NutritionPer100g(
                         energyKcal    = per100(recipe.totalKcal),
                         fatG          = per100(recipe.totalFatG),
-                        saturatedFatG = 0.0,
+                        saturatedFatG = per100(recipe.totalSaturatedFatG),
                         carbsG        = per100(recipe.totalCarbsG),
-                        sugarsG       = 0.0,
+                        sugarsG       = per100(recipe.totalSugarsG),
                         fiberG        = per100(recipe.totalFiberG),
                         proteinG      = per100(recipe.totalProteinG),
-                        saltG         = 0.0,
+                        saltG         = per100(recipe.totalSaltG),
                     ),
                     source = ScanSource.MANUAL,
                     // Previously omitted, defaulting to emptyList() - DiaryViewModel.diaryWarnings

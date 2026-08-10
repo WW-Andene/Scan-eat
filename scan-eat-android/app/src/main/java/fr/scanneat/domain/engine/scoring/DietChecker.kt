@@ -120,6 +120,22 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
         }
     }
 
+    // Kosher's meat+dairy mixing prohibition (basar b'chalav) - see
+    // KOSHER_MEAT_PATTERN/KOSHER_DAIRY_PATTERN's own doc comment in
+    // DietDefinitions.kt. Checked against ingredients only (not the product
+    // name), since a name like "Cheeseburger-flavour chips" containing both
+    // words would false-positive without either ingredient actually being
+    // meat or dairy.
+    if (dietKey == DietKey.KOSHER) {
+        val ingredientNames = product.ingredients.map { it.name }
+        val meatHit  = ingredientNames.firstOrNull { KOSHER_MEAT_PATTERN.containsMatchIn(it.lowercase()) }
+        val dairyHit = ingredientNames.firstOrNull { KOSHER_DAIRY_PATTERN.containsMatchIn(it.lowercase()) }
+        if (meatHit != null && dairyHit != null) {
+            violations += if (lang == "en") "meat ($meatHit) and dairy ($dairyHit) mixed — not kosher (basar b'chalav)"
+                else "viande ($meatHit) et lait ($dairyHit) mélangés — non casher (basar b'chalav)"
+        }
+    }
+
     // Macro-based check - data-driven off DietDef.maxNetCarbsG/minFatFractionOfKcal
     // rather than hardcoded to one enum value, so any future diet needing the same
     // net-carbs/fat-fraction rule (not just KETO) only needs a DIET_DEFS entry.

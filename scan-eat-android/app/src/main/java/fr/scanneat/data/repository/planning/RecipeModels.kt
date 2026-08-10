@@ -1,6 +1,8 @@
 package fr.scanneat.data.repository.planning
 
 import com.squareup.moshi.JsonClass
+import fr.scanneat.domain.engine.scoring.inferCategoryFromName
+import fr.scanneat.domain.engine.scoring.inferNovaClassWithConfidence
 import fr.scanneat.domain.model.*
 
 // ============================================================================
@@ -50,13 +52,26 @@ data class Recipe(
      * allergic user could freely save/log a recipe containing an ingredient
      * their own profile forbids, with no warning anywhere in the recipe flow.
      */
-    fun toCheckProduct(): Product = Product(
-        name        = name,
-        category    = ProductCategory.OTHER,
-        novaClass   = NovaClass.UNPROCESSED,
-        ingredients = components.map { c -> Ingredient(name = c.productName, category = IngredientCategory.FOOD) },
-        nutrition   = nutritionPer100g,
-    )
+    // category/novaClass previously hardcoded to OTHER/UNPROCESSED (the best
+    // possible case for both) regardless of what the recipe actually is -
+    // ProcessingPillar's NOVA auto-correction only ever fires TOWARD
+    // ULTRA_PROCESSED from a declared UNPROCESSED, never the reverse, so a
+    // composite recipe built from prepared/composite ingredients scored a
+    // guaranteed 20/20 processing base plus the "minimally processed"
+    // bonus, and OTHER meant CategoryThresholds' generic band applied
+    // instead of e.g. READY_MEAL/SOUP's tailored kcal/micronutrient
+    // expectations for a name that inferCategoryFromName would actually
+    // recognize (lasagne, gratin, soupe, etc.). Inferred from the same name/
+    // ingredient signals a scanned product already uses.
+    fun toCheckProduct(): Product {
+        val inferredCategory = inferCategoryFromName(name)
+        val ingredients = components.map { c -> Ingredient(name = c.productName, category = IngredientCategory.FOOD) }
+        val preliminary = Product(
+            name = name, category = inferredCategory, novaClass = NovaClass.UNPROCESSED,
+            ingredients = ingredients, nutrition = nutritionPer100g,
+        )
+        return preliminary.copy(novaClass = inferNovaClassWithConfidence(preliminary).nova)
+    }
 
     /** Per-100g nutrition (for the scoring engine). */
     val nutritionPer100g: NutritionPer100g get() {

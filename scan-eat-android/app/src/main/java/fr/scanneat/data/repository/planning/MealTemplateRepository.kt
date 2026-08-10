@@ -4,6 +4,8 @@ import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.template.MealTemplateEntity
+import fr.scanneat.domain.engine.scoring.inferCategoryFromName
+import fr.scanneat.domain.engine.scoring.inferNovaClassWithConfidence
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -89,13 +91,17 @@ data class MealTemplate(
      * threshold-based use of this Product (e.g. generateProductHints's
      * fiber/protein/salt/sugar/sat-fat benefit and risk lines) of real data.
      */
-    fun toCheckProduct(): Product = Product(
-        name        = name,
-        category    = ProductCategory.OTHER,
-        novaClass   = NovaClass.UNPROCESSED,
-        ingredients = items.map { i -> Ingredient(name = i.productName, category = IngredientCategory.FOOD) },
-        nutrition   = nutritionPer100g,
-    )
+    // category/novaClass previously hardcoded to OTHER/UNPROCESSED - see the
+    // identical fix and rationale on RecipeModels.kt's own toCheckProduct().
+    fun toCheckProduct(): Product {
+        val inferredCategory = inferCategoryFromName(name)
+        val ingredients = items.map { i -> Ingredient(name = i.productName, category = IngredientCategory.FOOD) }
+        val preliminary = Product(
+            name = name, category = inferredCategory, novaClass = NovaClass.UNPROCESSED,
+            ingredients = ingredients, nutrition = nutritionPer100g,
+        )
+        return preliminary.copy(novaClass = inferNovaClassWithConfidence(preliminary).nova)
+    }
 }
 
 /**

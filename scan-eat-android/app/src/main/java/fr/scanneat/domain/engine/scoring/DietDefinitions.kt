@@ -205,6 +205,22 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
     ),
 )
 
+// Kosher law's meat+dairy prohibition (basar b'chalav, Exodus 23:19 et al.) is
+// structurally different from KOSHER's forbidden[] list above: it isn't about
+// any single ingredient being forbidden (beef and cheese are each
+// individually kosher), it's about the two FAMILIES never appearing TOGETHER
+// in one product. checkDiet()'s per-forbidden-pattern loop can never express
+// that - it only asks "does this one pattern match," never "do these two
+// patterns both match." A "beef ragù with cream sauce" or a "cheeseburger-
+// flavoured" snack containing both a meat ingredient and a dairy ingredient
+// (neither individually forbidden) previously passed as kosher-compliant,
+// the same class of real-harm false-compliance already fixed for vegan.
+// Ruminant/poultry meat only, not KOSHER's own pork-specific forbidden list
+// (pork is already caught there) - and no fish/egg here, since kosher fish/
+// eggs are pareve (neutral) and may be eaten with either meat or dairy.
+internal val KOSHER_MEAT_PATTERN = b("viande|b[oœ]euf|veau|poulet|dinde|canard|agneau|mouton|lard|lardon|saucisse|saucisson|chorizo|merguez|pastrami|corned[- ]beef")
+internal val KOSHER_DAIRY_PATTERN = b("lait(?! de (coco|soja|amande|avoine|riz))|lactos[eé]rum|petit[- ]lait|cr[eè]me(?! v[eé]g[eé]tale)|beurre(?! de cacahu[eè]te| d'arachide| de coco)|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mascarpone|ricotta|mozzarella|parmesan|emmental")
+
 // Diets where a certification mark overrides detected violations
 internal val CERTIFICATION_OVERRIDE_DIETS = setOf(DietKey.HALAL, DietKey.KOSHER, DietKey.VEGAN, DietKey.GLUTEN_FREE)
 internal val UNVERIFIABLE_DIETS = setOf(DietKey.HALAL, DietKey.KOSHER)

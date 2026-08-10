@@ -27,6 +27,22 @@ internal val CAFFEINE_SOURCE_PATTERN = Regex(
     """\b(?:cafeine|guarana|yerba mate|mate|the vert|the noir|coffee|tea|cocoa|cacao|cafe)\b""",
 )
 
+// ANSES pregnancy food-safety guidance (listeriosis/toxoplasmosis/mercury/
+// vitamin-A-teratogenicity risk) - same source and category list already
+// documented and shown to the user in the hint panel
+// (domain/engine/nutrition/HealthConditionGuidanceDb.kt's PREGNANCY_GUIDANCE),
+// but that list only ever fed informational hint text, never the actual
+// score - a pregnant user comparing two products by Grade/score alone (never
+// scrolling to read every hint line) saw no difference between a pasteurized
+// cheese and a real-listeria-risk raw-milk soft cheese. Kept as one
+// consolidated pattern/deduction here (matching this file's existing
+// CAFFEINE_SOURCE_PATTERN precedent) rather than per-category granularity,
+// since the underlying risk (foodborne illness during pregnancy) is the same
+// category of harm regardless of which specific food carries it.
+internal val PREGNANCY_LISTERIA_RISK_PATTERN = Regex(
+    """\b(?:tartare|carpaccio|viande crue|steak tartare|raw meat|rare beef|sushi|sashimi|saumon fume|smoked salmon|poisson cru|raw fish|ceviche|thon|espadon|requin|lamproie|tuna|swordfish|shark|marlin|lait cru|fromage au lait cru|fromage a pate molle|raw milk|unpasteurized|soft cheese|foie|pate|liver|foie gras|jambon cru|charcuterie|salami|chorizo|cured meat|deli meat|prosciutto|germes crus|pousses crues|graines germees|raw sprouts|alfalfa sprouts)\b""",
+)
+
 // Sugar alcohols (polyols) - matched against normalizeForMatching()'d ingredient
 // names, so accented/E-number spellings ("sorbitol (E420)") still hit. EU
 // Regulation (EC) 1169/2011 Annex III mandates the "excessive consumption may

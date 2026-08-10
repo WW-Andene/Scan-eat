@@ -326,13 +326,11 @@ private fun buildFlags(audit: ScoreAudit, lang: String = "en"): Pair<List<String
         if (b.points >= 2) green += b.reason
     }
 
-    val eco = audit.eco
-    if (eco?.grade != null) {
-        when (eco.grade.lowercase()) {
-            "a", "b" -> green += (if (en) "Eco-score ${eco.grade.uppercase()} — low environmental impact" else "Éco-score ${eco.grade.uppercase()} — faible impact environnemental")
-            "d", "e" -> red += (if (en) "Eco-score ${eco.grade.uppercase()} — high environmental impact" else "Éco-score ${eco.grade.uppercase()} — impact environnemental élevé")
-        }
-    }
+    // Eco-score deliberately NOT injected into red/green - it's display-only
+    // (never added into `score`) and already surfaced as its own distinct
+    // badge on the Android side; mixing it into this health-Grade reason
+    // list implied it was one of the reasons. Mirrors the identical fix on
+    // the Android side (see Scoring Drift Check).
 
     // "Critical:", not "VETO:" - stops leaking this engine's internal
     // mechanism name into end-user copy, without softening the judgment

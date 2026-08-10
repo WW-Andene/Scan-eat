@@ -58,8 +58,21 @@ private const val GOAL_KCAL_ADJUSTMENT = 500.0
 fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     val effectiveP = weightKgOverride?.let { p.copy(weightKg = it) } ?: p
     val tdee = tdeeKcal(effectiveP) ?: return null
+    // No floor previously existed on the LOSE-goal deficit. bmrMifflinStJeor
+    // floors BMR at 500 kcal and the lowest PAL is 1.40 (SEDENTARY), so a
+    // valid but extreme profile (very short/light/old, sedentary) can produce
+    // tdee ~700 kcal - a LOSE goal then subtracted the flat 500 kcal
+    // adjustment down to ~200 kcal/day, an order of magnitude below any
+    // recognized safe-minimum-intake floor (dietetic bodies commonly cite
+    // ~1200 kcal/day as the low end nobody should go under without medical
+    // supervision), displayed as a legitimate target with every downstream
+    // budget (sat fat, sugar, protein/fat/carb split) scaled proportionally
+    // to that implausible number. 1200 is a conservative, commonly-cited
+    // floor, not a per-profile clinical calculation - this app doesn't
+    // attempt medical weight-loss supervision, so a hard floor here is the
+    // right kind of guardrail rather than a fake precision figure.
     val goalAdjustedKcal = when (p.goal) {
-        Goal.LOSE     -> tdee - GOAL_KCAL_ADJUSTMENT
+        Goal.LOSE     -> (tdee - GOAL_KCAL_ADJUSTMENT).coerceAtLeast(1200.0)
         Goal.GAIN     -> tdee + GOAL_KCAL_ADJUSTMENT
         Goal.MAINTAIN -> tdee
     }
@@ -153,8 +166,13 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
  */
 fun DailyTargets.withKcalOverride(rawKcal: Double, goal: Goal): DailyTargets {
     if (rawKcal <= 0.0 || kcal <= 0.0) return this
+    // Same 1200 kcal safe-minimum floor as dailyTargets()'s own LOSE branch -
+    // a rich Biolism TDEE for a very light/short profile is just as capable
+    // of driving the post-deficit figure implausibly low, and this function
+    // is the one place that number can reach the UI without ever passing
+    // back through dailyTargets()'s own floor.
     val newKcal = when (goal) {
-        Goal.LOSE     -> rawKcal - GOAL_KCAL_ADJUSTMENT
+        Goal.LOSE     -> (rawKcal - GOAL_KCAL_ADJUSTMENT).coerceAtLeast(1200.0)
         Goal.GAIN     -> rawKcal + GOAL_KCAL_ADJUSTMENT
         Goal.MAINTAIN -> rawKcal
     }
