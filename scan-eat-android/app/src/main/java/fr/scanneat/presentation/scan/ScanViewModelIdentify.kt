@@ -55,7 +55,7 @@ internal fun ScanViewModel.identifyFromPhotos() {
                         medication != null -> _state.value = ScanUiState.MedicationFound(medication)
                         nonConsumable != null -> _state.value = ScanUiState.NonConsumableFound(nonConsumable)
                         else -> {
-                            val id = scanRepo.persist(scanResult)
+                            val id = scanRepo.persist(scanResult, activeProfileId.value)
                             _state.value = ScanUiState.Success(scanResult, id)
                         }
                     }
@@ -111,7 +111,7 @@ internal fun ScanViewModel.identifyMultiFromPhotos() {
                     _state.value = if (edibleResults.isEmpty()) {
                         ScanUiState.Error(noFoodsDetectedMessage(lang))
                     } else {
-                        ScanUiState.MultiFoodFound(items = edibleResults.map { it to scanRepo.persist(it) })
+                        ScanUiState.MultiFoodFound(items = edibleResults.map { it to scanRepo.persist(it, activeProfileId.value) })
                     }
                 },
                 onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },

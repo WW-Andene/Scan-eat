@@ -258,6 +258,7 @@ class ScanRepository @Inject constructor(
         images: List<ImagePayload> = emptyList(),
         lang: String = "fr",
         online: Boolean = true,
+        profileId: String = "default",
     ): Result<Pair<ScanResult, Long>> = ioCatching {
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
@@ -301,7 +302,7 @@ class ScanRepository @Inject constructor(
                         val fresh = if (cached.audit.engineVersion != ENGINE_VERSION) {
                             cached.copy(audit = scoreProduct(cached.product, lang))
                         } else cached
-                        return@ioCatching Pair(fresh, persist(fresh))
+                        return@ioCatching Pair(fresh, persist(fresh, profileId))
                     }
                 }
             }
@@ -326,7 +327,7 @@ class ScanRepository @Inject constructor(
             // outright rather than left for findBetterInCategory/observeTopScanned to
             // keep surfacing forever. A harmless no-op when there was no prior row
             // (a genuinely first-time scan of a non-food barcode).
-            if (e is NonFoodProductException) purgeNonFoodEntry(barcode)
+            if (e is NonFoodProductException) purgeNonFoodEntry(barcode, profileId)
             // Last-resort fallback: neither OFF nor the vision LLM could identify
             // this barcode (or the lookup itself failed after exhausting its own
             // retries) — but the user may have already manually taught the app
@@ -336,7 +337,7 @@ class ScanRepository @Inject constructor(
             // every single rescan even after the user already resolved it once.
             customFoodByBarcode(barcode, lang) ?: throw e
         }
-        Pair(result, persist(result))
+        Pair(result, persist(result, profileId))
     }
 
     private suspend fun purgeNonFoodEntry(barcode: String, profileId: String = "default") = db.withTransaction {
@@ -368,9 +369,10 @@ class ScanRepository @Inject constructor(
         lang: String = "fr",
         online: Boolean = true,
         identifyMode: Boolean = false,
+        profileId: String = "default",
     ): Result<Pair<ScanResult, Long>> = ioCatching {
         val result = identifyOrScoreFromImages(images, lang, online, identifyMode).getOrThrow()
-        Pair(result, persist(result))
+        Pair(result, persist(result, profileId))
     }
 
     /**

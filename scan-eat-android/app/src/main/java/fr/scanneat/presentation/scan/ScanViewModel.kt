@@ -56,6 +56,11 @@ class ScanViewModel @Inject constructor(
     @ApplicationContext internal val appContext: Context,
 ) : ViewModel() {
 
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    internal val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
     internal val _state = MutableStateFlow<ScanUiState>(ScanUiState.Idle)
     val state: StateFlow<ScanUiState> = _state.asStateFlow()
 
@@ -128,7 +133,7 @@ class ScanViewModel @Inject constructor(
      * score FAB at all.
      */
     val cachedPreview: StateFlow<ScanResult?> = _scannedBarcode
-        .flatMapLatest { barcode -> flow { emit(barcode?.let { scanRepo.getCachedByBarcode(it, lang = language.value) }) } }
+        .flatMapLatest { barcode -> flow { emit(barcode?.let { scanRepo.getCachedByBarcode(it, profileId = activeProfileId.value, lang = language.value) }) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /**
@@ -182,7 +187,7 @@ class ScanViewModel @Inject constructor(
     val visibleBarcodeCachedPreviews: StateFlow<Map<String, ScanResult>> = _visibleBarcodes
         .flatMapLatest { codes ->
             if (codes.isEmpty()) flowOf(emptyMap())
-            else flow { emit(codes.distinct().mapNotNull { code -> scanRepo.getCachedByBarcode(code, lang = language.value)?.let { code to it } }.toMap()) }
+            else flow { emit(codes.distinct().mapNotNull { code -> scanRepo.getCachedByBarcode(code, profileId = activeProfileId.value, lang = language.value)?.let { code to it } }.toMap()) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
@@ -198,7 +203,7 @@ class ScanViewModel @Inject constructor(
     // New: how many products scanned today — drives the session counter badge in the
     // scan header. Backed by a live Room query so it updates immediately after each
     // successful scan without any manual increment in the ViewModel.
-    val todayScanCount: StateFlow<Int> = scanRepo.observeTodayScanCount()
+    val todayScanCount: StateFlow<Int> = activeProfileId.flatMapLatest { id -> scanRepo.observeTodayScanCount(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     /** Freemium gate - see UserPreferences.isPremium's own doc comment. Instant
@@ -358,9 +363,9 @@ class ScanViewModel @Inject constructor(
                 // the connectivity check happens inside the repo, after the cache
                 // read, instead of blocking every scan up front.
                 val result = if (barcode != null) {
-                    scanRepo.scoreBarcode(barcode, imgs, lang, online)
+                    scanRepo.scoreBarcode(barcode, imgs, lang, online, profileId = activeProfileId.value)
                 } else {
-                    scanRepo.scoreFromImages(imgs, lang, online)
+                    scanRepo.scoreFromImages(imgs, lang, online, profileId = activeProfileId.value)
                 }
                 result.fold(
                     onSuccess = { (scanResult, id) ->
@@ -384,6 +389,7 @@ class ScanViewModel @Inject constructor(
                                         category = scanResult.product.category,
                                         priceEuros = price,
                                         weightG = scanResult.product.weightG,
+                                        profileId = activeProfileId.value,
                                     )
                                 }
                             }
@@ -495,7 +501,7 @@ class ScanViewModel @Inject constructor(
      */
     fun saveDetectedMedication(entry: MedicationDbEntry) {
         viewModelScope.launch {
-            runCatching { medicationRepo.save(name = entry.name, barcode = entry.barcode) }
+            runCatching { medicationRepo.save(name = entry.name, barcode = entry.barcode, profileId = activeProfileId.value) }
                 .onFailure { e ->
                     if (e is CancellationException) throw e
                     val lang = prefs.language.first()
@@ -525,7 +531,7 @@ class ScanViewModel @Inject constructor(
         val lang = prefs.language.first()
         if (!isOnline()) return Result.failure(Exception(offlineMessage(lang)))
         return scanRepo.identifyOrScoreFromImages(listOf(payload), lang, true, identifyMode = true)
-            .mapCatching { scanResult -> scanResult to scanRepo.persist(scanResult) }
+            .mapCatching { scanResult -> scanResult to scanRepo.persist(scanResult, activeProfileId.value) }
     }
 
     internal fun isOnline(): Boolean {
