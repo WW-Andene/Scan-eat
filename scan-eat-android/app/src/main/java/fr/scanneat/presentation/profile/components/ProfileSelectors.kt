@@ -205,6 +205,14 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     // food caution) in HealthConditionGuidanceDb.kt - same discipline as
     // ibs/crohn_ibd/chronic_diarrhea above, not a no-op label.
     "dental_problems" to stringResource(R.string.condition_dental_problems),
+    // Iron-deficiency anemia: WHO estimates ~2 billion people affected
+    // worldwide, disproportionately women - and unlike anorexia/bulimia
+    // (see the removal note below), this one gets genuinely BROAD reach
+    // because it amplifies the isIronSource/vitamin-C/tannin logic in
+    // ProductHintsPairings.kt, which already fires unconditionally on every
+    // scanned product with declared iron content - not bolted onto a
+    // rarely-used feature. See ProductHintsPairings.kt's hasAnemia branches.
+    "anemia" to stringResource(R.string.condition_anemia),
     // Anorexia/bulimia were tried and removed (user-reported): the only safe
     // effect available - a caution on Biolism's fasting/ketosis toggles - only
     // ever fires for a user who *also* enables one of those two rarely-used
@@ -232,7 +240,7 @@ private fun conditionGroups(): List<Pair<String, List<String>>> = listOf(
     stringResource(R.string.profile_condition_group_metabolic) to listOf("diabetes", "hypertension", "kidney_disease"),
     stringResource(R.string.profile_condition_group_digestive) to listOf("ibs", "crohn_ibd", "chronic_diarrhea"),
     stringResource(R.string.profile_condition_group_neurological) to listOf("chronic_migraine", "epilepsy"),
-    stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression", "dental_problems"),
+    stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression", "dental_problems", "anemia"),
 )
 
 @OptIn(ExperimentalLayoutApi::class)

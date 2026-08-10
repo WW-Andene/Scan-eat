@@ -7,8 +7,9 @@ import fr.scanneat.domain.model.*
 // scoring effect here (WHO sugar/salt guidance, kidney protein load, pregnancy
 // alcohol veto, WCRF/NHS alcohol caution for cancer/depression, American
 // Migraine Foundation/National Headache Foundation trigger-food guidance for
-// chronic_migraine, and - below - Monash low-FODMAP/EU polyol-labeling/
-// Crohn's & Colitis Foundation guidance for ibs/crohn_ibd/chronic_diarrhea).
+// chronic_migraine, Monash low-FODMAP/EU polyol-labeling/Crohn's & Colitis
+// Foundation guidance for ibs/crohn_ibd/chronic_diarrhea, and WHO iron-source
+// guidance for anemia).
 // "thyroid_disorder", "food_allergies" and "intolerances" used to have the
 // same no-op problem (selectable in ProfileSelectors.kt, zero downstream
 // effect here) but were removed entirely instead of left as dead options -
@@ -79,6 +80,7 @@ internal fun checkHealthConditions(
     checkCancerDepressionEpilepsyConditions(product, conditions, lang, alcoholHit, isSugarSweetenedBeverage, adjustments)
     checkMigraineCondition(product, conditions, lang, alcoholHit, adjustments)
     checkGastrointestinalConditions(product, conditions, lang, alcoholHit, adjustments)
+    checkAnemiaCondition(product, conditions, lang, adjustments)
 
     return ConditionalAdjustments(adjustments, veto, dietReason)
 }

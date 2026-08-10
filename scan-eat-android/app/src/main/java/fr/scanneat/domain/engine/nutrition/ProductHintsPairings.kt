@@ -17,11 +17,12 @@ import fr.scanneat.domain.model.Product
  *  match ANSES pregnancy guidance already uses) and passed in here rather
  *  than recomputed, so both callers agree on exactly one caffeine-source
  *  definition. */
-internal fun buildPairings(product: Product, lang: String, containsCaffeineSource: Boolean): Pair<List<String>, List<String>> {
+internal fun buildPairings(product: Product, lang: String, containsCaffeineSource: Boolean, healthConditions: Set<String> = emptySet()): Pair<List<String>, List<String>> {
     val en = lang == "en"
     val n = product.nutrition
     val pairWell = mutableListOf<String>()
     val avoidPairing = mutableListOf<String>()
+    val hasAnemia = "anemia" in healthConditions
 
     // User-requested: increase the number of recipes/ingredients suggested and
     // linked by a scanned or entered ingredient - this and the two identical
@@ -40,19 +41,44 @@ internal fun buildPairings(product: Product, lang: String, containsCaffeineSourc
     val isIronSource = (n.ironMg ?: 0.0) >= 2.1
     val isCalciumSource = (n.calciumMg ?: 0.0) >= 120.0
     if (isIronSource) {
-        pairWell += if (en) "Pair with a vitamin C source (citrus, peppers, kiwi) in the same meal — vitamin C can enhance non-heme iron absorption up to 3-fold"
-                    else "Associez à une source de vitamine C (agrumes, poivron, kiwi) dans le même repas — la vitamine C peut multiplier jusqu'à 3 fois l'absorption du fer non héminique"
-        avoidPairing += if (en) "Avoid pairing with tea, coffee, or a high-calcium dairy product in the same meal — tannins and calcium both significantly reduce iron absorption"
-                        else "Évitez d'associer thé, café ou un produit laitier riche en calcium dans le même repas — tanins et calcium réduisent tous deux nettement l'absorption du fer"
+        // WHO: iron-deficiency anemia affects an estimated ~2 billion people
+        // worldwide — for a user who told us this is their condition, the
+        // existing vitamin-C/tannin mechanism below is escalated from a
+        // generic tip to condition-specific guidance rather than being shown
+        // identically to every other user regardless of profile.
+        pairWell += if (hasAnemia) {
+            if (en) "Good iron source — especially useful if you have iron-deficiency anemia. Pair with a vitamin C source (citrus, peppers, kiwi) in the same meal to boost non-heme iron absorption up to 3-fold (WHO)"
+            else "Bonne source de fer — particulièrement utile en cas d'anémie ferriprive. Associez à une source de vitamine C (agrumes, poivron, kiwi) dans le même repas pour multiplier jusqu'à 3 fois l'absorption du fer non héminique (OMS)"
+        } else {
+            if (en) "Pair with a vitamin C source (citrus, peppers, kiwi) in the same meal — vitamin C can enhance non-heme iron absorption up to 3-fold"
+            else "Associez à une source de vitamine C (agrumes, poivron, kiwi) dans le même repas — la vitamine C peut multiplier jusqu'à 3 fois l'absorption du fer non héminique"
+        }
+        avoidPairing += if (hasAnemia) {
+            if (en) "With iron-deficiency anemia, avoid tea, coffee, or a high-calcium dairy product in the same meal — tannins and calcium both significantly reduce iron absorption"
+            else "En cas d'anémie ferriprive, évitez thé, café ou un produit laitier riche en calcium dans le même repas — tanins et calcium réduisent tous deux nettement l'absorption du fer"
+        } else {
+            if (en) "Avoid pairing with tea, coffee, or a high-calcium dairy product in the same meal — tannins and calcium both significantly reduce iron absorption"
+            else "Évitez d'associer thé, café ou un produit laitier riche en calcium dans le même repas — tanins et calcium réduisent tous deux nettement l'absorption du fer"
+        }
     } else if (isCalciumSource) {
         // Only fires when the product isn't already the iron source itself,
         // so a food that's rich in both doesn't warn about pairing with itself.
-        avoidPairing += if (en) "Avoid taking at the same time as an iron-rich food or supplement — calcium competes with iron for intestinal absorption (space by about 2 hours if both matter to you)"
-                        else "Évitez de le prendre en même temps qu'un aliment ou complément riche en fer — le calcium entre en compétition avec le fer pour l'absorption intestinale (espacez d'environ 2 heures si les deux vous concernent)"
+        avoidPairing += if (hasAnemia) {
+            if (en) "With iron-deficiency anemia, avoid taking at the same time as an iron-rich food or supplement — calcium competes with iron for intestinal absorption (space by about 2 hours)"
+            else "En cas d'anémie ferriprive, évitez de le prendre en même temps qu'un aliment ou complément riche en fer — le calcium entre en compétition avec le fer pour l'absorption intestinale (espacez d'environ 2 heures)"
+        } else {
+            if (en) "Avoid taking at the same time as an iron-rich food or supplement — calcium competes with iron for intestinal absorption (space by about 2 hours if both matter to you)"
+            else "Évitez de le prendre en même temps qu'un aliment ou complément riche en fer — le calcium entre en compétition avec le fer pour l'absorption intestinale (espacez d'environ 2 heures si les deux vous concernent)"
+        }
     }
     if (containsCaffeineSource && !isIronSource) {
-        avoidPairing += if (en) "Avoid pairing with iron-rich meals — the tannins in coffee/tea/cocoa can cut iron absorption by up to 60%"
-                        else "Évitez de l'associer à un repas riche en fer — les tanins du café/thé/cacao peuvent réduire l'absorption du fer jusqu'à 60 %"
+        avoidPairing += if (hasAnemia) {
+            if (en) "With iron-deficiency anemia, avoid pairing with iron-rich meals — the tannins in coffee/tea/cocoa can cut iron absorption by up to 60%"
+            else "En cas d'anémie ferriprive, évitez de l'associer à un repas riche en fer — les tanins du café/thé/cacao peuvent réduire l'absorption du fer jusqu'à 60 %"
+        } else {
+            if (en) "Avoid pairing with iron-rich meals — the tannins in coffee/tea/cocoa can cut iron absorption by up to 60%"
+            else "Évitez de l'associer à un repas riche en fer — les tanins du café/thé/cacao peuvent réduire l'absorption du fer jusqu'à 60 %"
+        }
     }
     n.vitDUg?.let { if (it >= 0.5) pairWell += if (en) "Best absorbed with a source of dietary fat in the same meal — vitamin D is fat-soluble"
                                                 else "Mieux absorbée avec une source de matière grasse dans le même repas — la vitamine D est liposoluble" }

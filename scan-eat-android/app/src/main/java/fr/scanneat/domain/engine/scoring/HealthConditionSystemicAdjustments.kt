@@ -113,3 +113,26 @@ internal fun checkCancerDepressionEpilepsyConditions(
         )
     }
 }
+
+/** WHO: iron-deficiency anemia affects an estimated ~2 billion people
+ *  worldwide - a positive reinforcement bonus (not a caution/veto, since
+ *  there's nothing to avoid) for the same NRV "iron source" threshold
+ *  ProductHintsPairings.kt already uses (>=2.1 mg/100g, 15% of 14mg per EU
+ *  Reg 1169/2011 Annex XIII), so the score and the hint panel agree on
+ *  exactly what counts as an iron source for this condition. */
+internal fun checkAnemiaCondition(
+    product: Product,
+    conditions: Set<String>,
+    lang: String,
+    adjustments: MutableList<PersonalAdjustment>,
+) {
+    if ("anemia" !in conditions) return
+    if ((product.nutrition.ironMg ?: 0.0) >= 2.1) {
+        adjustments += PersonalAdjustment(
+            points = 2.0,
+            reason = if (lang == "en") "Good iron source — helpful for iron-deficiency anemia (WHO)"
+                     else "Bonne source de fer — utile en cas d'anémie ferriprive (OMS)",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
+}

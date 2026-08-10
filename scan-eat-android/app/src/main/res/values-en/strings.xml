@@ -693,6 +693,7 @@
     <string name="condition_chronic_migraine">Chronic migraine</string>
     <string name="condition_epilepsy">Epilepsy</string>
     <string name="condition_dental_problems">Dental problems</string>
+    <string name="condition_anemia">Iron-deficiency anemia</string>
     <string name="sex_male">Male</string>
     <string name="sex_female">Female</string>
     <string name="sex_not_specified">Not specified</string>
