@@ -35,6 +35,19 @@ internal val ADDITIVES_TIER2: List<AdditiveInfo> = listOf(
         "Azo dye. EU warning label.", "McCann et al. 2007; EU 1333/2008 Annex V."),
     AdditiveInfo("E104", listOf("jaune de quinoléine", "quinoline yellow"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
         "Quinophthalone dye; EU warning label.", "McCann et al. 2007; EU 1333/2008 Annex V."),
+    // Previously absent from the DB entirely - a product listing "E133"/
+    // "colorant bleu brillant FCF" (common in blue candy, blue slushies,
+    // sports drinks) matched no entry across all tiers and scored as if
+    // additive-free. Not part of the McCann/Annex V six-dye "may affect
+    // activity and attention" warning list above (that's specific to
+    // E102/E104/E110/E122/E124/E129), so tiered separately rather than
+    // reusing that citation - EFSA re-evaluated E151 in 2015 and
+    // substantially lowered its ADI over a genotoxicity signal, warranting
+    // the same moderate-concern tier as the azo dyes above for that reason
+    // specifically, not the Southampton study.
+    AdditiveInfo("E151", listOf("noir brillant bn", "brilliant black bn"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
+        "Synthetic colorant. EFSA substantially lowered the ADI in its 2015 re-evaluation over a genotoxicity signal.",
+        "EFSA Scientific Opinion 2015;13(2):4022."),
     AdditiveInfo("E173", listOf("aluminium"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
         "Aluminium metallic colorant; neurotoxicity TWI.", "EFSA 2008;754 (TWI 1 mg/kg bw/week)."),
     AdditiveInfo("E150", listOf("colorant caramel"), AdditiveTier.TWO, AdditiveCategory.COLORANT,

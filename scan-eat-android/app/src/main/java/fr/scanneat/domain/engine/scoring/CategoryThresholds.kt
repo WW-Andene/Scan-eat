@@ -132,6 +132,20 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // so "Biscuits salés apéritif" previously matched here first and got
     // scored against sweet-snack thresholds (kcal/protein/fiber tuned for
     // cookies) instead of the salty-cracker thresholds it actually needs.
+    // Checked before SNACK_SWEET below, not after - a "barre de céréales au
+    // chocolat" or "céréales chocolatées" contains both "céréale" and
+    // "chocolat", and SNACK_SWEET's own chocolats?\b pattern used to sit
+    // first in the list (first-match-wins), so any name literally containing
+    // the token "chocolat" got SNACK_SWEET's thresholds (fiberG 2/4/6,
+    // expectMicronutrients=false) instead of BREAKFAST_CEREAL's (fiberG
+    // 5/8/12, expectMicronutrients=true) - even though a real chocolate-
+    // coated granola/cereal bar runs ~6-8g fiber/100g and is often fortified,
+    // structurally closer to a cereal than a candy bar. Same
+    // shadowing-keyword class already fixed for "biscuits salés" below, just
+    // solved here by reordering instead of a negative lookahead (a plain
+    // "Tablette de chocolat noir" has no cereal keyword, so it still
+    // correctly falls through to SNACK_SWEET regardless of this reorder).
+    Regex("""c[eé]r[eé]ales?\b|\bcereal\b|\bmuesli\b|\bgranola\b|porridge|flocons d['']avoine|\boats\b|cornflakes|chocapic|special k|fitness""", RegexOption.IGNORE_CASE) to ProductCategory.BREAKFAST_CEREAL,
     Regex("""chocolats?\b|\bchocolate\b|\bbonbon|\bcandy\b|biscuits?\b(?!\s*(sal[eé]s?|ap[eé]ritif))|cookies?\b|g[aâ]teaux?\b|\bcakes?\b|\btartes?\b|\btarts?\b|brownie|\bdonut\b|beignet|barre chocolat[eé]e|kinder|nutella|m&m|haribo|m[aâ]rs|snickers|twix|bounty|gauffres?\b|cr[eê]pes?\b|p[aâ]te [aà] tartiner""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SWEET,
     Regex("""\bsaumon\b|\bthon\b|sardine|maquereau|\bhareng\b|cabillaud|\bmerlu\b|\bcolin\b|\btruite\b|crevette|\bcrabe\b|\bmoules\b|hu[iî]tres|(?:filet|darne|pav[eé]) de bar\b|\bdorade\b""", RegexOption.IGNORE_CASE) to ProductCategory.FISH,
     // Trailing \b right after an accented letter never matches in Java regex
@@ -144,7 +158,6 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bjambon\b|saucisson|chorizo|\bbacon\b|\blardon|\bsalami\b|pancetta|prosciutto|merguez|\brillettes\b|\bp[aâ]t[eé](?![\w\p{L}])""", RegexOption.IGNORE_CASE) to ProductCategory.PROCESSED_MEAT,
     Regex("""\bpoulet\b|\bb[oœ]uf\b|\bporc\b|\bagneau\b|\bdinde\b|\bcanard\b|viande hach[eé]e|\bsteaks?\b|escalope|magret""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_MEAT,
     Regex("""\bpain\b|\bbread\b|baguette|brioche|focaccia|ciabatta|\btoasts?\b|\bpita\b|tortilla|\bcracotte""", RegexOption.IGNORE_CASE) to ProductCategory.BREAD,
-    Regex("""c[eé]r[eé]ales?\b|\bcereal\b|\bmuesli\b|\bgranola\b|porridge|flocons d['']avoine|\boats\b|cornflakes|chocapic|special k|fitness""", RegexOption.IGNORE_CASE) to ProductCategory.BREAKFAST_CEREAL,
     Regex("""plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
     Regex("""\bsoupe?s?\b|velout[eé]s?(?![\w\p{L}])|\bpotages?\b|\bbouillons?\b|\bbroths?\b|consomm[eé]s?(?![\w\p{L}])|minestrone|gaspacho|gazpacho""", RegexOption.IGNORE_CASE) to ProductCategory.SOUP,
     // confiture/marmelade/honey added — same "eaten by the tablespoon, not the

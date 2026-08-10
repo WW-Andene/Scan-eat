@@ -7,6 +7,23 @@ package fr.scanneat.domain.engine.scoring
 // ============================================================================
 
 internal val ADDITIVES_TIER3_CORE: List<AdditiveInfo> = listOf(
+    // E131/E132/E133/E142 previously absent from the DB entirely - common
+    // in blue/green confectionery, sports drinks, and savory snack coatings
+    // (E133 especially, ubiquitous in blue candy/slushies). Each has an
+    // EFSA-reaffirmed ADI with no EU Annex V "may affect activity and
+    // attention" warning label (unlike the azo dyes in AdditivesTier2.kt) -
+    // Tier 3 reflects that lower-concern regulatory status accurately,
+    // rather than defaulting to Tier 2 just because they're synthetic dyes.
+    AdditiveInfo("E131", listOf("bleu patenté v", "patent blue v"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Synthetic colorant; EFSA-reaffirmed ADI. Rare allergic/urticarial reactions reported in sensitive individuals.",
+        "EFSA Scientific Opinion 2013;11(10):3374."),
+    AdditiveInfo("E132", listOf("indigotine", "indigo carmine"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Synthetic colorant; EFSA-reaffirmed ADI.", "EFSA Scientific Opinion 2014;12(7):3768."),
+    AdditiveInfo("E133", listOf("bleu brillant fcf", "brilliant blue fcf"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Synthetic colorant; EFSA-reaffirmed ADI, among the better-studied synthetic blue dyes.",
+        "EFSA Scientific Opinion 2010;8(11):1853."),
+    AdditiveInfo("E142", listOf("vert s", "green s"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Synthetic colorant; EFSA-reaffirmed ADI.", "EFSA Scientific Opinion 2010;8(11):1851."),
     AdditiveInfo("E407", listOf("carraghénane", "carrageenan"), AdditiveTier.THREE, AdditiveCategory.THICKENER,
         "EFSA reaffirmed safety at use levels; animal inflammation signals not replicated at dietary doses.", "EFSA 2018;16(4):5238."),
     AdditiveInfo("E471", listOf("mono- et diglycérides d'acides gras"), AdditiveTier.THREE, AdditiveCategory.EMULSIFIER,

@@ -148,6 +148,10 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
         "Azo dye. EU warning label.", "McCann et al. 2007; EU 1333/2008 Annex V."),
     AdditiveInfo("E104", listOf("jaune de quinoléine", "quinoline yellow"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
         "Quinophthalone dye; EU warning label.", "McCann et al. 2007; EU 1333/2008 Annex V."),
+    // Mirrors the identical fix on the Android side (see Scoring Drift Check).
+    AdditiveInfo("E151", listOf("noir brillant bn", "brilliant black bn"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
+        "Synthetic colorant. EFSA substantially lowered the ADI in its 2015 re-evaluation over a genotoxicity signal.",
+        "EFSA Scientific Opinion 2015;13(2):4022."),
     AdditiveInfo("E173", listOf("aluminium"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
         "Aluminium metallic colorant; neurotoxicity TWI.", "EFSA 2008;754 (TWI 1 mg/kg bw/week)."),
     AdditiveInfo("E150", listOf("colorant caramel"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
@@ -191,6 +195,17 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
         "Humectant/solvent; low EFSA ADI; narrowly restricted.", "EFSA 2018;16(4):5235."),
 
     // ===== TIER 3: Minor / contextual =====
+    // Mirrors the identical fix on the Android side (see Scoring Drift Check).
+    AdditiveInfo("E131", listOf("bleu patenté v", "patent blue v"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Synthetic colorant; EFSA-reaffirmed ADI. Rare allergic/urticarial reactions reported in sensitive individuals.",
+        "EFSA Scientific Opinion 2013;11(10):3374."),
+    AdditiveInfo("E132", listOf("indigotine", "indigo carmine"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Synthetic colorant; EFSA-reaffirmed ADI.", "EFSA Scientific Opinion 2014;12(7):3768."),
+    AdditiveInfo("E133", listOf("bleu brillant fcf", "brilliant blue fcf"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Synthetic colorant; EFSA-reaffirmed ADI, among the better-studied synthetic blue dyes.",
+        "EFSA Scientific Opinion 2010;8(11):1853."),
+    AdditiveInfo("E142", listOf("vert s", "green s"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Synthetic colorant; EFSA-reaffirmed ADI.", "EFSA Scientific Opinion 2010;8(11):1851."),
     AdditiveInfo("E407", listOf("carraghénane", "carrageenan"), AdditiveTier.THREE, AdditiveCategory.THICKENER,
         "EFSA reaffirmed safety at use levels; animal inflammation signals not replicated at dietary doses.", "EFSA 2018;16(4):5238."),
     AdditiveInfo("E471", listOf("mono- et diglycérides d'acides gras"), AdditiveTier.THREE, AdditiveCategory.EMULSIFIER,
