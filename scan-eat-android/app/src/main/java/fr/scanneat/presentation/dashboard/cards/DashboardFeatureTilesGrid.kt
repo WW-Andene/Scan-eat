@@ -21,6 +21,7 @@ import compose.icons.tablericons.Search
 import compose.icons.tablericons.ShoppingCart
 import compose.icons.tablericons.Star
 import fr.scanneat.R
+import fr.scanneat.presentation.dashboard.FeatureTile
 import fr.scanneat.presentation.ui.theme.Spacing
 
 /**

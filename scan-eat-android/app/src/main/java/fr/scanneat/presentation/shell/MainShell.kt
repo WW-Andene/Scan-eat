@@ -38,6 +38,7 @@ import kotlinx.coroutines.delay
  *  much later than the Journal header's equivalent. */
 private const val NAV_ARM_AUTO_CANCEL_MS = 10_000L
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun MainShell(
     startOnboarding: Boolean = false,

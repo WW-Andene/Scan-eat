@@ -234,6 +234,7 @@ internal fun BoxScope.DiaryHeader(
  * the hold duration is now the platform's standard long-press timeout
  * (~500ms), not a custom 2s.
  */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun HoldToArmMenuItem(
     tab: DiaryTab,
