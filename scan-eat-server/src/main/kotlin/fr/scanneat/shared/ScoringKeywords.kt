@@ -18,7 +18,11 @@ internal val WHOLE_FOOD_KEYWORDS = listOf(
     "lin","chia","tournesol","riz","quinoa","avoine","blé","ble","seigle","orge",
     "sarrasin","farine complète","farine complete","oeuf","œuf","poisson",
     "saumon","thon","sardine","maquereau","poulet","boeuf","porc","viande",
-    "dinde","canard","agneau","jambon","fromage","lait","yaourt","skyr","eau","miel",
+    // "jambon" (ham) deliberately excluded - cured/processed by definition,
+    // never a raw whole food, unlike porc/viande above which can name a raw
+    // cut. Mirrors the identical fix on the Android side (see Scoring Drift
+    // Check).
+    "dinde","canard","agneau","fromage","lait","yaourt","skyr","eau","miel",
     "légume","legume",
     // Added — already recognized by FRESH_PRODUCE_NAME below (or, for the
     // seafood/legume/soy entries, matching the same whole-food tier as the

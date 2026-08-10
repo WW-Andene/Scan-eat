@@ -7,9 +7,11 @@ package fr.scanneat.shared
 // for why. Purely structural move, no behavior change.
 // ============================================================================
 
+// protein/fiber excluded - already scored on their own dedicated axes below;
+// including them here double-counted the identical field under a mislabeled
+// "micronutrient" badge. Mirrors the identical fix on the Android side (see
+// Scoring Drift Check).
 private val NRV_TARGETS = mapOf(
-    "protein"   to Pair("proteinG",  50.0),
-    "fiber"     to Pair("fiberG",    25.0),
     "iron"      to Pair("ironMg",    14.0),
     "calcium"   to Pair("calciumMg", 800.0),
     "vitD"      to Pair("vitDUg",    5.0),

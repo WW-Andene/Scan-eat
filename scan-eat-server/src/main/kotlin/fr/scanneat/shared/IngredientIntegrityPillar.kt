@@ -51,7 +51,11 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
         val n = ing.name.lowercase()
         n.length < 40 && !Regex("""isolat|hydrolysat|concentré|modifié|extrait sec""", RegexOption.IGNORE_CASE).containsMatchIn(n)
     }
-    val recogRatio = if (nonAdditive.isNotEmpty()) recognizable.toDouble() / nonAdditive.size else 1.0
+    // nonAdditive.isEmpty() (all-additive ingredient list) previously
+    // defaulted to 1.0 - the vacuous "0/0" was read as 100% recognizable.
+    // Mirrors the identical fix on the Android side (see Scoring Drift Check).
+    val recogRatio = if (nonAdditive.isNotEmpty()) recognizable.toDouble() / nonAdditive.size
+        else if (product.ingredients.isNotEmpty()) 0.0 else 1.0
     val recogScore = when {
         recogRatio >= 0.8 -> 3.0
         recogRatio >= 0.6 -> 2.0
@@ -62,9 +66,11 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     if (recogScore < 3) deductions += Deduction("ingredient_integrity", if (en) "${(recogRatio * 100).toInt()}% recognizable ingredients (${recogScore.toInt()}/3)" else "${(recogRatio * 100).toInt()}% d'ingrédients reconnaissables (${recogScore.toInt()}/3)", recogScore - 3, Severity.MINOR)
 
     // 3. Origin transparency (+2)
-    if (product.originTransparent || product.origin != null) {
+    // Mirrors the identical fix on the Android side (see Scoring Drift Check).
+    val hasOrigin = !product.origin.isNullOrBlank()
+    if (product.originTransparent || hasOrigin) {
         score += 2
-        bonuses += Deduction("ingredient_integrity", (if (en) "Origin declared: " else "Origine déclarée : ") + (product.origin ?: (if (en) "transparent" else "transparente")), 2.0, Severity.INFO)
+        bonuses += Deduction("ingredient_integrity", (if (en) "Origin declared: " else "Origine déclarée : ") + (product.origin?.takeIf { hasOrigin } ?: (if (en) "transparent" else "transparente")), 2.0, Severity.INFO)
     } else {
         deductions += Deduction("ingredient_integrity", if (en) "No origin information" else "Aucune information d'origine", -2.0, Severity.MINOR)
     }

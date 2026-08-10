@@ -64,8 +64,21 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
             b("E631|E635"), // ribonucleotides — often animal-derived
             b("cochenille|carmin|phosphate osseux|lanoline"),
         ),
+        // Restricted to V-Label (European Vegetarian Union's actual
+        // certification mark), not bare marketing words - "vegan"/"plant-
+        // based"/"100% végétal" are self-declared claims a manufacturer can
+        // print without third-party verification, unlike HALAL/KOSHER/
+        // GLUTEN_FREE's own preferred lists below, which only accept named
+        // certifying bodies or an explicit certified-mark phrase. Since
+        // CERTIFICATION_OVERRIDE_DIETS treats any preferred-pattern hit as
+        // trumping detected violations (wiping effectiveViolations to
+        // empty), the bare word "plant-based" appearing anywhere in the
+        // product name or ingredient text - including a mislabeled/
+        // incomplete OFF record that still lists "lait"/dairy as an
+        // ingredient - previously erased a real, correctly-detected VEGAN
+        // violation and reported the product compliant.
         preferred = listOf(
-            b("v[eé]gan|v-label|vegan|plant-based|100% v[eé]g[eé]tal"),
+            b("v-label|v[eé]gan certifi[eé]|certified vegan"),
         ),
         // B12 exists naturally only in animal foods (or fortified plant products the
         // scanner already treats as compliant) - a vegan diet has no other source in

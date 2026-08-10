@@ -15,7 +15,15 @@ internal val WHOLE_FOOD_KEYWORDS = listOf(
     "lin","chia","tournesol","riz","quinoa","avoine","blé","ble","seigle","orge",
     "sarrasin","farine complète","farine complete","oeuf","œuf","poisson",
     "saumon","thon","sardine","maquereau","poulet","boeuf","porc","viande",
-    "dinde","canard","agneau","jambon","fromage","lait","yaourt","skyr","eau","miel",
+    // "jambon" (ham) deliberately excluded, unlike "porc"/"viande" above -
+    // porc/viande can name a raw whole cut, but ham is cured/processed by
+    // definition (salt, nitrites, sometimes phosphates), never a raw whole
+    // food. Including it let a cured deli product (e.g. "Jambon-beurre"
+    // listing "Jambon" as ingredient #1) earn the "first 3 ingredients are
+    // whole foods" bonus and a factually wrong "aliments bruts" badge for
+    // the same product IngredientIntegrityPillar/AdditiveRiskPillar
+    // elsewhere score as processed for its nitrite content.
+    "dinde","canard","agneau","fromage","lait","yaourt","skyr","eau","miel",
     "légume","legume",
     // Added — already recognized by FRESH_PRODUCE_NAME below (or, for the
     // seafood/legume/soy entries, matching the same whole-food tier as the

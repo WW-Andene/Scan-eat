@@ -6,9 +6,18 @@ import fr.scanneat.domain.model.*
 // SECTION 6: PILLAR 2 — NUTRITIONAL DENSITY (max 25)
 // ============================================================================
 
+// protein/fiber deliberately excluded from this map - they're macros, not
+// micronutrients, each already scored on its own dedicated 0-7 axis a few
+// lines below in scoreNutritionalDensity(). Including them here (as this map
+// used to) double-counted the identical field: a product scoring the full
+// 7/7 on the dedicated protein or fiber axis also earned +1 more inside this
+// "micronutrient richness" bonus loop just for clearing 15% of the same
+// 50g/25g figure, awarded under a mislabeled "micronutrient" badge for a
+// macronutrient. Fiber additionally has no official EU NRV at all (Reg
+// 1169/2011 Annex XIII lists none) - the 25g figure here is a Codex/EFSA
+// dietary-fiber DRV, not an NRV in the same regulatory sense as the vitamin/
+// mineral figures it was mixed in with.
 private val NRV_TARGETS = mapOf(
-    "protein"   to Pair("proteinG",  50.0),
-    "fiber"     to Pair("fiberG",    25.0),
     "iron"      to Pair("ironMg",    14.0),
     "calcium"   to Pair("calciumMg", 800.0),
     "vitD"      to Pair("vitDUg",    5.0),
