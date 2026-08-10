@@ -32,7 +32,6 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SeparatorLight
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.semanticAmber
 
 /** Profile-form selectors — stateless, all state lives in the caller (ProfileScreen/ProfileViewModel). */
@@ -281,7 +280,12 @@ internal fun ConditionsSelector(current: Set<String>, onSelect: (Set<String>) ->
                             onClick  = { onSelect(if (key in current) current - key else current + key) },
                             label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
+                                // User-reported: this selector was the only one on the whole
+                                // Profile screen not using AccentCoral (Sex/Goal/Activity/Diet
+                                // all do) - Teal here read as a stray default-blue color with
+                                // no rationale, unlike its deliberate, documented use elsewhere
+                                // (Medication/Activity/Biolism dialogs).
+                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                                 labelColor = OnBackground.copy(0.7f),
                             ),
                         )
