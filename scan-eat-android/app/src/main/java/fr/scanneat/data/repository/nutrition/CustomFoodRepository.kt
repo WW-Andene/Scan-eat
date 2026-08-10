@@ -179,6 +179,33 @@ class CustomFoodRepository @Inject constructor(
         const val MAX_ROWS = 5000
     }
 
+    /**
+     * Re-applies [save]'s macro/micronutrient clamps to a raw nutritionJson blob -
+     * used by BackupRepository.importFromJson so a hand-edited or corrupted backup
+     * file's custom-food rows get the same out-of-range guard live-saved rows
+     * already have, instead of landing in the DB verbatim via a raw insertAll()
+     * that bypasses save() entirely. Returns [raw] unchanged if it doesn't parse
+     * (caller already drops/keeps the row on its own terms; this only clamps).
+     */
+    fun clampNutritionJson(raw: String): String {
+        val j = runCatching { jsonAdapter.fromJson(raw) }.getOrNull() ?: return raw
+        val clamped = j.copy(
+            kcal = j.kcal.coerceIn(0.0, 900.0),
+            proteinG = j.proteinG.coerceIn(0.0, 100.0),
+            carbsG = j.carbsG.coerceIn(0.0, 100.0),
+            fatG = j.fatG.coerceIn(0.0, 100.0),
+            fiberG = j.fiberG.coerceIn(0.0, 100.0),
+            saltG = j.saltG.coerceIn(0.0, 100.0),
+            saturatedFatG = j.saturatedFatG.coerceIn(0.0, 100.0),
+            sugarsG = j.sugarsG.coerceIn(0.0, 100.0),
+            ironMg = j.ironMg.coerceIn(0.0, 100.0),
+            calciumMg = j.calciumMg.coerceIn(0.0, 2500.0),
+            vitDUg = j.vitDUg.coerceIn(0.0, 250.0),
+            b12Ug = j.b12Ug.coerceIn(0.0, 100.0),
+        )
+        return jsonAdapter.toJson(clamped)
+    }
+
     suspend fun delete(id: String) = dao.delete(id)
 
     /**

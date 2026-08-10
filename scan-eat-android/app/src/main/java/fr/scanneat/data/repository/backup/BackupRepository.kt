@@ -26,6 +26,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
 import fr.scanneat.data.repository.planning.GroceryCheckedRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
@@ -59,6 +60,9 @@ class BackupRepository @Inject constructor(
     private val scanHistoryDao: ScanHistoryDao,
     private val consumptionDao: ConsumptionDao,
     private val customFoodDao: CustomFoodDao,
+    // Only used for its clampNutritionJson() helper - see importFromJson's own
+    // doc comment on why import needs the same out-of-range guard save() applies.
+    private val customFoodRepo: CustomFoodRepository,
     private val weightDao: WeightDao,
     private val activityDao: ActivityDao,
     private val mealTemplateDao: MealTemplateDao,
@@ -242,11 +246,25 @@ class BackupRepository @Inject constructor(
                 if (row.barcode != null) existingCustomFoodBarcodes.add(row.barcode)
                 else existingCustomFoodNames.add(row.name.lowercase())
             }
-            customFoodDao.insertAll(newCustomFoods)
+            // A raw insertAll() previously bypassed save()'s macro clamps entirely -
+            // a hand-edited or corrupted backup file's nutritionJson (e.g. kcal:
+            // 999999) landed in the DB verbatim, silently corrupting MicronutrientCard/
+            // dailyTargets/chronic-gap-detection math for that food from then on.
+            customFoodDao.insertAll(newCustomFoods.map {
+                it.copy(nutritionJson = customFoodRepo.clampNutritionJson(it.nutritionJson))
+            })
 
             // Bundle rows are plaintext (decryptedForBackup ran on export) - re-encrypt
-            // before they land in the DB, same as medications above.
-            weightDao.insertAll(bundle.weights.map { it.encryptedFromBackup() })
+            // before they land in the DB, same as medications above. weightKg is
+            // clamped to WeightRepository.log()'s own require(weightKg > 0 &&
+            // weightKg <= 400) bound - a raw insertAll() previously bypassed that
+            // guard entirely, so a hand-edited/corrupted backup could silently
+            // insert a negative or absurd weight, corrupting the trend chart/BMI/
+            // TDEE math every downstream reader (ProfileViewModel, DashboardViewModel,
+            // ActivityViewModel, BiolismRepository) assumes is a physically real value.
+            weightDao.insertAll(bundle.weights.map {
+                it.encryptedFromBackup().copy(weightKg = it.weightKg.coerceIn(0.1, 400.0))
+            })
             activityDao.insertAll(bundle.activities)
             mealTemplateDao.insertAll(bundle.mealTemplates)
             recipeDao.insertAll(bundle.recipes)
