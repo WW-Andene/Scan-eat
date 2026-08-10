@@ -43,6 +43,20 @@ class ReminderWorker @AssistedInject constructor(
     private fun localizedString(lang: String, resId: Int): String =
         localizedString(applicationContext, lang, resId)
 
+    // Plain med.id.hashCode() used to double as both the notification id and the
+    // PendingIntent request code - String.hashCode() ranges over the full 32-bit
+    // Int space, so it could land on one of the fixed meal/hydration/weight/digest
+    // ids (101-111) or a custom reminder's id (910+), silently replacing
+    // (FLAG_UPDATE_CURRENT) an unrelated reminder's notification on screen with a
+    // medication one or vice versa. Reserved base offset keeps every medication id
+    // out of the low ranges every other reminder type uses; the modulo bound still
+    // leaves a (very low, pre-existing) chance of two medications colliding with
+    // each other, but that was already true of the raw hashCode and isn't what
+    // this fix targets - closing the cross-type collision is the real, deterministic
+    // improvement here.
+    private fun medicationNotificationId(medId: String): Int =
+        MEDICATION_NOTIF_ID_BASE + (medId.hashCode() and 0x7FFFFFFF) % MEDICATION_NOTIF_ID_RANGE
+
     override suspend fun doWork(): Result {
         val s = remindersRepo.settings.first()
         val lang = prefs.language.first()
@@ -106,7 +120,7 @@ class ReminderWorker @AssistedInject constructor(
         medicationRepo.observeAll(profileId).first().filter { it.active && it.reminderOn }.forEach { med ->
             val title = localizedString(lang, R.string.reminders_notif_medication_title)
             val body = String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name)
-            val justFired = checkMeal(true, med.reminderTime, remindersRepo.medicationLastFiredKey(med.id), now, med.id.hashCode(), title, body, NotifChannel.MEDICATION)
+            val justFired = checkMeal(true, med.reminderTime, remindersRepo.medicationLastFiredKey(med.id), now, medicationNotificationId(med.id), title, body, NotifChannel.MEDICATION)
 
             // Dose reminders used to fire once at the scheduled time and go silent
             // regardless of whether the dose was ever logged. MedicationLogEntry
@@ -120,7 +134,7 @@ class ReminderWorker @AssistedInject constructor(
                 // naggy rather than a helpful nudge, with no acknowledgment this is
                 // a repeat.
                 val repeatBody = String.format(localizedString(lang, R.string.reminders_notif_medication_body_repeat), med.name)
-                NotificationHelper.show(applicationContext, med.id.hashCode(), title, repeatBody, NotifChannel.MEDICATION)
+                NotificationHelper.show(applicationContext, medicationNotificationId(med.id), title, repeatBody, NotifChannel.MEDICATION)
             }
         }
 
@@ -192,5 +206,11 @@ class ReminderWorker @AssistedInject constructor(
     companion object {
         val K_LAST_DIGEST_DATE = androidx.datastore.preferences.core.stringPreferencesKey("rem_last_digest_date")
         private const val MEDICATION_RENOTIFY_MINUTES = 60L
+        // Reserved id range for medication notifications - stays clear of the
+        // fixed 101-111 ids above and the custom-reminder range (910+, see
+        // RemindersRepository.K_CUSTOM_NEXT_ID), so a medication's derived id can
+        // never collide with a non-medication reminder's notification/PendingIntent.
+        private const val MEDICATION_NOTIF_ID_BASE = 2_000_000
+        private const val MEDICATION_NOTIF_ID_RANGE = 500_000
     }
 }
