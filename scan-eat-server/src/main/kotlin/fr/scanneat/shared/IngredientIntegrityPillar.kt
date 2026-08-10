@@ -86,10 +86,24 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
         val n = ing.name.lowercase()
         GENERIC_OIL_TERMS.any { n.contains(it) }
     }
-    if (product.namedOils != false && !hasGenericOil) {
+    // product.namedOils is near-always null for barcode-scanned OFF products
+    // (it's only populated on the LLM fresh-food-identification path), so
+    // `product.namedOils != false` was true for virtually every product
+    // regardless of whether it contained any oil at all - an oil-free product
+    // (fish fillet, yogurt, soda) silently collected the same +3 "oils
+    // specifically named" bonus as one that genuinely listed olive/sunflower
+    // oil by name. Requiring an actual NAMED_OIL_TERMS match closes that gap;
+    // a product with no oil ingredient now scores neutral on this sub-check
+    // instead of vetoed or rewarded. Mirrors the identical fix on the Android
+    // side (see Scoring Drift Check).
+    val hasNamedOil = product.ingredients.any { ing ->
+        val n = ing.name.lowercase()
+        NAMED_OIL_TERMS.any { n.contains(it) }
+    }
+    if (hasNamedOil && !hasGenericOil) {
         score += 3
         bonuses += Deduction("ingredient_integrity", if (en) "Oils specifically named" else "Huiles nommées précisément", 3.0, Severity.INFO)
-    } else {
+    } else if (hasGenericOil) {
         deductions += Deduction("ingredient_integrity", if (en) "Generic \"vegetable oil\" instead of specific named oil" else "Huile végétale générique au lieu d'une huile précisément nommée", -3.0, Severity.MINOR)
     }
 

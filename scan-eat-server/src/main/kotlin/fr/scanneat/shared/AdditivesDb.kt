@@ -95,6 +95,26 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
     AdditiveInfo("E224", listOf("métabisulfite de potassium", "potassium metabisulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
+    // Previously absent from the DB entirely despite being referenced by name
+    // in AdditiveRiskPillar.kt's SULFITE_E_NUMBERS set - a wine/cider using
+    // any of these five instead of E220/E221/E223/E224 was invisible to
+    // findAdditive() and scored as if additive-free. Mirrors the identical
+    // fix on the Android side (see Scoring Drift Check).
+    AdditiveInfo("E222", listOf("bisulfite de sodium", "sodium bisulfite", "sodium hydrogen sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+        "Sulfite — mandatory EU allergen.",
+        "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
+    AdditiveInfo("E225", listOf("sulfite de potassium", "potassium sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+        "Sulfite — mandatory EU allergen.",
+        "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
+    AdditiveInfo("E226", listOf("sulfite de calcium", "calcium sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+        "Sulfite — mandatory EU allergen.",
+        "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
+    AdditiveInfo("E227", listOf("bisulfite de calcium", "calcium bisulfite", "calcium hydrogen sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+        "Sulfite — mandatory EU allergen.",
+        "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
+    AdditiveInfo("E228", listOf("bisulfite de potassium", "potassium bisulfite", "potassium hydrogen sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+        "Sulfite — mandatory EU allergen.",
+        "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
     AdditiveInfo("E385", listOf("edta", "calcium disodium edta"), AdditiveTier.ONE, AdditiveCategory.SEQUESTRANT,
         "Metal chelator. High chronic intake can affect mineral bioavailability.",
         "EFSA Scientific Opinion 2018;16(11):5007 (ADI 1.9 mg/kg bw/day)."),

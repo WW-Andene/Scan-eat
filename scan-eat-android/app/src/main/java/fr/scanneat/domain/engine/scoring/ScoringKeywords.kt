@@ -34,6 +34,15 @@ internal val GENERIC_OIL_TERMS = listOf(
     "graisse végétale","graisse vegetale",
 )
 
+internal val NAMED_OIL_TERMS = listOf(
+    "huile de tournesol","huile d'olive","huile de colza","huile de canola",
+    "huile de palme","huile de coco","huile de noix de coco","huile de noix","huile d'arachide",
+    "huile de sésame","huile de sesame","huile de pépins de raisin","huile de pepins de raisin",
+    "huile de lin","huile de germe de blé","huile de germe de ble",
+    "sunflower oil","olive oil","rapeseed oil","canola oil","palm oil","coconut oil",
+    "walnut oil","peanut oil","sesame oil","grapeseed oil","flaxseed oil","wheat germ oil",
+)
+
 internal val HIDDEN_SUGAR_NAMES = listOf(
     "sirop de glucose","sirop de fructose","sirop de maïs","dextrose",
     "maltodextrine","saccharose","fructose","galactose","glucose",
