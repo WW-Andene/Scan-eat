@@ -54,6 +54,12 @@ private fun mapCategory(tags: List<String>?): ProductCategory {
         "beverage" in tag && "juice" in tag -> ProductCategory.BEVERAGE_JUICE
         "beverage" in tag && ("water" in tag || "eau" in tag) -> ProductCategory.BEVERAGE_WATER
         "beverage" in tag || "soda" in tag || "boisson" in tag -> ProductCategory.BEVERAGE_SOFT
+        // Checked before CONDIMENT below — OFF tags honey/jam as "en:honeys"/
+        // "en:jams"/"en:spreads", not "sauce"/"condiment"/"dressing", so this
+        // branch was entirely absent. Mirrors the identical fix on the
+        // Android side (see Scoring Drift Check).
+        "honey" in tag || "miel" in tag || "jam" in tag || "confiture" in tag || "marmalade" in tag ||
+            "marmelade" in tag -> ProductCategory.SPREAD_SWEET
         "sauce" in tag || "condiment" in tag || "dressing" in tag -> ProductCategory.CONDIMENT
         "oil" in tag || "fat" in tag || "huile" in tag -> ProductCategory.OIL_FAT
         "soup" in tag || "soupe" in tag || "broth" in tag || "bouillon" in tag -> ProductCategory.SOUP

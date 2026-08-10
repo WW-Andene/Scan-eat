@@ -18,7 +18,7 @@ package fr.scanneat.data.repository.scan
 internal fun labelJsonSchema(): String = """
 {
   "name": "<product name>",
-  "category": "<one of: sandwich|ready_meal|bread|breakfast_cereal|yogurt|cheese|processed_meat|fresh_meat|fish|snack_sweet|snack_salty|beverage_soft|beverage_juice|beverage_water|condiment|oil_fat|other>",
+  "category": "<one of: sandwich|ready_meal|soup|bread|breakfast_cereal|yogurt|cheese|processed_meat|fresh_meat|fish|snack_sweet|snack_salty|beverage_soft|beverage_juice|beverage_water|alcoholic_beverage|condiment|spread_sweet|oil_fat|other>",
   "nova_class": <1|2|3|4>,
   "ingredients": [
     { "name": "<ingredient name>", "percentage": <number or null>, "e_number": "<Exxx or null>", "category": "<food|additive|processing_aid or null>", "is_whole_food": <true|false|null> }

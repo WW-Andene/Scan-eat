@@ -84,7 +84,7 @@ Read the food packaging image and extract as raw JSON (no markdown, no preamble)
 
 {
   "name": "<product name>",
-  "category": "<sandwich|ready_meal|bread|breakfast_cereal|yogurt|cheese|processed_meat|fresh_meat|fish|snack_sweet|snack_salty|beverage_soft|beverage_juice|beverage_water|condiment|oil_fat|other>",
+  "category": "<sandwich|ready_meal|soup|bread|breakfast_cereal|yogurt|cheese|processed_meat|fresh_meat|fish|snack_sweet|snack_salty|beverage_soft|beverage_juice|beverage_water|alcoholic_beverage|condiment|spread_sweet|oil_fat|other>",
   "nova_class": <1|2|3|4>,
   "ingredients": [{ "name": "<name>", "percentage": <number|null>, "e_number": "<Exxx|null>", "category": "<food|additive|processing_aid|null>", "is_whole_food": <true|false|null> }],
   "nutrition": { "energy_kcal":<n>, "fat_g":<n>, "saturated_fat_g":<n>, "carbs_g":<n>, "sugars_g":<n>, "added_sugars_g":<n|null>, "fiber_g":<n>, "protein_g":<n>, "salt_g":<n>, "trans_fat_g":<n|null>, "iron_mg":<n|null>, "calcium_mg":<n|null>, "magnesium_mg":<n|null>, "potassium_mg":<n|null>, "zinc_mg":<n|null>, "vit_a_ug":<n|null>, "vit_c_mg":<n|null>, "vit_d_ug":<n|null>, "vit_e_mg":<n|null>, "vit_k_ug":<n|null>, "b12_ug":<n|null>, "caffeine_mg":<n|null> },

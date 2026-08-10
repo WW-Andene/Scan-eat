@@ -44,6 +44,17 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         "beverage" in tag && "juice" in tag -> ProductCategory.BEVERAGE_JUICE
         "beverage" in tag && ("water" in tag || "eau" in tag) -> ProductCategory.BEVERAGE_WATER
         "beverage" in tag || "soda" in tag || "boisson" in tag -> ProductCategory.BEVERAGE_SOFT
+        // Checked before CONDIMENT below — OFF tags honey/jam as "en:honeys"/
+        // "en:jams"/"en:spreads", none of which contain "sauce"/"condiment"/
+        // "dressing", so this branch was entirely absent and every OFF-tagged
+        // jar fell through to OTHER. The name-based inferCategoryFromName
+        // fallback in OffMapper.kt only catches this when the product *name*
+        // itself contains "miel"/"honey"/"confiture" — a private-label jar
+        // named only by brand still landed in OTHER's generic thresholds,
+        // reproducing the exact "honey scores as critical sugar" bug
+        // ProductCategory.SPREAD_SWEET's own doc comment describes.
+        "honey" in tag || "miel" in tag || "jam" in tag || "confiture" in tag || "marmalade" in tag ||
+            "marmelade" in tag -> ProductCategory.SPREAD_SWEET
         "sauce" in tag || "condiment" in tag || "dressing" in tag -> ProductCategory.CONDIMENT
         "oil" in tag || "fat" in tag || "huile" in tag -> ProductCategory.OIL_FAT
         "soup" in tag || "soupe" in tag || "broth" in tag || "bouillon" in tag -> ProductCategory.SOUP
