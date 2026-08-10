@@ -684,6 +684,7 @@
     <string name="profile_condition_group_digestive">Digestif</string>
     <string name="profile_condition_group_neurological">Neurologique</string>
     <string name="profile_condition_group_other">Autres</string>
+    <string name="profile_condition_group_nutrient">Carences nutritionnelles</string>
     <string name="condition_diabetes">Diabète</string>
     <string name="condition_hypertension">Hypertension</string>
     <string name="condition_pregnancy">Grossesse</string>
@@ -698,6 +699,8 @@
     <string name="condition_epilepsy">Épilepsie</string>
     <string name="condition_dental_problems">Problèmes dentaires</string>
     <string name="condition_anemia">Anémie ferriprive</string>
+    <string name="condition_osteoporosis">Ostéoporose</string>
+    <string name="condition_hair_loss">Chute de cheveux</string>
     <string name="sex_male">Homme</string>
     <string name="sex_female">Femme</string>
     <string name="sex_not_specified">Non précisé</string>

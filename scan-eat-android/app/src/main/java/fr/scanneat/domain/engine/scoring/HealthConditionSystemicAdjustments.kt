@@ -114,25 +114,59 @@ internal fun checkCancerDepressionEpilepsyConditions(
     }
 }
 
-/** WHO: iron-deficiency anemia affects an estimated ~2 billion people
- *  worldwide - a positive reinforcement bonus (not a caution/veto, since
- *  there's nothing to avoid) for the same NRV "iron source" threshold
- *  ProductHintsPairings.kt already uses (>=2.1 mg/100g, 15% of 14mg per EU
- *  Reg 1169/2011 Annex XIII), so the score and the hint panel agree on
- *  exactly what counts as an iron source for this condition. */
-internal fun checkAnemiaCondition(
+/** Positive-reinforcement nutrient-source bonuses (never a caution/veto,
+ *  since there's nothing to avoid) for the three conditions whose only safe,
+ *  broadly-reaching effect is rewarding the right nutrient source, reusing
+ *  the exact same NRV thresholds ProductHintsPairings.kt already uses so the
+ *  score and the hint panel always agree:
+ *  - anemia (WHO: ~2 billion affected worldwide) - iron source, >=2.1mg/100g
+ *    (15% of 14mg per EU Reg 1169/2011 Annex XIII).
+ *  - osteoporosis (IOF: ~200 million affected worldwide) - calcium source,
+ *    >=120mg/100g (NOF/NIH bone-health guidance), plus vitamin D as the
+ *    other cornerstone of the same guidance.
+ *  - hair_loss - iron and zinc, both documented, correctable nutritional
+ *    contributors (NIH Office of Dietary Supplements), same iron threshold
+ *    as anemia plus zinc >=1.5mg/100g. */
+internal fun checkNutrientSourceConditions(
     product: Product,
     conditions: Set<String>,
     lang: String,
     adjustments: MutableList<PersonalAdjustment>,
 ) {
-    if ("anemia" !in conditions) return
-    if ((product.nutrition.ironMg ?: 0.0) >= 2.1) {
+    val n = product.nutrition
+    val isIronSource = (n.ironMg ?: 0.0) >= 2.1
+    if (("anemia" in conditions || "hair_loss" in conditions) && isIronSource) {
         adjustments += PersonalAdjustment(
             points = 2.0,
             reason = if (lang == "en") "Good iron source — helpful for iron-deficiency anemia (WHO)"
                      else "Bonne source de fer — utile en cas d'anémie ferriprive (OMS)",
             category = AdjustmentCategory.CONDITION,
         )
+    }
+    if ("hair_loss" in conditions && (n.zincMg ?: 0.0) >= 1.5) {
+        adjustments += PersonalAdjustment(
+            points = 1.5,
+            reason = if (lang == "en") "Good zinc source — zinc deficiency is a documented, correctable contributor to hair loss (NIH ODS)"
+                     else "Bonne source de zinc — une carence en zinc est une cause nutritionnelle documentée et corrigible de la chute de cheveux (NIH ODS)",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
+    if ("osteoporosis" in conditions) {
+        if ((n.calciumMg ?: 0.0) >= 120.0) {
+            adjustments += PersonalAdjustment(
+                points = 2.0,
+                reason = if (lang == "en") "Good calcium source — a cornerstone of bone health guidance for osteoporosis (NOF/NIH)"
+                         else "Bonne source de calcium — un pilier des recommandations pour la santé osseuse en cas d'ostéoporose (NOF/NIH)",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+        if ((n.vitDUg ?: 0.0) >= 0.5) {
+            adjustments += PersonalAdjustment(
+                points = 1.5,
+                reason = if (lang == "en") "Good vitamin D source — essential for calcium absorption and bone health with osteoporosis (NIH)"
+                         else "Bonne source de vitamine D — essentielle à l'absorption du calcium et à la santé osseuse en cas d'ostéoporose (NIH)",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
     }
 }

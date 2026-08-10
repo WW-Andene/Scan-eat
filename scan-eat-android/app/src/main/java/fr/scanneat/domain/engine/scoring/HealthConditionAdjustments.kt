@@ -80,7 +80,7 @@ internal fun checkHealthConditions(
     checkCancerDepressionEpilepsyConditions(product, conditions, lang, alcoholHit, isSugarSweetenedBeverage, adjustments)
     checkMigraineCondition(product, conditions, lang, alcoholHit, adjustments)
     checkGastrointestinalConditions(product, conditions, lang, alcoholHit, adjustments)
-    checkAnemiaCondition(product, conditions, lang, adjustments)
+    checkNutrientSourceConditions(product, conditions, lang, adjustments)
 
     return ConditionalAdjustments(adjustments, veto, dietReason)
 }

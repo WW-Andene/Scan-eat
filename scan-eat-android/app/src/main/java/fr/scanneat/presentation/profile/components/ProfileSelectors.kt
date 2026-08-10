@@ -205,14 +205,21 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     // food caution) in HealthConditionGuidanceDb.kt - same discipline as
     // ibs/crohn_ibd/chronic_diarrhea above, not a no-op label.
     "dental_problems" to stringResource(R.string.condition_dental_problems),
-    // Iron-deficiency anemia: WHO estimates ~2 billion people affected
-    // worldwide, disproportionately women - and unlike anorexia/bulimia
-    // (see the removal note below), this one gets genuinely BROAD reach
-    // because it amplifies the isIronSource/vitamin-C/tannin logic in
-    // ProductHintsPairings.kt, which already fires unconditionally on every
-    // scanned product with declared iron content - not bolted onto a
-    // rarely-used feature. See ProductHintsPairings.kt's hasAnemia branches.
+    // Nutrient-deficiency conditions - grouped together below (see
+    // conditionGroups()) since all three share the same pattern: they
+    // amplify nutrient-source signals (iron/calcium/zinc/vitamin D) that
+    // ProductHintsPairings.kt/HealthConditionSystemicAdjustments.kt already
+    // compute unconditionally for every scanned product, giving them broad,
+    // every-scan reach instead of being bolted onto a rarely-used feature
+    // (the anorexia/bulimia lesson - see the removal note below).
+    //  - anemia: WHO estimates ~2 billion people affected worldwide,
+    //    disproportionately women.
+    //  - osteoporosis: IOF estimates ~200 million affected worldwide.
+    //  - hair_loss: iron/zinc deficiency are documented, correctable
+    //    nutritional contributors (NIH Office of Dietary Supplements).
     "anemia" to stringResource(R.string.condition_anemia),
+    "osteoporosis" to stringResource(R.string.condition_osteoporosis),
+    "hair_loss" to stringResource(R.string.condition_hair_loss),
     // Anorexia/bulimia were tried and removed (user-reported): the only safe
     // effect available - a caution on Biolism's fasting/ketosis toggles - only
     // ever fires for a user who *also* enables one of those two rarely-used
@@ -240,7 +247,11 @@ private fun conditionGroups(): List<Pair<String, List<String>>> = listOf(
     stringResource(R.string.profile_condition_group_metabolic) to listOf("diabetes", "hypertension", "kidney_disease"),
     stringResource(R.string.profile_condition_group_digestive) to listOf("ibs", "crohn_ibd", "chronic_diarrhea"),
     stringResource(R.string.profile_condition_group_neurological) to listOf("chronic_migraine", "epilepsy"),
-    stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression", "dental_problems", "anemia"),
+    // Split out of "other" once it grew to 3 nutrient-deficiency conditions
+    // (anemia, osteoporosis, hair_loss) sharing the same underlying pattern -
+    // see conditionLabels()'s own doc comment on why they're grouped.
+    stringResource(R.string.profile_condition_group_nutrient) to listOf("anemia", "osteoporosis", "hair_loss"),
+    stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression", "dental_problems"),
 )
 
 @OptIn(ExperimentalLayoutApi::class)

@@ -23,6 +23,8 @@ internal fun buildPairings(product: Product, lang: String, containsCaffeineSourc
     val pairWell = mutableListOf<String>()
     val avoidPairing = mutableListOf<String>()
     val hasAnemia = "anemia" in healthConditions
+    val hasHairLoss = "hair_loss" in healthConditions
+    val hasOsteoporosis = "osteoporosis" in healthConditions
 
     // User-requested: increase the number of recipes/ingredients suggested and
     // linked by a scanned or entered ingredient - this and the two identical
@@ -46,16 +48,23 @@ internal fun buildPairings(product: Product, lang: String, containsCaffeineSourc
         // existing vitamin-C/tannin mechanism below is escalated from a
         // generic tip to condition-specific guidance rather than being shown
         // identically to every other user regardless of profile.
-        pairWell += if (hasAnemia) {
-            if (en) "Good iron source — especially useful if you have iron-deficiency anemia. Pair with a vitamin C source (citrus, peppers, kiwi) in the same meal to boost non-heme iron absorption up to 3-fold (WHO)"
-            else "Bonne source de fer — particulièrement utile en cas d'anémie ferriprive. Associez à une source de vitamine C (agrumes, poivron, kiwi) dans le même repas pour multiplier jusqu'à 3 fois l'absorption du fer non héminique (OMS)"
-        } else {
-            if (en) "Pair with a vitamin C source (citrus, peppers, kiwi) in the same meal — vitamin C can enhance non-heme iron absorption up to 3-fold"
-            else "Associez à une source de vitamine C (agrumes, poivron, kiwi) dans le même repas — la vitamine C peut multiplier jusqu'à 3 fois l'absorption du fer non héminique"
+        pairWell += when {
+            hasAnemia ->
+                if (en) "Good iron source — especially useful if you have iron-deficiency anemia. Pair with a vitamin C source (citrus, peppers, kiwi) in the same meal to boost non-heme iron absorption up to 3-fold (WHO)"
+                else "Bonne source de fer — particulièrement utile en cas d'anémie ferriprive. Associez à une source de vitamine C (agrumes, poivron, kiwi) dans le même repas pour multiplier jusqu'à 3 fois l'absorption du fer non héminique (OMS)"
+            hasHairLoss ->
+                // NIH Office of Dietary Supplements: iron deficiency is one of the
+                // documented, correctable nutritional causes of hair loss (telogen
+                // effluvium) - a mechanism, not a claim that this product regrows hair.
+                if (en) "Good iron source — iron deficiency is a documented, correctable contributor to hair loss (NIH ODS). Pair with a vitamin C source (citrus, peppers, kiwi) in the same meal to boost non-heme iron absorption up to 3-fold"
+                else "Bonne source de fer — une carence en fer est une cause nutritionnelle documentée et corrigible de la chute de cheveux (NIH ODS). Associez à une source de vitamine C (agrumes, poivron, kiwi) dans le même repas pour multiplier jusqu'à 3 fois l'absorption du fer non héminique"
+            else ->
+                if (en) "Pair with a vitamin C source (citrus, peppers, kiwi) in the same meal — vitamin C can enhance non-heme iron absorption up to 3-fold"
+                else "Associez à une source de vitamine C (agrumes, poivron, kiwi) dans le même repas — la vitamine C peut multiplier jusqu'à 3 fois l'absorption du fer non héminique"
         }
-        avoidPairing += if (hasAnemia) {
-            if (en) "With iron-deficiency anemia, avoid tea, coffee, or a high-calcium dairy product in the same meal — tannins and calcium both significantly reduce iron absorption"
-            else "En cas d'anémie ferriprive, évitez thé, café ou un produit laitier riche en calcium dans le même repas — tanins et calcium réduisent tous deux nettement l'absorption du fer"
+        avoidPairing += if (hasAnemia || hasHairLoss) {
+            if (en) "Avoid tea, coffee, or a high-calcium dairy product in the same meal — tannins and calcium both significantly reduce iron absorption"
+            else "Évitez thé, café ou un produit laitier riche en calcium dans le même repas — tanins et calcium réduisent tous deux nettement l'absorption du fer"
         } else {
             if (en) "Avoid pairing with tea, coffee, or a high-calcium dairy product in the same meal — tannins and calcium both significantly reduce iron absorption"
             else "Évitez d'associer thé, café ou un produit laitier riche en calcium dans le même repas — tanins et calcium réduisent tous deux nettement l'absorption du fer"
@@ -63,27 +72,60 @@ internal fun buildPairings(product: Product, lang: String, containsCaffeineSourc
     } else if (isCalciumSource) {
         // Only fires when the product isn't already the iron source itself,
         // so a food that's rich in both doesn't warn about pairing with itself.
-        avoidPairing += if (hasAnemia) {
-            if (en) "With iron-deficiency anemia, avoid taking at the same time as an iron-rich food or supplement — calcium competes with iron for intestinal absorption (space by about 2 hours)"
-            else "En cas d'anémie ferriprive, évitez de le prendre en même temps qu'un aliment ou complément riche en fer — le calcium entre en compétition avec le fer pour l'absorption intestinale (espacez d'environ 2 heures)"
+        // NOF/NIH: a calcium-rich food is itself the actionable positive signal
+        // for bone health, not just an iron-pairing caveat - previously this
+        // branch only ever produced an avoid-pairing warning and never told the
+        // reader the product was a good calcium source at all.
+        pairWell += if (hasOsteoporosis) {
+            if (en) "Good calcium source — calcium and vitamin D intake are the two cornerstones of bone health guidance for osteoporosis (NOF/NIH)"
+            else "Bonne source de calcium — le calcium et la vitamine D sont les deux piliers des recommandations pour la santé osseuse en cas d'ostéoporose (NOF/NIH)"
+        } else {
+            if (en) "Good calcium source"
+            else "Bonne source de calcium"
+        }
+        avoidPairing += if (hasAnemia || hasHairLoss) {
+            if (en) "Avoid taking at the same time as an iron-rich food or supplement — calcium competes with iron for intestinal absorption (space by about 2 hours)"
+            else "Évitez de le prendre en même temps qu'un aliment ou complément riche en fer — le calcium entre en compétition avec le fer pour l'absorption intestinale (espacez d'environ 2 heures)"
         } else {
             if (en) "Avoid taking at the same time as an iron-rich food or supplement — calcium competes with iron for intestinal absorption (space by about 2 hours if both matter to you)"
             else "Évitez de le prendre en même temps qu'un aliment ou complément riche en fer — le calcium entre en compétition avec le fer pour l'absorption intestinale (espacez d'environ 2 heures si les deux vous concernent)"
         }
     }
     if (containsCaffeineSource && !isIronSource) {
-        avoidPairing += if (hasAnemia) {
-            if (en) "With iron-deficiency anemia, avoid pairing with iron-rich meals — the tannins in coffee/tea/cocoa can cut iron absorption by up to 60%"
-            else "En cas d'anémie ferriprive, évitez de l'associer à un repas riche en fer — les tanins du café/thé/cacao peuvent réduire l'absorption du fer jusqu'à 60 %"
-        } else {
-            if (en) "Avoid pairing with iron-rich meals — the tannins in coffee/tea/cocoa can cut iron absorption by up to 60%"
-            else "Évitez de l'associer à un repas riche en fer — les tanins du café/thé/cacao peuvent réduire l'absorption du fer jusqu'à 60 %"
+        avoidPairing += if (en) "Avoid pairing with iron-rich meals — the tannins in coffee/tea/cocoa can cut iron absorption by up to 60%"
+                        else "Évitez de l'associer à un repas riche en fer — les tanins du café/thé/cacao peuvent réduire l'absorption du fer jusqu'à 60 %"
+        // NOF: caffeine also modestly increases urinary calcium loss - relevant
+        // to osteoporosis specifically, a separate mechanism from the iron-tannin
+        // one above so it's an additional line, not a replacement.
+        if (hasOsteoporosis) {
+            avoidPairing += if (en) "With osteoporosis, keep an eye on total caffeine intake — caffeine modestly increases urinary calcium loss (NOF)"
+                            else "En cas d'ostéoporose, surveillez votre consommation totale de caféine — la caféine augmente légèrement la perte urinaire de calcium (NOF)"
         }
     }
-    n.vitDUg?.let { if (it >= 0.5) pairWell += if (en) "Best absorbed with a source of dietary fat in the same meal — vitamin D is fat-soluble"
-                                                else "Mieux absorbée avec une source de matière grasse dans le même repas — la vitamine D est liposoluble" }
-    n.zincMg?.let { if (it >= 1.5) pairWell += if (en) "Pairs well with animal protein in the same meal — zinc from animal sources is absorbed more efficiently than from plant sources alone"
-                                                else "S'associe bien avec une protéine animale dans le même repas — le zinc d'origine animale est mieux absorbé que celui des seules sources végétales" }
+    n.vitDUg?.let {
+        if (it >= 0.5) {
+            pairWell += if (hasOsteoporosis) {
+                if (en) "Best absorbed with a source of dietary fat in the same meal — vitamin D is fat-soluble, and adequate vitamin D is essential for calcium absorption and bone health with osteoporosis (NIH)"
+                else "Mieux absorbée avec une source de matière grasse dans le même repas — la vitamine D est liposoluble, et un apport suffisant est essentiel à l'absorption du calcium et à la santé osseuse en cas d'ostéoporose (NIH)"
+            } else {
+                if (en) "Best absorbed with a source of dietary fat in the same meal — vitamin D is fat-soluble"
+                else "Mieux absorbée avec une source de matière grasse dans le même repas — la vitamine D est liposoluble"
+            }
+        }
+    }
+    n.zincMg?.let {
+        if (it >= 1.5) {
+            pairWell += if (hasHairLoss) {
+                // NIH ODS: zinc deficiency is a documented, correctable
+                // nutritional contributor to hair loss, alongside iron.
+                if (en) "Pairs well with animal protein in the same meal — zinc from animal sources is absorbed more efficiently, and zinc deficiency is a documented, correctable contributor to hair loss (NIH ODS)"
+                else "S'associe bien avec une protéine animale dans le même repas — le zinc d'origine animale est mieux absorbé, et une carence en zinc est une cause nutritionnelle documentée et corrigible de la chute de cheveux (NIH ODS)"
+            } else {
+                if (en) "Pairs well with animal protein in the same meal — zinc from animal sources is absorbed more efficiently than from plant sources alone"
+                else "S'associe bien avec une protéine animale dans le même repas — le zinc d'origine animale est mieux absorbé que celui des seules sources végétales"
+            }
+        }
+    }
     if (n.fiberG >= 6.0) {
         avoidPairing += if (en) "Very high-fiber foods can reduce the absorption of some minerals and oral medications if eaten at the exact same time — space by 1-2 hours from a supplement or medication dose"
                         else "Les aliments très riches en fibres peuvent réduire l'absorption de certains minéraux et médicaments oraux en cas de prise simultanée — espacez de 1 à 2 heures la prise d'un complément ou d'un médicament"

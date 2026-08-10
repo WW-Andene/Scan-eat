@@ -190,6 +190,24 @@ private val DENTAL_PROBLEMS_GUIDANCE: List<ConditionGuidance> = listOf(
         "Highly acidic foods (sour candy, vinegar, citrus): direct enamel erosion - consume in moderation with existing dental problems (ADA guidance)."),
 )
 
+// NOF (National Osteoporosis Foundation) / NIH bone-health guidance: a
+// high-sodium diet increases urinary calcium excretion, and excess caffeine
+// has the same modest effect - the two concrete, actionable dietary factors
+// both bodies name beyond "get enough calcium/vitamin D" (which is already
+// covered positively by the isCalciumSource/vitD pairing and scoring logic,
+// not repeated here as a restriction).
+private val OSTEOPOROSIS_GUIDANCE: List<ConditionGuidance> = listOf(
+    ConditionGuidance(listOf("bouillon cube", "bouillon en cube", "cube de bouillon", "stock cube", "bouillon", "soupe deshydratee", "instant soup"),
+        "Bouillon en cube / soupe déshydratée : très riche en sel, or une alimentation riche en sodium augmente l'excrétion urinaire de calcium - à limiter en cas d'ostéoporose (recommandations NOF).",
+        "Stock cube/dehydrated soup: very high in sodium, and a high-sodium diet increases urinary calcium excretion - worth limiting with osteoporosis (NOF guidance)."),
+    ConditionGuidance(listOf("chips", "biscuits apero", "snacks sales", "salted snacks", "crisps"),
+        "Snacks salés : contribuent à un apport élevé en sodium, qui augmente l'excrétion urinaire de calcium - à limiter en cas d'ostéoporose (recommandations NOF).",
+        "Salty snacks: contribute to high sodium intake, which increases urinary calcium excretion - worth limiting with osteoporosis (NOF guidance)."),
+    ConditionGuidance(listOf("café", "coffee", "thé", "tea", "caféine", "caffeine"),
+        "Caféine : un apport élevé augmente légèrement l'excrétion urinaire de calcium - à consommer avec modération en cas d'ostéoporose (recommandations NOF).",
+        "Caffeine: high intake modestly increases urinary calcium excretion - worth consuming in moderation with osteoporosis (NOF guidance)."),
+)
+
 private val GUIDANCE_BY_CONDITION: Map<String, List<ConditionGuidance>> = mapOf(
     "pregnancy" to PREGNANCY_GUIDANCE,
     "cancer" to CANCER_GUIDANCE,
@@ -198,6 +216,7 @@ private val GUIDANCE_BY_CONDITION: Map<String, List<ConditionGuidance>> = mapOf(
     "chronic_diarrhea" to CHRONIC_DIARRHEA_GUIDANCE,
     "chronic_migraine" to CHRONIC_MIGRAINE_GUIDANCE,
     "dental_problems" to DENTAL_PROBLEMS_GUIDANCE,
+    "osteoporosis" to OSTEOPOROSIS_GUIDANCE,
 )
 
 /**
