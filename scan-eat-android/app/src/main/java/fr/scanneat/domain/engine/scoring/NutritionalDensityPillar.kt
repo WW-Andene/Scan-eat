@@ -65,8 +65,18 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
         else                -> 0.0
     }
     score += protScore
-    if (protScore < 7) deductions += Deduction("nutritional_density", if (en) "Protein ${n.proteinG}g/100g (${protScore.toInt()}/7)" else "Protéines ${n.proteinG}g/100g (${protScore.toInt()}/7)", protScore - 7, Severity.MINOR)
-    else if (n.proteinG > 0.0) bonuses += Deduction("nutritional_density", if (en) "High protein ${n.proteinG}g/100g" else "Riche en protéines ${n.proteinG}g/100g", 7.0, Severity.INFO)
+    // pHigh==0.0 gates the deduction too, not just the bonus above - a water
+    // or a spirit was previously narrated as "Protein 0g/100g (0/7) MINOR" as
+    // if this were a nutritional shortcoming, even though pHigh==0.0 is the
+    // engine's own signal that protein isn't a meaningful axis for this
+    // category. That directly contradicted the category-relativity reasoning
+    // already applied everywhere else (salt/sugar category overrides, the
+    // bonus-side skip just above) - the audit trail told water it "lacks
+    // protein" while the scoring math itself knew the question didn't apply.
+    if (pHigh > 0.0) {
+        if (protScore < 7) deductions += Deduction("nutritional_density", if (en) "Protein ${n.proteinG}g/100g (${protScore.toInt()}/7)" else "Protéines ${n.proteinG}g/100g (${protScore.toInt()}/7)", protScore - 7, Severity.MINOR)
+        else if (n.proteinG > 0.0) bonuses += Deduction("nutritional_density", if (en) "High protein ${n.proteinG}g/100g" else "Riche en protéines ${n.proteinG}g/100g", 7.0, Severity.INFO)
+    }
 
     // Fiber (0–7)
     val (fLow, fMed, fHigh) = thresholds.fiberG
@@ -78,9 +88,11 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
         else              -> 0.0
     }
     score += fiberScore
-    if (fiberScore >= 5 && n.fiberG > 0.0) bonuses += Deduction("nutritional_density", if (en) "Good fiber ${n.fiberG}g/100g" else "Bonne teneur en fibres ${n.fiberG}g/100g", fiberScore, Severity.INFO)
-    else if (fiberScore < 5) deductions += Deduction("nutritional_density", if (en) "Low fiber ${n.fiberG}g/100g (${fiberScore.toInt()}/7)" else "Fibres faibles ${n.fiberG}g/100g (${fiberScore.toInt()}/7)", fiberScore - 7, Severity.MINOR)
-    // else: fiberScore >= 5 only because this category's fiber threshold is 0 (irrelevant, e.g. water) — not a real achievement, skip the highlight
+    // Same fHigh==0.0 gate on the deduction side as protein above.
+    if (fHigh > 0.0) {
+        if (fiberScore >= 5 && n.fiberG > 0.0) bonuses += Deduction("nutritional_density", if (en) "Good fiber ${n.fiberG}g/100g" else "Bonne teneur en fibres ${n.fiberG}g/100g", fiberScore, Severity.INFO)
+        else if (fiberScore < 5) deductions += Deduction("nutritional_density", if (en) "Low fiber ${n.fiberG}g/100g (${fiberScore.toInt()}/7)" else "Fibres faibles ${n.fiberG}g/100g (${fiberScore.toInt()}/7)", fiberScore - 7, Severity.MINOR)
+    }
 
     // Micronutrients NRV-15% bonus (0–8): +1 per micro declared at ≥15% NRV per 100g, cap 8
     var microBonus = 0.0

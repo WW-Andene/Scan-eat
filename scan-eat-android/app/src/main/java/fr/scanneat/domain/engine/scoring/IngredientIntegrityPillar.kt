@@ -30,6 +30,16 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     // not a fixed 3: a single-ingredient whole food (e.g. "Pommes") is 100%
     // whole-food and deserves the full 5, not 1/3 of it just for having a
     // short ingredient list.
+    //
+    // Deliberately a different axis from ProcessingPillar's NOVA score, not
+    // the same fact paid out twice: NOVA measures how much the product as a
+    // whole was industrially TRANSFORMED (additives, texturizers, process
+    // markers), while this measures whether the DECLARED INGREDIENT LIST is
+    // itself transparent/recognizable — a product can be NOVA-unprocessed
+    // (an apple) and trivially score both, but a NOVA-ultra-processed product
+    // can still have a short, plainly-worded first-3-ingredients list (or
+    // not), so the two scores genuinely diverge on real products rather than
+    // being redundant restatements of one signal.
     val first3 = product.ingredients.take(3)
     val first3Whole = first3.count { isWholeFood(it) }
     val first3Score = if (first3.isEmpty()) 0.0

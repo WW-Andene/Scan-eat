@@ -65,6 +65,15 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         deductions += Deduction("negative_nutrients", if (en) "Trans fat present: ${trans}g/100g (no safe level)" else "Présence de graisses trans : ${trans}g/100g (aucun seuil sûr)", -10.0, Severity.CRITICAL)
     }
 
+    // Belt-and-suspenders by design, not double-counting by accident: this
+    // tiered deduction and checkVeto's separate alcohol cap are not
+    // independent penalties stacking on top of each other in practice - for a
+    // clean-profile beer/wine, the veto's flat cap (54/45/40) binds regardless
+    // of this deduction's finer -6/-9/-12 gradient. Kept anyway because it's
+    // the only mechanism visible when the veto doesn't bind, and it keeps the
+    // audit trail proportional to %vol. Same layering applies to trans fat and
+    // nitrites in ScoringEngine.kt's checkVeto. Mirrors the identical
+    // clarifying comment on the Android side (see Scoring Drift Check).
     val abv = n.alcoholPercentVol ?: 0.0
     val alcoholLabel = if (en) "Alcohol" else "Alcool"
     when {

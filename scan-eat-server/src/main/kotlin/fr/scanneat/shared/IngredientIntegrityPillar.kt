@@ -28,6 +28,15 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     var score = 0.0
 
     // 1. First 3 whole foods (+5)
+    //
+    // Deliberately a different axis from ProcessingPillar's NOVA score, not
+    // the same fact paid out twice: NOVA measures how much the product as a
+    // whole was industrially TRANSFORMED (additives, texturizers, process
+    // markers), while this measures whether the DECLARED INGREDIENT LIST is
+    // itself transparent/recognizable — the two scores genuinely diverge on
+    // real products rather than being redundant restatements of one signal.
+    // Mirrors the identical clarifying comment on the Android side (see
+    // Scoring Drift Check).
     val first3 = product.ingredients.take(3)
     val first3Whole = first3.count { isWholeFood(it) }
     val first3Score = if (first3.isEmpty()) 0.0

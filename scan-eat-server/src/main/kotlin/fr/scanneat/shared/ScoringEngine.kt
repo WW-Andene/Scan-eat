@@ -130,8 +130,14 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
         val eNum = (ing.eNumber ?: "").uppercase().replace("\\s".toRegex(), "")
         eNum in bannedTier1ENumbers
     }
+    // Capped at or below (39, not 45) the volume-based >3-Tier1-additives veto
+    // just above - this veto exists precisely because raw additive COUNT
+    // misses severity (one banned/IARC-flagged additive is worse than four
+    // unspecified Tier-1 ones), so it would be incoherent for its own cap to
+    // be looser than the check it was built to complement. Mirrors the
+    // identical fix on the Android side (see Scoring Drift Check).
     if (hasBannedTier1)
-        candidates += VetoCondition(true, if (en) "Contains an additive banned or restricted for carcinogenicity/endocrine concerns in the EU" else "Contient un additif interdit ou restreint pour cancérogénicité/perturbation endocrinienne dans l'UE", 45)
+        candidates += VetoCondition(true, if (en) "Contains an additive banned or restricted for carcinogenicity/endocrine concerns in the EU" else "Contient un additif interdit ou restreint pour cancérogénicité/perturbation endocrinienne dans l'UE", 35)
 
     val hasNitrites = product.ingredients.any { ing ->
         val eNum = (ing.eNumber ?: "").uppercase().replace("\\s".toRegex(), "")
@@ -296,6 +302,15 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
 
     val globalBonuses   = computeGlobalBonuses(product, lang)
     val globalPenalties = computeGlobalPenalties(product, severeFlagCount, lang)
+    // Deliberately asymmetric, not an oversight: bonusTotal is capped at +10
+    // so no combination of positive signals (organic, transparent origin,
+    // eco-score, etc.) can outweigh a product's actual pillar-level nutrition
+    // math, while penaltyTotal is uncapped because risk factors compound
+    // (severeFlagCount already counts CRITICAL/MAJOR deductions across every
+    // pillar, so a product with multiple independent severe problems should
+    // be able to accumulate a correspondingly larger penalty, not be capped
+    // at the same +10 ceiling "goodness" is held to). Mirrors the identical
+    // fix on the Android side (see Scoring Drift Check).
     val bonusTotal      = minOf(10.0, globalBonuses.sumOf { it.points })
     val penaltyTotal    = globalPenalties.sumOf { it.points }
 

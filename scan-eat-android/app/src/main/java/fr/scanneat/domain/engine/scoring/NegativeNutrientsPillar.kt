@@ -81,6 +81,18 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // %vol (dealcoholised <1.2%, beer-strength, wine-strength, spirit-strength)
     // rather than a flat penalty, since a 0.3% "sans alcool" beer and a 40%
     // spirit are not the same risk.
+    //
+    // Belt-and-suspenders by design, not double-counting by accident: this
+    // tiered deduction and checkVeto's separate alcohol cap are not
+    // independent penalties stacking on top of each other in practice. For a
+    // clean-profile beer/wine (the exact case the veto was added to close),
+    // the veto's flat cap (54/45/40) binds regardless of this deduction's
+    // finer -6/-9/-12 gradient — the pillar math here rarely changes the
+    // FINAL score once the veto is in play. It's kept anyway because it's
+    // still the only mechanism that shows up when the veto DOESN'T bind (a
+    // product whose other pillars already sit below the veto's cap) and it
+    // keeps the audit trail proportional to %vol rather than a flat "alcohol
+    // present" flag. Same layering applies to trans fat and nitrites below.
     val abv = n.alcoholPercentVol ?: 0.0
     val alcoholLabel = if (en) "Alcohol" else "Alcool"
     when {
