@@ -142,7 +142,7 @@ class BiolismRepository @Inject constructor(
                 ageYears    = p[kAge(id)] ?: 0,
                 heightCm    = p[kHeight(id)]?.toDouble() ?: 0.0,
                 weightKg    = liveWeightKg,
-                activityId  = p[K_ACTIVITY] ?: "sedentary",
+                activityId  = p[kActivity(id)] ?: "sedentary",
                 ethnicityId = ethnicityId,
                 waistCm     = waistCm, hipCm = hipCm, neckCm = neckCm, cycleDay = cycleDay,
             )

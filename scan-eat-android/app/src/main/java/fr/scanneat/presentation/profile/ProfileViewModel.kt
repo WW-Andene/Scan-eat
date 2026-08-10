@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.profile
 
 import android.content.Context
+import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
