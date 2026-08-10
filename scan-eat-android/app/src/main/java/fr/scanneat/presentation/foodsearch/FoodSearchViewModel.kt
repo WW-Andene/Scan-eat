@@ -198,10 +198,15 @@ class FoodSearchViewModel @Inject constructor(
                 .mapValues { (_, items) -> items.sortedBy { it.name } }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    // Online (Open Food Facts search) results below are explicit-only
-    // ("Rechercher en ligne" button), never auto-triggered on typing - OFF is a
-    // public, rate-limited API, unlike the two local sources above which can
-    // safely re-query on every keystroke. Covers ingredient/additive/molecule
+    // User-requested: online (Open Food Facts) search now also fires
+    // automatically while typing, not just via the "Rechercher en ligne"
+    // button below (kept as a visible manual fallback - useful to force a
+    // search under 2 characters, or retry after ERROR/EMPTY). OFF's own
+    // published guideline is ~10 search requests/minute (vs ~100/min for
+    // barcode lookups), well below the two local sources above which can
+    // safely re-query on every keystroke - a 700ms debounce plus a 2-char
+    // minimum keeps normal typing comfortably under that, unlike the local
+    // sources' 150ms debounce above. Covers ingredient/additive/molecule
     // search, which only scanned OFF products (not FOOD_DB/custom foods) carry
     // data for - see ScanOffLookup.searchOffProducts.
     //
@@ -229,32 +234,63 @@ class FoodSearchViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
+    // Auto-fires online search while typing - flatMapLatest so a new keystroke
+    // (after the 700ms debounce settles again) cancels whatever OFF request
+    // was still in flight for the previous, now-stale query instead of both
+    // racing to write _onlineResults/_onlineSearchState. A manual searchOnline()
+    // tap shares the same MutableSharedFlow trigger below so the two can never
+    // run two concurrent requests against each other either.
+    private val manualOnlineTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
+
+    init {
+        merge(
+            _query.debounce(700).map { it.trim() }.distinctUntilChanged().filter { it.length >= 2 },
+            manualOnlineTrigger,
+        )
+            .flatMapLatest { q -> flow { emit(runOnlineSearch(q)) } }
+            .launchIn(viewModelScope)
+
+        // A query shortened back below the 2-char auto-search floor (or
+        // cleared entirely) should drop whatever online results are still
+        // showing for the old, longer query - otherwise they'd linger under
+        // an unrelated/blank search box until the next successful search.
+        _query.map { it.trim().length < 2 }.distinctUntilChanged()
+            .onEach { belowFloor -> if (belowFloor) clearOnlineResults() }
+            .launchIn(viewModelScope)
+    }
+
+    private suspend fun runOnlineSearch(q: String) {
+        if (q.isBlank()) return
+        _onlineSearchState.value = OnlineSearchState.LOADING
+        val lang = prefs.language.first()
+        val results = try {
+            scanRepo.searchOffProducts(q, lang)
+        } catch (e: Exception) {
+            _onlineSearchState.value = OnlineSearchState.ERROR
+            return
+        }
+        // distinctBy barcode - OFF's own search results can repeat the same barcode
+        // (e.g. regional variants indexed separately but sharing a code); without this,
+        // openOnlineItem's onlineRaw.firstOrNull { it.barcode == item.barcode } lookup
+        // is ambiguous and every duplicate row would silently resolve to the same one.
+        onlineRaw = results.distinctBy { it.barcode }
+        // toItem() sets scanId = dbId, which defaults to 0 (not null) for a
+        // ScanResult that was never persisted - left as-is, FoodSearchRow's
+        // `item.scanId != null` check would treat 0 as "already in this
+        // user's history" and call onOpenResult(0) instead of the
+        // online-persist path below. Forced back to null here since these
+        // results are never actually in scan_history yet.
+        _onlineResults.value = onlineRaw.map { it.toItem().copy(scanId = null, barcode = it.barcode) }
+        _onlineSearchState.value = if (results.isEmpty()) OnlineSearchState.EMPTY else OnlineSearchState.SUCCESS
+    }
+
+    /** Manual "Rechercher en ligne" button - still useful under the 2-char
+     *  auto-search floor, or to retry immediately after ERROR/EMPTY without
+     *  waiting for the debounce to re-settle on an unchanged query. */
     fun searchOnline() {
         val q = _query.value.trim()
         if (q.isBlank()) return
-        _onlineSearchState.value = OnlineSearchState.LOADING
-        viewModelScope.launch {
-            val lang = prefs.language.first()
-            val results = try {
-                scanRepo.searchOffProducts(q, lang)
-            } catch (e: Exception) {
-                _onlineSearchState.value = OnlineSearchState.ERROR
-                return@launch
-            }
-            // distinctBy barcode - OFF's own search results can repeat the same barcode
-            // (e.g. regional variants indexed separately but sharing a code); without this,
-            // openOnlineItem's onlineRaw.firstOrNull { it.barcode == item.barcode } lookup
-            // is ambiguous and every duplicate row would silently resolve to the same one.
-            onlineRaw = results.distinctBy { it.barcode }
-            // toItem() sets scanId = dbId, which defaults to 0 (not null) for a
-            // ScanResult that was never persisted - left as-is, FoodSearchRow's
-            // `item.scanId != null` check would treat 0 as "already in this
-            // user's history" and call onOpenResult(0) instead of the
-            // online-persist path below. Forced back to null here since these
-            // results are never actually in scan_history yet.
-            _onlineResults.value = onlineRaw.map { it.toItem().copy(scanId = null, barcode = it.barcode) }
-            _onlineSearchState.value = if (results.isEmpty()) OnlineSearchState.EMPTY else OnlineSearchState.SUCCESS
-        }
+        manualOnlineTrigger.tryEmit(q)
     }
 
     fun clearOnlineResults() {
