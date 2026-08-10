@@ -26,7 +26,6 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import java.time.Month
 import java.time.format.TextStyle
@@ -87,7 +86,7 @@ private fun SeasonMonthCell(
     // visible underneath the selection/highlight ring rather than being
     // replaced by it, so the indicator this whole grid exists for is never
     // hidden by browsing/selecting.
-    val densityFill = Teal.copy(alpha = 0.06f + density * 0.22f)
+    val densityFill = AccentCoral.copy(alpha = 0.06f + density * 0.22f)
     val fill = if (isHighlighted) semanticGreen().copy(alpha = 0.28f) else densityFill
     val border = when {
         isHighlighted -> BorderStroke(1.5.dp, semanticGreen())

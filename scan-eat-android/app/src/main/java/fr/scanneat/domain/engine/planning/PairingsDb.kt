@@ -384,23 +384,30 @@ fun findPairings(name: String, limit: Int = 6, exclude: Set<String> = emptySet()
     val entry = PAIRINGS[en] ?: return emptyList()
     val excludedEn = (exclude + name).mapNotNullTo(mutableSetOf()) { resolveIngredient(it) }
     val dishGroups = excludedEn.mapTo(mutableSetOf()) { classifyFoodGroup(it) } - FoodGroup.OTHER
-    // Sort by co-occurrence count descending before truncating - PAIRINGS entries
-    // are stored in whatever order the source dataset happened to list them (see
-    // e.g. "beef": onion 3315, tomato 2107, beef_broth 410, garlic 2817, ...),
-    // not pre-sorted by strength. Without this, take(limit) returned an arbitrary
-    // subset of a recipe's pairings rather than its `limit` *strongest* ones,
-    // silently defeating the "min co-occurrence 5 recipes" scoring this file's
-    // header comment describes and showing weaker suggestions than a lower-ranked
-    // pairing that got cut off just because it was listed first.
-    //
-    // Primary sort key: whether this candidate's own food group is already
-    // represented in the dish (false sorts first - Kotlin's Boolean natural
-    // order is false < true) - only then does raw co-occurrence break ties,
-    // so a same-group candidate never outranks a novel-group one purely on
-    // count, but still ranks by strength among its own tier.
-    return entry.pairs
+    // Sort by co-occurrence count descending - PAIRINGS entries are stored in
+    // whatever order the source dataset happened to list them (see e.g.
+    // "beef": onion 3315, tomato 2107, beef_broth 410, garlic 2817, ...), not
+    // pre-sorted by strength.
+    val candidates = entry.pairs
         .filter { it.b !in excludedEn }
-        .sortedWith(compareBy<PairingEntry> { classifyFoodGroup(it.b) in dishGroups }.thenByDescending { it.cooccur })
+        .sortedByDescending { it.cooccur }
+
+    // User-reported (2nd pass): the previous version only *reordered* by food
+    // group (sort-key demotion) rather than actually filtering - since most
+    // PAIRINGS entries carry close to [limit] pairs total (rice/oat/macaroni
+    // etc. all have exactly 8, matching every real call site's limit=8), every
+    // candidate still got shown via take(limit) regardless of tier, so a
+    // redundant same-food-group suggestion (another starch for a dish that
+    // already has one) kept appearing exactly as before - the demotion never
+    // had room to actually exclude anything. Hard-partitioning and preferring
+    // the novel-group tier wholesale (falling back to same-group only when
+    // there genuinely aren't enough novel-group candidates to fill [limit])
+    // makes the plate-balance intent this file's own header comment describes
+    // actually take effect instead of being a no-op in the common case.
+    val (novelGroup, sameGroup) = candidates.partition { classifyFoodGroup(it.b) !in dishGroups }
+    val result = if (novelGroup.size >= limit) novelGroup else novelGroup + sameGroup
+
+    return result
         .take(limit)
         .map { if (preferFrench) (it.fr ?: EN_TO_FR[it.b] ?: it.b.replace("_", " ")) else it.b.replace("_", " ") }
 }

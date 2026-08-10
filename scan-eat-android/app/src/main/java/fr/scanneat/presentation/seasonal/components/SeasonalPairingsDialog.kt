@@ -26,7 +26,6 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 
 /** Extracted from SeasonalProduceScreen (§T1 composition-root split). */
@@ -55,7 +54,7 @@ internal fun SeasonalPairingsDialog(produce: SeasonalProduce, isFrench: Boolean,
                                 color = OnBackground,
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(CardRadius.BADGE))
-                                    .background(Teal.copy(alpha = 0.15f))
+                                    .background(AccentCoral.copy(alpha = 0.15f))
                                     .padding(horizontal = Spacing.S, vertical = Spacing.T2),
                             )
                         }
