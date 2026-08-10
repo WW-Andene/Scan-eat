@@ -93,7 +93,7 @@ class GroceryViewModel @Inject constructor(
     }.distinctUntilChanged()
 
     /** recipeId -> number of slots it occupies within the current week's plan. */
-    private val plannedRecipeCounts: Flow<Map<String, Int>> = combine(mealPlanRepo.weekPlan, today) { plan, date ->
+    private val plannedRecipeCounts: Flow<Map<String, Int>> = combine(activeProfileId.flatMapLatest { id -> mealPlanRepo.weekPlan(id) }, today) { plan, date ->
         val weekDates = mealPlanRepo.weekDates(date).toSet()
         val counts = mutableMapOf<String, Int>()
         for ((d, day) in plan) {
@@ -107,7 +107,7 @@ class GroceryViewModel @Inject constructor(
     }
 
     /** Same as [plannedRecipeCounts] but for MealPlanSlot.TemplateSlot. */
-    private val plannedTemplateCounts: Flow<Map<String, Int>> = combine(mealPlanRepo.weekPlan, today) { plan, date ->
+    private val plannedTemplateCounts: Flow<Map<String, Int>> = combine(activeProfileId.flatMapLatest { id -> mealPlanRepo.weekPlan(id) }, today) { plan, date ->
         val weekDates = mealPlanRepo.weekDates(date).toSet()
         val counts = mutableMapOf<String, Int>()
         for ((d, day) in plan) {

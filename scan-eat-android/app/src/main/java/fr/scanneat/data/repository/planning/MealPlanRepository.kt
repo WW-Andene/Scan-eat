@@ -25,7 +25,14 @@ import javax.inject.Singleton
 // ============================================================================
 
 private val Context.mealPlanDataStore by preferencesDataStore(name = "meal_plan")
-private val KEY_PLAN = stringPreferencesKey("plan_json")
+
+// R&D audit finding: the weekly meal plan was a DataStore singleton with no
+// profileId concept at all - shared across every profile regardless of who
+// was actually using the app. "default" keeps the exact same key name
+// pre-existing installs already use (zero migration); any other profile
+// gets its own namespaced key.
+private fun planKey(profileId: String) =
+    stringPreferencesKey(if (profileId == "default") "plan_json" else "plan_json_${profileId}")
 
 private const val KEEP_DAYS_PAST = 7
 
@@ -72,34 +79,36 @@ class MealPlanRepository @Inject constructor(
 
     // ---- Observe ----
 
-    val weekPlan: Flow<Map<LocalDate, DayPlan>> = storeData.map { prefs ->
-        deserialize(prefs[KEY_PLAN] ?: "")
+    fun weekPlan(profileId: String = "default"): Flow<Map<LocalDate, DayPlan>> = storeData.map { prefs ->
+        deserialize(prefs[planKey(profileId)] ?: "")
     }.distinctUntilChanged()
 
     // ---- Mutations ----
 
     /** Set a slot for a specific date + meal. Prunes old entries. */
-    suspend fun setSlot(date: LocalDate, meal: String, slot: MealPlanSlot?) {
+    suspend fun setSlot(date: LocalDate, meal: String, slot: MealPlanSlot?, profileId: String = "default") {
         store.edit { prefs ->
-            val plan = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
             val day = plan[date] ?: DayPlan(date)
             plan[date] = day.with(meal, slot)
-            prefs[KEY_PLAN] = serialize(prune(plan))
+            prefs[k] = serialize(prune(plan))
         }
     }
 
     /** Clear all slots for a given day. */
-    suspend fun clearDay(date: LocalDate) {
+    suspend fun clearDay(date: LocalDate, profileId: String = "default") {
         store.edit { prefs ->
-            val plan = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
             plan.remove(date)
-            prefs[KEY_PLAN] = serialize(prune(plan))
+            prefs[k] = serialize(prune(plan))
         }
     }
 
     /** Clear the entire plan. */
-    suspend fun clearAll() {
-        store.edit { prefs -> prefs.remove(KEY_PLAN) }
+    suspend fun clearAll(profileId: String = "default") {
+        store.edit { prefs -> prefs.remove(planKey(profileId)) }
     }
 
     /**
@@ -108,27 +117,29 @@ class MealPlanRepository @Inject constructor(
      * (e.g. "same as last Monday") was re-assigning every slot by hand. No-ops if
      * the source day has no plan at all.
      */
-    suspend fun copyDay(from: LocalDate, to: LocalDate) {
+    suspend fun copyDay(from: LocalDate, to: LocalDate, profileId: String = "default") {
         if (from == to) return
         store.edit { prefs ->
-            val plan = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
             val source = plan[from] ?: return@edit
             plan[to] = source.copy(date = to)
-            prefs[KEY_PLAN] = serialize(prune(plan))
+            prefs[k] = serialize(prune(plan))
         }
     }
 
     /** Same as [copyDay] but for each of the 7 days starting at [fromStart], onto the same offset starting at [toStart]. */
-    suspend fun copyWeek(fromStart: LocalDate, toStart: LocalDate) {
+    suspend fun copyWeek(fromStart: LocalDate, toStart: LocalDate, profileId: String = "default") {
         if (fromStart == toStart) return
         store.edit { prefs ->
-            val plan = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
             for (offset in 0 until 7) {
                 val source = plan[fromStart.plusDays(offset.toLong())] ?: continue
                 val to = toStart.plusDays(offset.toLong())
                 plan[to] = source.copy(date = to)
             }
-            prefs[KEY_PLAN] = serialize(prune(plan))
+            prefs[k] = serialize(prune(plan))
         }
     }
 
@@ -143,10 +154,11 @@ class MealPlanRepository @Inject constructor(
      * clearing (not guessing a replacement for) any slot whose id no longer
      * exists. Returns the number of slots cleared, so callers can surface it.
      */
-    suspend fun pruneOrphanedSlots(validRecipeIds: Set<String>, validTemplateIds: Set<String>): Int {
+    suspend fun pruneOrphanedSlots(validRecipeIds: Set<String>, validTemplateIds: Set<String>, profileId: String = "default"): Int {
         var removed = 0
         store.edit { prefs ->
-            val plan = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
             for ((date, day) in plan.toMap()) {
                 var updated = day
                 for (meal in listOf("breakfast", "lunch", "dinner", "snack")) {
@@ -163,24 +175,28 @@ class MealPlanRepository @Inject constructor(
                 }
                 plan[date] = updated
             }
-            if (removed > 0) prefs[KEY_PLAN] = serialize(prune(plan))
+            if (removed > 0) prefs[k] = serialize(prune(plan))
         }
         return removed
     }
 
     // ---- Backup export/import ----
 
-    /** Raw serialized plan blob, for BackupRepository — kept opaque since the
-     *  format isn't Moshi-serializable on its own (see BackupModels.kt). */
-    suspend fun exportRaw(): String = storeData.first()[KEY_PLAN] ?: ""
+    /** Raw serialized plan blob for the default profile, for BackupRepository —
+     *  kept opaque since the format isn't Moshi-serializable on its own (see
+     *  BackupModels.kt). Multi-profile backup is a separate, larger schema
+     *  change - not covered here, same documented gap as the other DataStore
+     *  repositories' backup export/import. */
+    suspend fun exportRaw(): String = storeData.first()[planKey("default")] ?: ""
 
-    /** Merges a backup's plan into whatever's currently stored — incoming slots win on conflict. */
+    /** Merges a backup's plan into whatever's currently stored for the default profile — incoming slots win on conflict. */
     suspend fun importRaw(raw: String) {
         if (raw.isBlank()) return
         store.edit { prefs ->
-            val existing = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            val k = planKey("default")
+            val existing = deserialize(prefs[k] ?: "").toMutableMap()
             existing.putAll(deserialize(raw))
-            prefs[KEY_PLAN] = serialize(prune(existing))
+            prefs[k] = serialize(prune(existing))
         }
     }
 

@@ -34,9 +34,8 @@ class MealPlanViewModel @Inject constructor(
     private val consumptionRepo: ConsumptionRepository,
 ) : ViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
-    // multi-profile support made it real. MealPlanRepository itself has no
-    // profileId concept (the weekly plan grid is shared across profiles) -
-    // only the recipe/template lookups and diary logging below are scoped.
+    // multi-profile support made it real. MealPlanRepository's weekly plan
+    // grid is now namespaced per profile too, same as every Room-backed tracker.
     private val activeProfileId: StateFlow<String> = prefs.activeProfileId
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
     // A fixed `val` captured LocalDate.now() once at construction - a ViewModel
@@ -53,7 +52,7 @@ class MealPlanViewModel @Inject constructor(
         .map { repo.weekDates(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), repo.weekDates())
 
-    val weekPlan: StateFlow<Map<LocalDate, DayPlan>> = repo.weekPlan
+    val weekPlan: StateFlow<Map<LocalDate, DayPlan>> = activeProfileId.flatMapLatest { id -> repo.weekPlan(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     val language: StateFlow<String> = prefs.language
@@ -186,7 +185,7 @@ class MealPlanViewModel @Inject constructor(
                 templates,
             ) { recipes, templates -> recipes.map { it.id }.toSet() to templates.map { it.id }.toSet() }
                 .collect { (recipeIds, templateIds) ->
-                    _lastPrunedCount.value = repo.pruneOrphanedSlots(recipeIds, templateIds)
+                    _lastPrunedCount.value = repo.pruneOrphanedSlots(recipeIds, templateIds, activeProfileId.value)
                 }
         }
     }
@@ -209,21 +208,21 @@ class MealPlanViewModel @Inject constructor(
         // split across "lines" and corrupt the following entry.
         val sanitized = text.replace("\n", " ")
         viewModelScope.launch {
-            runCatching { repo.setSlot(date, meal, if (sanitized.isBlank()) null else MealPlanSlot.NoteSlot(sanitized)) }
+            runCatching { repo.setSlot(date, meal, if (sanitized.isBlank()) null else MealPlanSlot.NoteSlot(sanitized), activeProfileId.value) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun clear(date: LocalDate, meal: String) {
         viewModelScope.launch {
-            runCatching { repo.setSlot(date, meal, null) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.setSlot(date, meal, null, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     /** Clear every slot for a day in one action instead of one tap per meal. */
     fun clearDay(date: LocalDate) {
         viewModelScope.launch {
-            runCatching { repo.clearDay(date) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.clearDay(date, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -231,7 +230,7 @@ class MealPlanViewModel @Inject constructor(
      *  common "same as this week" case, without needing a date picker. */
     fun duplicateDay(date: LocalDate) {
         viewModelScope.launch {
-            runCatching { repo.copyDay(date, date.plusDays(7)) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.copyDay(date, date.plusDays(7), activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -239,20 +238,20 @@ class MealPlanViewModel @Inject constructor(
     fun duplicateWeek() {
         val start = weekDates.value.firstOrNull() ?: return
         viewModelScope.launch {
-            runCatching { repo.copyWeek(start, start.plusDays(7)) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.copyWeek(start, start.plusDays(7), activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun setRecipe(date: LocalDate, meal: String, recipe: Recipe) {
         viewModelScope.launch {
-            runCatching { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name)) }
+            runCatching { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name), activeProfileId.value) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun setTemplate(date: LocalDate, meal: String, template: MealTemplate) {
         viewModelScope.launch {
-            runCatching { repo.setSlot(date, meal, MealPlanSlot.TemplateSlot(template.id, template.name)) }
+            runCatching { repo.setSlot(date, meal, MealPlanSlot.TemplateSlot(template.id, template.name), activeProfileId.value) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
