@@ -12,10 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import fr.scanneat.R
-import fr.scanneat.domain.engine.biolism.ACTIVITY_LEVELS
-import fr.scanneat.domain.engine.biolism.BiolismProfile
-import fr.scanneat.domain.engine.biolism.BiolismSex
-import fr.scanneat.domain.engine.biolism.ETHNICITY_OPTIONS
+import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.TealBadge
 import fr.scanneat.presentation.ui.theme.*
 
