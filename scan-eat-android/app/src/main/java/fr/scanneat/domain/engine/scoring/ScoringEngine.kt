@@ -157,9 +157,30 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // trans fat gets a hard cap at this same severity ("no safe level"), and
     // WHO/IARC classify ethanol identically (Group 1 carcinogen, no safe
     // consumption level), so a comparably strong veto applies here too.
+    //
+    // User-reported: this veto previously only fired above HIGH_ABV_THRESHOLD
+    // (15%), so an otherwise clean-profile beer (~4-6%) or wine (~11-14%) never
+    // triggered it - only the tiered -6/-9 deduction above applied, which a
+    // beer/wine with unremarkable sugar/salt/additives could absorb and still
+    // land at grade B. That directly contradicts this same comment block's own
+    // reasoning one line up: WHO/IARC classify ethanol as equally "no safe
+    // level" regardless of concentration, the same way trans fat's veto fires
+    // at any presence above the detection floor, not just at a high dose.
+    // Tiered by the same %vol bands NegativeNutrientsPillar.kt uses (rather
+    // than one flat cap for all alcohol), so a spirit is still capped more
+    // severely than a beer.
     val abv = n.alcoholPercentVol ?: 0.0
-    if (abv > HIGH_ABV_THRESHOLD)
-        candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool fort (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 40)
+    when {
+        abv > HIGH_ABV_THRESHOLD ->
+            candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool fort (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 40)
+        abv > 5.0 ->
+            candidates += VetoCondition(true, if (en) "Wine-strength alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool titrant comme un vin (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 45)
+        // 54, not 55 - scoreToGrade's own B cutoff is score >= 55, so a cap of
+        // 55 would have let a clean-profile beer land exactly on the boundary
+        // and still read as grade B, the exact outcome this fix exists to close.
+        abv > 1.2 ->
+            candidates += VetoCondition(true, if (en) "Alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 54)
+    }
 
     return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
 }

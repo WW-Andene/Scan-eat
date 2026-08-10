@@ -253,9 +253,19 @@ fun ScanScreen(
                     recall.productLabel?.let { append(" — $it") }
                     recall.reasonFr?.let { append(" : $it") }
                 }
+                // User-reported: previously had no way to dismiss it, and its fixed
+                // topInset + Spacing.XXL offset sat almost flush with the top of the
+                // screen, overlapping both ScanHeaderBar's title/subtitle and
+                // ScanBarcodeChip below it (which starts at topInset + XXL*3 and has
+                // its own height on top of that). recallWarning only ever fires
+                // alongside a scanned barcode (see its own doc comment), so
+                // ScanBarcodeChip is always showing whenever this banner is -
+                // pushed below its reserved zone instead of guessing a flat offset,
+                // and dismissible per-barcode (see dismissRecallWarning's own doc comment).
                 ErrorBanner(
                     message = message,
-                    modifier = Modifier.padding(top = topInset + Spacing.XXL, start = Spacing.M, end = Spacing.M),
+                    modifier = Modifier.padding(top = topInset + Spacing.XXL * 3 + 96.dp, start = Spacing.M, end = Spacing.M),
+                    onDismiss = { viewModel.dismissRecallWarning() },
                 )
             }
 

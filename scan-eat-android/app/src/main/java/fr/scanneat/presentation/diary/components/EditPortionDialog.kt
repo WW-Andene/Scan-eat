@@ -32,7 +32,18 @@ import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
-internal fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double, MealSlot) -> Unit, onDismiss: () -> Unit) {
+internal fun EditPortionDialog(
+    entry: DiaryEntry,
+    onConfirm: (Double, MealSlot) -> Unit,
+    onDismiss: () -> Unit,
+    // User-reported: there was no way to add/correct this entry's price from
+    // Diary at all, even from this exact "modifier le produit" dialog - only
+    // reachable via Result screen's PriceEntryCard or Expenses. null when the
+    // entry has no barcode (price is logged per-barcode, see
+    // DiaryViewModel.savePrice's own doc comment) - the field simply doesn't
+    // show for a manually-added, barcode-less entry.
+    onSavePrice: ((priceEuros: Double, weightG: Double?) -> Unit)? = null,
+) {
     var text by remember(entry.id) { mutableStateOf(entry.portionG.toInt().toString()) }
     // DiaryViewModel.updateEntry()/ConsumptionRepository.update() already accept a
     // full DiaryEntry, so meal slot could always be corrected in one write - this
@@ -40,7 +51,12 @@ internal fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double, MealSlot) 
     // logged this as lunch but it was actually a snack") required delete +
     // re-add instead of a one-tap fix.
     var mealSlot by remember(entry.id) { mutableStateOf(entry.mealSlot) }
+    var priceText by remember(entry.id) { mutableStateOf("") }
+    var weightText by remember(entry.id) { mutableStateOf("") }
     val portion = text.replace(',', '.').toDoubleOrNull()?.let { if (it in 1.0..2000.0) it else null }
+    // Same bounds PriceEntryCard's own PriceInputDialog uses.
+    val price = priceText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.01..9999.99 }
+    val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(entry.productName, color = OnBackground) },
@@ -69,10 +85,36 @@ internal fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double, MealSlot) 
                         )
                     }
                 }
+                if (onSavePrice != null) {
+                    Text(stringResource(R.string.result_price_title), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                    OutlinedTextField(
+                        value = priceText, onValueChange = { priceText = it },
+                        label = { Text(stringResource(R.string.result_price_field_euros)) },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        colors = scanEatTextFieldColors(),
+                    )
+                    OutlinedTextField(
+                        value = weightText, onValueChange = { weightText = it },
+                        label = { Text(stringResource(R.string.result_price_field_weight)) },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        colors = scanEatTextFieldColors(),
+                    )
+                    Text(stringResource(R.string.result_price_field_weight_hint), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                }
             }
         },
         confirmButton = {
-            TextButton(onClick = { portion?.let { if (it > 0) onConfirm(it, mealSlot) } }, enabled = portion != null && portion > 0) {
+            TextButton(
+                onClick = {
+                    portion?.let { if (it > 0) onConfirm(it, mealSlot) }
+                    if (onSavePrice != null) price?.let { onSavePrice(it, weight) }
+                },
+                enabled = portion != null && portion > 0,
+            ) {
                 Text(stringResource(R.string.common_save), color = AccentCoral)
             }
         },

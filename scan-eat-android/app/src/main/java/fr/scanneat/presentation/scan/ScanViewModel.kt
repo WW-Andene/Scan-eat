@@ -146,9 +146,24 @@ class ScanViewModel @Inject constructor(
      * level safety information, not gated behind Profile.healthConditions —
      * a real government recall applies to anyone holding this exact product.
      */
-    val recallWarning: StateFlow<RecallEntry?> = _scannedBarcode
+    private val _recallWarningRaw: StateFlow<RecallEntry?> = _scannedBarcode
         .flatMapLatest { barcode -> flow { emit(barcode?.let { recallRepo.checkBarcode(it) }) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // User-reported: this banner had no way to close it, so it stayed pinned over
+    // the header/barcode chip for as long as the recalled barcode stayed in frame.
+    // Keyed by barcode (not just a plain boolean) so dismissing this one recall
+    // doesn't also suppress the same warning reappearing for a genuinely different
+    // recalled product scanned right after - a real safety notice should always
+    // show at least once per product.
+    private val _dismissedRecallBarcode = MutableStateFlow<String?>(null)
+    val recallWarning: StateFlow<RecallEntry?> = combine(_recallWarningRaw, _scannedBarcode, _dismissedRecallBarcode) { recall, barcode, dismissed ->
+        if (barcode != null && barcode == dismissed) null else recall
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun dismissRecallWarning() {
+        _dismissedRecallBarcode.value = _scannedBarcode.value
+    }
 
     // Same allergen/diet warning already surfaced on History/Dashboard/Diary/
     // MealPlan/Grocery/Recipes/Templates (see e.g. ScanHistoryViewModel.historyWarnings) -
@@ -212,12 +227,15 @@ class ScanViewModel @Inject constructor(
      *  stale/bypassed UI state can never actually trigger either. */
     val isPremium = prefs.isPremium.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    private val _instantMode = MutableStateFlow(false)
-    val instantMode: StateFlow<Boolean> = _instantMode.asStateFlow()
+    // User-reported: this was a plain in-ViewModel MutableStateFlow with no
+    // backing store, unlike every other toggle in the app - resetting to off
+    // every time the Scan tab was left and reopened (a fresh ViewModel instance).
+    val instantMode: StateFlow<Boolean> = prefs.scanInstantMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     fun toggleInstantMode() {
         if (!isPremium.value) return
-        _instantMode.value = !_instantMode.value
+        viewModelScope.launch { prefs.setScanInstantMode(!instantMode.value) }
     }
 
     fun onBarcodeDetected(barcode: String) {
@@ -266,7 +284,7 @@ class ScanViewModel @Inject constructor(
         pendingBarcodeStreak = 0
         _scannedBarcode.value = barcode
         _detectedPriceEuros.value = null
-        if (_instantMode.value) score()
+        if (instantMode.value) score()
     }
 
     /**

@@ -56,6 +56,10 @@ class UserPreferences @Inject constructor(
         val KEY_CURRENCY_SYMBOL      = stringPreferencesKey("currency_symbol")
         val KEY_BIOLISM_ADVANCED     = booleanPreferencesKey("biolism_advanced_view")
         val KEY_ANIMATED_BACKGROUND  = booleanPreferencesKey("animated_background")
+        // User-reported: instant scan mode reset to off every time the Scan tab
+        // was left and reopened - it was a plain in-ViewModel MutableStateFlow
+        // with no backing store, unlike every other toggle in the app.
+        val KEY_SCAN_INSTANT_MODE    = booleanPreferencesKey("scan_instant_mode")
         val KEY_ACTIVITY_BEST_STREAK = intPreferencesKey("activity_best_streak_days")
         val KEY_ACTIVITY_WEEKLY_GOAL_MIN = intPreferencesKey("activity_weekly_goal_minutes")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
@@ -148,6 +152,8 @@ class UserPreferences @Inject constructor(
      */
     val useImperialWeight: Flow<Boolean> = storeData.map { it[KEY_USE_IMPERIAL_WEIGHT] ?: false }.distinctUntilChanged()
 
+    val scanInstantMode: Flow<Boolean> = storeData.map { it[KEY_SCAN_INSTANT_MODE] ?: false }.distinctUntilChanged()
+
     // Expenses previously hardcoded "€" at every display site - unusable outside
     // the eurozone. Defaults to "€" so existing users see no change.
     val currencySymbol: Flow<String> = storeData.map { it[KEY_CURRENCY_SYMBOL] ?: "€" }.distinctUntilChanged()
@@ -210,6 +216,8 @@ class UserPreferences @Inject constructor(
     suspend fun setDyslexicFont(v: Boolean)       = store.edit { it[KEY_DYSLEXIC_FONT] = v }
     suspend fun setColorblindMode(mode: String)   = store.edit { it[KEY_COLORBLIND_MODE] = mode }
     suspend fun setUseImperialWeight(v: Boolean)  = store.edit { it[KEY_USE_IMPERIAL_WEIGHT] = v }
+
+    suspend fun setScanInstantMode(v: Boolean) = store.edit { it[KEY_SCAN_INSTANT_MODE] = v }
     suspend fun setCurrencySymbol(v: String)      = store.edit { it[KEY_CURRENCY_SYMBOL] = v.ifBlank { "€" } }
     suspend fun setBiolismAdvancedView(v: Boolean) = store.edit { it[KEY_BIOLISM_ADVANCED] = v }
     suspend fun setAnimatedBackground(v: Boolean)  = store.edit { it[KEY_ANIMATED_BACKGROUND] = v }

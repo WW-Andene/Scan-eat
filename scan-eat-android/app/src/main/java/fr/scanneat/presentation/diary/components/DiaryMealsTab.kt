@@ -239,6 +239,10 @@ internal fun MealsTab(
             entry = entry,
             onConfirm = { newPortionG, newMealSlot -> viewModel.updateEntry(entry.copy(portionG = newPortionG, mealSlot = newMealSlot)); editTarget = null },
             onDismiss = { editTarget = null },
+            // User-reported: no way to add/correct this entry's price from Diary at
+            // all - see EditPortionDialog's/DiaryViewModel.savePrice's own doc
+            // comments. Only offered for a barcoded entry (price is barcode-keyed).
+            onSavePrice = if (entry.barcode != null) { priceEuros, weightG -> viewModel.savePrice(entry, priceEuros, weightG) } else null,
         )
     }
 }

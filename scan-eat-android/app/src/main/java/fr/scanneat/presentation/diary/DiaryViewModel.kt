@@ -234,6 +234,34 @@ class DiaryViewModel @Inject constructor(
         viewModelScope.launch { runCatching { consumptionRepo.update(entry) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
+    /**
+     * User-reported: there was no way to add/correct a logged entry's price
+     * from Diary at all - [pricePerKgByBarcode] only ever displayed whatever
+     * was already logged elsewhere (Result screen's PriceEntryCard/Expenses),
+     * with no write path back to it here. Logs a new PriceRepository entry for
+     * this entry's barcode, same shape PriceEntryCard itself uses - price/kg
+     * display is barcode-keyed (see pricePerKgByBarcode's own doc comment),
+     * not tied to one specific diary row, so this is a new price-history entry
+     * rather than an edit of an existing one, exactly like scanning a fresh
+     * price tag for the same product would produce.
+     */
+    fun savePrice(entry: DiaryEntry, priceEuros: Double, weightG: Double?) {
+        val barcode = entry.barcode ?: return
+        viewModelScope.launch {
+            runCatching {
+                priceRepo.log(
+                    date = LocalDate.now(),
+                    productName = entry.productName,
+                    barcode = barcode,
+                    category = entry.category,
+                    priceEuros = priceEuros,
+                    weightG = weightG,
+                    profileId = activeProfileId.value,
+                )
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     // Was `_selectedDate.map { it == LocalDate.now() }` - despite the "safe across
     // midnight" comment, that only re-evaluates when _selectedDate itself changes,
     // never from real time passing. A session left open on "today" across midnight
