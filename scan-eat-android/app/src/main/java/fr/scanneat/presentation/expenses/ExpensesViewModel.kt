@@ -10,12 +10,14 @@ import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.domain.model.ProductCategory
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ExpensesViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
@@ -24,7 +26,12 @@ class ExpensesViewModel @Inject constructor(
     private val groceryRepo: ManualGroceryRepository,
 ) : ViewModel() {
 
-    val entries: StateFlow<List<PriceEntry>> = priceRepo.observeAll()
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    val entries: StateFlow<List<PriceEntry>> = activeProfileId.flatMapLatest { id -> priceRepo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // R&D audit finding: PriceRepository.deductStock's "remaining stock" concept
@@ -194,7 +201,7 @@ class ExpensesViewModel @Inject constructor(
         val entry = lastDeleted ?: return
         lastDeleted = null
         viewModelScope.launch {
-            runCatching { priceRepo.log(entry.date, entry.productName, barcode = entry.barcode, category = entry.category, priceEuros = entry.priceEuros, weightG = entry.weightG) }
+            runCatching { priceRepo.log(entry.date, entry.productName, barcode = entry.barcode, category = entry.category, priceEuros = entry.priceEuros, weightG = entry.weightG, profileId = activeProfileId.value) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -212,7 +219,7 @@ class ExpensesViewModel @Inject constructor(
     fun addEntry(date: LocalDate, productName: String, category: ProductCategory, priceEuros: Double, weightG: Double?) {
         if (productName.isBlank()) return
         viewModelScope.launch {
-            runCatching { priceRepo.log(date, productName.trim(), barcode = null, category = category, priceEuros = priceEuros, weightG = weightG) }
+            runCatching { priceRepo.log(date, productName.trim(), barcode = null, category = category, priceEuros = priceEuros, weightG = weightG, profileId = activeProfileId.value) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
