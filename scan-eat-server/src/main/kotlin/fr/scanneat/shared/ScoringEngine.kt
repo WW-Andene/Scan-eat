@@ -26,12 +26,15 @@ const val ENGINE_VERSION = "2.3.0"
 // SECTION 10: GLOBAL MODIFIERS, VETOES & ORCHESTRATOR
 // ============================================================================
 
+// 7 bands, not 6 - E inserted between D and F. Mirrors the identical change
+// on the Android side (see Scoring Drift Check).
 private fun scoreToGrade(score: Int): Grade = when {
     score >= 85 -> Grade.A_PLUS
     score >= 70 -> Grade.A
     score >= 55 -> Grade.B
     score >= 40 -> Grade.C
     score >= 25 -> Grade.D
+    score >= 10 -> Grade.E
     else        -> Grade.F
 }
 
@@ -45,14 +48,16 @@ private fun gradeVerdict(grade: Grade, lang: String = "en"): String = if (lang =
     Grade.B      -> "Acceptable — moderate frequency"
     Grade.C      -> "Mediocre — occasional only"
     Grade.D      -> "Poor — avoid regular use"
-    Grade.F      -> "Very poor — avoid"
+    Grade.E      -> "Very poor — avoid"
+    Grade.F      -> "Extremely poor — avoid"
 } else when (grade) {
     Grade.A_PLUS -> "Excellent — potentiel de consommation quotidienne"
     Grade.A      -> "Bon — consommation régulière adaptée"
     Grade.B      -> "Acceptable — fréquence modérée"
     Grade.C      -> "Médiocre — occasionnel uniquement"
     Grade.D      -> "Mauvais — à éviter en usage régulier"
-    Grade.F      -> "Très mauvais — à éviter"
+    Grade.E      -> "Très mauvais — à éviter"
+    Grade.F      -> "Extrêmement mauvais — à éviter"
 }
 
 private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<Deduction> {
@@ -111,8 +116,10 @@ private fun computeGlobalPenalties(product: Product, severeFlagCount: Int, lang:
 private object VetoCap {
     // Reserved for a hazard severe enough to force grade F outright - not
     // currently used by any veto, kept named so a future one has somewhere
-    // principled to land instead of inventing a number.
-    const val EXTREME = 20
+    // principled to land instead of inventing a number. 9, not 20 - E is now
+    // its own grade band ([10,25)); F's floor is <10. Mirrors the identical
+    // fix on the Android side (see Scoring Drift Check).
+    const val EXTREME = 9
     // Worst tier actually in use: concentrated exposure to a WHO/IARC Group 1
     // carcinogen (high-proof spirits), or a well-established severe aggregate
     // nutritional harm (a sugar-sweetened beverage with zero redeeming

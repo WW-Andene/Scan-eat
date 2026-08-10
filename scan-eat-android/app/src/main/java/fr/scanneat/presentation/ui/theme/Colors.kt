@@ -277,12 +277,17 @@ val CalorieOrange   = Color(0xFFFF6B35)
 // palette swaps to a blue→orange/brown gradient (Okabe & Ito 2008) where "worse"
 // grades also get darker/lower-luminance, keeping the scale readable even when
 // hue can't be trusted. Grade letters are always shown alongside the color too.
+// E inserted between D and F in all three palettes below (Grade now has 7
+// tiers, not 6) - each interpolated between its neighbors so the "worse
+// grades get darker/lower-luminance" property this comment already promises
+// still holds across the extra step.
 private val NormalGradeColors = mapOf(
     Grade.A_PLUS to Color(0xFF4CAF50),
     Grade.A      to Color(0xFF8BC34A),
     Grade.B      to Color(0xFFCDDC39),
     Grade.C      to Color(0xFFFF9800),
     Grade.D      to Color(0xFFFF5722),
+    Grade.E      to Color(0xFFF4511E),
     Grade.F      to Color(0xFFF44336),
 )
 // Safe for protanopia/deuteranopia (red-green confusion): diverges on the
@@ -293,6 +298,7 @@ private val ProtanDeuteranSafeGradeColors = mapOf(
     Grade.B      to Color(0xFFE6C619),
     Grade.C      to Color(0xFFE69F00),
     Grade.D      to Color(0xFFD55E00),
+    Grade.E      to Color(0xFFAF4500),
     Grade.F      to Color(0xFF8B2E00),
 )
 
@@ -305,6 +311,7 @@ private val TritanopiaSafeGradeColors = mapOf(
     Grade.B      to Color(0xFFB5B5B5),
     Grade.C      to Color(0xFFE8998D),
     Grade.D      to Color(0xFFD45D5D),
+    Grade.E      to Color(0xFFBD4444),
     Grade.F      to Color(0xFFA62B2B),
 )
 

@@ -699,6 +699,7 @@ class PersonalScoreEngineTest {
         assertEquals(Grade.B, personalGrade(60))
         assertEquals(Grade.C, personalGrade(45))
         assertEquals(Grade.D, personalGrade(30))
-        assertEquals(Grade.F, personalGrade(10))
+        assertEquals(Grade.E, personalGrade(15))
+        assertEquals(Grade.F, personalGrade(5))
     }
 }

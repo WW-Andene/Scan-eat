@@ -15,7 +15,8 @@ import kotlinx.coroutines.flow.flow
 
 // Only worth suggesting an alternative below this grade — A/B/A+ are already a
 // good choice, and surfacing one for every single scan would just be noise.
-private val ALTERNATIVE_ELIGIBLE_GRADES = setOf(Grade.C, Grade.D, Grade.F)
+// E added alongside D/F now that it's a real 7th grade tier, not a relabeling.
+private val ALTERNATIVE_ELIGIBLE_GRADES = setOf(Grade.C, Grade.D, Grade.E, Grade.F)
 
 // Branded/manufactured categories whose name is a flavor or product label, not
 // a raw ingredient - "pairs well with" suggestions don't make sense for them.

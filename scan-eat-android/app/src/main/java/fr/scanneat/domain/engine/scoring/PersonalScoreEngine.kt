@@ -108,12 +108,14 @@ fun computePersonalScore(
     )
 }
 
-/** Map 0-100 personal score to grade. Same breakpoints as the main engine. */
+/** Map 0-100 personal score to grade. Same breakpoints as the main engine
+ *  (7 bands including E, see ScoringEngine.kt's scoreToGrade). */
 fun personalGrade(score: Int): Grade = when {
     score >= 85 -> Grade.A_PLUS
     score >= 70 -> Grade.A
     score >= 55 -> Grade.B
     score >= 40 -> Grade.C
     score >= 25 -> Grade.D
+    score >= 10 -> Grade.E
     else        -> Grade.F
 }

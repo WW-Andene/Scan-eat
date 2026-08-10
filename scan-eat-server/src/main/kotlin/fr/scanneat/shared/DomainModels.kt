@@ -163,8 +163,12 @@ data class Product(
 )
 
 // Score output types
+// A/B/C/D/F skipped E entirely, but Nutri-Score's native A-E badge (shown
+// alongside this app's own grade) uses E as its worst tier. E is now a real,
+// distinct 7th tier between D and F, not a relabeling. Mirrors the identical
+// change on the Android side (see Scoring Drift Check).
 enum class Grade(val label: String) {
-    A_PLUS("A+"), A("A"), B("B"), C("C"), D("D"), F("F");
+    A_PLUS("A+"), A("A"), B("B"), C("C"), D("D"), E("E"), F("F");
 
     companion object {
         fun fromLabel(s: String): Grade = entries.firstOrNull { it.label == s } ?: F

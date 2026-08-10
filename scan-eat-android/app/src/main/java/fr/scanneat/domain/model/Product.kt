@@ -163,8 +163,14 @@ data class Product(
 )
 
 // Score output types
+// A/B/C/D/F skipped E entirely (the US school-grade convention this
+// originally followed), but Nutri-Score - whose A-E badge this app displays
+// directly alongside its own grade - uses E as its native worst tier. A
+// French/EU user comparing the two badges side by side had no F reference
+// point in the one they already knew. E is now a real, distinct 7th tier
+// between D and F (see scoreToGrade's own boundaries), not a relabeling.
 enum class Grade(val label: String) {
-    A_PLUS("A+"), A("A"), B("B"), C("C"), D("D"), F("F");
+    A_PLUS("A+"), A("A"), B("B"), C("C"), D("D"), E("E"), F("F");
 
     companion object {
         fun fromLabel(s: String): Grade = entries.firstOrNull { it.label == s } ?: F

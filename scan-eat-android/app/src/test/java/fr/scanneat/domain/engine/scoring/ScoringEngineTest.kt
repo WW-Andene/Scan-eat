@@ -108,7 +108,7 @@ class ScoringEngineTest {
                 nutrition = nutrition(42.0, 0.0, 0.0, 10.6, 10.6, 0.0, 0.0, 0.0, addedSugars = 10.6),
                 namedOils = true,
             ),
-            grades = listOf(Grade.D, Grade.F),
+            grades = listOf(Grade.D, Grade.E, Grade.F),
             range = 0..40,
         )
     }
@@ -130,7 +130,7 @@ class ScoringEngineTest {
             nutrition = nutrition(539.0, 30.9, 10.6, 57.5, 56.3, 0.0, 6.3, 0.107, addedSugars = 50.0),
             namedOils = true,
         ))
-        assertTrue("Nutella grade ${audit.grade} should be C/D/F", audit.grade in listOf(Grade.C, Grade.D, Grade.F))
+        assertTrue("Nutella grade ${audit.grade} should be C/D/E/F", audit.grade in listOf(Grade.C, Grade.D, Grade.E, Grade.F))
         val sugarDeduction = audit.pillars.negativeNutrients.deductions
             .firstOrNull { it.reason.contains("sugar", ignoreCase = true) && it.severity == Severity.CRITICAL }
         assertNotNull("Nutella should trigger a critical sugar deduction", sugarDeduction)
@@ -231,7 +231,7 @@ class ScoringEngineTest {
                 nutrition = nutrition(385.0, 3.0, 0.5, 82.0, 40.0, 3.5, 6.0, 0.3, addedSugars = 40.0),
                 hasHealthClaims = true,
             ),
-            grades = listOf(Grade.D, Grade.F),
+            grades = listOf(Grade.D, Grade.E, Grade.F),
             range = 0..39,
         )
     }
