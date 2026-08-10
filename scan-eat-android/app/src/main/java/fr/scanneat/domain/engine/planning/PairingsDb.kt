@@ -291,14 +291,38 @@ private val EN_TO_FR: Map<String, String> = mapOf(
     "whiskey" to "whisky",
     "whole_grain_wheat_flour" to "farine de blé complet",
     "wine" to "vin",
-    "yam" to "igname"
+    "yam" to "igname",
+    // User-reported: ~40% of SeasonalProduceDb.kt's own items had no pairing
+    // suggestions at all - some (peach/watermelon/blackberry/corn/celery)
+    // already had real dataset entries, just unreachable due to the accent-
+    // normalization bug fixed above; these are the genuinely-missing ones,
+    // added below (PAIRINGS_CURATED) with real, well-established culinary
+    // pairings rather than the Ahn et al. flavor-network co-occurrence data.
+    "clementine" to "clémentine",
+    "broad_bean" to "fève",
+    "arugula" to "roquette",
+    "brussels_sprouts" to "chou de Bruxelles",
+    "endive" to "endive",
+    "jerusalem_artichoke" to "topinambour",
+    "green_bean" to "haricot vert",
+    "white_bean" to "haricot blanc",
+    "butternut_squash" to "courge butternut"
 )
 
 // FR → EN reverse map (built from EN_TO_FR + ingredient display names)
 private val FR_TO_EN: Map<String, String> by lazy {
     val m = mutableMapOf<String, String>()
     for ((en, fr) in EN_TO_FR) {
-        m[fr.lowercase()] = en          // French display name → EN key
+        // normalizePairing() (below) strips accents from every query before
+        // lookup - "Mûre" becomes "mure". This map's own keys were never put
+        // through that same normalization (fr.lowercase() only lowercases),
+        // so ANY accented French name silently failed to resolve to itself:
+        // "pêche"/"pastèque"/"mûre"/"maïs"/"céleri" all already had full,
+        // real PairingsResult entries in the dataset (PairingsData*.kt) that
+        // were completely unreachable through their own French name. Keying
+        // this map through the same normalizePairing() the query itself uses
+        // fixes every accented entry at once instead of one at a time.
+        m[normalizePairing(fr)] = en    // French display name → EN key
         m[en.replace("_", " ")] = en   // "smoked salmon" → "smoked_salmon"
         m[en] = en                      // exact EN key lookup
     }
@@ -312,7 +336,7 @@ private val FR_TO_EN: Map<String, String> by lazy {
 
 
 private val PAIRINGS: Map<String, PairingsResult> =
-    PAIRINGS_A_C + PAIRINGS_C_L + PAIRINGS_L_R + PAIRINGS_R_Z
+    PAIRINGS_A_C + PAIRINGS_C_L + PAIRINGS_L_R + PAIRINGS_R_Z + PAIRINGS_CURATED
 
 private fun normalizePairing(s: String): String =
     Normalizer.normalize(s.trim().lowercase(), Normalizer.Form.NFD)
