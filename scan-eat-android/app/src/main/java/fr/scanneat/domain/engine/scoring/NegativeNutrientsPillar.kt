@@ -114,8 +114,8 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val caffeine = n.caffeineMg ?: 0.0
     val caffeineLabel = if (en) "Caffeine" else "Caféine"
     when {
-        caffeine > 300.0 -> { score -= 8; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "well above EFSA single-dose caution level" else "bien au-delà du seuil de prudence EFSA par prise") + ")", -8.0, Severity.CRITICAL) }
-        caffeine > 150.0 -> { score -= 5; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "above EFSA single-dose caution level (~200mg)" else "au-delà du seuil de prudence EFSA par prise (~200mg)") + ")", -5.0, Severity.MAJOR) }
+        caffeine > 300.0 -> { score -= 8; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "concentrated enough that a typical single serving would exceed EFSA's ~200mg single-dose guidance" else "concentration telle qu'une portion normale dépasserait le repère de prudence EFSA d'environ 200mg par prise") + ")", -8.0, Severity.CRITICAL) }
+        caffeine > 150.0 -> { score -= 5; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "concentrated enough that a generous serving could approach EFSA's ~200mg single-dose guidance" else "concentration telle qu'une portion généreuse pourrait approcher le repère de prudence EFSA d'environ 200mg par prise") + ")", -5.0, Severity.MAJOR) }
         caffeine > 80.0  -> { score -= 3; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "high caffeine content" else "teneur élevée en caféine") + ")", -3.0, Severity.MODERATE) }
         caffeine > 40.0  -> { score -= 1; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "elevated caffeine content" else "teneur en caféine élevée") + ")", -1.0, Severity.MINOR) }
     }

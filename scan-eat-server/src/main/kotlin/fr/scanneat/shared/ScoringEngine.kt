@@ -35,20 +35,22 @@ private fun scoreToGrade(score: Int): Grade = when {
     else        -> Grade.F
 }
 
+// D/F deliberately moderation-framed, not prohibition-framed. Mirrors the
+// identical fix on the Android side (see Scoring Drift Check).
 private fun gradeVerdict(grade: Grade, lang: String = "en"): String = if (lang == "en") when (grade) {
     Grade.A_PLUS -> "Excellent — daily staple potential"
     Grade.A      -> "Good — regular consumption fine"
     Grade.B      -> "Acceptable — moderate frequency"
     Grade.C      -> "Mediocre — occasional only"
-    Grade.D      -> "Poor — avoid regular use"
-    Grade.F      -> "Very poor — avoid"
+    Grade.D      -> "Poor — best kept occasional, not a regular choice"
+    Grade.F      -> "Very poor — nutritionally the weakest tier; fine rarely, not a repeat choice"
 } else when (grade) {
     Grade.A_PLUS -> "Excellent — potentiel de consommation quotidienne"
     Grade.A      -> "Bon — consommation régulière adaptée"
     Grade.B      -> "Acceptable — fréquence modérée"
     Grade.C      -> "Médiocre — occasionnel uniquement"
-    Grade.D      -> "Mauvais — à éviter en usage régulier"
-    Grade.F      -> "Très mauvais — à éviter"
+    Grade.D      -> "Mauvais — à réserver à l'occasionnel, pas un choix régulier"
+    Grade.F      -> "Très mauvais — niveau nutritionnel le plus faible ; à réserver à de rares occasions"
 }
 
 private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<Deduction> {
@@ -206,7 +208,12 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // stricter combo veto automatically whenever both conditions hold.
     // Mirrors the identical fix on the Android side (see Scoring Drift Check).
     if (hasNitrites)
-        candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate preservatives (E249/E250) — IARC Group 1 carcinogen" else "Contient des conservateurs nitrités (E249/E250) — cancérigène IARC groupe 1", VetoCap.MILD)
+        // Wording is deliberately about the additive class, not a causal claim
+        // about this specific product - IARC's Group 1 classification is for
+        // PROCESSED MEAT CONSUMPTION as a dietary pattern, not a standalone
+        // verdict on one ingredient-list entry. Mirrors the identical fix on
+        // the Android side (see Scoring Drift Check).
+        candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate preservatives (E249/E250), linked by IARC to processed-meat consumption at a population level" else "Contient des conservateurs nitrités (E249/E250), associés par le CIRC à la consommation de viande transformée au niveau populationnel", VetoCap.MILD)
 
     val sugars = n.addedSugarsG ?: n.sugarsG
     if (product.category == ProductCategory.BEVERAGE_SOFT && sugars > 5 && n.proteinG < 1 && n.fiberG < 1)
@@ -263,7 +270,9 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // the identical fix on the Android side (see Scoring Drift Check).
     val caffeine = n.caffeineMg ?: 0.0
     if (caffeine > 300.0)
-        candidates += VetoCondition(true, if (en) "Caffeine ${caffeine.formatDecimal(1)}mg/100g — well above EFSA single-dose caution level" else "Caféine ${caffeine.formatDecimal(1)}mg/100g — bien au-delà du seuil de prudence EFSA par prise", VetoCap.MILD)
+        // EFSA's ~200mg guidance is per-DOSE, not per-100g - mirrors the
+        // identical fix on the Android side (see Scoring Drift Check).
+        candidates += VetoCondition(true, if (en) "Caffeine ${caffeine.formatDecimal(1)}mg/100g — concentrated enough that a typical single serving would exceed EFSA's ~200mg single-dose guidance" else "Caféine ${caffeine.formatDecimal(1)}mg/100g — concentration telle qu'une portion normale dépasserait le repère de prudence EFSA d'environ 200mg par prise", VetoCap.MILD)
 
     return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
 }
@@ -373,7 +382,16 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
 
     val pillars = ScoreAudit.Pillars(processing, nutritionalDensity, negativeNutrients, additiveRisk, ingredientIntegrity)
 
-    val warnings = collectWarnings(product, lang) +
+    // NOVA-confidence gets the same audit-level promotion category-inference
+    // already has just below - both are "this input to the grade was
+    // inferred, not declared" signals. Mirrors the identical fix on the
+    // Android side (see Scoring Drift Check).
+    val novaInference = inferNovaClassWithConfidence(product)
+    val novaConfidenceWarning = if (product.novaClass == NovaClass.ULTRA_PROCESSED && novaInference.nova.value < 4 && novaInference.confidence != NovaConfidence.HIGH)
+        listOf(if (en) "Processing level (NOVA) inferred from ingredients with ${novaInference.confidence.name.lowercase()} confidence, not declared" else "Niveau de transformation (NOVA) déduit des ingrédients avec une confiance ${if (novaInference.confidence == NovaConfidence.LOW) "faible" else "moyenne"}, non déclaré")
+    else emptyList()
+
+    val warnings = collectWarnings(product, lang) + novaConfidenceWarning +
         if (product.category != input.category) listOf(if (en) "Category inferred from name as \"${product.category.key}\"" else "Catégorie déduite du nom : \"${product.category.key}\"") else emptyList()
 
     val preAudit = ScoreAudit(
