@@ -80,6 +80,14 @@ class RecallRepository @Inject constructor(
                 )
             }
             dao.upsert(entity)
+            // trimStaleNegatives existed since this table's introduction but was
+            // never actually called anywhere in the app - recall_cache grew by
+            // one row per distinct barcode ever scanned, forever, since almost
+            // every scan produces a found=false ("no active recall") row. Purging
+            // negatives past the same TTL that already makes them stale for
+            // reads keeps the table's real size matched to its intended,
+            // documented bound instead of just its written-but-dormant one.
+            dao.trimStaleNegatives(System.currentTimeMillis() - NEGATIVE_CACHE_TTL_MS)
             if (entity.found) entity.toEntry() else null
         } catch (e: CancellationException) {
             throw e

@@ -31,6 +31,18 @@ interface CustomFoodDao {
     @Query("SELECT * FROM custom_foods WHERE profileId = :profileId AND barcode = :barcode LIMIT 1")
     suspend fun findByBarcode(barcode: String, profileId: String = "default"): CustomFoodEntity?
 
+    // Same retention cap/pattern as ScanRepository.MAX_HISTORY_ROWS and its
+    // siblings (ConsumptionDao/ActivityDao/WeightDao/MedicationLogDao/PriceDao)
+    // - this table had no cap at all until now, unlike every log table, despite
+    // carrying a nutritionJson blob per row like the others.
+    @Query("""
+        DELETE FROM custom_foods
+        WHERE profileId = :profileId AND id NOT IN (
+            SELECT id FROM custom_foods WHERE profileId = :profileId ORDER BY createdAt DESC LIMIT :keepCount
+        )
+    """)
+    suspend fun trim(keepCount: Int, profileId: String = "default")
+
     /**
      * Atomically resolves [explicitId] (a known rename/update target), else an
      * existing row's id - preferring a [barcode] match when one is given (a real,

@@ -168,7 +168,15 @@ class CustomFoodRepository @Inject constructor(
                 barcode       = barcode,
             )
         }
+        // Same retention cap as ScanRepository/ConsumptionRepository/ActivityRepository
+        // and their siblings - this table had no cap at all until now despite carrying
+        // a nutritionJson blob per row like the others.
+        dao.trim(MAX_ROWS, profileId)
         return entry
+    }
+
+    private companion object {
+        const val MAX_ROWS = 5000
     }
 
     suspend fun delete(id: String) = dao.delete(id)

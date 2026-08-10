@@ -80,7 +80,15 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
             favorite   = existing?.favorite ?: false,
         )
         dao.upsert(recipe.toEntity(profileId, componentsAdapter))
+        // Same retention cap/pattern as ScanHistoryDao.trimNonFavorites - this
+        // table had no cap at all until now despite carrying a componentsJson
+        // blob per row; favorites are exempt, same as scan_history's favorites.
+        dao.trimNonFavorites(MAX_ROWS, profileId)
         return recipe
+    }
+
+    private companion object {
+        const val MAX_ROWS = 5000
     }
 
     suspend fun delete(id: String) = dao.delete(id)

@@ -25,6 +25,19 @@ interface RecipeDao {
     @Query("UPDATE recipes SET favorite = :favorite WHERE id = :id")
     suspend fun setFavorite(id: String, favorite: Boolean)
 
+    // Same retention cap/pattern as ScanHistoryDao.trimNonFavorites - favorites
+    // are exempt (a user's explicitly-kept recipes shouldn't silently vanish),
+    // only the non-favorite tail beyond keepCount is pruned. Previously this
+    // table had no cap at all despite carrying a componentsJson blob per row.
+    @Query("""
+        DELETE FROM recipes
+        WHERE profileId = :profileId AND favorite = 0 AND id NOT IN (
+            SELECT id FROM recipes WHERE profileId = :profileId AND favorite = 0
+            ORDER BY createdAt DESC LIMIT :keepCount
+        )
+    """)
+    suspend fun trimNonFavorites(keepCount: Int, profileId: String = "default")
+
     /** Full unfiltered read/write pair for backup export/import. */
     @Query("SELECT * FROM recipes WHERE profileId = :profileId")
     suspend fun getAllForBackup(profileId: String = "default"): List<RecipeEntity>

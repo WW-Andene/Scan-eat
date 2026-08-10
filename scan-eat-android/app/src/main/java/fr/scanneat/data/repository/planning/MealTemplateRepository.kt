@@ -159,7 +159,14 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
             favorite  = existing?.favorite ?: false,
         )
         dao.upsert(template.toEntity(profileId))
+        // Same retention cap/pattern as RecipeRepository.save - this table had no
+        // cap at all until now despite carrying an itemsJson blob per row.
+        dao.trimNonFavorites(MAX_ROWS, profileId)
         return template
+    }
+
+    private companion object {
+        const val MAX_ROWS = 5000
     }
 
     suspend fun delete(id: String) = dao.delete(id)
