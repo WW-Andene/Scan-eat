@@ -6,8 +6,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -18,8 +17,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.changedToUp
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,10 +31,6 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeoutOrNull
-
-/** Same threshold/reasoning as DiaryHeader.kt's HOLD_TO_ARM_MS. */
-private const val NAV_HOLD_TO_ARM_MS = 2000L
 
 /** Same reasoning as DiaryHeader.kt's ARM_AUTO_CANCEL_MS - the bottom nav is
  *  visible across the whole app, not scoped to one screen, so a stray armed
@@ -138,9 +131,20 @@ fun MainShell(
                     .hazeEffect(state = bottomNavHazeState, style = FrostedGlassStyle),
             ) {
             // Replaces Material3's NavigationBar/NavigationBarItem with a plain Row
-            // of custom items - see DiaryHeader.kt's HoldToArmMenuItem doc comment
-            // for why tap and long-press-to-arm are two ordinary sibling
-            // pointerInput detectors here instead of one hand-timed custom loop.
+            // of custom items so long-press-to-arm can be layered on cleanly.
+            //
+            // User-reported: tab switching itself became slow/unresponsive/
+            // misfiring. Two prior attempts hand-rolled the tap-vs-hold gesture
+            // with a custom awaitEachGesture loop consuming every pointer event
+            // manually - functionally repairable each time a new failure mode
+            // showed up, but a plain tap had no ripple/press feedback at all
+            // (nothing indicated a tap had registered until navigation actually
+            // completed) and evidently still misfired in practice. Replaced with
+            // Modifier.combinedClickable(onClick, onLongClick) - Compose's own
+            // battle-tested primitive for exactly this case, with built-in ripple
+            // feedback and correct touch-slop/timing handled by the framework
+            // instead of hand-timed code. Trade-off: long-press duration is now
+            // the platform's standard timeout (~500ms), not a custom 2s.
             val haptics = LocalHapticFeedback.current
 
             Row(
@@ -164,69 +168,39 @@ fun MainShell(
                                 else if (isReplaceTarget) Modifier.background(AccentCoral.copy(alpha = 0.06f))
                                 else Modifier
                             )
-                            // User-requested: hold a nav tab still for 2s (no drag
-                            // needed) to arm it, then tap another one to swap their
-                            // positions. One gesture loop with exclusive control of
-                            // every pointer event for the item's whole down-to-up
-                            // lifecycle - see DiaryHeader.kt's HoldToArmMenuItem doc
-                            // comment for why (two earlier attempts either let
-                            // something else steal a stationary hold, or ended up
-                            // requiring an actual drag to register reliably).
-                            //
-                            // Keyed on navOrderCsv.value (not just tab.route): this
-                            // closes over navTabs, a plain recomputed val, not a
-                            // State-backed read - a tab whose slot doesn't move in a
-                            // swap would otherwise keep running the pointerInput
-                            // launched before that swap and compute fromIdx/toIdx
-                            // against the stale pre-swap list on its own next use.
-                            .pointerInput(tab.route, navOrderCsv.value) {
-                                awaitEachGesture {
-                                    val down = awaitFirstDown(requireUnconsumed = false)
-                                    down.consume()
-                                    val releasedBeforeArm = withTimeoutOrNull(NAV_HOLD_TO_ARM_MS) {
-                                        while (true) {
-                                            val event = awaitPointerEvent()
-                                            val change = event.changes.firstOrNull { it.id == down.id } ?: return@withTimeoutOrNull true
-                                            change.consume()
-                                            if (change.changedToUp()) return@withTimeoutOrNull true
+                            // Keyed on navOrderCsv.value (not just tab.route): the
+                            // click/long-click lambdas below close over navTabs, a
+                            // plain recomputed val, not a State-backed read - a tab
+                            // whose slot doesn't move in a swap would otherwise keep
+                            // running with the stale pre-swap list captured before
+                            // that swap.
+                            .combinedClickable(
+                                onClick = {
+                                    val armed = armedNavTab
+                                    if (armed != null) {
+                                        if (armed != tab) {
+                                            val fromIdx = navTabs.indexOf(armed)
+                                            val toIdx = navTabs.indexOf(tab)
+                                            val newOrder = navTabs.toMutableList()
+                                            newOrder[fromIdx] = tab
+                                            newOrder[toIdx] = armed
+                                            shellViewModel.setNavTabOrder(serializeTopTabOrder(newOrder))
+                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                         }
-                                        @Suppress("UNREACHABLE_CODE") true
-                                    }
-                                    if (releasedBeforeArm == true) {
-                                        val armed = armedNavTab
-                                        if (armed != null) {
-                                            if (armed != tab) {
-                                                val fromIdx = navTabs.indexOf(armed)
-                                                val toIdx = navTabs.indexOf(tab)
-                                                val newOrder = navTabs.toMutableList()
-                                                newOrder[fromIdx] = tab
-                                                newOrder[toIdx] = armed
-                                                shellViewModel.setNavTabOrder(serializeTopTabOrder(newOrder))
-                                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            }
-                                            armedNavTab = null
-                                        } else {
-                                            navController.navigate(tab.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                                launchSingleTop = true
-                                                restoreState    = true
-                                            }
-                                        }
+                                        armedNavTab = null
                                     } else {
-                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        armedNavTab = if (armedNavTab == tab) null else tab
-                                        // Still held past the threshold - swallow the
-                                        // eventual release so it doesn't also fire a
-                                        // navigate/swap on its own.
-                                        while (true) {
-                                            val event = awaitPointerEvent()
-                                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                                            change.consume()
-                                            if (change.changedToUp()) break
+                                        navController.navigate(tab.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState    = true
                                         }
                                     }
-                                }
-                            },
+                                },
+                                onLongClick = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    armedNavTab = if (armedNavTab == tab) null else tab
+                                },
+                            ),
                     ) {
                         Icon(
                             tab.icon, stringResource(tab.labelRes),

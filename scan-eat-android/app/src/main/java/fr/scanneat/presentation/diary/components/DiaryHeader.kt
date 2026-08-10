@@ -5,8 +5,7 @@ import compose.icons.tablericons.Check
 import compose.icons.tablericons.ChevronDown
 import compose.icons.TablerIcons
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,8 +23,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.changedToUp
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,11 +32,6 @@ import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeoutOrNull
-
-/** How long a "more" overflow tab must be held still (no drag needed) before
- *  it's armed for replacing one of the header's always-visible tabs. */
-private const val HOLD_TO_ARM_MS = 2000L
 
 /** Found on review: arming has no way to expire on its own - a user who arms
  *  a tab then gets distracted (switches to another tab and back, backgrounds
@@ -229,22 +221,18 @@ internal fun BoxScope.DiaryHeader(
 
 /**
  * A DropdownMenu row that behaves like a normal [DropdownMenuItem] on a quick
- * tap (calls [onTap]), but "arms" instead (calls [onArmed]) if held still for
- * [HOLD_TO_ARM_MS] - no drag/movement needed. Hand-rolled instead of the real
- * `DropdownMenuItem` so this one gesture loop has exclusive control of every
- * pointer event for the item's whole down-to-up lifecycle.
+ * tap (calls [onTap]), but "arms" instead (calls [onArmed]) on a long-press.
  *
- * User-reported (twice): a plain still hold needs to actually work here, not
- * require a small drag. The first attempt (a bare `awaitFirstDown` +
- * `withTimeoutOrNull { waitForUpOrCancellation() }`) never consumed the
- * pointer events it was watching, so something else in the tree apparently
- * could still intercept a stationary hold before the timer completed - the
- * second attempt swapped to `detectDragGesturesAfterLongPress` to work around
- * that, but that primitive is inherently drag-oriented, which is exactly the
- * "forced to drag" behavior reported back. This version calls
- * `change.consume()` on every single move/up event for this pointer from the
- * moment it goes down, so nothing else downstream can steal the gesture out
- * from under a stationary hold.
+ * User-reported (three times): earlier hand-rolled attempts at this gesture
+ * (a bare hold timer, then a drag-based detector, then a manually-consuming
+ * pointer-event loop) each fixed one failure mode while introducing another -
+ * needing a drag to register, or the whole tab-switch interaction becoming
+ * slow/unresponsive with no press feedback. Replaced with
+ * Modifier.combinedClickable(onClick, onLongClick) - Compose's own
+ * battle-tested primitive for exactly this case, with built-in ripple
+ * feedback and correct touch-slop/timing handled by the framework. Trade-off:
+ * the hold duration is now the platform's standard long-press timeout
+ * (~500ms), not a custom 2s.
  */
 @Composable
 private fun HoldToArmMenuItem(
@@ -257,35 +245,7 @@ private fun HoldToArmMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .pointerInput(tab) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    down.consume()
-                    val releasedBeforeArm = withTimeoutOrNull(HOLD_TO_ARM_MS) {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            val change = event.changes.firstOrNull { it.id == down.id } ?: return@withTimeoutOrNull true
-                            change.consume()
-                            if (change.changedToUp()) return@withTimeoutOrNull true
-                        }
-                        @Suppress("UNREACHABLE_CODE") true
-                    }
-                    if (releasedBeforeArm == true) {
-                        onTap()
-                    } else {
-                        onArmed()
-                        // Still held past the threshold - swallow the eventual
-                        // release so DropdownMenuItem-style click semantics
-                        // never separately fire for it.
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                            change.consume()
-                            if (change.changedToUp()) break
-                        }
-                    }
-                }
-            }
+            .combinedClickable(onClick = onTap, onLongClick = onArmed)
             .padding(horizontal = Spacing.M),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
