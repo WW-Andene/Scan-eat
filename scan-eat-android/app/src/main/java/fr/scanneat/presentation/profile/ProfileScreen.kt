@@ -16,20 +16,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
-import fr.scanneat.domain.engine.biolism.ETHNICITY_OPTIONS
 import fr.scanneat.domain.model.*
-import fr.scanneat.presentation.biolism.bioProfile.BioInputUnit
 import fr.scanneat.presentation.profile.components.ActivitySelector
 import fr.scanneat.presentation.profile.components.AllergenSelector
 import fr.scanneat.presentation.profile.components.ConditionsSelector
 import fr.scanneat.presentation.profile.components.DietSelector
 import fr.scanneat.presentation.profile.components.GoalSelector
 import fr.scanneat.presentation.profile.components.OutlinedInput
+import fr.scanneat.presentation.profile.components.ProfileBodySection
+import fr.scanneat.presentation.profile.components.ProfileMeasurementsSection
 import fr.scanneat.presentation.profile.components.ProfileMetricsPreviewCard
 import fr.scanneat.presentation.profile.components.ProfileSection
 import fr.scanneat.presentation.profile.components.SexSelector
@@ -203,42 +202,14 @@ fun ProfileScreen(
             // - these fields previously always treated typed input as cm/kg regardless of that
             // setting, so a user in imperial mode could silently save a pound value as kilograms.
             item {
-                ProfileSection(stringResource(R.string.profile_section_body)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
-                            FilterChip(
-                                selected = useImperial.value == imperial,
-                                onClick = { viewModel.setUseImperial(imperial) },
-                                label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
-                            )
-                        }
-                    }
-                }
-                BioInputUnit(
-                    stringResource(R.string.profile_field_height), stringResource(R.string.profile_field_height_imperial),
-                    heightCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
-                ) { heightCm = it }
-                BioInputUnit(
-                    stringResource(R.string.profile_field_weight), stringResource(R.string.profile_field_weight_imperial),
-                    weightKg, useImperial.value, { it * KG_TO_LB }, { it / KG_TO_LB },
-                ) { weightKg = it }
-                BioInputUnit(
-                    stringResource(R.string.profile_field_goal_weight), stringResource(R.string.profile_field_goal_weight_imperial),
-                    goalWeightKg, useImperial.value, { it * KG_TO_LB }, { it / KG_TO_LB },
-                ) { goalWeightKg = it }
-                if (sex == Sex.FEMALE) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = isMenstruating,
-                            onCheckedChange = { isMenstruating = it },
-                            colors = CheckboxDefaults.colors(checkedColor = AccentCoral),
-                        )
-                        Text(stringResource(R.string.profile_menstruating_checkbox), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
-                    }
-                }
-                }
+                ProfileBodySection(
+                    heightCm = heightCm, onHeightCmChange = { heightCm = it },
+                    weightKg = weightKg, onWeightKgChange = { weightKg = it },
+                    goalWeightKg = goalWeightKg, onGoalWeightKgChange = { goalWeightKg = it },
+                    useImperial = useImperial.value, onUseImperialChange = { viewModel.setUseImperial(it) },
+                    sex = sex,
+                    isMenstruating = isMenstruating, onIsMenstruatingChange = { isMenstruating = it },
+                )
             }
 
             // ---- Body measurements (shared with Métabolisme > Mon Profil) ----
@@ -247,34 +218,13 @@ fun ProfileScreen(
             // user who never opens Métabolisme can still benefit from Navy BF%/WHtR
             // calculations that need these.
             item {
-                ProfileSection(stringResource(R.string.profile_section_measurements)) {
-                    BioInputUnit(
-                        stringResource(R.string.profile_field_waist), stringResource(R.string.profile_field_waist_imperial),
-                        waistCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
-                    ) { waistCm = it }
-                    BioInputUnit(
-                        stringResource(R.string.profile_field_hip), stringResource(R.string.profile_field_hip_imperial),
-                        hipCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
-                    ) { hipCm = it }
-                    BioInputUnit(
-                        stringResource(R.string.profile_field_neck), stringResource(R.string.profile_field_neck_imperial),
-                        neckCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
-                    ) { neckCm = it }
-                    Text(stringResource(R.string.profile_field_ethnicity), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                    val isFrench = Locale.current.language == "fr"
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        ETHNICITY_OPTIONS.forEach { opt ->
-                            FilterChip(
-                                selected = ethnicityId == opt.id,
-                                onClick  = { ethnicityId = opt.id },
-                                label    = { Text(if (isFrench) opt.labelFr else opt.label, maxLines = 1) },
-                                colors   = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                                ),
-                            )
-                        }
-                    }
-                }
+                ProfileMeasurementsSection(
+                    waistCm = waistCm, onWaistCmChange = { waistCm = it },
+                    hipCm = hipCm, onHipCmChange = { hipCm = it },
+                    neckCm = neckCm, onNeckCmChange = { neckCm = it },
+                    useImperial = useImperial.value,
+                    ethnicityId = ethnicityId, onEthnicityIdChange = { ethnicityId = it },
+                )
             }
 
             // ---- Activity ----
