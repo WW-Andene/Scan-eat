@@ -28,7 +28,17 @@ const val ML_TO_FLOZ = 0.033814
 fun dispVolume(ml: Int, useImperial: Boolean): String =
     if (useImperial) "%.0f fl oz".format(Locale.US, ml * ML_TO_FLOZ) else "$ml mL"
 
-/** "4.50 €" / "4.50 $" — the user's configured currency symbol (Settings > Devise),
- *  previously hardcoded "€" at every Expenses display site regardless of preference. */
+// Symbols that conventionally lead the amount with no separating space
+// ("$4.50", "£4.50") rather than trail it with one ("4.50 €", "4.50 CHF") -
+// CurrencySection.kt offers "$"/"£" as first-class one-tap presets alongside
+// "€", so this isn't a theoretical locale concern.
+private val PREFIX_CURRENCY_SYMBOLS = setOf("$", "£", "¥")
+
+/** "4.50 €" / "$4.50" — the user's configured currency symbol (Settings > Devise),
+ *  previously hardcoded "€" at every Expenses display site regardless of preference,
+ *  and previously always trailing regardless of symbol - "$" and "£" render before
+ *  the amount with no space, matching US/UK convention, since the "en" language
+ *  setting serves US/UK users, not only French-speaking Europe. */
 fun dispCurrency(amount: Double, symbol: String, decimals: Int = 2): String =
-    "%.${decimals}f %s".format(Locale.US, amount, symbol)
+    if (symbol in PREFIX_CURRENCY_SYMBOLS) "%s%.${decimals}f".format(Locale.US, symbol, amount)
+    else "%.${decimals}f %s".format(Locale.US, amount, symbol)
