@@ -114,6 +114,8 @@
     <string name="common_create">Créer</string>
     <string name="common_dash">—</string>
     <string name="common_streak_days_compact">%1$dj</string>
+    <string name="common_unit_grams">g</string>
+    <string name="common_unit_kcal">kcal</string>
 
     <!-- ── Meal slots, shared across Diary / Result / MealPlan ───────────── -->
     <string name="meal_breakfast">Petit-déjeuner</string>

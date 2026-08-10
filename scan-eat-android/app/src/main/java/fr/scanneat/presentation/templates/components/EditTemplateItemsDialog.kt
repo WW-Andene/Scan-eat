@@ -72,13 +72,13 @@ internal fun EditTemplateItemsDialog(
                         label = { Text(stringResource(R.string.recipes_field_ingredient)) }, modifier = Modifier.weight(2f), singleLine = true,
                         colors = scanEatTextFieldColors(),
                     )
-                    OutlinedTextField(value = newGrams, onValueChange = { newGrams = it }, label = { Text("g") }, modifier = Modifier.weight(1f), singleLine = true,
+                    OutlinedTextField(value = newGrams, onValueChange = { newGrams = it }, label = { Text(stringResource(R.string.common_unit_grams)) }, modifier = Modifier.weight(1f), singleLine = true,
                         isError = newGrams.isNotBlank() && (newGrams.replace(',', '.').toDoubleOrNull()?.let { it > 0 } != true),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = scanEatTextFieldColors())
                     // Manual kcal entry only matters as a fallback once no database match
                     // is picked - hidden once one is, since its full macros are used instead.
                     if (selectedFood == null) {
-                        OutlinedTextField(value = newKcal, onValueChange = { newKcal = it }, label = { Text("kcal") }, modifier = Modifier.weight(1f), singleLine = true,
+                        OutlinedTextField(value = newKcal, onValueChange = { newKcal = it }, label = { Text(stringResource(R.string.common_unit_kcal)) }, modifier = Modifier.weight(1f), singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = scanEatTextFieldColors())
                     }
                 }
