@@ -248,7 +248,12 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
         "Metabolised like a carbohydrate; no ADI specified.", "EU authorisation without ADI."),
     AdditiveInfo("E960", listOf("glycosides de stéviol", "steviol glycosides", "stévia", "stevia"), AdditiveTier.THREE, AdditiveCategory.SWEETENER,
         "Plant-derived non-nutritive sweetener; lower concern than artificial.", "EFSA 2010;8(4):1537."),
-    AdditiveInfo("E100", listOf("curcumine", "curcuma (colorant)"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+    // "curcumin" (English spelling) added as a direct synonym - previously
+    // only matched via the naturalColorants fallback below, gated behind
+    // IngredientCategory.ADDITIVE; an English-labeled product tagged "food"
+    // rather than "additive" by the OCR/LLM pipeline never reached it. Mirrors
+    // the identical fix on the Android side (see Scoring Drift Check).
+    AdditiveInfo("E100", listOf("curcumine", "curcuma (colorant)", "curcumin"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
         "Natural colorant; cosmetic-processing signal.", "EFSA 2010;8(9):1679."),
     AdditiveInfo("E160a", listOf("caroténoïdes", "beta-carotène", "beta carotene", "carotenes"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
         "Carotenoid; EFSA caution at very high supplemental intakes, not at food-additive use.", "EFSA 2012;10(3):2593."),
@@ -458,10 +463,14 @@ private fun computeFindAdditive(eNumber: String?, name: String, category: Ingred
     }
     if (bestMatch != null) return bestMatch
 
-    // Context-aware match for natural colorants
+    // Context-aware match for natural colorants: gated to IngredientCategory.
+    // ADDITIVE since these are bare substance names that could equally be a
+    // whole-food ingredient rather than a colorant additive. "curcumin"
+    // removed - now a direct, category-unguarded synonym on E100 above.
+    // Mirrors the identical fix on the Android side (see Scoring Drift Check).
     if (category == IngredientCategory.ADDITIVE) {
         val naturalColorants = mapOf(
-            "curcuma" to "E100", "curcumin" to "E100",
+            "curcuma" to "E100",
             "paprika" to "E160c", "betterave" to "E162",
             "carmin" to "E120", "cochenille" to "E120",
             "caramel" to "E150",

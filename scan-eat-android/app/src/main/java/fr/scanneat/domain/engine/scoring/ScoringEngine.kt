@@ -238,7 +238,18 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // one ingredient-list entry. Stating it as "IARC Group 1 carcinogen"
     // flat-out, as if labeling the compound itself, overstates what the
     // classification actually established.
-    if (hasNitrites)
+    // Guarded by !(combo condition) - whenever the combo veto above fires,
+    // hasNitrites is always true too (it's a strict subset of the combo's
+    // conditions), so both candidates used to always co-occur. checkVeto's
+    // combinedReason below joins every candidate's reason text, which meant
+    // a cured/salty/starch-filled product's flags read as two separate
+    // sentences both about the same nitrite content - one fact double-stated
+    // as if it were two corroborating risks, overstating the evidence to
+    // whoever reads the flags. The standalone MILD veto exists to catch
+    // nitrites WITHOUT the corroborating salt/starch/category signal (see
+    // comment above); once that signal is present, the stricter MODERATE
+    // combo already covers it and doesn't need restating.
+    if (hasNitrites && !(highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT))
         candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate preservatives (E249/E250), linked by IARC to processed-meat consumption at a population level" else "Contient des conservateurs nitrités (E249/E250), associés par le CIRC à la consommation de viande transformée au niveau populationnel", VetoCap.MILD)
 
     val sugars = n.addedSugarsG ?: n.sugarsG

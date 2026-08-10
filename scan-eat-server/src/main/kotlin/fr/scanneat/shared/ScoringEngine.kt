@@ -218,7 +218,13 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // compounded risk - candidates.minByOrNull{cap} below still picks the
     // stricter combo veto automatically whenever both conditions hold.
     // Mirrors the identical fix on the Android side (see Scoring Drift Check).
-    if (hasNitrites)
+    // Guarded by !(combo condition) - whenever the combo veto above fires,
+    // hasNitrites is always true too, so both candidates used to always
+    // co-occur and checkVeto's combinedReason (which joins every candidate's
+    // reason text) double-stated the same nitrite fact as if it were two
+    // corroborating risks. Mirrors the identical fix on the Android side
+    // (see Scoring Drift Check).
+    if (hasNitrites && !(highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT))
         // Wording is deliberately about the additive class, not a causal claim
         // about this specific product - IARC's Group 1 classification is for
         // PROCESSED MEAT CONSUMPTION as a dietary pattern, not a standalone

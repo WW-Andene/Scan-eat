@@ -14,6 +14,19 @@ internal fun computeAgeAdjustments(
     val adjustments = mutableListOf<PersonalAdjustment>()
     val age = profile.ageYears
     if (age != null && age > 0) {
+        // Assessed: a ≥65, VERY_ACTIVE/EXTRA_ACTIVE user scanning one
+        // high-protein product can also trigger ProteinAndBudgetAdjustments.kt's
+        // PROTEIN_BUDGET bonus and computeActivityAdjustments' ACTIVITY bonus
+        // below from the same underlying protein figure, for up to +7 total
+        // uncapped. Kept intentional, same reasoning BmiAdjustments.kt
+        // documents for its own independent-check stacking: each axis cites a
+        // genuinely distinct physiological rationale (PROT-AGE sarcopenia
+        // prevention for older adults specifically, IOC athletic-recovery
+        // guidance for high activity levels, and general EFSA PRI coverage
+        // for everyone), not the same risk/benefit counted twice under two
+        // names - unlike the earlier Omega-3 duplicate this was compared
+        // against, which awarded the identical nutrient claim from the same
+        // rationale via two different code paths.
         if (age >= 65 && product.nutrition.proteinG >= 12) {
             adjustments += PersonalAdjustment(
                 points   = 3.0,

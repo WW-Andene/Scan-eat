@@ -130,10 +130,22 @@ private fun computeFindAdditive(eNumber: String?, name: String, category: fr.sca
     }
     if (bestMatch != null) return bestMatch
 
-    // Context-aware match for natural colorants
+    // Context-aware match for natural colorants: gated to IngredientCategory.
+    // ADDITIVE because these are bare substance names (curcuma, paprika, ...)
+    // that could just as easily be a whole-food ingredient (turmeric in a
+    // curry, paprika in a spice blend) rather than a colorant additive - the
+    // primary synonym scan above only matches the qualified forms ("curcuma
+    // (colorant)", "extrait de paprika"), so this fallback intentionally
+    // requires the OCR/LLM's own additive classification to corroborate the
+    // bare word before treating it as the colorant. "curcumin" removed from
+    // here - it's now a direct, category-unguarded synonym on E100's
+    // AdditiveInfo entry in AdditivesTier3Core.kt (see comment there), since
+    // that gap was a real coverage bug (a mis-tagged "food" ingredient could
+    // never reach this fallback), not the intentional food-vs-additive
+    // disambiguation the other bare words below rely on.
     if (category == fr.scanneat.domain.model.IngredientCategory.ADDITIVE) {
         val naturalColorants = mapOf(
-            "curcuma" to "E100", "curcumin" to "E100",
+            "curcuma" to "E100",
             "paprika" to "E160c", "betterave" to "E162",
             "carmin" to "E120", "cochenille" to "E120",
             "caramel" to "E150",

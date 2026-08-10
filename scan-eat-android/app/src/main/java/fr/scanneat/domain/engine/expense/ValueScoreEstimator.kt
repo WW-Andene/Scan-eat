@@ -32,6 +32,14 @@ private val CATEGORY_REF_PRICE_PER_KG: Map<ProductCategory, Double> = mapOf(
     ProductCategory.BEVERAGE_WATER   to 0.6,
     ProductCategory.ALCOHOLIC_BEVERAGE to 10.0,
     ProductCategory.CONDIMENT        to 7.0,
+    // Honey ~15-25€/kg, jam ~4-6€/kg - both far off CONDIMENT/OTHER's 7€
+    // fallback in opposite directions (honey underrated as POOR value, cheap
+    // jam overrated as GREAT/GOOD). Missing entirely until now, the same
+    // hand-maintained-map-drift risk this category was already found to hit
+    // in the OFF tag mapper and LLM prompt schema. 12€ splits the difference
+    // toward honey's higher typical price since jam's own ratio error at a
+    // shared reference is smaller in absolute terms.
+    ProductCategory.SPREAD_SWEET     to 12.0,
     ProductCategory.OIL_FAT          to 6.0,
     ProductCategory.OTHER            to 7.0,
 )

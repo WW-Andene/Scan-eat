@@ -66,7 +66,16 @@ internal val ADDITIVES_TIER3_CORE: List<AdditiveInfo> = listOf(
         "Metabolised like a carbohydrate; no ADI specified.", "EU authorisation without ADI."),
     AdditiveInfo("E960", listOf("glycosides de stéviol", "steviol glycosides", "stévia", "stevia"), AdditiveTier.THREE, AdditiveCategory.SWEETENER,
         "Plant-derived non-nutritive sweetener; lower concern than artificial.", "EFSA 2010;8(4):1537."),
-    AdditiveInfo("E100", listOf("curcumine", "curcuma (colorant)"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+    // "curcumin" (English spelling) added as a direct synonym - it previously
+    // only matched via AdditivesDb.findAdditive's separate naturalColorants
+    // fallback map, which is gated behind IngredientCategory.ADDITIVE. An
+    // English-labeled product listing plain "Curcumin" that the OCR/LLM
+    // pipeline tagged as "food" rather than "additive" (a real, common
+    // mis-tag - see OcrMapper.kt/ServerScanMapper.kt) never reached that
+    // fallback and silently dropped the colorant match entirely. As a direct
+    // synonym here it's found by the primary scan regardless of category,
+    // the same way every other additive in this DB is matched.
+    AdditiveInfo("E100", listOf("curcumine", "curcuma (colorant)", "curcumin"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
         "Natural colorant; cosmetic-processing signal.", "EFSA 2010;8(9):1679."),
     AdditiveInfo("E160a", listOf("caroténoïdes", "beta-carotène", "beta carotene", "carotenes"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
         "Carotenoid; EFSA caution at very high supplemental intakes, not at food-additive use.", "EFSA 2012;10(3):2593."),
