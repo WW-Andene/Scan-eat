@@ -36,8 +36,15 @@ internal val CAFFEINE_SOURCE_PATTERN = Regex(
 // Clinic diarrhea-diet advice alike, since polyols are poorly absorbed and
 // osmotically draw water into the bowel regardless of which condition is doing
 // the drawing attention.
+// e968 was missing - AdditivesTier2.kt's own E968 entry is erythritol's real
+// E-number, so a product declaring only the bare code "e968" (no accompanying
+// word, common on OCR-scanned or minimally-labelled products) matched none of
+// the word-form alternatives either and fell through to this pattern's
+// negative branch entirely - not just "no penalty," but a wrongly-awarded
+// +2 "IBS-friendly"/"no diarrhea trigger" bonus for a product that actually
+// contains a polyol.
 internal val POLYOL_PATTERN = Regex(
-    """\b(?:sorbitol|mannitol|xylitol|maltitol|erythritol|isomalt|lactitol|polyols?|e420|e421|e953|e965|e966|e967)\b""",
+    """\b(?:sorbitol|mannitol|xylitol|maltitol|erythritol|isomalt|lactitol|polyols?|e420|e421|e953|e965|e966|e967|e968)\b""",
 )
 
 // High-FODMAP fructan/GOS sources per Monash University's Low FODMAP Diet

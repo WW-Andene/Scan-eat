@@ -65,10 +65,12 @@ internal val UPF_MARKER_PATTERNS = listOf(
     Regex("""\bamidon modifi|modified starch|maltodextrin""", RegexOption.IGNORE_CASE) to "modified starch",
 )
 
+// Accented and unaccented spellings both matched directly - mirrors the
+// identical fix on the Android side (see Scoring Drift Check).
 internal val FIRST_INGREDIENT_PENALTY_PATTERNS = listOf(
     Regex("""^(sucre|sirop|dextrose|fructose|glucose|maltodextrin)""", RegexOption.IGNORE_CASE) to "sugar/syrup",
-    Regex("""^(huile|graisse|matière grasse|margarine)""", RegexOption.IGNORE_CASE) to "oil/fat",
-    Regex("""^(amidon modifié|amidon de maïs modifié)""", RegexOption.IGNORE_CASE) to "modified starch",
+    Regex("""^(huile|graisse|mati[eè]re grasse|margarine)""", RegexOption.IGNORE_CASE) to "oil/fat",
+    Regex("""^(amidon modifi[eé]|amidon de ma[iï]s modifi[eé])""", RegexOption.IGNORE_CASE) to "modified starch",
 )
 
 internal val FRESH_PRODUCE_NAME = Regex(

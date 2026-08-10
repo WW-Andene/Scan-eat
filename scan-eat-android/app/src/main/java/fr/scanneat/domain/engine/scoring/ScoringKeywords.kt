@@ -64,10 +64,20 @@ internal val UPF_MARKER_PATTERNS = listOf(
     Regex("""\bamidon modifi|modified starch|maltodextrin""", RegexOption.IGNORE_CASE) to "modified starch",
 )
 
+// Accented and unaccented spellings both matched directly - unlike every
+// other ingredient-text pattern in this engine (POLYOL_PATTERN, additive
+// synonym lookup, etc.), this list was matched against raw first.name with
+// no normalizeForMatching() pass (ProcessingPillar.kt's containsMatchIn
+// call), so "matiere grasse vegetale"/"amidon modifie" (both real forms in
+// this app's own OFF/OCR-derived data, same as GENERIC_OIL_TERMS' own
+// accented+unaccented pairs above) silently skipped this deduction entirely.
+// UPF_MARKER_PATTERNS already handles this exact class of bug one list up
+// by truncating before the accented character; character classes here do
+// the same without truncating past a real word boundary.
 internal val FIRST_INGREDIENT_PENALTY_PATTERNS = listOf(
     Regex("""^(sucre|sirop|dextrose|fructose|glucose|maltodextrin)""", RegexOption.IGNORE_CASE) to "sugar/syrup",
-    Regex("""^(huile|graisse|matière grasse|margarine)""", RegexOption.IGNORE_CASE) to "oil/fat",
-    Regex("""^(amidon modifié|amidon de maïs modifié)""", RegexOption.IGNORE_CASE) to "modified starch",
+    Regex("""^(huile|graisse|mati[eè]re grasse|margarine)""", RegexOption.IGNORE_CASE) to "oil/fat",
+    Regex("""^(amidon modifi[eé]|amidon de ma[iï]s modifi[eé])""", RegexOption.IGNORE_CASE) to "modified starch",
 )
 
 internal val FRESH_PRODUCE_NAME = Regex(
