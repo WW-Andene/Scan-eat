@@ -148,6 +148,20 @@ NUTRITION_LIMITS_PAIR = (
 )
 NUTRITION_LIMITS_RE = re.compile(r"object NutritionLimits\s*\{(.*?)\n\s*\}", re.DOTALL)
 
+# VetoCap (server/android ScoringEngine.kt) is the named cap ladder checkVeto's
+# individual conditions reference by name (VetoCap.SEVERE, .MAJOR, etc.) -
+# same "referenced by name, not inlined" blind spot as NutritionLimits above:
+# checkVeto's own function-body diff can't see the *values* behind those names
+# ever silently diverging between the two copies, only whether both sides
+# spell the constant name the same way. This is exactly the failure mode that
+# let the alcohol veto's cap sit inconsistently with trans fat's for as long
+# as it did before both were pulled into one shared, named scale.
+VETO_CAP_PAIR = (
+    SERVER_DIR / "ScoringEngine.kt",
+    ANDROID_SCORING_DIR / "ScoringEngine.kt",
+)
+VETO_CAP_RE = re.compile(r"object VetoCap\s*\{(.*?)\n\}", re.DOTALL)
+
 FUNC_START_RE_TMPL = r"^(?:private |internal |public )?fun {name}\b"
 VAL_START_RE_TMPL = r"^(?:private |internal |public )?val {name}\b"
 
@@ -408,11 +422,35 @@ def check_nutrition_limits() -> str | None:
     return None
 
 
+def check_veto_cap() -> str | None:
+    """Direct check for VETO_CAP_PAIR - see that constant's comment for why
+    this bypasses extract_declaration/PAIRS entirely."""
+    server_path, android_path = VETO_CAP_PAIR
+    server_m = VETO_CAP_RE.search(server_path.read_text())
+    android_m = VETO_CAP_RE.search(android_path.read_text())
+    if server_m is None:
+        return f"[VetoCap] object not found in {server_path.relative_to(REPO)}"
+    if android_m is None:
+        return f"[VetoCap] object not found in {android_path.relative_to(REPO)}"
+    norm_server = normalize(server_m.group(1))
+    norm_android = normalize(android_m.group(1))
+    if norm_server != norm_android:
+        return (
+            f"[VetoCap] DRIFT between {server_path.relative_to(REPO)} and "
+            f"{android_path.relative_to(REPO)}:\n"
+            f"--- server ---\n{norm_server}\n--- android ---\n{norm_android}\n"
+        )
+    return None
+
+
 def main() -> int:
     failures = []
     nutrition_limits_failure = check_nutrition_limits()
     if nutrition_limits_failure:
         failures.append(nutrition_limits_failure)
+    veto_cap_failure = check_veto_cap()
+    if veto_cap_failure:
+        failures.append(veto_cap_failure)
     for name, server_path, android_path in PAIRS:
         try:
             server_body = extract_declaration(server_path, name)
@@ -439,7 +477,7 @@ def main() -> int:
         print("\n".join(failures))
         return 1
 
-    print(f"OK — {len(PAIRS)} matched declarations + NutritionLimits are in sync between server and android.")
+    print(f"OK — {len(PAIRS)} matched declarations + NutritionLimits + VetoCap are in sync between server and android.")
     return 0
 
 

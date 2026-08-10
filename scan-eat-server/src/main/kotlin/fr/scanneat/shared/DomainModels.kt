@@ -171,6 +171,23 @@ enum class Grade(val label: String) {
     }
 }
 
+// Real-world evidentiary rubric, not per-pillar judgment calls - see the
+// identical comment on the Android side (Product.kt, Scoring Drift Check) for
+// the full rationale.
+//   CRITICAL — established no-safe-level hazard: WHO/IARC Group 1 carcinogen
+//     (ethanol, nitrite/nitrate curing agents), an industrial contaminant
+//     with no established safe intake (trans fat), or a quantity of a
+//     CRITICAL-tier risk factor (e.g. 2+ Tier-1 additives) that compounds a
+//     single instance into a materially higher-confidence hazard.
+//   MAJOR — strong, specific evidence of a single serious risk factor
+//     clearly exceeding its category norm (e.g. one EU-banned/IARC-flagged
+//     additive, sugar/salt/sat-fat deep in a category's "critical" band).
+//   MODERATE — real but more mixed/preliminary evidence, or a risk factor
+//     only moderately exceeding its category norm.
+//   MINOR — weak, indirect, or heuristic evidence (a positional proxy, a
+//     structural inference rather than a measured value).
+//   INFO — no health-risk claim at all; narration, provenance, or a
+//     positive/neutral observation.
 enum class Severity { INFO, MINOR, MODERATE, MAJOR, CRITICAL }
 
 data class Deduction(

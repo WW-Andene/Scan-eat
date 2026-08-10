@@ -171,6 +171,29 @@ enum class Grade(val label: String) {
     }
 }
 
+// Real-world evidentiary rubric, not per-pillar judgment calls - this is the
+// generalization the alcohol-veto audit called for: alcohol wasn't a one-off
+// bug, it was one instance of a pattern (severity assigned by which pillar
+// happened to notice something, not by the actual weight of evidence) that
+// recurred independently in additives (round 3: a single Tier-1 additive
+// outranking dangerous salt), and would keep recurring in every future
+// addition to this engine without a shared standard to check new deductions
+// against. Every Deduction's Severity should be justifiable against this
+// scale, not chosen to "feel right" for its own pillar in isolation:
+//   CRITICAL — established no-safe-level hazard: WHO/IARC Group 1 carcinogen
+//     (ethanol, nitrite/nitrate curing agents), an industrial contaminant
+//     with no established safe intake (trans fat), or a quantity of a
+//     CRITICAL-tier risk factor (e.g. 2+ Tier-1 additives) that compounds a
+//     single instance into a materially higher-confidence hazard.
+//   MAJOR — strong, specific evidence of a single serious risk factor
+//     clearly exceeding its category norm (e.g. one EU-banned/IARC-flagged
+//     additive, sugar/salt/sat-fat deep in a category's "critical" band).
+//   MODERATE — real but more mixed/preliminary evidence, or a risk factor
+//     only moderately exceeding its category norm.
+//   MINOR — weak, indirect, or heuristic evidence (a positional proxy, a
+//     structural inference rather than a measured value).
+//   INFO — no health-risk claim at all; narration, provenance, or a
+//     positive/neutral observation.
 enum class Severity { INFO, MINOR, MODERATE, MAJOR, CRITICAL }
 
 data class Deduction(

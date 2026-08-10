@@ -90,31 +90,68 @@ private fun computeGlobalPenalties(product: Product, severeFlagCount: Int, lang:
     return penalties
 }
 
+// A named, documented ladder instead of a magic number chosen per veto to
+// "feel right" in isolation - this is the actual generalization the alcohol
+// audit called for. Alcohol wasn't a one-off bug: it was this engine's first
+// instance of a hazard needing a tiered, no-safe-level veto, and every veto
+// added since (nitrites, banned additives, caffeine) picked its own cap by
+// local reasoning rather than checking it against the others. That already
+// produced one live inconsistency this ladder fixes: high-proof spirits
+// (the single most concentrated Group-1-carcinogen exposure this engine
+// scores) capped at 40 - a full 5 points LOOSER than trans fat's 39, and even
+// looser than the banned-additive veto's 35, despite being at least as severe
+// as either. Every veto below must be assigned one of these named tiers, and
+// any new veto added in the future should be justified against this scale
+// rather than picking a fresh number. Mirrors the identical fix on the
+// Android side (see Scoring Drift Check).
+private object VetoCap {
+    // Reserved for a hazard severe enough to force grade F outright - not
+    // currently used by any veto, kept named so a future one has somewhere
+    // principled to land instead of inventing a number.
+    const val EXTREME = 20
+    // Worst tier actually in use: concentrated exposure to a WHO/IARC Group 1
+    // carcinogen (high-proof spirits), or a well-established severe aggregate
+    // nutritional harm (a sugar-sweetened beverage with zero redeeming
+    // nutritional contribution - WHO explicitly flags SSBs at this severity).
+    const val SEVERE = 30
+    // A single severe, specific risk factor with strong evidence: one
+    // EU-banned or IARC-flagged additive.
+    const val MAJOR = 35
+    // A risk factor clearly over its category's own "critical" threshold -
+    // forces grade D (scoreToGrade's C floor is 40, so 39 guarantees D, not a
+    // coincidental landing exactly on the C floor).
+    const val MODERATE = 39
+    // A real but more moderate single-hazard signal: wine-strength alcohol,
+    // standalone nitrite/nitrate presence without the corroborating high-
+    // salt/refined-starch combo, high caffeine, mechanically-separated meat.
+    const val MILD = 45
+    // The weakest tier of "no safe level" hazard still worth a hard cap:
+    // trace/low-dose presence (beer-strength alcohol). Forces grade C, not B
+    // (scoreToGrade's B floor is 55, so 54 guarantees C).
+    const val MINOR = 54
+}
+
 private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     val en = lang == "en"
     val n = product.nutrition
 
     // Collect every triggered condition and return the most restrictive (lowest
-    // cap) one, instead of the first one that happens to match. These 6 checks
-    // aren't mutually exclusive - e.g. a sugar-sweetened beverage (cap 30) can
-    // also contain >3 Tier-1 additives (cap 40) - and a first-match-wins scan
-    // silently applied whichever check happened to run first regardless of
-    // which cap was actually stricter. That used to require a one-off manual
-    // reordering of just the beverage-vs-generic-sugar pair to work around one
-    // specific collision; it didn't generalize to any other pair (e.g. trans
-    // fat's 40 vs a trans-fat-containing SSB's 30).
+    // cap) one, instead of the first one that happens to match. These checks
+    // aren't mutually exclusive - e.g. a sugar-sweetened beverage (VetoCap.SEVERE)
+    // can also contain >3 Tier-1 additives (VetoCap.MODERATE) - and a
+    // first-match-wins scan silently applied whichever check happened to run
+    // first regardless of which cap was actually stricter. That used to
+    // require a one-off manual reordering of just the beverage-vs-generic-sugar
+    // pair to work around one specific collision; it didn't generalize to any
+    // other pair. See the VetoCap object above for the shared cap ladder every
+    // veto below is assigned from.
     val candidates = mutableListOf<VetoCondition>()
 
-    // 39, not 40 - scoreToGrade's own C floor is score >= 40, so a cap of 40
-    // left every veto below still reading as grade C, the same off-by-one
-    // the alcohol veto below was already fixed for (54, not 55). A product
-    // severe enough to trigger a hard veto shouldn't land on the C floor
-    // exactly; capping one point lower guarantees grade D instead.
     if ((n.transFatG ?: 0.0) > 0.1)
-        candidates += VetoCondition(true, if (en) "Contains industrial trans fats — no safe level" else "Contient des graisses trans industrielles — aucun seuil sûr", 39)
+        candidates += VetoCondition(true, if (en) "Contains industrial trans fats — no safe level" else "Contient des graisses trans industrielles — aucun seuil sûr", VetoCap.MODERATE)
 
     if (countTier1Additives(product) > 3)
-        candidates += VetoCondition(true, (if (en) "${countTier1Additives(product)} Tier-1 additives — cumulative risk too high" else "${countTier1Additives(product)} additifs de niveau 1 — risque cumulé trop élevé"), 39)
+        candidates += VetoCondition(true, (if (en) "${countTier1Additives(product)} Tier-1 additives — cumulative risk too high" else "${countTier1Additives(product)} additifs de niveau 1 — risque cumulé trop élevé"), VetoCap.MODERATE)
 
     // Severity-aware, not just a count threshold: countTier1Additives(product)
     // > 3 above only fires on volume, so a product with exactly one EU-banned
@@ -130,14 +167,14 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
         val eNum = (ing.eNumber ?: "").uppercase().replace("\\s".toRegex(), "")
         eNum in bannedTier1ENumbers
     }
-    // Capped at or below (39, not 45) the volume-based >3-Tier1-additives veto
+    // MAJOR, stricter than the volume-based >3-Tier1-additives veto's MODERATE
     // just above - this veto exists precisely because raw additive COUNT
     // misses severity (one banned/IARC-flagged additive is worse than four
     // unspecified Tier-1 ones), so it would be incoherent for its own cap to
     // be looser than the check it was built to complement. Mirrors the
     // identical fix on the Android side (see Scoring Drift Check).
     if (hasBannedTier1)
-        candidates += VetoCondition(true, if (en) "Contains an additive banned or restricted for carcinogenicity/endocrine concerns in the EU" else "Contient un additif interdit ou restreint pour cancérogénicité/perturbation endocrinienne dans l'UE", 35)
+        candidates += VetoCondition(true, if (en) "Contains an additive banned or restricted for carcinogenicity/endocrine concerns in the EU" else "Contient un additif interdit ou restreint pour cancérogénicité/perturbation endocrinienne dans l'UE", VetoCap.MAJOR)
 
     val hasNitrites = product.ingredients.any { ing ->
         val eNum = (ing.eNumber ?: "").uppercase().replace("\\s".toRegex(), "")
@@ -154,7 +191,7 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     val highSalt = n.saltG > getThresholds(ProductCategory.PROCESSED_MEAT).saltThresholds.second
     val refined = product.ingredients.any { Regex("""farine de blé|farine raffinée|amidon|dextrose""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasNitrites && highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT)
-        candidates += VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", 39)
+        candidates += VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", VetoCap.MODERATE)
 
     // The combo veto above only fires for PROCESSED_MEAT with high salt AND a
     // refined-starch ingredient - AdditivesTier1.kt labels E249/E250 "IARC
@@ -163,17 +200,17 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // nitrate in a fish, ready-meal, or sandwich product (any category other
     // than PROCESSED_MEAT), or a cured meat that happens to sit under the
     // salt/starch bar, previously never triggered any veto at all. A softer
-    // cap than the full combo (45, not 40) since presence alone (without the
-    // corroborating high-salt/refined-starch signal) is a real but less
+    // tier (MILD) than the full combo's MODERATE since presence alone (without
+    // the corroborating high-salt/refined-starch signal) is a real but less
     // compounded risk - candidates.minByOrNull{cap} below still picks the
     // stricter combo veto automatically whenever both conditions hold.
     // Mirrors the identical fix on the Android side (see Scoring Drift Check).
     if (hasNitrites)
-        candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate preservatives (E249/E250) — IARC Group 1 carcinogen" else "Contient des conservateurs nitrités (E249/E250) — cancérigène IARC groupe 1", 45)
+        candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate preservatives (E249/E250) — IARC Group 1 carcinogen" else "Contient des conservateurs nitrités (E249/E250) — cancérigène IARC groupe 1", VetoCap.MILD)
 
     val sugars = n.addedSugarsG ?: n.sugarsG
     if (product.category == ProductCategory.BEVERAGE_SOFT && sugars > 5 && n.proteinG < 1 && n.fiberG < 1)
-        candidates += VetoCondition(true, if (en) "Sugar-sweetened beverage with no nutritional contribution" else "Boisson sucrée sans apport nutritionnel", 30)
+        candidates += VetoCondition(true, if (en) "Sugar-sweetened beverage with no nutritional contribution" else "Boisson sucrée sans apport nutritionnel", VetoCap.SEVERE)
 
     // CONDIMENT excluded too, alongside SNACK_SWEET — CategoryThresholds.kt
     // deliberately gives it a wider sugar band (30g is only its own "major"
@@ -184,18 +221,23 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // MAJOR, not CRITICAL - the same category-blindness class already fixed
     // for BMI/diabetes thresholds elsewhere in this engine.
     if (product.category != ProductCategory.SNACK_SWEET && product.category != ProductCategory.CONDIMENT && sugars > 30)
-        candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", 39)
+        candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", VetoCap.MODERATE)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasMSM && product.novaClass == NovaClass.ULTRA_PROCESSED)
-        candidates += VetoCondition(true, if (en) "Mechanically separated meat in NOVA 4 product" else "Viande séparée mécaniquement dans un produit NOVA 4", 45)
+        candidates += VetoCondition(true, if (en) "Mechanically separated meat in NOVA 4 product" else "Viande séparée mécaniquement dans un produit NOVA 4", VetoCap.MILD)
 
     // High-proof spirits (~40%+ vol) have low/no sugar and no additive risk, so
     // the tiered per-mille deduction in NegativeNutrientsPillar.kt (max -12) is
-    // not enough on its own to keep a clean-profile spirit out of grade A/B —
-    // trans fat gets a hard cap at this same severity ("no safe level"), and
-    // WHO/IARC classify ethanol identically (Group 1 carcinogen, no safe
-    // consumption level), so a comparably strong veto applies here too.
+    // not enough on its own to keep a clean-profile spirit out of grade A/B.
+    // WHO/IARC classify ethanol as a Group 1 carcinogen with no established
+    // safe consumption level, and at 40%+ vol this is the single most
+    // concentrated instance of that exposure this engine scores - VetoCap.SEVERE,
+    // its strictest tier actually in use, reflects that (previously capped at
+    // a coincidental 40, looser than trans fat's own tier despite being at
+    // least as severe - see the VetoCap object's own comment for why that was
+    // incoherent).
+    //
     // Tiered by the same %vol bands NegativeNutrientsPillar.kt uses (rather
     // than one flat cap for all alcohol), so a spirit is still capped more
     // severely than a beer. Mirrors the identical fix on the Android side
@@ -203,14 +245,11 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     val abv = n.alcoholPercentVol ?: 0.0
     when {
         abv > HIGH_ABV_THRESHOLD ->
-            candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool fort (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 40)
+            candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool fort (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", VetoCap.SEVERE)
         abv > 5.0 ->
-            candidates += VetoCondition(true, if (en) "Wine-strength alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool titrant comme un vin (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 45)
-        // 54, not 55 - scoreToGrade's own B cutoff is score >= 55, so a cap of
-        // 55 would have let a clean-profile beer land exactly on the boundary
-        // and still read as grade B, the exact outcome this fix exists to close.
+            candidates += VetoCondition(true, if (en) "Wine-strength alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool titrant comme un vin (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", VetoCap.MILD)
         abv > 1.2 ->
-            candidates += VetoCondition(true, if (en) "Alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 54)
+            candidates += VetoCondition(true, if (en) "Alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", VetoCap.MINOR)
     }
 
     // Caffeine — NegativeNutrientsPillar.kt already deducts up to -8/25 for
@@ -224,7 +263,7 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // the identical fix on the Android side (see Scoring Drift Check).
     val caffeine = n.caffeineMg ?: 0.0
     if (caffeine > 300.0)
-        candidates += VetoCondition(true, if (en) "Caffeine ${caffeine.formatDecimal(1)}mg/100g — well above EFSA single-dose caution level" else "Caféine ${caffeine.formatDecimal(1)}mg/100g — bien au-delà du seuil de prudence EFSA par prise", 45)
+        candidates += VetoCondition(true, if (en) "Caffeine ${caffeine.formatDecimal(1)}mg/100g — well above EFSA single-dose caution level" else "Caféine ${caffeine.formatDecimal(1)}mg/100g — bien au-delà du seuil de prudence EFSA par prise", VetoCap.MILD)
 
     return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
 }
