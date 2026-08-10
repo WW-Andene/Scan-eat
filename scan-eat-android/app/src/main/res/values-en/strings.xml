@@ -869,6 +869,8 @@
     <string name="diary_tab_more">More</string>
     <string name="diary_tab_pick_replacement">Tap a tab to replace</string>
     <string name="expenses_history_title">Purchase history</string>
+    <string name="expenses_low_stock_title">Running low</string>
+    <string name="expenses_low_stock_add">+ Grocery list</string>
     <string name="expenses_empty_body">No expense logged yet. Add a price from a product page after scanning.</string>
     <string name="expenses_add_entry">Add</string>
     <string name="expenses_deleted_message">Purchase deleted</string>
@@ -1326,6 +1328,9 @@
     <string name="dashboard_chronic_gap_title">Recurring Gaps</string>
     <string name="dashboard_chronic_gap_entry">%1$s: low %2$d/%3$d days (avg %4$d%% of target)</string>
     <string name="dashboard_insight_title">Weekly consistency</string>
+    <string name="dashboard_value_score_title">Value for money (7 days)</string>
+    <string name="dashboard_value_score_good">%1$d great buys</string>
+    <string name="dashboard_value_score_poor">%1$d pricey buys</string>
     <string name="dashboard_insight_deficit_losing">This week: average deficit of %1$d kcal/day, and weight is trending down (%2$s/week) — consistent.</string>
     <string name="dashboard_insight_surplus_gaining">This week: average surplus of %1$d kcal/day, and weight is trending up (%2$s/week) — consistent.</string>
     <string name="dashboard_insight_deficit_not_losing">This week: average deficit of %1$d kcal/day, but weight isn\'t trending down (%2$s/week) — worth a look.</string>

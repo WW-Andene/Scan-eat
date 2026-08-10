@@ -7,6 +7,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.backup.CsvExportRepository
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.data.repository.expense.PriceRepository
+import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.domain.model.ProductCategory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -20,10 +21,37 @@ class ExpensesViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
     private val prefs: UserPreferences,
     private val csvExportRepository: CsvExportRepository,
+    private val groceryRepo: ManualGroceryRepository,
 ) : ViewModel() {
 
     val entries: StateFlow<List<PriceEntry>> = priceRepo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // R&D audit finding: PriceRepository.deductStock's "remaining stock" concept
+    // (drawn down as ConsumptionRepository logs portions from a purchased lot)
+    // never surfaced anywhere as a "running low" nudge - a user tracking stock
+    // had to notice the number themselves. Below 15% of the originally-purchased
+    // weight, not yet fully depleted (remainingG > 0 - a fully-used lot is just
+    // "gone", not "running low", and re-adding it is exactly what the button
+    // below is for regardless).
+    val lowStockItems: StateFlow<List<PriceEntry>> = entries.map { list ->
+        list.filter { e ->
+            val weight = e.weightG
+            val remaining = e.remainingG
+            weight != null && weight > 0.0 && remaining != null && remaining > 0.0 && remaining / weight <= 0.15
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Adds a running-low item back onto the grocery list, defaulting to the
+     *  quantity originally purchased (a reasonable "buy the same again" default,
+     *  editable afterward like any other grocery item). */
+    fun addToGroceryList(entry: PriceEntry) {
+        val grams = entry.weightG ?: return
+        viewModelScope.launch {
+            runCatching { groceryRepo.add(entry.productName, grams) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
 
     val budgetWeeklyEuros: StateFlow<Double?> = prefs.budgetWeeklyEuros
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

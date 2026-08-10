@@ -28,6 +28,7 @@ import fr.scanneat.presentation.expenses.components.EditExpenseDialog
 import fr.scanneat.presentation.expenses.components.ExpenseEntryRow
 import fr.scanneat.presentation.expenses.components.ExpensesSummaryMode
 import fr.scanneat.presentation.expenses.components.ExpensesWeekCard
+import fr.scanneat.presentation.expenses.components.LowStockCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -48,6 +49,7 @@ fun ExpensesScreen(
     onOpenCalendar: () -> Unit = {},
 ) {
     val entries = viewModel.entries.collectAsStateWithLifecycle()
+    val lowStockItems = viewModel.lowStockItems.collectAsStateWithLifecycle()
     val dayTotal = viewModel.dayTotal.collectAsStateWithLifecycle()
     val weekTotal = viewModel.weekTotal.collectAsStateWithLifecycle()
     val monthTotal = viewModel.monthTotal.collectAsStateWithLifecycle()
@@ -138,6 +140,10 @@ fun ExpensesScreen(
                     onEditBudget = { showBudgetEdit = true },
                     onOpenCalendar = onOpenCalendar,
                 )
+            }
+
+            if (lowStockItems.value.isNotEmpty()) {
+                item { LowStockCard(items = lowStockItems.value, onAddToGrocery = { viewModel.addToGroceryList(it) }) }
             }
 
             item {

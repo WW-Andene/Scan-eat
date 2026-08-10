@@ -873,6 +873,8 @@
     <string name="diary_tab_more">Plus</string>
     <string name="diary_tab_pick_replacement">Touchez un onglet à remplacer</string>
     <string name="expenses_history_title">Historique des achats</string>
+    <string name="expenses_low_stock_title">Il vous en reste peu</string>
+    <string name="expenses_low_stock_add">+ Liste de courses</string>
     <string name="expenses_empty_body">Aucune dépense enregistrée. Ajoutez un prix depuis une fiche produit après un scan.</string>
     <string name="expenses_add_entry">Ajouter</string>
     <string name="expenses_deleted_message">Achat supprimé</string>
@@ -1382,6 +1384,9 @@
     <string name="dashboard_chronic_gap_title">Écarts récurrents</string>
     <string name="dashboard_chronic_gap_entry">%1$s : bas %2$d/%3$d jours (%4$d %% de l\'objectif en moyenne)</string>
     <string name="dashboard_insight_title">Cohérence hebdo</string>
+    <string name="dashboard_value_score_title">Bon rapport qualité-prix (7 jours)</string>
+    <string name="dashboard_value_score_good">%1$d bonnes affaires</string>
+    <string name="dashboard_value_score_poor">%1$d achats chers</string>
     <string name="dashboard_insight_deficit_losing">Cette semaine : déficit moyen de %1$d kcal/j, et le poids baisse (%2$s/sem) — cohérent.</string>
     <string name="dashboard_insight_surplus_gaining">Cette semaine : surplus moyen de %1$d kcal/j, et le poids monte (%2$s/sem) — cohérent.</string>
     <string name="dashboard_insight_deficit_not_losing">Cette semaine : déficit moyen de %1$d kcal/j, mais le poids ne baisse pas (%2$s/sem) — à surveiller.</string>

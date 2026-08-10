@@ -11,6 +11,7 @@ import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
@@ -44,6 +45,7 @@ class DashboardViewModel @Inject constructor(
     private val hydrationRepo: HydrationRepository,
     private val fastingRepo: FastingRepository,
     private val medicationRepo: MedicationRepository,
+    private val priceRepo: PriceRepository,
 ) : ViewModel() {
 
     // LocalDate.now() captured once at property-init time (the previous shape
@@ -61,6 +63,18 @@ class DashboardViewModel @Inject constructor(
             delay(60_000)
         }
     }.distinctUntilChanged()
+
+    // R&D audit finding: value-score data (ValueScoreEstimator, already shown
+    // per-purchase in Expenses/Result) never reached Dashboard or influenced
+    // any recommendation - it lived in complete isolation in its own tab.
+    // Deliberately NOT folded into the food score itself (price has nothing
+    // to do with nutritional quality - conflating the two would be a real
+    // scoring-integrity mistake, not a feature), just surfaced as its own
+    // weekly rollup the same way spendByCategory already is in Expenses.
+    val weeklyValueScoreCounts: StateFlow<Map<fr.scanneat.domain.engine.expense.ValueScore, Int>> = today.flatMapLatest { date ->
+        priceRepo.observeRange(date.minusDays(6), date)
+    }.map { entries -> entries.mapNotNull { it.valueScore }.groupingBy { it }.eachCount() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     // Combine 5 flows — the 30-day range is now a Flow itself, so
     // DashboardViewModel never issues a suspend DB call on every upstream tick.

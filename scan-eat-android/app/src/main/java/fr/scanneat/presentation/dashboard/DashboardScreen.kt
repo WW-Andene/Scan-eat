@@ -84,6 +84,7 @@ fun DashboardScreen(
     val weeklyScoreSummary = viewModel.weeklyScoreSummary.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val gapLoggedName = viewModel.gapLoggedName.collectAsStateWithLifecycle()
+    val weeklyValueScoreCounts = viewModel.weeklyValueScoreCounts.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var loggingScan by remember { mutableStateOf<ScanResult?>(null) }
@@ -185,6 +186,10 @@ fun DashboardScreen(
                 if (insight.agreement != InsightAgreement.INCONCLUSIVE) {
                     item { WeeklyInsightCard(insight, useImperial = useImperialWeight.value) }
                 }
+            }
+
+            if (weeklyValueScoreCounts.value.isNotEmpty()) {
+                item { WeeklyValueScoreCard(weeklyValueScoreCounts.value) }
             }
 
             // ---- Weight summary ----
