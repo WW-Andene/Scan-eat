@@ -276,6 +276,16 @@ class FoodSearchViewModel @Inject constructor(
         // "show me something related even before the real call fires".
         _query.onEach { q -> _onlineResults.value = instantCacheMatches(q) }.launchIn(viewModelScope)
 
+        // Found on review: without this, onlineSearchState was sticky across a
+        // query change - e.g. a query that ended in ERROR/EMPTY left that same
+        // state showing (wrong error banner / "no results for X" text quoting
+        // the *new* query) after typing something else entirely, even though
+        // onlineResults above had already correctly moved on to the new
+        // query's cache matches. Reset back to IDLE on every query change; the
+        // debounced search below overwrites it again once (if) it actually
+        // fires for the settled query.
+        _query.onEach { _onlineSearchState.value = OnlineSearchState.IDLE }.launchIn(viewModelScope)
+
         merge(
             _query.debounce(700).map { it.trim() }.distinctUntilChanged().filter { it.length >= 2 },
             manualOnlineTrigger,

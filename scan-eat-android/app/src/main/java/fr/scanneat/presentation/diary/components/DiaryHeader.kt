@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,11 +34,18 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 
 /** How long a "more" overflow tab must be held still (no drag needed) before
  *  it's armed for replacing one of the header's always-visible tabs. */
 private const val HOLD_TO_ARM_MS = 2000L
+
+/** Found on review: arming has no way to expire on its own - a user who arms
+ *  a tab then gets distracted (switches to another tab and back, backgrounds
+ *  the app) with nothing left showing them it's still armed would otherwise
+ *  have their next unrelated tap on a primary tab silently swap it in. */
+private const val ARM_AUTO_CANCEL_MS = 10_000L
 
 /**
  * Merged floating glass header - title row + tab row in one card, both
@@ -124,6 +132,12 @@ internal fun BoxScope.DiaryHeader(
                 // window handoff.
                 var armedOverflowTab by remember { mutableStateOf<DiaryTab?>(null) }
                 val haptics = LocalHapticFeedback.current
+                LaunchedEffect(armedOverflowTab) {
+                    if (armedOverflowTab != null) {
+                        delay(ARM_AUTO_CANCEL_MS)
+                        armedOverflowTab = null
+                    }
+                }
 
                 if (armedOverflowTab != null) {
                     Text(

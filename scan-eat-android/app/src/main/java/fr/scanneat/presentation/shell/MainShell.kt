@@ -33,10 +33,17 @@ import androidx.navigation.compose.rememberNavController
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 
 /** Same threshold/reasoning as DiaryHeader.kt's HOLD_TO_ARM_MS. */
 private const val NAV_HOLD_TO_ARM_MS = 2000L
+
+/** Same reasoning as DiaryHeader.kt's ARM_AUTO_CANCEL_MS - the bottom nav is
+ *  visible across the whole app, not scoped to one screen, so a stray armed
+ *  tab here would be even easier to forget about and trigger unintentionally
+ *  much later than the Journal header's equivalent. */
+private const val NAV_ARM_AUTO_CANCEL_MS = 10_000L
 
 @Composable
 fun MainShell(
@@ -57,6 +64,12 @@ fun MainShell(
     val navOrderCsv = shellViewModel.navTabOrder.collectAsStateWithLifecycle()
     val navTabs = remember(navOrderCsv.value) { parseTopTabOrder(navOrderCsv.value) }
     var armedNavTab by remember { mutableStateOf<TopTab?>(null) }
+    LaunchedEffect(armedNavTab) {
+        if (armedNavTab != null) {
+            delay(NAV_ARM_AUTO_CANCEL_MS)
+            armedNavTab = null
+        }
+    }
 
     // True floating chrome: a Box, not a Scaffold, so AppNavGraph's own screens
     // fill the entire frame and the bottom nav is a z-ordered overlay on top of
