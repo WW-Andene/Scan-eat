@@ -113,8 +113,28 @@ private val CATEGORY_DEFAULTS: Map<ProductCategory, MicronutrientDefaults> = map
         ironMg = 0.5, calciumMg = 20.0, magnesiumMg = 10.0, potassiumMg = 100.0,
         zincMg = 0.2, vitCMg = 2.0,
     ),
+    // Blended beer/wine/spirits average - beer carries modest grain-derived
+    // potassium/magnesium, wine somewhat more potassium from grape must;
+    // spirits are essentially mineral-free. Conservative low estimate rather
+    // than 0 across the board (this category's own doc comment in
+    // ProductCategory already establishes it needs distinct, non-generic
+    // reference bands - the same reasoning extends to its micronutrient
+    // defaults, which were missing from this map entirely until now).
+    ProductCategory.ALCOHOLIC_BEVERAGE to MicronutrientDefaults(
+        ironMg = 0.1, calciumMg = 8.0, magnesiumMg = 8.0, potassiumMg = 60.0, zincMg = 0.05,
+    ),
     // Oils/fats/butter - vitD only where dairy-fat-based; otherwise negligible.
     ProductCategory.OIL_FAT to MicronutrientDefaults(vitDUg = 0.3),
+    // Blended honey/jam average - honey carries small but real trace minerals
+    // (potassium, iron) from its floral source; jam/marmalade contributes a
+    // little vitamin C from the underlying fruit. Missing from this map
+    // entirely until now, the same "map missing one enum key with no
+    // fallback" gap already fixed elsewhere for this category (LLM prompt
+    // schema, OFF tag mapper, ExpensesSummaryCard, ValueScoreEstimator).
+    ProductCategory.SPREAD_SWEET to MicronutrientDefaults(
+        ironMg = 0.3, calciumMg = 15.0, magnesiumMg = 4.0, potassiumMg = 60.0,
+        zincMg = 0.2, vitCMg = 3.0,
+    ),
     // Generic "mixed diet" fallback for anything OffCategoryMapping couldn't
     // classify - still meaningfully better than a hard 0 for every field, at
     // the cost of being the least category-specific estimate in this table.
