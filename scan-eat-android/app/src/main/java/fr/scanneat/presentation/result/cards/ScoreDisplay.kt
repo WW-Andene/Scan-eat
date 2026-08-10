@@ -136,6 +136,16 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
                 trackColor  = SurfaceVariant,
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Nutritionist/public-bench audit: unlike DualScoreRing (which labels
+                // its classic score "Score classique"), this single-ring view showed
+                // only the bare letter with nothing naming whose grade it is - right
+                // next to ScoreBadgesRow's explicitly-labeled "NutriScore" badge above.
+                // Two differently-scaled systems sharing a letter (this app's 7-tier
+                // grade vs. Nutri-Score's 5-tier one) isn't itself a problem, the same
+                // way two different exams both grading A-F don't need new letters just
+                // because they measure different things - but only if each is actually
+                // named. This one wasn't.
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                 // User-reported: 56sp read as too large for a single-score display
                 // (DualScoreRing's 26sp comparison view was unaffected/correctly sized).
                 Text(grade.label, style = HeroNumberStyle.copy(fontSize = 44.sp), color = color)

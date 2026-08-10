@@ -277,42 +277,50 @@ val CalorieOrange   = Color(0xFFFF6B35)
 // palette swaps to a blue→orange/brown gradient (Okabe & Ito 2008) where "worse"
 // grades also get darker/lower-luminance, keeping the scale readable even when
 // hue can't be trusted. Grade letters are always shown alongside the color too.
-// E inserted between D and F in all three palettes below (Grade now has 7
-// tiers, not 6) - each interpolated between its neighbors so the "worse
-// grades get darker/lower-luminance" property this comment already promises
-// still holds across the extra step.
+// 7 evenly-spaced hue steps around the wheel (green->yellow-green->yellow->
+// orange->red-orange->red->dark red/maroon), not a narrow cluster - a prior
+// version inserted E as a color interpolated between D and F's already-close
+// oranges/reds, which round-6's public-bench audit flagged as functionally
+// indistinguishable at badge size despite technically satisfying "darker =
+// worse." B in particular moves off a pale yellow-green (too close to A) onto
+// a true yellow, matching this app's own reference color wheel's primary/
+// secondary/tertiary hue steps rather than a monochrome ramp.
 private val NormalGradeColors = mapOf(
-    Grade.A_PLUS to Color(0xFF4CAF50),
+    Grade.A_PLUS to Color(0xFF2E7D32),
     Grade.A      to Color(0xFF8BC34A),
-    Grade.B      to Color(0xFFCDDC39),
+    Grade.B      to Color(0xFFFFC107),
     Grade.C      to Color(0xFFFF9800),
-    Grade.D      to Color(0xFFFF5722),
-    Grade.E      to Color(0xFFF4511E),
-    Grade.F      to Color(0xFFF44336),
+    Grade.D      to Color(0xFFF4511E),
+    Grade.E      to Color(0xFFE53935),
+    Grade.F      to Color(0xFFB71C1C),
 )
 // Safe for protanopia/deuteranopia (red-green confusion): diverges on the
 // blue↔orange/brown axis instead, which that pair of deficiencies still sees fine.
+// Same wider-spacing fix as NormalGradeColors above - D/E/F were previously
+// three shades within ~0x25 of each other on each channel, functionally one
+// color at badge size.
 private val ProtanDeuteranSafeGradeColors = mapOf(
     Grade.A_PLUS to Color(0xFF0072B2),
     Grade.A      to Color(0xFF56B4E9),
-    Grade.B      to Color(0xFFE6C619),
+    Grade.B      to Color(0xFFF0E442),
     Grade.C      to Color(0xFFE69F00),
     Grade.D      to Color(0xFFD55E00),
-    Grade.E      to Color(0xFFAF4500),
-    Grade.F      to Color(0xFF8B2E00),
+    Grade.E      to Color(0xFF9E3D00),
+    Grade.F      to Color(0xFF632600),
 )
 
 // Safe for tritanopia (blue-yellow confusion) — the blue/orange scale above is
 // one of the worst choices here since it sits right on the confused axis. This
 // scale stays on teal↔red instead, which tritanopia leaves largely intact.
+// Same wider-spacing fix as the other two palettes.
 private val TritanopiaSafeGradeColors = mapOf(
     Grade.A_PLUS to Color(0xFF0B7A75),
     Grade.A      to Color(0xFF4FB3AC),
     Grade.B      to Color(0xFFB5B5B5),
     Grade.C      to Color(0xFFE8998D),
     Grade.D      to Color(0xFFD45D5D),
-    Grade.E      to Color(0xFFBD4444),
-    Grade.F      to Color(0xFFA62B2B),
+    Grade.E      to Color(0xFFA33636),
+    Grade.F      to Color(0xFF7A1F1F),
 )
 
 // ═══ LAYER 3 — COMPONENT (specific to one composable, not a general role) ════
