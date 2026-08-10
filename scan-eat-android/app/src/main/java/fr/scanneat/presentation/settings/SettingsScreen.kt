@@ -22,6 +22,7 @@ import fr.scanneat.presentation.settings.components.AboutSection
 import fr.scanneat.presentation.settings.components.AccessibilitySection
 import fr.scanneat.presentation.settings.components.ApiModeSection
 import fr.scanneat.presentation.settings.components.BackupSection
+import fr.scanneat.presentation.settings.components.CurrencyConversionDialog
 import fr.scanneat.presentation.settings.components.BiolismDisplaySection
 import fr.scanneat.presentation.settings.components.CerebrasKeySection
 import fr.scanneat.presentation.settings.components.ColorSection
@@ -346,29 +347,18 @@ fun SettingsScreen(
     }
 
     pendingCurrencyChange?.let { (newSymbol, factor) ->
-        AlertDialog(
-            onDismissRequest = { pendingCurrencyChange = null },
-            containerColor = fr.scanneat.presentation.ui.theme.SurfaceVariant.copy(alpha = fr.scanneat.presentation.ui.theme.StandardCardAlpha),
-            title = { Text(stringResource(R.string.settings_currency_convert_title), color = OnBackground) },
-            text = {
-                Text(
-                    stringResource(R.string.settings_currency_convert_body, currencySymbol.value, newSymbol, factor),
-                    style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.8f),
-                )
+        CurrencyConversionDialog(
+            currentSymbol = currencySymbol.value,
+            newSymbol = newSymbol,
+            factor = factor,
+            onDismiss = { pendingCurrencyChange = null },
+            onConvert = {
+                viewModel.setCurrencySymbolWithConversion(newSymbol, factor)
+                pendingCurrencyChange = null
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setCurrencySymbolWithConversion(newSymbol, factor)
-                    pendingCurrencyChange = null
-                }) { Text(stringResource(R.string.settings_currency_convert_confirm), color = AccentCoral) }
-            },
-            dismissButton = {
-                // Relabel-only, the old behavior - keeps every logged number as-is,
-                // just changes which symbol is shown next to it.
-                TextButton(onClick = {
-                    viewModel.setCurrencySymbol(newSymbol)
-                    pendingCurrencyChange = null
-                }) { Text(stringResource(R.string.settings_currency_convert_relabel_only), color = OnBackground.copy(0.6f)) }
+            onRelabelOnly = {
+                viewModel.setCurrencySymbol(newSymbol)
+                pendingCurrencyChange = null
             },
         )
     }
