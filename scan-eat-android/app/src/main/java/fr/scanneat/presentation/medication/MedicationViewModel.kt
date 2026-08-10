@@ -119,8 +119,14 @@ class MedicationViewModel @Inject constructor(
     private val repo: MedicationRepository,
     private val hydrationRepo: HydrationRepository,
     private val weightRepo: WeightRepository,
+    private val prefs: fr.scanneat.data.local.prefs.UserPreferences,
 ) : ViewModel() {
-    val medications: StateFlow<List<Medication>> = repo.observeAll()
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    val medications: StateFlow<List<Medication>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // LocalDate.now() captured once at construction would keep observing
@@ -142,7 +148,8 @@ class MedicationViewModel @Inject constructor(
     // an active list + reminder schedule, unlike every other tracker Journal
     // combines. Today's taken log lets the tab itself show adherence, and
     // feeds the same event into the unified Calendar.
-    val todayTaken: StateFlow<List<MedicationLogEntry>> = today.flatMapLatest { date -> repo.observeLogByDate(date) }
+    val todayTaken: StateFlow<List<MedicationLogEntry>> = combine(today, activeProfileId) { date, id -> date to id }
+        .flatMapLatest { (date, id) -> repo.observeLogByDate(date, id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Improvement: keyword-based interaction warnings for the active medication list.
@@ -161,11 +168,11 @@ class MedicationViewModel @Inject constructor(
     // re-ran when markTaken()/undoTaken() wrote to medication_log, leaving this
     // stale until something unrelated (e.g. editing a medication) forced a
     // re-emit of `medications`.
-    val adherenceStreak: StateFlow<Int> = combine(medications, today) { allMeds, date -> allMeds to date }
-        .flatMapLatest { (allMeds, today) ->
+    val adherenceStreak: StateFlow<Int> = combine(medications, today, activeProfileId) { allMeds, date, id -> Triple(allMeds, date, id) }
+        .flatMapLatest { (allMeds, today, id) ->
             val activeMeds = allMeds.filter { it.active }
             if (activeMeds.isEmpty()) return@flatMapLatest flowOf(0)
-            repo.observeLogRange(today.minusDays(30), today.minusDays(1)).map { logs ->
+            repo.observeLogRange(today.minusDays(30), today.minusDays(1), id).map { logs ->
                 val logsByDate = logs.groupBy { it.date }
                 var streak = 0
                 var date = today.minusDays(1)
@@ -198,10 +205,10 @@ class MedicationViewModel @Inject constructor(
     // adherenceStreak (see its own comment) so a medication added mid-week
     // doesn't count the days before it existed as missed doses.
     // Same medication_log-reactivity fix as adherenceStreak above - see its comment.
-    val weeklyAdherence: StateFlow<List<DayAdherence>> = combine(medications, today) { allMeds, date -> allMeds to date }
-        .flatMapLatest { (allMeds, today) ->
+    val weeklyAdherence: StateFlow<List<DayAdherence>> = combine(medications, today, activeProfileId) { allMeds, date, id -> Triple(allMeds, date, id) }
+        .flatMapLatest { (allMeds, today, id) ->
             val activeMeds = allMeds.filter { it.active }
-            repo.observeLogRange(today.minusDays(6), today).map { logs ->
+            repo.observeLogRange(today.minusDays(6), today, id).map { logs ->
                 val logsByDate = logs.groupBy { it.date }
                 (6 downTo 0).map { i ->
                     val date = today.minusDays(i.toLong())
@@ -227,7 +234,7 @@ class MedicationViewModel @Inject constructor(
     // weight entry logged before AND after createdAt (a single post-start entry
     // alone can't show a "since" delta) - medication id -> (deltaKg, fromKg, toKg).
     val weightDeltaSinceStart: StateFlow<Map<String, Triple<Double, Double, Double>>> =
-        combine(medications, weightRepo.observeAll()) { meds, weights ->
+        combine(medications, activeProfileId.flatMapLatest { id -> weightRepo.observeAll(id) }) { meds, weights ->
             if (weights.size < 2) return@combine emptyMap()
             val sorted = weights.sortedBy { it.date }
             meds.filter { it.active }.mapNotNull { med ->
@@ -260,7 +267,7 @@ class MedicationViewModel @Inject constructor(
     fun markTaken(medication: Medication) {
         viewModelScope.launch {
             runCatching {
-                repo.logTaken(medication)
+                repo.logTaken(medication, profileId = activeProfileId.value)
                 hydrationRepo.addGlass()
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
@@ -273,7 +280,7 @@ class MedicationViewModel @Inject constructor(
     fun save(name: String, dosage: String, scheduleNote: String, reminderOn: Boolean = false, reminderTime: String = "08:00") {
         if (name.isBlank()) return
         viewModelScope.launch {
-            runCatching { repo.save(name, dosage, scheduleNote, reminderOn = reminderOn, reminderTime = reminderTime) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.save(name, dosage, scheduleNote, reminderOn = reminderOn, reminderTime = reminderTime, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -287,7 +294,7 @@ class MedicationViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 repo.save(name, dosage, scheduleNote, medication.barcode, medication.active, id = medication.id,
-                    reminderOn = medication.reminderOn, reminderTime = medication.reminderTime)
+                    reminderOn = medication.reminderOn, reminderTime = medication.reminderTime, profileId = activeProfileId.value)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -297,13 +304,13 @@ class MedicationViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 repo.save(medication.name, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
-                    reminderOn = on, reminderTime = time)
+                    reminderOn = on, reminderTime = time, profileId = activeProfileId.value)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun setActive(medication: Medication, active: Boolean) {
-        viewModelScope.launch { runCatching { repo.setActive(medication, active) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { repo.setActive(medication, active, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     // Same undo-delete pattern as DiaryViewModel/WeightViewModel/ScanHistoryViewModel -
@@ -327,7 +334,7 @@ class MedicationViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 repo.save(entry.name, entry.dosage, entry.scheduleNote, entry.barcode, entry.active, id = entry.id,
-                    reminderOn = entry.reminderOn, reminderTime = entry.reminderTime)
+                    reminderOn = entry.reminderOn, reminderTime = entry.reminderTime, profileId = activeProfileId.value)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

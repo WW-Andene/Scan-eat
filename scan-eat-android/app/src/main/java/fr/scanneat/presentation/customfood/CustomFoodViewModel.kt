@@ -38,15 +38,20 @@ class CustomFoodViewModel @Inject constructor(
     val profile: StateFlow<Profile> = prefs.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
 
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
     /** Thin pass-through so the screen can build a Product for [fr.scanneat.domain.engine.nutrition.generateProductHints]
      *  without reaching into the repository directly — toProduct() already works on any FoodEntry, custom or built-in. */
     fun toProduct(entry: FoodEntry): Product = repo.toProduct(entry)
 
-    val foods: StateFlow<List<FoodEntry>> = repo.observeAll()
+    val foods: StateFlow<List<FoodEntry>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** id-keyed, for the rename action — FoodEntry itself carries no stable id. */
-    val foodsWithId: StateFlow<List<Pair<String, FoodEntry>>> = repo.observeAllWithId()
+    val foodsWithId: StateFlow<List<Pair<String, FoodEntry>>> = activeProfileId.flatMapLatest { id -> repo.observeAllWithId(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // R&D audit finding: a recalled product saved as a custom food (e.g. via
@@ -55,7 +60,9 @@ class CustomFoodViewModel @Inject constructor(
     // captured and stored, but nothing downstream of that first scan ever
     // used it again. id-keyed so FoodEntryRow can look up a given row's
     // warning without re-running the check on every recomposition.
-    val recallWarnings: StateFlow<Map<String, RecallEntry>> = repo.observeAllWithIdAndBarcode()
+    private val foodsWithIdAndBarcode = activeProfileId.flatMapLatest { id -> repo.observeAllWithIdAndBarcode(id) }
+
+    val recallWarnings: StateFlow<Map<String, RecallEntry>> = foodsWithIdAndBarcode
         .map { list -> list.mapNotNull { (_, _, barcode) -> barcode }.filter { it.isNotBlank() } }
         .distinctUntilChanged()
         .flatMapLatest { barcodes ->
@@ -64,7 +71,7 @@ class CustomFoodViewModel @Inject constructor(
                 emit(byBarcode)
             }
         }
-        .combine(repo.observeAllWithIdAndBarcode()) { byBarcode, entries ->
+        .combine(foodsWithIdAndBarcode) { byBarcode, entries ->
             entries.mapNotNull { (id, _, barcode) -> byBarcode[barcode]?.let { id to it } }.toMap()
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
@@ -115,7 +122,8 @@ class CustomFoodViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 repo.save(name = name, kcal = kcal, proteinG = proteinG,
-                          carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases, barcode = barcode)
+                          carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases, barcode = barcode,
+                          profileId = activeProfileId.value)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -151,7 +159,7 @@ class CustomFoodViewModel @Inject constructor(
                     id = id, name = food.name, kcal = food.kcal, proteinG = food.proteinG,
                     carbsG = food.carbsG, fatG = food.fatG, fiberG = food.fiberG, saltG = food.saltG,
                     ironMg = food.ironMg, calciumMg = food.calciumMg, vitDUg = food.vitDUg, b12Ug = food.b12Ug,
-                    aliases = food.aliases, barcode = barcode,
+                    aliases = food.aliases, barcode = barcode, profileId = activeProfileId.value,
                 )
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
@@ -191,7 +199,7 @@ class CustomFoodViewModel @Inject constructor(
                     // on why these would otherwise silently zero out.
                     ironMg = existing?.ironMg ?: 0.0, calciumMg = existing?.calciumMg ?: 0.0,
                     vitDUg = existing?.vitDUg ?: 0.0, b12Ug = existing?.b12Ug ?: 0.0,
-                    aliases = aliases, barcode = repo.findBarcode(id),
+                    aliases = aliases, barcode = repo.findBarcode(id), profileId = activeProfileId.value,
                 )
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
@@ -220,7 +228,7 @@ class CustomFoodViewModel @Inject constructor(
     // pre-classifyNonFood() row that's still sitting unverified shouldn't get its
     // meaningless data immortalized as a custom food just because it happens to be
     // the most recent scan.
-    val latestScan: StateFlow<ScanResult?> = scanRepo.observeHistoryChecked(limit = 1)
+    val latestScan: StateFlow<ScanResult?> = activeProfileId.flatMapLatest { id -> scanRepo.observeHistoryChecked(limit = 1, profileId = id) }
         .map { it.firstOrNull() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -255,6 +263,7 @@ class CustomFoodViewModel @Inject constructor(
                 // generic display name (e.g. two brands both "Yaourt nature").
                 barcode  = scan.barcode,
                 category = scan.product.category,
+                profileId = activeProfileId.value,
             ) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
