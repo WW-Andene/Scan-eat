@@ -46,17 +46,6 @@ import fr.scanneat.presentation.ui.theme.semanticAmber
 //    disease.
 //  - Ketosis + pregnancy: ACOG guidance — ketogenic diets are not
 //    recommended during pregnancy.
-//  - Fasting/Ketosis + anorexia/bulimia: NEDA (National Eating Disorders
-//    Association) guidance — extended fasting and other restrictive eating
-//    patterns are a documented relapse-risk behavior for eating-disorder
-//    history, independent of which foods are involved. This is deliberately
-//    the ONLY place anorexia/bulimia have any effect in this app —
-//    ProfileSelectors.kt's own doc comment explains why they are never wired
-//    into food scoring or ingredient-restriction guidance: telling someone
-//    with an eating-disorder history to avoid specific foods is itself
-//    contraindicated, but cautioning against a restrictive fasting/ketosis
-//    *mode* they've chosen to start is the one place real clinical guidance
-//    supports a caution here.
 // Not attempting a condition x mode matrix beyond these — a wrong caution
 // here is worse than a missing one, same principle as the rest of this
 // codebase's health-condition dictionaries.
@@ -69,12 +58,6 @@ private val FASTING_CAUTIONS: Map<String, Pair<String, String>> = mapOf(
     "pregnancy" to (
         "Jeûne prolongé et grossesse : généralement déconseillé (risque d'hypoglycémie et de cétose maternelle/fœtale) — recommandations ACOG/ANSES." to
         "Extended fasting and pregnancy: generally discouraged (maternal/fetal hypoglycemia and ketosis risk) — ACOG/ANSES guidance."),
-    "anorexia" to (
-        "Jeûne prolongé et antécédent d'anorexie : les pratiques alimentaires restrictives sont identifiées comme un facteur de risque de rechute — la National Eating Disorders Association recommande d'en discuter avec un professionnel de santé avant d'utiliser cette fonctionnalité." to
-        "Extended fasting and anorexia history: restrictive eating patterns are identified as a relapse-risk factor — the National Eating Disorders Association recommends discussing this with a healthcare professional before using this feature."),
-    "bulimia" to (
-        "Jeûne prolongé et antécédent de boulimie : les pratiques alimentaires restrictives sont identifiées comme un facteur de risque de rechute — la National Eating Disorders Association recommande d'en discuter avec un professionnel de santé avant d'utiliser cette fonctionnalité." to
-        "Extended fasting and bulimia history: restrictive eating patterns are identified as a relapse-risk factor — the National Eating Disorders Association recommends discussing this with a healthcare professional before using this feature."),
 )
 
 private val KETOSIS_CAUTIONS: Map<String, Pair<String, String>> = mapOf(
@@ -87,12 +70,6 @@ private val KETOSIS_CAUTIONS: Map<String, Pair<String, String>> = mapOf(
     "pregnancy" to (
         "Cétose et grossesse : l'alimentation cétogène n'est pas recommandée pendant la grossesse (recommandations ACOG)." to
         "Ketosis and pregnancy: ketogenic eating is not recommended during pregnancy (ACOG guidance)."),
-    "anorexia" to (
-        "Alimentation cétogène et antécédent d'anorexie : les régimes restrictifs sont identifiés comme un facteur de risque de rechute — la National Eating Disorders Association recommande d'en discuter avec un professionnel de santé avant d'utiliser cette fonctionnalité." to
-        "Ketogenic eating and anorexia history: restrictive diets are identified as a relapse-risk factor — the National Eating Disorders Association recommends discussing this with a healthcare professional before using this feature."),
-    "bulimia" to (
-        "Alimentation cétogène et antécédent de boulimie : les régimes restrictifs sont identifiés comme un facteur de risque de rechute — la National Eating Disorders Association recommande d'en discuter avec un professionnel de santé avant d'utiliser cette fonctionnalité." to
-        "Ketogenic eating and bulimia history: restrictive diets are identified as a relapse-risk factor — the National Eating Disorders Association recommends discussing this with a healthcare professional before using this feature."),
 )
 
 @Composable

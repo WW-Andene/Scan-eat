@@ -205,17 +205,18 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     // food caution) in HealthConditionGuidanceDb.kt - same discipline as
     // ibs/crohn_ibd/chronic_diarrhea above, not a no-op label.
     "dental_problems" to stringResource(R.string.condition_dental_problems),
-    // Anorexia/bulimia: deliberately NOT wired into PersonalScoreEngine's
-    // numeric scoring or HealthConditionGuidanceDb's "avoid this ingredient"
-    // dictionaries - food-restriction messaging is contraindicated for
-    // eating-disorder history (NEDA clinical guidance), the same "a wrong
-    // rule is worse than no rule" principle that removed thyroid_disorder
-    // above. Their real, safe effect is in Biolism's
-    // HealthConditionCaution.kt: a caution on fasting/ketosis modes, which
-    // NEDA guidance does flag as a genuine relapse-risk pattern for this
-    // history - not a food-scoring rule.
-    "anorexia" to stringResource(R.string.condition_anorexia),
-    "bulimia" to stringResource(R.string.condition_bulimia),
+    // Anorexia/bulimia were tried and removed (user-reported): the only safe
+    // effect available - a caution on Biolism's fasting/ketosis toggles - only
+    // ever fires for a user who *also* enables one of those two rarely-used
+    // modes. For anyone selecting this condition and just using the app
+    // normally (scanning/logging food), it did nothing, ever - the exact
+    // "false impression of being handled" thyroid_disorder was removed for
+    // above, and worse to leave in given how sensitive the condition is.
+    // Food-restriction messaging (the one thing that WOULD have broad reach
+    // here) is itself contraindicated for eating-disorder history per NEDA
+    // clinical guidance, so there's no safe way to give this real breadth
+    // without a much larger, dedicated design effort this app doesn't have
+    // yet - not a small addition to bolt on alongside an unrelated request.
 )
 
 /**
@@ -232,7 +233,6 @@ private fun conditionGroups(): List<Pair<String, List<String>>> = listOf(
     stringResource(R.string.profile_condition_group_digestive) to listOf("ibs", "crohn_ibd", "chronic_diarrhea"),
     stringResource(R.string.profile_condition_group_neurological) to listOf("chronic_migraine", "epilepsy"),
     stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression", "dental_problems"),
-    stringResource(R.string.profile_condition_group_eating_disorder) to listOf("anorexia", "bulimia"),
 )
 
 @OptIn(ExperimentalLayoutApi::class)
