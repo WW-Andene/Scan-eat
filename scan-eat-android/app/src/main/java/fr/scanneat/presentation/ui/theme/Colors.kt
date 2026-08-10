@@ -293,6 +293,28 @@ private val NormalGradeColors = mapOf(
     Grade.E      to Color(0xFFF4511E), // Red-Orange (Vermilion)
     Grade.F      to Color(0xFFE53935), // Red
 )
+// Round-7 audit: gradeColor() is consumed as literal TEXT color at 26-44sp
+// (ScoreDisplay.kt), not a chip fill with its own contrasting label - but
+// every map above was tuned purely for hue separation from its NEIGHBORS,
+// never checked against the actual page background the way TextMuted/
+// TextLabel above already are (isLightBackground() split). Against Light's
+// near-white background, most of these fail WCAG's 3:1 large-text floor
+// outright (A: 1.87:1, B: 1.24:1, C: 1.45:1, D: 1.92:1) - this predates the
+// hue-widening fix, it just went unnoticed because nothing before compared
+// grade color needing to itself be legible against light backgrounds
+// this session touched. Each pair below is calibrated to the same hue,
+// darkened only as far as needed to clear 4.5:1 against the Light background
+// token (0xFFF6F1EC) - the vivid values remain used as-is on Dark, where
+// they already have ample contrast (8-13:1).
+private val NormalGradeColorsLight = mapOf(
+    Grade.A_PLUS to Color(0xFF2E7D32),
+    Grade.A      to Color(0xFF547928),
+    Grade.B      to Color(0xFF856C01),
+    Grade.C      to Color(0xFF8D6900),
+    Grade.D      to Color(0xFFA05F00),
+    Grade.E      to Color(0xFFCC380A),
+    Grade.F      to Color(0xFFD8201C),
+)
 // Safe for protanopia/deuteranopia (red-green confusion): diverges on the
 // blue↔orange/brown axis instead, which that pair of deficiencies still sees fine.
 // Same wider-spacing fix as NormalGradeColors above - D/E/F were previously
@@ -307,6 +329,17 @@ private val ProtanDeuteranSafeGradeColors = mapOf(
     Grade.E      to Color(0xFF9E3D00),
     Grade.F      to Color(0xFF632600),
 )
+// Same Light-background contrast fix as NormalGradeColorsLight above,
+// same-hue darkened variants (E/F already cleared 4.5:1 unmodified).
+private val ProtanDeuteranSafeGradeColorsLight = mapOf(
+    Grade.A_PLUS to Color(0xFF0072B2),
+    Grade.A      to Color(0xFF1674AA),
+    Grade.B      to Color(0xFF78700A),
+    Grade.C      to Color(0xFF936600),
+    Grade.D      to Color(0xFFB65000),
+    Grade.E      to Color(0xFF9E3D00),
+    Grade.F      to Color(0xFF632600),
+)
 
 // Safe for tritanopia (blue-yellow confusion) — the blue/orange scale above is
 // one of the worst choices here since it sits right on the confused axis. This
@@ -318,6 +351,17 @@ private val TritanopiaSafeGradeColors = mapOf(
     Grade.B      to Color(0xFFB5B5B5),
     Grade.C      to Color(0xFFE8998D),
     Grade.D      to Color(0xFFD45D5D),
+    Grade.E      to Color(0xFFA33636),
+    Grade.F      to Color(0xFF7A1F1F),
+)
+// Same Light-background contrast fix as the other two palettes above
+// (E/F already cleared 4.5:1 unmodified).
+private val TritanopiaSafeGradeColorsLight = mapOf(
+    Grade.A_PLUS to Color(0xFF0B7A75),
+    Grade.A      to Color(0xFF347975),
+    Grade.B      to Color(0xFF6E6E6E),
+    Grade.C      to Color(0xFFC83D28),
+    Grade.D      to Color(0xFFCA3939),
     Grade.E      to Color(0xFFA33636),
     Grade.F      to Color(0xFF7A1F1F),
 )
@@ -343,10 +387,11 @@ fun scanEatTextFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors
 // exception, not the start of a new section.
 @Composable
 fun gradeColor(grade: Grade): Color {
+    val light = isLightBackground()
     val palette = when (LocalColorblindMode.current) {
-        "protanopia", "deuteranopia" -> ProtanDeuteranSafeGradeColors
-        "tritanopia"                 -> TritanopiaSafeGradeColors
-        else                         -> NormalGradeColors
+        "protanopia", "deuteranopia" -> if (light) ProtanDeuteranSafeGradeColorsLight else ProtanDeuteranSafeGradeColors
+        "tritanopia"                 -> if (light) TritanopiaSafeGradeColorsLight else TritanopiaSafeGradeColors
+        else                         -> if (light) NormalGradeColorsLight else NormalGradeColors
     }
     return palette.getValue(grade)
 }

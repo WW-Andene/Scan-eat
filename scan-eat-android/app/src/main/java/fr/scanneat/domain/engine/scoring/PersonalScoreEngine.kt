@@ -108,14 +108,10 @@ fun computePersonalScore(
     )
 }
 
-/** Map 0-100 personal score to grade. Same breakpoints as the main engine
- *  (7 bands including E, see ScoringEngine.kt's scoreToGrade). */
-fun personalGrade(score: Int): Grade = when {
-    score >= 85 -> Grade.A_PLUS
-    score >= 70 -> Grade.A
-    score >= 55 -> Grade.B
-    score >= 40 -> Grade.C
-    score >= 25 -> Grade.D
-    score >= 10 -> Grade.E
-    else        -> Grade.F
-}
+/** Map 0-100 personal score to grade. Was a hand-copied duplicate of
+ *  scoreToGrade()'s breakpoints - the exact anti-pattern scoreToGrade's own
+ *  doc comment says it was made `internal` (not `private`) to prevent,
+ *  citing ScanHistoryViewModel's old 80/60/40 drift as the cautionary
+ *  precedent. Calls it directly now instead of re-declaring the same 6
+ *  comparisons a second time. */
+fun personalGrade(score: Int): Grade = scoreToGrade(score)

@@ -121,9 +121,11 @@ private object VetoCap {
     // fix on the Android side (see Scoring Drift Check).
     const val EXTREME = 9
     // Worst tier actually in use: concentrated exposure to a WHO/IARC Group 1
-    // carcinogen (high-proof spirits), or a well-established severe aggregate
-    // nutritional harm (a sugar-sweetened beverage with zero redeeming
-    // nutritional contribution - WHO explicitly flags SSBs at this severity).
+    // carcinogen (high-proof spirits), or a sugar-sweetened beverage with
+    // zero redeeming nutritional contribution. WHO's SSB guidance is a
+    // population-level dietary-pattern recommendation, not a per-100g
+    // product classification. Mirrors the identical fix on the Android side
+    // (see Scoring Drift Check).
     const val SEVERE = 30
     // A single severe, specific risk factor with strong evidence: one
     // EU-banned or IARC-flagged additive.
@@ -283,7 +285,13 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
         // identical fix on the Android side (see Scoring Drift Check).
         candidates += VetoCondition(true, if (en) "Caffeine ${caffeine.formatDecimal(1)}mg/100g — concentrated enough that a typical single serving would exceed EFSA's ~200mg single-dose guidance" else "Caféine ${caffeine.formatDecimal(1)}mg/100g — concentration telle qu'une portion normale dépasserait le repère de prudence EFSA d'environ 200mg par prise", VetoCap.MILD)
 
-    return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
+    // Winning (strictest-cap) reason stays first and still drives the cap,
+    // but a product tripping multiple independent vetoes previously had
+    // every reason but the winner's silently discarded. Mirrors the
+    // identical fix on the Android side (see Scoring Drift Check).
+    val winner = candidates.minByOrNull { it.cap } ?: return VetoCondition(false, "", 100)
+    val combinedReason = (listOf(winner) + candidates.filter { it !== winner }).joinToString(" · ") { it.reason }
+    return VetoCondition(true, combinedReason, winner.cap)
 }
 
 private fun buildFlags(audit: ScoreAudit, lang: String = "en"): Pair<List<String>, List<String>> {

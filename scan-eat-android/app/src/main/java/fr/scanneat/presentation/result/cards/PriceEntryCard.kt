@@ -106,7 +106,13 @@ private fun ValueScoreBadge(score: ValueScore) {
         ValueScore.GREAT   -> stringResource(R.string.result_price_value_great) to semanticGreen()
         ValueScore.GOOD    -> stringResource(R.string.result_price_value_good) to semanticGreen()
         ValueScore.AVERAGE -> stringResource(R.string.result_price_value_average) to semanticAmber()
-        ValueScore.POOR    -> stringResource(R.string.result_price_value_poor) to AccentCoral
+        // Was AccentCoral - Colors.kt's own header rule is that accent ("you
+        // can act here") and semantic ("this is good/bad") colors must never
+        // share a hue, or the distinction stops being readable. POOR is a
+        // negative signal like GREAT/GOOD/AVERAGE's own colors above, not an
+        // action affordance, and AccentCoral doesn't shift with
+        // LocalColorblindMode the way semanticRed() does.
+        ValueScore.POOR    -> stringResource(R.string.result_price_value_poor) to semanticRed()
     }
     Text(label, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
 }
