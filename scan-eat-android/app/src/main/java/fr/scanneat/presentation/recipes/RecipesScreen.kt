@@ -5,8 +5,6 @@ import compose.icons.tablericons.Plus
 import compose.icons.tablericons.Bulb
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,16 +16,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.recipes.components.AddRecipeDialog
@@ -37,10 +32,10 @@ import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
 import fr.scanneat.presentation.recipes.components.RecipeCard
 import fr.scanneat.presentation.recipes.components.RecipesFilterChipsRow
 import fr.scanneat.presentation.recipes.components.RecipesImportStateDialogs
+import fr.scanneat.presentation.recipes.components.RecipesTopBarActions
 import fr.scanneat.presentation.recipes.components.SaveAsTemplateDialog
 import fr.scanneat.presentation.recipes.components.ScaleRecipeDialog
 import fr.scanneat.presentation.shell.PlanningDestination
-import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -76,28 +71,16 @@ fun RecipesScreen(
     var saveAsTemplateTarget by remember { mutableStateOf<Recipe?>(null) }
     var logOfficialTarget by remember { mutableStateOf<OfficialRecipe?>(null) }
 
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val photoImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            coroutineScope.launch {
-                val payload = withContext(Dispatchers.IO) { decodeImagePayload(context, uri) }
-                if (payload != null) viewModel.importRecipeFromPhotos(listOf(payload)) else viewModel.photoDecodeFailed()
-            }
-        }
-    }
     // Restaurant menu photo -> estimated dishes (IdentifyMenuRoute.kt), previously
-    // unreachable from the app. Mirrors photoImportLauncher exactly - the system photo
-    // picker is the whole "input" step, loading/result/error surface via importState,
-    // same as the recipe-photo-import path above.
-    val menuScanLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            coroutineScope.launch {
-                val payload = withContext(Dispatchers.IO) { decodeImagePayload(context, uri) }
-                if (payload != null) viewModel.identifyMenuFromPhotos(listOf(payload)) else viewModel.photoDecodeFailed()
-            }
-        }
-    }
+    // unreachable from the app. Mirrors the recipe-photo-import path exactly - the
+    // system photo picker is the whole "input" step, loading/result/error surface
+    // via importState either way.
+    val photoLaunchers = rememberRecipesPhotoLaunchers(
+        onRecipePhotos = { viewModel.importRecipeFromPhotos(it) },
+        onMenuPhotos = { viewModel.identifyMenuFromPhotos(it) },
+        onDecodeFailed = { viewModel.photoDecodeFailed() },
+    )
 
     // Same pattern as WeightScreen - toggleFavorite/save/delete/log/etc. previously
     // called repo's Room writes completely unguarded; a failed write now surfaces
@@ -135,28 +118,14 @@ fun RecipesScreen(
         title = { Text(stringResource(R.string.recipes_title), color = OnBackground, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
-            PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
-            IconButton(onClick = { showSuggest = true }) { Icon(TablerIcons.Bulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }
-            IconButton(onClick = { showImportUrl = true }) { Icon(Icons.Rounded.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
-            IconButton(onClick = {
-                photoImportLauncher.launch(
-                    androidx.activity.result.PickVisualMediaRequest.Builder()
-                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        .build()
-                )
-            }) {
-                Icon(Icons.Rounded.PhotoCamera, stringResource(R.string.recipes_cd_import_photo), tint = OnBackground)
-            }
-            IconButton(onClick = {
-                menuScanLauncher.launch(
-                    androidx.activity.result.PickVisualMediaRequest.Builder()
-                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        .build()
-                )
-            }) {
-                Icon(Icons.Rounded.Restaurant, stringResource(R.string.recipes_cd_menu_scan), tint = OnBackground)
-            }
-            IconButton(onClick = { showAdd = true }) { Icon(TablerIcons.Plus, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
+            RecipesTopBarActions(
+                onNavigateToPlanning = onNavigateToPlanning,
+                onSuggest = { showSuggest = true },
+                onImportUrl = { showImportUrl = true },
+                onImportPhoto = photoLaunchers.photoImportLaunch,
+                onMenuScan = photoLaunchers.menuScanLaunch,
+                onNew = { showAdd = true },
+            )
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
