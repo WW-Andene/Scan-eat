@@ -370,6 +370,14 @@ private fun collectWarnings(product: Product, lang: String = "en"): List<String>
     // field, and without this warning those scans silently assumed
     // caffeine-free with no disclosed uncertainty.
     if (product.nutrition.caffeineMg == null) warnings += (if (en) "caffeine_mg not declared — assumed 0" else "caffeine_mg non déclaré — supposé 0")
+    // alcoholPercentVol is architecturally identical to the three fields
+    // above - nullable, defaults to 0 via `?: 0.0` in both
+    // NegativeNutrientsPillar.kt and checkVeto, and its own doc comment
+    // (Product.kt) already says "null means not declared, not alcohol-free" -
+    // but this warning was never added, so a cider/cocktail whose OFF entry
+    // never scraped alcohol_100g silently scored as 0% ABV with no
+    // disclosed uncertainty, unlike caffeine's identical case.
+    if (product.nutrition.alcoholPercentVol == null) warnings += (if (en) "alcohol_percent_vol not declared — assumed 0" else "alcohol_percent_vol non déclaré — supposé 0")
     return warnings
 }
 

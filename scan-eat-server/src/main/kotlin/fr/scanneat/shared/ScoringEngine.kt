@@ -338,6 +338,8 @@ private fun collectWarnings(product: Product, lang: String = "en"): List<String>
     if (product.nutrition.transFatG == null) warnings += (if (en) "trans_fat_g not declared — assumed 0" else "trans_fat_g non déclaré — supposé 0")
     if (product.nutrition.addedSugarsG == null) warnings += (if (en) "added_sugars_g not declared — using total sugars as proxy" else "added_sugars_g non déclaré — sucres totaux utilisés en approximation")
     if (product.nutrition.caffeineMg == null) warnings += (if (en) "caffeine_mg not declared — assumed 0" else "caffeine_mg non déclaré — supposé 0")
+    // Mirrors the identical fix on the Android side (see Scoring Drift Check).
+    if (product.nutrition.alcoholPercentVol == null) warnings += (if (en) "alcohol_percent_vol not declared — assumed 0" else "alcohol_percent_vol non déclaré — supposé 0")
     return warnings
 }
 

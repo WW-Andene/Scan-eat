@@ -43,7 +43,9 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
     if (cosmetics.isEmpty() && upfMarkers.isEmpty() && additives.size <= 2 && ings.size <= 10)
         return NovaInference(NovaClass.PROCESSED, NovaConfidence.MEDIUM)
 
-    if (cosmetics.isEmpty() && upfMarkers.isEmpty() && additives.isEmpty())
+    // additives.size <= 2, not additives.isEmpty() - mirrors the identical
+    // fix on the Android side (see Scoring Drift Check).
+    if (cosmetics.isEmpty() && upfMarkers.isEmpty() && additives.size <= 2)
         return NovaInference(NovaClass.PROCESSED, NovaConfidence.LOW)
 
     val hasPositiveEvidence = cosmetics.isNotEmpty() || upfMarkers.isNotEmpty()

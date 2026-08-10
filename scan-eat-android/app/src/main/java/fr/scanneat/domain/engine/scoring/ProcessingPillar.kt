@@ -50,7 +50,15 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
     // evidence either way, not proof of ultra-processing, so keep it at
     // PROCESSED (not UNPROCESSED/CULINARY - it's still a composite product)
     // with LOW confidence rather than jumping two full NOVA classes.
-    if (cosmetics.isEmpty() && upfMarkers.isEmpty() && additives.isEmpty())
+    //
+    // additives.size <= 2, not additives.isEmpty() - the zero-additive fix
+    // above was never generalized to the >10-ingredient product with 1-2
+    // harmless non-cosmetic, non-UPF-marker additives (e.g. citric acid E330
+    // as an antioxidant in a 12-ingredient muesli), which fell through both
+    // this and the line-42 <=10-ingredient branch straight to ULTRA_PROCESSED/
+    // LOW - the exact two-class jump on weak evidence this section exists to
+    // prevent, just for a slightly wider input shape.
+    if (cosmetics.isEmpty() && upfMarkers.isEmpty() && additives.size <= 2)
         return NovaInference(NovaClass.PROCESSED, NovaConfidence.LOW)
 
     val hasPositiveEvidence = cosmetics.isNotEmpty() || upfMarkers.isNotEmpty()
