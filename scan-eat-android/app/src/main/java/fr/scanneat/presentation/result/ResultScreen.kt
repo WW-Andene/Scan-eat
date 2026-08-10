@@ -63,6 +63,7 @@ fun ResultScreen(
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
     val priceEntries = viewModel.priceEntries.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     // rememberSaveable, not remember - a process death while either dialog was open
     // (backgrounding the app is enough on a low-memory device) previously reset both
     // flags to false on restoration, silently closing the LogSheet/SaveDestinationsPopup
@@ -86,6 +87,17 @@ fun ResultScreen(
                 viewModel.clearLogState()
             }
             else -> {}
+        }
+    }
+
+    // User-requested/audit-found: savePrice()/deletePrice() previously failed
+    // completely silently (see ResultViewModel's own doc comment on guardedLaunch) -
+    // same one-shot failure snackbar every other guarded-write screen in the app uses.
+    val actionFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(actionFailedMessage)
+            viewModel.clearActionFailed()
         }
     }
 

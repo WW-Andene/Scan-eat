@@ -1,9 +1,9 @@
 package fr.scanneat.presentation.result
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.domain.engine.biolism.BiolismProfile
@@ -72,7 +72,7 @@ class ResultViewModel @Inject constructor(
     internal val manualGroceryRepo: ManualGroceryRepository,
     private val priceRepo: PriceRepository,
     savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     private val scanId: Long = savedStateHandle.get<Long>("scanId") ?: 0L
 
@@ -182,24 +182,28 @@ class ResultViewModel @Inject constructor(
         else all.filter { it.barcode == null && it.productName == scan.product.name }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // User-requested/audit-found: these two previously ran their write inside a bare
+    // runCatching that discarded the result entirely - unlike log() just above, a
+    // failed price save/delete (disk full, Room error) left the UI showing exactly
+    // as if it had succeeded, with no snackbar and no retry path. guardedLaunch
+    // (ActionFailureViewModel) is the same guard every other write-heavy ViewModel
+    // in the app already uses for this.
     fun savePrice(priceEuros: Double, weightG: Double?) {
         val scan = state.value.scanResult ?: return
-        viewModelScope.launch {
-            runCatching {
-                priceRepo.log(
-                    date = LocalDate.now(),
-                    productName = scan.product.name,
-                    barcode = scan.barcode,
-                    category = scan.product.category,
-                    priceEuros = priceEuros,
-                    weightG = weightG,
-                )
-            }
+        guardedLaunch {
+            priceRepo.log(
+                date = LocalDate.now(),
+                productName = scan.product.name,
+                barcode = scan.barcode,
+                category = scan.product.category,
+                priceEuros = priceEuros,
+                weightG = weightG,
+            )
         }
     }
 
     fun deletePrice(id: String) {
-        viewModelScope.launch { runCatching { priceRepo.delete(id) } }
+        guardedLaunch { priceRepo.delete(id) }
     }
 
     // saveToDestinations (the "Save to..." popup's multi-destination write) is
