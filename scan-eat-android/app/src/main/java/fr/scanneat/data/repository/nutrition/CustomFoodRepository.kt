@@ -36,6 +36,13 @@ class CustomFoodRepository @Inject constructor(
     fun observeAllWithId(profileId: String = "default"): Flow<List<Pair<String, FoodEntry>>> =
         dao.observeAll(profileId).map { list -> list.mapNotNull { e -> e.toFoodEntry()?.let { e.id to it } } }
 
+    /** Same as [observeAllWithId] plus each entry's barcode (if any) - lets a
+     *  caller (CustomFoodViewModel.recallWarnings) batch-check every barcoded
+     *  custom food against RappelConso without an N+1 suspend lookup per id
+     *  the way a naive loop over findBarcode() would need. */
+    fun observeAllWithIdAndBarcode(profileId: String = "default"): Flow<List<Triple<String, FoodEntry, String?>>> =
+        dao.observeAll(profileId).map { list -> list.mapNotNull { e -> e.toFoodEntry()?.let { Triple(e.id, it, e.barcode) } } }
+
     /**
      * Looks up a custom food by its real, unambiguous barcode identity — the
      * same one CustomFoodDao.upsertFood already prefers on save. Used by

@@ -35,6 +35,8 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.label
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.presentation.ui.theme.semanticRed
+import androidx.compose.ui.text.font.FontWeight
 import kotlin.math.roundToInt
 
 // FEATURE: log-by-servings — recipes always stored a `servings` count, but
@@ -44,7 +46,18 @@ import kotlin.math.roundToInt
 // directly and does the fraction math for them, showing the per-serving
 // gram weight as a sanity check.
 @Composable
-internal fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealSlot, Double) -> Unit) {
+internal fun LogRecipeDialog(
+    recipe: Recipe,
+    onDismiss: () -> Unit,
+    onLog: (MealSlot, Double) -> Unit,
+    // R&D audit finding: RecipesViewModel.recipeWarnings already computes this
+    // (allergen/diet/health-condition) and shows it while browsing the recipe
+    // list, but the logging dialog - the moment actually eaten - never
+    // reinforced it, so the one warning that matters most at the point of
+    // consumption was easy to miss if the user tapped "Log" straight from a
+    // notification/shortcut without scrolling past the warning text first.
+    warning: String? = null,
+) {
     var slot by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(MealSlot.LUNCH) }
     var servingsText by rememberSaveable { mutableStateOf("1") }
     val gramsPerServing = recipe.totalGrams / recipe.servings
@@ -56,6 +69,9 @@ internal fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (Meal
         title = { Text(stringResource(R.string.recipes_log_dialog_title, recipe.name), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                warning?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = semanticRed(), fontWeight = FontWeight.SemiBold)
+                }
                 Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     MealSlot.values().forEach { s ->

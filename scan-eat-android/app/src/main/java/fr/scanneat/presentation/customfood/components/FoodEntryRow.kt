@@ -42,7 +42,17 @@ import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.STATUS_BORDER_ALPHA
 
 @Composable
-internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHints, onDelete: () -> Unit, onEdit: () -> Unit) {
+internal fun FoodEntryRow(
+    entry: FoodEntry,
+    isCustom: Boolean,
+    hints: ProductHints,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit,
+    // R&D audit finding: a recalled product saved as a custom food previously
+    // never re-triggered the RappelConso check a fresh scan would - see
+    // CustomFoodViewModel.recallWarnings' own doc comment.
+    recallWarning: fr.scanneat.data.repository.recall.RecallEntry? = null,
+) {
     // Was a hand-rolled Row+background+clip - the one list row in this app
     // not built on ScanEatCard, reading flatter/duller next to every sibling
     // row (DiaryEntryCard, RecipeCard, GroceryItemRow, ...) that gets the
@@ -77,6 +87,14 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
                         )
                     }
                 }
+            }
+            if (recallWarning != null) {
+                Text(
+                    stringResource(R.string.customfood_recall_warning),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = semanticRed(),
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Text(

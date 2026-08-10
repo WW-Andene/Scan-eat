@@ -263,9 +263,9 @@ fun RecipesScreen(
             isEdit = true,
         )
     }
-    logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }
+    logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }, warning = warnings.value[it.id]) }
     logOfficialTarget?.let { recipe ->
-        LogOfficialRecipeDialog(recipe = recipe, isFrench = language.value == "fr", onDismiss = { logOfficialTarget = null }, onLog = { slot, portionFraction -> viewModel.logOfficial(recipe, slot, portionFraction); logOfficialTarget = null })
+        LogOfficialRecipeDialog(recipe = recipe, isFrench = language.value == "fr", onDismiss = { logOfficialTarget = null }, onLog = { slot, portionFraction -> viewModel.logOfficial(recipe, slot, portionFraction); logOfficialTarget = null }, warning = officialWarnings.value[recipe.nameFr])
     }
     renameTarget?.let { recipe ->
         RenameDialog(

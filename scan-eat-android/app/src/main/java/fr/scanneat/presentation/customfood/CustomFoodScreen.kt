@@ -39,6 +39,7 @@ fun CustomFoodScreen(
 ) {
     val foods   = viewModel.foods.collectAsStateWithLifecycle()
     val foodsWithId = viewModel.foodsWithId.collectAsStateWithLifecycle()
+    val recallWarnings = viewModel.recallWarnings.collectAsStateWithLifecycle()
     val query   = viewModel.query.collectAsStateWithLifecycle()
     val results = viewModel.searchResults.collectAsStateWithLifecycle()
     val latestScan = viewModel.latestScan.collectAsStateWithLifecycle()
@@ -187,6 +188,7 @@ fun CustomFoodScreen(
                         entry    = entry,
                         isCustom = entry.name in customNames,
                         hints    = generateProductHints(viewModel.toProduct(entry), profile.value, language.value),
+                        recallWarning = foodsWithId.value.firstOrNull { it.second == entry }?.let { (id, _) -> recallWarnings.value[id] },
                         // Matched on full structural equality (every field), not just name -
                         // two custom foods sharing a name (e.g. after a backup restore, or a
                         // displayed row that's actually a built-in FOOD_DB hit sharing a

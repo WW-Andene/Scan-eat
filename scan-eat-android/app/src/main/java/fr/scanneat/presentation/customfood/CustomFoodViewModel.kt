@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.data.repository.recall.RecallEntry
+import fr.scanneat.data.repository.recall.RecallRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
@@ -23,6 +25,7 @@ import javax.inject.Inject
 class CustomFoodViewModel @Inject constructor(
     private val repo: CustomFoodRepository,
     private val scanRepo: ScanRepository,
+    private val recallRepo: RecallRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
     // Needed so the hint panel can cross-reference health conditions the same way
@@ -45,6 +48,26 @@ class CustomFoodViewModel @Inject constructor(
     /** id-keyed, for the rename action — FoodEntry itself carries no stable id. */
     val foodsWithId: StateFlow<List<Pair<String, FoodEntry>>> = repo.observeAllWithId()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // R&D audit finding: a recalled product saved as a custom food (e.g. via
+    // importFromScan below) and re-logged from Diary silently skipped the
+    // RappelConso recall check a fresh scan would trigger - the barcode was
+    // captured and stored, but nothing downstream of that first scan ever
+    // used it again. id-keyed so FoodEntryRow can look up a given row's
+    // warning without re-running the check on every recomposition.
+    val recallWarnings: StateFlow<Map<String, RecallEntry>> = repo.observeAllWithIdAndBarcode()
+        .map { list -> list.mapNotNull { (_, _, barcode) -> barcode }.filter { it.isNotBlank() } }
+        .distinctUntilChanged()
+        .flatMapLatest { barcodes ->
+            flow {
+                val byBarcode = barcodes.distinct().mapNotNull { bc -> recallRepo.checkBarcode(bc)?.let { bc to it } }.toMap()
+                emit(byBarcode)
+            }
+        }
+        .combine(repo.observeAllWithIdAndBarcode()) { byBarcode, entries ->
+            entries.mapNotNull { (id, _, barcode) -> byBarcode[barcode]?.let { id to it } }.toMap()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()

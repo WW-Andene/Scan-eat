@@ -778,6 +778,7 @@
     <string name="customfood_deleted_message">Food deleted</string>
     <string name="customfood_macro_summary">%1$d kcal · P %2$dg · C %3$dg · F %4$dg / 100g</string>
     <string name="customfood_custom_badge">custom</string>
+    <string name="customfood_recall_warning">⚠ Official recall (RappelConso)</string>
     <string name="customfood_add_title">New food (per 100 g)</string>
     <string name="customfood_edit_title">Edit food (per 100 g)</string>
     <string name="customfood_field_name">Name *</string>

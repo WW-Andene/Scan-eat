@@ -33,6 +33,8 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.label
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.presentation.ui.theme.semanticRed
+import androidx.compose.ui.text.font.FontWeight
 import kotlin.math.roundToInt
 
 // FEATURE: log-by-portion — this always logged the recipe's full totalGrams
@@ -41,7 +43,14 @@ import kotlin.math.roundToInt
 // `servings` count of its own (unlike Recipe), so this asks for grams eaten
 // directly instead, defaulting to the full recipe weight.
 @Composable
-internal fun LogOfficialRecipeDialog(recipe: OfficialRecipe, isFrench: Boolean, onDismiss: () -> Unit, onLog: (MealSlot, Double) -> Unit) {
+internal fun LogOfficialRecipeDialog(
+    recipe: OfficialRecipe,
+    isFrench: Boolean,
+    onDismiss: () -> Unit,
+    onLog: (MealSlot, Double) -> Unit,
+    // R&D audit finding - see LogRecipeDialog's identical warning param.
+    warning: String? = null,
+) {
     var slot by remember { mutableStateOf(MealSlot.LUNCH) }
     val totalGrams = recipe.totalGrams.takeIf { it > 0 } ?: 100.0
     var gramsText by remember { mutableStateOf(totalGrams.roundToInt().toString()) }
@@ -53,6 +62,9 @@ internal fun LogOfficialRecipeDialog(recipe: OfficialRecipe, isFrench: Boolean, 
         title = { Text(stringResource(R.string.recipes_log_dialog_title, if (isFrench) recipe.nameFr else recipe.nameEn), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                warning?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = semanticRed(), fontWeight = FontWeight.SemiBold)
+                }
                 Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     MealSlot.values().forEach { s ->
