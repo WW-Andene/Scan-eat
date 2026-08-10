@@ -207,7 +207,7 @@ fun LogSheet(
                 enabled  = portionG != null && !isLoading,
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(color = LocalContentColor.current, strokeWidth = 2.dp, modifier = Modifier.size(IconSize.Inline))
+                    ScanEatLoadingIndicator(color = LocalContentColor.current)
                 } else {
                     Text(
                         kcalPreview?.let { stringResource(R.string.logsheet_confirm_with_kcal, it) } ?: stringResource(R.string.logsheet_confirm_plain),

@@ -86,7 +86,11 @@ fun DashboardScreen(
     onOpenResult: (Long) -> Unit = {},
     onOpenCalendar: () -> Unit = {},
     onOpenFoodSearch: () -> Unit = {},
-    onOpenExpenses: () -> Unit = {},
+    // Restructuration audit (§XI): generalized from the previous single-purpose
+    // onOpenExpenses (which hardcoded "EXPENSES") - OtherTrackersCard's
+    // Water/Fasting/Treatment glance stats now deep-link the same way
+    // ExpensesRecapCard already did, just with their own DiaryTab name.
+    onOpenDiaryTab: (String) -> Unit = {},
     onOpenScan: () -> Unit = {},
 ) {
     val state    = viewModel.state.collectAsStateWithLifecycle()
@@ -161,7 +165,14 @@ fun DashboardScreen(
             // ---- Water/Fasting/Treatment glance row - Dashboard previously showed
             // nutrition + weight only, with zero signal for the other three trackers
             // Journal already tracks (see DashboardViewModel.otherTrackers) ----
-            item { OtherTrackersCard(otherTrackers.value) }
+            item {
+                OtherTrackersCard(
+                    otherTrackers.value,
+                    onOpenHydration  = { onOpenDiaryTab("WATER") },
+                    onOpenFasting    = { onOpenDiaryTab("FASTING") },
+                    onOpenMedication = { onOpenDiaryTab("TREATMENT") },
+                )
+            }
 
             // ---- Micronutrient progress (fiber, iron, calcium, vitD, B12) ----
             item { MicronutrientCard(totals = s.todayTotals, targets = s.targets) }
@@ -199,7 +210,7 @@ fun DashboardScreen(
             }
 
             // ---- Expenses recap (self-contained, own hiltViewModel - see ExpensesRecapCard's doc comment) ----
-            item { fr.scanneat.presentation.dashboard.cards.ExpensesRecapCard(onClick = onOpenExpenses) }
+            item { fr.scanneat.presentation.dashboard.cards.ExpensesRecapCard(onClick = { onOpenDiaryTab("EXPENSES") }) }
 
             // ---- Gap-closer suggestions ----
             if (s.gapSuggestions.isNotEmpty()) {

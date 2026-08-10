@@ -45,7 +45,7 @@ internal fun OnlineSearchSection(
         }
         when (state) {
             OnlineSearchState.LOADING -> Row(verticalAlignment = Alignment.CenterVertically) {
-                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = AccentCoral)
+                ScanEatLoadingIndicator(size = 16.dp)
                 Spacer(Modifier.width(Spacing.S))
                 Text(stringResource(R.string.foodsearch_online_loading), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
             }

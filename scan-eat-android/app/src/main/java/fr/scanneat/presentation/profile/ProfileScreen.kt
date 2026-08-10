@@ -162,7 +162,7 @@ fun ProfileScreen(
                 // CustomFoodScreen/ScanHistoryScreen's identical fix).
                 Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(padding),
                 contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator(color = AccentCoral) }
+            ) { ScanEatLoadingIndicator(size = 40.dp, strokeWidth = 4.dp) }
             return@FloatingScreenScaffold
         }
         LazyColumn(

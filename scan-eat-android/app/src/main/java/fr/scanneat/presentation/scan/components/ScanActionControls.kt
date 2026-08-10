@@ -22,7 +22,6 @@ import androidx.compose.material.icons.rounded.Fastfood
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +51,7 @@ import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.minTouchTarget
 import fr.scanneat.presentation.ui.theme.IconSize
+import fr.scanneat.presentation.ui.theme.ScanEatLoadingIndicator
 
 /**
  * User-reported: this whole bottom-anchored FAB cluster (this FAB, the
@@ -78,8 +78,7 @@ internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: D
         // 8th variant now fails to compile here instead of silently falling
         // through to the generic search icon unnoticed.
         when (scanState) {
-            is ScanUiState.Scanning -> CircularProgressIndicator(
-                color = Color.Black, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+            is ScanUiState.Scanning -> ScanEatLoadingIndicator(size = 24.dp, color = Color.Black)
             is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,
             is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound,
             is ScanUiState.MultiFoodFound ->

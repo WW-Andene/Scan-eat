@@ -12,7 +12,6 @@ import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +42,7 @@ import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.ScanEatLoadingIndicator
 import fr.scanneat.presentation.ui.theme.ScanEatSnackbarHost
 import kotlinx.coroutines.launch
 
@@ -165,7 +165,7 @@ fun ResultScreen(
             // state visually sets up the score reveal instead of being a generic
             // spinner unrelated to what's about to appear.
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AccentCoral, strokeWidth = 14.dp, trackColor = SurfaceVariant, modifier = Modifier.size(178.dp))
+                ScanEatLoadingIndicator(size = 178.dp, strokeWidth = 14.dp, trackColor = SurfaceVariant)
             }
         } else {
             ResultContent(

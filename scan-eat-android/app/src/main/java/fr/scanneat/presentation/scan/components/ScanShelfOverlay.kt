@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ErrorOutline
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -161,7 +160,7 @@ fun BoxScope.ScanShelfPeekChip(peek: ShelfPeek, onDismiss: () -> Unit, onOpenRes
             ) {
                 when (val status = peek.status) {
                     is ShelfPeekStatus.Loading -> {
-                        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = Teal)
+                        ScanEatLoadingIndicator(size = 14.dp, color = Teal)
                         Text(stringResource(R.string.scan_shelf_peek_loading), style = MaterialTheme.typography.labelSmall, color = OnSurface)
                     }
                     is ShelfPeekStatus.Ready -> {

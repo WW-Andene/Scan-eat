@@ -4,6 +4,7 @@ import compose.icons.TablerIcons
 import compose.icons.tablericons.Clock
 import compose.icons.tablericons.Droplet
 import compose.icons.tablericons.Pill
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -37,13 +38,23 @@ import kotlin.math.roundToInt
 
 /**
  * Compact glance row for the three trackers Dashboard otherwise never shows
- * (Water/Fasting/Treatment - see DashboardViewModel.otherTrackers). Purely
- * informational, no tap targets: Diary's own tabs already own the full
- * interactive UI for each of these, this card only answers "am I on track
- * today?" without leaving Dashboard.
+ * (Water/Fasting/Treatment - see DashboardViewModel.otherTrackers).
+ *
+ * Restructuration audit (§XI): each stat is now tappable, deep-linking
+ * straight to its Diary sub-tab - same "diary_selected_tab" SavedStateHandle
+ * mechanism ExpensesRecapCard already uses (see AppNavGraph.kt's
+ * onOpenDiaryTab). Previously "am I on track today?" was answerable without
+ * leaving Dashboard but doing anything about it required opening Diary and
+ * manually switching to the right sub-tab yourself - the one glance row on
+ * Dashboard with no tap-through, unlike every other card here.
  */
 @Composable
-internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
+internal fun OtherTrackersCard(
+    snapshot: OtherTrackersSnapshot,
+    onOpenHydration: () -> Unit = {},
+    onOpenFasting: () -> Unit = {},
+    onOpenMedication: () -> Unit = {},
+) {
     ScanEatCard(
         contentPadding = PaddingValues(Spacing.L),
     ) {
@@ -63,7 +74,7 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
                 tint = semanticBlue(),
                 value = stringResource(R.string.dashboard_other_trackers_hydration_value, hydrationPct.coerceAtMost(999)),
                 label = stringResource(R.string.dashboard_other_trackers_hydration_label),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).clickable(onClick = onOpenHydration),
             )
             val fasting = snapshot.fastingActive
             TrackerStat(
@@ -78,14 +89,14 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
                 value = if (fasting != null) stringResource(R.string.dashboard_other_trackers_fasting_active_value, fasting.elapsedHours.roundToInt())
                         else stringResource(R.string.dashboard_other_trackers_fasting_idle_value),
                 label = stringResource(R.string.dashboard_other_trackers_fasting_label),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).clickable(onClick = onOpenFasting),
             )
             TrackerStat(
                 icon = TablerIcons.Pill,
                 tint = if (snapshot.medsActiveCount == 0 || snapshot.medsTakenCount == snapshot.medsActiveCount) semanticGreen() else semanticAmber(),
                 value = stringResource(R.string.dashboard_other_trackers_meds_value, snapshot.medsTakenCount, snapshot.medsActiveCount),
                 label = stringResource(R.string.dashboard_other_trackers_meds_label),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).clickable(onClick = onOpenMedication),
             )
         }
         // Activity has never had its own streak surfaced anywhere in the app,

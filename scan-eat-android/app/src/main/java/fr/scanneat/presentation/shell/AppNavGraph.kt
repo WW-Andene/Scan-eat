@@ -120,13 +120,7 @@ fun AppNavGraph(
             // controls already had (see ScanScreen.kt) silently went nowhere.
             ScanScreen(
                 onResultReady = { id -> navController.navigate(AppRoutes.result(id, fresh = true)) { launchSingleTop = true } },
-                onOpenSettings = {
-                    navController.navigate(TopTab.Settings.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
+                onOpenSettings = { navController.switchToTab(TopTab.Settings.route) },
             )
         }
 
@@ -161,41 +155,27 @@ fun AppNavGraph(
                 onOpenResult         = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenCalendar       = { navController.navigate(AppRoutes.CALENDAR) },
                 onOpenFoodSearch     = { navController.navigate(AppRoutes.FOOD_SEARCH) },
-                onOpenExpenses       = {
-                    // User-reported crash: getBackStackEntry(TopTab.Diary.route) called
-                    // BEFORE navigate() throws IllegalArgumentException ("no destination
-                    // with this route is on the back stack") whenever Diary hasn't been
-                    // visited yet this session - tapping this widget straight from a
-                    // fresh Dashboard launch is exactly that case. navigate() itself
-                    // creates/restores the entry; currentBackStackEntry right after IS
-                    // that same entry, no separate route lookup needed.
-                    navController.navigate(TopTab.Diary.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                    navController.currentBackStackEntry?.savedStateHandle?.set("diary_selected_tab", "EXPENSES")
+                // Restructuration audit (§XI): generalized from the previous
+                // Expenses-only onOpenExpenses - now also drives
+                // OtherTrackersCard's tappable Water/Fasting/Treatment glance
+                // stats, same deep-link mechanism, just a caller-supplied
+                // DiaryTab name instead of a hardcoded "EXPENSES".
+                onOpenDiaryTab       = { tab ->
+                    // currentBackStackEntry right after switchToTab() IS the Diary entry
+                    // just created/restored - no separate getBackStackEntry(route) lookup
+                    // (which throws if Diary was never visited this session - the crash
+                    // this used to hit tapping this widget from a fresh Dashboard launch) needed.
+                    navController.switchToTab(TopTab.Diary.route)
+                    navController.currentBackStackEntry?.savedStateHandle?.set("diary_selected_tab", tab)
                 },
-                onOpenScan           = {
-                    navController.navigate(TopTab.Scan.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
+                onOpenScan           = { navController.switchToTab(TopTab.Scan.route) },
             )
         }
 
         composable(TopTab.Biolism.route) {
             PremiumGate(
                 lockedMessage = stringResource(R.string.settings_premium_required_biolism),
-                onOpenSettings = {
-                    navController.navigate(TopTab.Settings.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
+                onOpenSettings = { navController.switchToTab(TopTab.Settings.route) },
             ) { BiolismScreen() }
         }
 
@@ -230,28 +210,13 @@ fun AppNavGraph(
                 // ScanHistoryScreen/DashboardScreen already use below.
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
-                onLog  = {
-                    // collapseToTabRoot() first - the popUpTo(startDestination){saveState=true}
-                    // below only saves each TAB's own state, it doesn't remove whatever was
-                    // pushed on top of the tab Result was reached from (just Result itself
-                    // when reached directly from Scan/Dashboard, but History/Favorites/
-                    // Recherche when reached through one of those instead) from that saved
-                    // stack. Without this, the intermediate screen(s) stayed saved on top of
-                    // that tab's own back stack: switching back to it later restored straight
-                    // onto Result (or History/Favorites/Recherche) instead of the tab itself.
-                    navController.collapseToTabRoot()
-                    // Match MainShell's tab-switch options exactly — a bare
-                    // navigate{launchSingleTop} pushed Diary on top of Scan→Result
-                    // instead of switching tabs, so system back from Diary
-                    // returned to Result (not tab behavior) and this Diary
-                    // instance didn't share saved state with the one the bottom
-                    // bar restores.
-                    navController.navigate(TopTab.Diary.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
+                // collapseFirst = true: Result is reachable more than one level deep
+                // (Dashboard → History/Favorites/Recherche → Result) - without collapsing
+                // first, the popUpTo(startDestination){saveState=true} inside switchToTab
+                // only saves each TAB's own state, it doesn't remove whatever was pushed on
+                // top of the tab Result was reached from, leaving that intermediate screen
+                // stuck on top of the tab's saved branch for next time it's restored.
+                onLog  = { navController.switchToTab(TopTab.Diary.route, collapseFirst = true) },
             )
         }
 
@@ -291,21 +256,9 @@ fun AppNavGraph(
                 // point, unlike popBackStack() which would land back on Dashboard when
                 // that's where the user actually came from.
                 onOpenDate = { date ->
-                    // collapseToTabRoot() first - same fix as ResultScreen's onLog above,
-                    // generalized: Calendar can be reached from Diary OR Dashboard's
-                    // onOpenCalendar, and the popUpTo(startDestination){saveState=true}
-                    // below only saves each TAB's own back stack, it doesn't remove
-                    // Calendar itself from that saved stack.
-                    navController.collapseToTabRoot()
-                    navController.navigate(TopTab.Diary.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                    // Same crash fix as onOpenExpenses above - currentBackStackEntry right
-                    // after navigate() IS the Diary entry just created/restored, no
-                    // separate getBackStackEntry(route) lookup (which can throw if Diary
-                    // was never visited this session) needed.
+                    // collapseFirst = true: Calendar can be reached from Diary OR
+                    // Dashboard's onOpenCalendar - same reasoning as ResultScreen's onLog.
+                    navController.switchToTab(TopTab.Diary.route, collapseFirst = true)
                     navController.currentBackStackEntry?.savedStateHandle?.set("diary_selected_date", date.toString())
                 },
             )
@@ -346,6 +299,29 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.isTabSwitch(): Boo
 private fun NavHostController.collapseToTabRoot() {
     while (currentDestination?.route !in TAB_ROOT_ROUTES) {
         if (!popBackStack()) break
+    }
+}
+
+/**
+ * Restructuration audit (§XI): the six call sites below (Dashboard's
+ * onOpenDiaryTab/onOpenScan, Biolism's and Settings' PremiumGate
+ * onOpenSettings, ResultScreen's onLog, CalendarScreen's onOpenDate) each
+ * hand-rolled this
+ * identical `navigate(route) { popUpTo(...) { saveState = true };
+ * launchSingleTop = true; restoreState = true }` block, only the target
+ * route (and whether [collapseFirst] was needed first) actually differing -
+ * each got its own comment re-explaining the same crash/stuck-screen fixes
+ * independently. [collapseFirst] runs [collapseToTabRoot] before switching -
+ * needed by any caller reachable more than one level deep from its own tab
+ * (Result, Calendar), not by a caller that's itself a tab root's direct child
+ * (Dashboard, Biolism's PremiumGate).
+ */
+private fun NavHostController.switchToTab(route: String, collapseFirst: Boolean = false) {
+    if (collapseFirst) collapseToTabRoot()
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }
 

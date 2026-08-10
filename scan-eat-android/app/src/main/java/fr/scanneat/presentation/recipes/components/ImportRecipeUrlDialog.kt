@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,6 +24,7 @@ import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ErrorBanner
 import fr.scanneat.presentation.ui.theme.IconSize
+import fr.scanneat.presentation.ui.theme.ScanEatLoadingIndicator
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -72,7 +72,7 @@ internal fun ImportRecipeUrlDialog(
                     colors = scanEatTextFieldColors(),
                 )
                 if (isLoading) {
-                    CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
+                    ScanEatLoadingIndicator()
                 }
                 // F21 (docs/design-audit-step8-components-shape.md): was a bare
                 // semanticRed() Text — migrated to the app's one shared error
