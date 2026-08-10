@@ -128,6 +128,21 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     if (hasNitrites && highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT)
         candidates += VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", 40)
 
+    // The combo veto above only fires for PROCESSED_MEAT with high salt AND a
+    // refined-starch ingredient - AdditivesTier1.kt labels E249/E250 "IARC
+    // Group 1 (processed meat, carcinogenic to humans)", the same carcinogen
+    // classification that justifies the alcohol veto below, but nitrite/
+    // nitrate in a fish, ready-meal, or sandwich product (any category other
+    // than PROCESSED_MEAT), or a cured meat that happens to sit under the
+    // salt/starch bar, previously never triggered any veto at all. A softer
+    // cap than the full combo (45, not 40) since presence alone (without the
+    // corroborating high-salt/refined-starch signal) is a real but less
+    // compounded risk - candidates.minByOrNull{cap} below still picks the
+    // stricter combo veto automatically whenever both conditions hold.
+    // Mirrors the identical fix on the Android side (see Scoring Drift Check).
+    if (hasNitrites)
+        candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate preservatives (E249/E250) — IARC Group 1 carcinogen" else "Contient des conservateurs nitrités (E249/E250) — cancérigène IARC groupe 1", 45)
+
     val sugars = n.addedSugarsG ?: n.sugarsG
     if (product.category == ProductCategory.BEVERAGE_SOFT && sugars > 5 && n.proteinG < 1 && n.fiberG < 1)
         candidates += VetoCondition(true, if (en) "Sugar-sweetened beverage with no nutritional contribution" else "Boisson sucrée sans apport nutritionnel", 30)
@@ -147,9 +162,28 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     if (hasMSM && product.novaClass == NovaClass.ULTRA_PROCESSED)
         candidates += VetoCondition(true, if (en) "Mechanically separated meat in NOVA 4 product" else "Viande séparée mécaniquement dans un produit NOVA 4", 45)
 
+    // High-proof spirits (~40%+ vol) have low/no sugar and no additive risk, so
+    // the tiered per-mille deduction in NegativeNutrientsPillar.kt (max -12) is
+    // not enough on its own to keep a clean-profile spirit out of grade A/B —
+    // trans fat gets a hard cap at this same severity ("no safe level"), and
+    // WHO/IARC classify ethanol identically (Group 1 carcinogen, no safe
+    // consumption level), so a comparably strong veto applies here too.
+    // Tiered by the same %vol bands NegativeNutrientsPillar.kt uses (rather
+    // than one flat cap for all alcohol), so a spirit is still capped more
+    // severely than a beer. Mirrors the identical fix on the Android side
+    // (see Scoring Drift Check).
     val abv = n.alcoholPercentVol ?: 0.0
-    if (abv > HIGH_ABV_THRESHOLD)
-        candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool fort (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 40)
+    when {
+        abv > HIGH_ABV_THRESHOLD ->
+            candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool fort (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 40)
+        abv > 5.0 ->
+            candidates += VetoCondition(true, if (en) "Wine-strength alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool titrant comme un vin (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 45)
+        // 54, not 55 - scoreToGrade's own B cutoff is score >= 55, so a cap of
+        // 55 would have let a clean-profile beer land exactly on the boundary
+        // and still read as grade B, the exact outcome this fix exists to close.
+        abv > 1.2 ->
+            candidates += VetoCondition(true, if (en) "Alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 54)
+    }
 
     return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
 }

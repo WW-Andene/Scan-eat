@@ -49,7 +49,13 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
 
     // Protein (0–7)
     val (pLow, pMed, pHigh) = thresholds.proteinG
-    val protScore = when {
+    // pHigh==0.0 means this category's threshold band is (0,0,0) - protein is
+    // not a meaningful axis here (water, soda, alcoholic beverages, oil/fat).
+    // n.proteinG >= pHigh (i.e. >= 0.0) is trivially true for any non-negative
+    // value, so every such product previously scored the full 7/7 "high
+    // protein" tier purely from having literally zero protein. Mirrors the
+    // identical fix on the Android side (see Scoring Drift Check).
+    val protScore = if (pHigh == 0.0) 0.0 else when {
         n.proteinG >= pHigh -> 7.0
         n.proteinG >= pMed  -> 5.0
         n.proteinG >= pLow  -> 3.0
@@ -62,7 +68,8 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
 
     // Fiber (0–7)
     val (fLow, fMed, fHigh) = thresholds.fiberG
-    val fiberScore = when {
+    // Same zero-threshold-category fix as protein above.
+    val fiberScore = if (fHigh == 0.0) 0.0 else when {
         n.fiberG >= fHigh -> 7.0
         n.fiberG >= fMed  -> 5.0
         n.fiberG >= fLow  -> 3.0
