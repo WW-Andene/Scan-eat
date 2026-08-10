@@ -97,5 +97,15 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useI
                 style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
             )
         }
+        // R&D audit finding: inconsistent hydration is a real, physiologically-
+        // grounded confounder of week-to-week scale weight (see
+        // weeklyCrossTrackerInsight's own doc comment) - shown as a caveat on
+        // the verdict above, not folded silently into it.
+        if (insight.hydrationReliabilityCaveat) {
+            Text(
+                stringResource(R.string.dashboard_insight_hydration_caveat),
+                style = MaterialTheme.typography.labelSmall, color = semanticAmber().copy(0.8f),
+            )
+        }
     }
 }

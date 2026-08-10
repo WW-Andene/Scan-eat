@@ -52,7 +52,13 @@ data class ResultUiState(
 sealed class LogState {
     data object Idle    : LogState()
     data object Loading : LogState()
-    data object Done    : LogState()
+    // R&D audit finding: Fasting and the Diary had zero cross-reference -
+    // logging food mid-fast never surfaced any signal. loggedDuringFast lets
+    // ResultScreen show a non-blocking informational snackbar rather than
+    // silently accepting the entry with no acknowledgment that a fast was
+    // running (see ConsumptionRepository.log's own doc comment on why this
+    // is informational, not a veto).
+    data class  Done(val loggedDuringFast: Boolean = false) : LogState()
     data class  Error(val message: String) : LogState()
 }
 
@@ -158,7 +164,7 @@ class ResultViewModel @Inject constructor(
                     )
                 )
             }.fold(
-                onSuccess = { _logState.value = LogState.Done },
+                onSuccess = { loggedDuringFast -> _logState.value = LogState.Done(loggedDuringFast) },
                 // e.message ?: "Erreur" ignored `lang` and always fell back to
                 // French even for an English-language user, unlike every other
                 // error string in this file.

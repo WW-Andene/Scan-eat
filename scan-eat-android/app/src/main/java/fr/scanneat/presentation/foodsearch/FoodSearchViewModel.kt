@@ -247,6 +247,12 @@ class FoodSearchViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
+    // R&D audit finding: Fasting and the Diary had zero cross-reference - see
+    // ConsumptionRepository.log's own doc comment.
+    private val _loggedDuringFast = MutableStateFlow(false)
+    val loggedDuringFast: StateFlow<Boolean> = _loggedDuringFast.asStateFlow()
+    fun clearLoggedDuringFast() { _loggedDuringFast.value = false }
+
     // Auto-fires online search while typing - flatMapLatest so a new keystroke
     // (after the 700ms debounce settles again) cancels whatever OFF request
     // was still in flight for the previous, now-stale query instead of both
@@ -443,7 +449,7 @@ class FoodSearchViewModel @Inject constructor(
                         category    = resolved.product.category,
                     )
                 )
-            }.onSuccess { _logTarget.value = null }
+            }.onSuccess { loggedDuringFast -> _logTarget.value = null; if (loggedDuringFast) _loggedDuringFast.value = true }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

@@ -68,6 +68,17 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
         }
     }
 
+    // R&D audit finding: Fasting and the Diary had zero cross-reference - see
+    // ConsumptionRepository.log's own doc comment.
+    val loggedDuringFast = viewModel.loggedDuringFast.collectAsStateWithLifecycle()
+    val loggedDuringFastMessage = stringResource(R.string.result_logged_during_fast)
+    LaunchedEffect(loggedDuringFast.value) {
+        if (loggedDuringFast.value) {
+            snackbarHostState.showSnackbar(loggedDuringFastMessage)
+            viewModel.clearLoggedDuringFast()
+        }
+    }
+
     // User-requested: favorite/log a result directly from search, without first
     // navigating to the full Result screen - see FoodSearchViewModel.openLogSheet/
     // confirmLog/dismissLogSheet.

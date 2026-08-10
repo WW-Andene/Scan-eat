@@ -1,9 +1,12 @@
 package fr.scanneat.data.repository.health
 
 import androidx.health.connect.client.records.HydrationRecord
+import androidx.health.connect.client.request.ReadRecordsRequest
+import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Volume
 import kotlinx.coroutines.CancellationException
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 
 // Hydration sync — extracted verbatim out of HealthConnectRepository, the cohesive
@@ -22,7 +25,7 @@ import java.time.ZoneId
 suspend fun HealthConnectRepository.writeHydrationDelta(mlDelta: Int) {
     if (mlDelta <= 0) return
     try {
-        if (!hasPermission(HealthConnectRepository.hydrationPermissions)) return
+        if (!hasPermission(HealthConnectRepository.hydrationWritePermissions)) return
         val end = Instant.now()
         val start = end.minusSeconds(1)
         val record = HydrationRecord(
@@ -37,5 +40,38 @@ suspend fun HealthConnectRepository.writeHydrationDelta(mlDelta: Int) {
         throw e
     } catch (e: Exception) {
         android.util.Log.w(HealthConnectRepository.TAG, "writeHydrationDelta failed", e)
+    }
+}
+
+/**
+ * Total external (non-this-app) hydration volume Health Connect has for
+ * [date], in mL - e.g. water logged from a smart bottle's own app. Excludes
+ * this app's own mirrored writeHydrationDelta records via the same
+ * dataOrigin filter readExternalActivity/readExternalWeights already use.
+ *
+ * Deliberately returns a total, not individual records: HydrationRepository
+ * stores one mutable running total per day rather than timestamped entries,
+ * so [HydrationRepository.syncFromHealthConnect] merges this via
+ * max(localTotal, externalTotal) - safely idempotent (repeat syncs with the
+ * same external total never grow the local total further) without needing
+ * a stored per-record dedup id.
+ */
+suspend fun HealthConnectRepository.readExternalHydrationTotalMl(date: LocalDate): Int {
+    return try {
+        if (!hasPermission(HealthConnectRepository.hydrationReadPermissions)) return 0
+        val zone = ZoneId.systemDefault()
+        val start = date.atStartOfDay(zone).toInstant()
+        val end = date.plusDays(1).atStartOfDay(zone).toInstant()
+        client()
+            .readRecords(ReadRecordsRequest(recordType = HydrationRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end)))
+            .records
+            .filter { it.metadata.dataOrigin.packageName != context.packageName }
+            .sumOf { it.volume.inMilliliters }
+            .toInt()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        android.util.Log.w(HealthConnectRepository.TAG, "readExternalHydrationTotalMl failed", e)
+        0
     }
 }

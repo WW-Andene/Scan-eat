@@ -50,13 +50,17 @@ class HealthConnectRepository @Inject constructor(
         // check only the write subset; readWeights() checks only the read subset.
         internal val weightWritePermissions = setOf(HealthPermission.getWritePermission(WeightRecord::class))
         internal val weightReadPermissions = setOf(HealthPermission.getReadPermission(WeightRecord::class))
-        // Hydration is write-only (see writeHydrationDelta) - Health Connect's
-        // HydrationRecord models a volume over a start/end interval, but this
-        // app stores intake as a single mutable running total per day, so
-        // reading external records back and merging them risks double-
-        // counting on every re-read rather than being a safe idempotent
-        // import the way readExternalWeights() is for WeightRepository.
-        internal val hydrationPermissions = setOf(HealthPermission.getWritePermission(HydrationRecord::class))
+        // Hydration now reads back too (see readExternalHydrationTotalMl) -
+        // Health Connect's HydrationRecord models a volume over a start/end
+        // interval, while this app stores intake as a single mutable running
+        // total per day, so a naive "add every external record's volume"
+        // read-back would double-count on every re-sync. HydrationRepository.
+        // syncFromHealthConnect() instead takes max(localTotal, externalTotal)
+        // for the day, which is safely idempotent (re-running it with the same
+        // external total never grows the local total further) without needing
+        // a stored per-record dedup id the way Activity's externalSourceId does.
+        internal val hydrationWritePermissions = setOf(HealthPermission.getWritePermission(HydrationRecord::class))
+        internal val hydrationReadPermissions = setOf(HealthPermission.getReadPermission(HydrationRecord::class))
         // Activity now reads back too (see readExternalActivity) - unlike
         // hydration, ActivityEntity is a genuine multi-entry-per-day table
         // with a dedup key (externalSourceId, added alongside this), so a
@@ -88,7 +92,7 @@ class HealthConnectRepository @Inject constructor(
         internal val nutritionPermissions = setOf(HealthPermission.getWritePermission(NutritionRecord::class))
 
         /** Requested together up front (single system permission dialog) - see [hasPermission] for why writes each check only their own subset instead of this combined set. */
-        val PERMISSIONS: Set<String> = weightWritePermissions + weightReadPermissions + hydrationPermissions + activityWritePermissions + activityReadPermissions + nutritionPermissions
+        val PERMISSIONS: Set<String> = weightWritePermissions + weightReadPermissions + hydrationWritePermissions + hydrationReadPermissions + activityWritePermissions + activityReadPermissions + nutritionPermissions
 
         internal const val TAG = "HealthConnectRepository"
     }

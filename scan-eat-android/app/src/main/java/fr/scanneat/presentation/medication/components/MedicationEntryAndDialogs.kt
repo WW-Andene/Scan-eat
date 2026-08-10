@@ -35,6 +35,12 @@ internal fun MedicationEntryRow(
     onOpenReminder: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    // R&D audit finding: Medication had zero cross-reference into Weight -
+    // purely descriptive (weight before vs. after this medication's start
+    // date), never a causal claim. Null when there isn't enough weight
+    // history to compute a real "since" delta (see MedicationViewModel.
+    // weightDeltaSinceStart's own doc comment).
+    weightDeltaKg: Double? = null,
 ) {
     val m = medication
     val haptics = LocalHapticFeedback.current
@@ -52,6 +58,13 @@ internal fun MedicationEntryRow(
                 ).joinToString(" · ")
                 if (details.isNotBlank()) {
                     Text(details, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                }
+                weightDeltaKg?.let { delta ->
+                    val sign = if (delta >= 0) "+" else ""
+                    Text(
+                        stringResource(R.string.medication_weight_since_start, "$sign${"%.1f".format(delta)}"),
+                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f),
+                    )
                 }
             }
             // "Taken today" - previously there was no way to log a dose at all,

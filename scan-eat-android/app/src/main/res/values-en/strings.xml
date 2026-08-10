@@ -1332,6 +1332,7 @@
     <string name="dashboard_insight_active_minutes">%1$d active min this week</string>
     <string name="dashboard_insight_fasting_adherence">Fasting: %1$d%% of fasts hit target this week</string>
     <string name="dashboard_insight_hydration_adherence">Hydration: goal met %1$d%% of this week</string>
+    <string name="dashboard_insight_hydration_caveat">Inconsistent hydration this week — the weight trend may be less reliable (water retention)</string>
     <string name="dashboard_other_trackers_hydration_value">%1$d%%</string>
     <string name="dashboard_other_trackers_hydration_label">Water</string>
     <string name="dashboard_other_trackers_fasting_active_value">%1$dh</string>
@@ -1456,6 +1457,7 @@
     <string name="result_cd_share">Share score</string>
     <string name="result_cd_save_options">Save options</string>
     <string name="result_share_text">%1$s scored %2$d/100 (%3$s) on Scan\'eat</string>
+    <string name="result_logged_during_fast">Logged while a fast is active</string>
     <string name="result_cd_favorite">Add to favorites</string>
     <string name="hint_cd_open">View information</string>
     <string name="hint_panel_title">Good to know</string>
@@ -1633,6 +1635,7 @@
     <string name="medication_field_dosage_hint">e.g. 500 mg, 2 tablets</string>
     <string name="medication_field_schedule">Schedule / frequency</string>
     <string name="medication_reminder_cd">Medication reminder</string>
+    <string name="medication_weight_since_start">Weight since start: %1$s kg (informational only, not a causal claim)</string>
     <string name="medication_cd_calendar">Calendar</string>
     <string name="medication_cd_taken_today">Mark as taken today</string>
     <string name="medication_cd_undo_taken">Undo today\'s dose</string>

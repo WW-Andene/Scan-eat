@@ -1027,6 +1027,7 @@
     <string name="medication_field_dosage_hint">ex. 500 mg, 2 comprimés</string>
     <string name="medication_field_schedule">Horaire / fréquence</string>
     <string name="medication_reminder_cd">Rappel du traitement</string>
+    <string name="medication_weight_since_start">Poids depuis le début : %1$s kg (information seule, pas un lien de cause)</string>
     <string name="medication_cd_calendar">Calendrier</string>
     <string name="medication_cd_taken_today">Marquer comme pris aujourd\'hui</string>
     <string name="medication_cd_undo_taken">Annuler la prise d\'aujourd\'hui</string>
@@ -1387,6 +1388,7 @@
     <string name="dashboard_insight_active_minutes">%1$d min actives cette semaine</string>
     <string name="dashboard_insight_fasting_adherence">Jeûne : %1$d %% des jeûnes réussis cette semaine</string>
     <string name="dashboard_insight_hydration_adherence">Hydratation : objectif atteint %1$d %% de la semaine</string>
+    <string name="dashboard_insight_hydration_caveat">Hydratation irrégulière cette semaine — la tendance de poids peut être moins fiable (rétention d\'eau)</string>
     <string name="dashboard_other_trackers_hydration_value">%1$d %%</string>
     <string name="dashboard_other_trackers_hydration_label">Eau</string>
     <string name="dashboard_other_trackers_fasting_active_value">%1$dh</string>
@@ -1511,6 +1513,7 @@
     <string name="result_cd_share">Partager le score</string>
     <string name="result_cd_save_options">Options d\'enregistrement</string>
     <string name="result_share_text">%1$s a obtenu %2$d/100 (%3$s) sur Scan\'eat</string>
+    <string name="result_logged_during_fast">Enregistré pendant un jeûne actif</string>
     <string name="result_cd_favorite">Ajouter aux favoris</string>
     <string name="hint_cd_open">Voir les informations</string>
     <string name="hint_panel_title">Bon à savoir</string>

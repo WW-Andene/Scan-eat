@@ -94,6 +94,16 @@ fun DiaryScreen(
             viewModel.clearActionFailed()
         }
     }
+    // R&D audit finding: Fasting and the Diary had zero cross-reference - see
+    // ConsumptionRepository.log's own doc comment.
+    val loggedDuringFast = viewModel.loggedDuringFast.collectAsStateWithLifecycle()
+    val loggedDuringFastMessage = stringResource(R.string.result_logged_during_fast)
+    LaunchedEffect(loggedDuringFast.value) {
+        if (loggedDuringFast.value) {
+            snackbarHostState.showSnackbar(loggedDuringFastMessage)
+            viewModel.clearLoggedDuringFast()
+        }
+    }
     val hazeState = remember { HazeState() }
     val bottomNavHazeState = LocalBottomNavHazeState.current
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()

@@ -11,12 +11,14 @@ import fr.scanneat.data.local.db.toIsoString
 import fr.scanneat.data.local.db.toLocalDate
 import fr.scanneat.data.local.db.toLocalDateTimeUtc
 import fr.scanneat.data.repository.expense.PriceRepository
+import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HealthConnectRepository
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.writeNutrition
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.widget.TodayWidget
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.ZoneId
@@ -30,6 +32,7 @@ class ConsumptionRepository @Inject constructor(
     private val healthConnect: HealthConnectRepository,
     private val priceRepo: PriceRepository,
     private val hydrationRepo: HydrationRepository,
+    private val fastingRepo: FastingRepository,
     @ApplicationContext private val context: Context,
 ) {
     private val nutritionAdapter = moshi.adapter(NutritionPer100g::class.java)
@@ -47,23 +50,32 @@ class ConsumptionRepository @Inject constructor(
             )
         }
 
-    suspend fun log(entry: DiaryEntry) {
+    /** Returns true if an active fast was running at the moment this was logged -
+     *  Fasting and the Diary previously had zero cross-reference (R&D audit
+     *  finding), so logging food mid-fast never surfaced any signal at all,
+     *  not even an informational one. Non-blocking by design: unlike the
+     *  pregnancy alcohol veto elsewhere in this app, breaking a fast is the
+     *  user's own call, not something to gate - the caller decides whether/how
+     *  to show this (see ResultViewModel/FoodSearchViewModel/DiaryViewModel). */
+    suspend fun log(entry: DiaryEntry): Boolean {
         dao.insert(entry.toEntity())
         dao.trim(MAX_HISTORY_ROWS, entry.profileId)
         priceRepo.deductStock(entry.barcode, entry.portionG, entry.profileId)
         mirrorToHealthConnect(entry)
         mirrorToHydration(entry)
         refreshWidget()
+        return fastingRepo.state.first()?.isActive == true
     }
 
     /** Atomic multi-entry write — use when logging a template or recipe that expands to several entries. */
-    suspend fun logAll(entries: List<DiaryEntry>) {
+    suspend fun logAll(entries: List<DiaryEntry>): Boolean {
         dao.insertAll(entries.map { it.toEntity() })
         entries.map { it.profileId }.distinct().forEach { dao.trim(MAX_HISTORY_ROWS, it) }
         entries.forEach { priceRepo.deductStock(it.barcode, it.portionG, it.profileId) }
         entries.forEach { mirrorToHealthConnect(it) }
         entries.forEach { mirrorToHydration(it) }
         refreshWidget()
+        return fastingRepo.state.first()?.isActive == true
     }
 
     // User-reported: a bottled water product logged via barcode scan or the

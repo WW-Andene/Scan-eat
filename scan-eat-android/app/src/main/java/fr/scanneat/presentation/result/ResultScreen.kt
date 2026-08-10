@@ -5,6 +5,7 @@ import compose.icons.tablericons.AlertCircle
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -79,9 +80,19 @@ fun ResultScreen(
     // a LogState.Error on failure (Room write failure, disk full, etc.) but nothing
     // here ever read it - a failed save previously just left the sheet sitting open
     // with no feedback, so the user couldn't tell whether their tap had registered.
+    // R&D audit finding: Fasting and the Diary had zero cross-reference - logging
+    // food mid-fast never surfaced any signal. A Toast (not the snackbar host) is
+    // used here specifically because onLog() immediately navigates away to the
+    // Diary tab, which would cut off a snackbar mid-display - same precedent
+    // ScanScreen already uses for a message that survives its own navigation.
+    val loggedDuringFastMessage = stringResource(R.string.result_logged_during_fast)
     LaunchedEffect(state.value.logState) {
         when (val logState = state.value.logState) {
-            is LogState.Done -> { showSheet = false; onLog() }
+            is LogState.Done -> {
+                showSheet = false
+                if (logState.loggedDuringFast) Toast.makeText(context, loggedDuringFastMessage, Toast.LENGTH_LONG).show()
+                onLog()
+            }
             is LogState.Error -> {
                 scope.launch { snackbarHostState.showSnackbar(logState.message) }
                 viewModel.clearLogState()

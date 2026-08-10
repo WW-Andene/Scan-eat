@@ -204,6 +204,12 @@ class DiaryViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
+    // R&D audit finding: Fasting and the Diary had zero cross-reference - see
+    // ConsumptionRepository.log's own doc comment.
+    private val _loggedDuringFast = MutableStateFlow(false)
+    val loggedDuringFast: StateFlow<Boolean> = _loggedDuringFast.asStateFlow()
+    fun clearLoggedDuringFast() { _loggedDuringFast.value = false }
+
     // Delete and edit wired to repository
     fun deleteEntry(id: Long) {
         viewModelScope.launch { runCatching { consumptionRepo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
@@ -292,7 +298,7 @@ class DiaryViewModel @Inject constructor(
                         category    = product.category,
                     )
                 )
-            }.onSuccess { _searchQuery.value = "" }
+            }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -320,7 +326,7 @@ class DiaryViewModel @Inject constructor(
                         category    = scan.product.category,
                     )
                 )
-            }.onSuccess { _searchQuery.value = "" }
+            }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

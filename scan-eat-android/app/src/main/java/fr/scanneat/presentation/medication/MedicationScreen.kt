@@ -55,6 +55,7 @@ fun MedicationScreen(
     onOpenCalendar: () -> Unit = {},
 ) {
     val medications          = viewModel.medications.collectAsStateWithLifecycle()
+    val weightDeltaSinceStart = viewModel.weightDeltaSinceStart.collectAsStateWithLifecycle()
     val todayTaken           = viewModel.todayTaken.collectAsStateWithLifecycle()
     val interactionWarnings  = viewModel.interactionWarnings.collectAsStateWithLifecycle()
     val adherenceStreak      = viewModel.adherenceStreak.collectAsStateWithLifecycle()
@@ -143,6 +144,7 @@ fun MedicationScreen(
                     onOpenReminder = { reminderTarget = m },
                     onEdit = { editTarget = m },
                     onDelete = { deleteTarget = m.id },
+                    weightDeltaKg = weightDeltaSinceStart.value[m.id]?.first,
                 )
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }

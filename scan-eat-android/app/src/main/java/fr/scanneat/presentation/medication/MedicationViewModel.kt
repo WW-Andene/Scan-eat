@@ -3,9 +3,11 @@ package fr.scanneat.presentation.medication
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.data.repository.health.MedicationLogEntry
 import fr.scanneat.data.repository.health.MedicationRepository
+import fr.scanneat.data.repository.health.WeightRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -115,6 +117,8 @@ private fun detectInteractions(meds: List<Medication>): List<InteractionWarning>
 @HiltViewModel
 class MedicationViewModel @Inject constructor(
     private val repo: MedicationRepository,
+    private val hydrationRepo: HydrationRepository,
+    private val weightRepo: WeightRepository,
 ) : ViewModel() {
     val medications: StateFlow<List<Medication>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -215,6 +219,26 @@ class MedicationViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // R&D audit finding: Medication had zero cross-reference into Weight either.
+    // Purely descriptive (weight entries before vs. after this medication's
+    // createdAt), never a causal claim - MedicationScreen frames this as
+    // informational only, same discipline HealthConditionGuidanceDb.kt uses for
+    // never overclaiming a nutrition-outcome link. Requires at least one real
+    // weight entry logged before AND after createdAt (a single post-start entry
+    // alone can't show a "since" delta) - medication id -> (deltaKg, fromKg, toKg).
+    val weightDeltaSinceStart: StateFlow<Map<String, Triple<Double, Double, Double>>> =
+        combine(medications, weightRepo.observeAll()) { meds, weights ->
+            if (weights.size < 2) return@combine emptyMap()
+            val sorted = weights.sortedBy { it.date }
+            meds.filter { it.active }.mapNotNull { med ->
+                val startDate = Instant.ofEpochMilli(med.createdAt).atZone(ZoneId.systemDefault()).toLocalDate()
+                val before = sorted.lastOrNull { it.date <= startDate } ?: sorted.firstOrNull()
+                val after = sorted.lastOrNull()
+                if (before == null || after == null || before.date >= after.date) return@mapNotNull null
+                med.id to Triple(after.weightKg - before.weightKg, before.weightKg, after.weightKg)
+            }.toMap()
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     // Every write below previously called repo's Room writes completely unguarded -
     // unlike every sibling tracker (Weight/Activity/Dashboard/MealPlan/Templates all
     // wrap theirs in runCatching), so a write failure here wasn't just silent, it
@@ -224,8 +248,22 @@ class MedicationViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
+    // R&D audit finding: Medication had zero cross-reference into Hydration or
+    // Weight. Standard medical guidance for most oral medication is to take it
+    // with a full glass of water - marking a dose taken now also credits one
+    // Hydration glass (HYD_GLASS_ML, same 250 mL convention the Hydration tab
+    // itself uses), easily correctable via Hydration's own -1 glass control if
+    // it over-counts for a given user. Only on the forward action (not
+    // undoTaken()) - removing a "taken" log doesn't mean the water wasn't
+    // actually drunk, same "additive, not reversible" convention already used
+    // for Activity's hydration bonus.
     fun markTaken(medication: Medication) {
-        viewModelScope.launch { runCatching { repo.logTaken(medication) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch {
+            runCatching {
+                repo.logTaken(medication)
+                hydrationRepo.addGlass()
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     fun undoTaken(entry: MedicationLogEntry) {

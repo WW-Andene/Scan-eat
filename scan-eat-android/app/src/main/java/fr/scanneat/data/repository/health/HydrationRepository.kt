@@ -115,6 +115,22 @@ class HydrationRepository @Inject constructor(
         }
     }
 
+    /**
+     * Pulls in water logged externally (a smart bottle's own app, etc.) that
+     * Health Connect has for [date] - Hydration was previously write-only
+     * (R&D audit finding), unlike Weight/Activity which already read back.
+     * Merges via max(local, external) rather than adding, since this app
+     * stores one mutable running total per day, not individual entries - see
+     * readExternalHydrationTotalMl's own doc comment on why that's safely
+     * idempotent instead of double-counting on repeat syncs.
+     */
+    suspend fun syncFromHealthConnect(date: LocalDate = LocalDate.now()) {
+        val external = healthConnect.readExternalHydrationTotalMl(date)
+        if (external <= 0) return
+        val current = observe(date).first()
+        if (external > current) set(date, external)
+    }
+
     /** Convenience: +1 glass. */
     suspend fun addGlass(date: LocalDate = LocalDate.now()) = add(date, HYD_GLASS_ML)
 

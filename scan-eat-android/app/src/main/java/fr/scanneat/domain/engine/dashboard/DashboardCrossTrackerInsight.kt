@@ -40,6 +40,18 @@ sealed class CrossTrackerInsight {
         // not "0% adherence".
         val weeklyFastingAdherencePct: Int? = null,
         val weeklyHydrationAdherencePct: Int? = null,
+        // R&D audit finding, addressed conservatively rather than with a
+        // fabricated 3-way verdict (see this class's own doc comment on why
+        // a genuine deficit+fasting+hydration consistency check needs its
+        // own reasoned rules): hydration adherence gets exactly one real,
+        // physiologically-grounded connection to [agreement] - inconsistent
+        // fluid intake is a well-established confounder of week-to-week
+        // scale weight (hydration/water-retention swings, not fat-mass
+        // change), so a poorly-hydrated week's weight-trend reading is
+        // genuinely less reliable, not just a side-by-side coincidence.
+        // True only when there's real hydration data to judge by (percent
+        // not null) and it's low enough to matter.
+        val hydrationReliabilityCaveat: Boolean = false,
     ) : CrossTrackerInsight()
 }
 
@@ -48,6 +60,10 @@ sealed class CrossTrackerInsight {
 // either way would be misleading rather than insightful.
 private const val DEFICIT_NOISE_FLOOR_KCAL = 50
 private const val WEIGHT_TREND_NOISE_FLOOR_KG = 0.05
+// Below this weekly hydration-goal adherence, day-to-day fluid intake swung
+// enough that a chunk of the week's scale-weight movement plausibly reflects
+// hydration variance rather than the intake-vs-target story alone.
+private const val LOW_HYDRATION_ADHERENCE_PCT = 50
 
 fun weeklyCrossTrackerInsight(
     weeklyAvgKcal: Double,
@@ -69,8 +85,9 @@ fun weeklyCrossTrackerInsight(
         avgDeficit < 0 && weightTrendKgPerWeek > 0 -> InsightAgreement.CONSISTENT // eating over target, scale trending up
         else -> InsightAgreement.MISMATCH
     }
+    val hydrationCaveat = weeklyHydrationAdherencePct != null && weeklyHydrationAdherencePct < LOW_HYDRATION_ADHERENCE_PCT
     return CrossTrackerInsight.WeightVsIntake(
         avgDeficit, weightTrendKgPerWeek, weeklyActiveMinutes, agreement,
-        weeklyFastingAdherencePct, weeklyHydrationAdherencePct,
+        weeklyFastingAdherencePct, weeklyHydrationAdherencePct, hydrationCaveat,
     )
 }

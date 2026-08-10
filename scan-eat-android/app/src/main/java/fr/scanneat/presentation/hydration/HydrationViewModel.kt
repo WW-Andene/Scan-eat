@@ -23,6 +23,16 @@ class HydrationViewModel @Inject constructor(
     private val csvExportRepository: CsvExportRepository,
     private val activityRepo: ActivityRepository,
 ) : ViewModel() {
+
+    init {
+        // R&D audit finding: Hydration was write-only to Health Connect, unlike
+        // Weight/Activity which already read back - see HydrationRepository.
+        // syncFromHealthConnect's own doc comment. Same best-effort, swallow-
+        // on-failure shape as ActivityViewModel's identical init call: runs
+        // once per screen open, no-ops if Health Connect isn't available/permitted.
+        viewModelScope.launch { runCatching { repo.syncFromHealthConnect() }.onFailure { e -> if (e is CancellationException) throw e } }
+    }
+
     // LocalDate.now() captured once at construction would keep observing
     // today's bucket forever if this ViewModel outlives midnight - polling
     // + distinctUntilChanged re-subscribes intake to the new day exactly when
