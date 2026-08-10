@@ -93,6 +93,17 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // product whose other pillars already sit below the veto's cap) and it
     // keeps the audit trail proportional to %vol rather than a flat "alcohol
     // present" flag. Same layering applies to trans fat and nitrites below.
+    //
+    // Assessed and kept uniform: all three tiers below use Severity.CRITICAL,
+    // not a graduated MODERATE/MAJOR/CRITICAL ladder matching the -6/-9/-12
+    // point gradient. That's intentional, not an oversight - the rubric above
+    // Severity's own declaration explicitly names ethanol, at any amount, as
+    // the "established no-safe-level hazard" case for CRITICAL (same bracket
+    // as trans fat), because the hazard classification attaches to the
+    // substance's WHO/IARC Group 1 status, not to a dose-response curve the
+    // way a nutrient like salt or sugar works. The -6/-9/-12 point spread
+    // already carries the %vol-proportionality; Severity doesn't need to
+    // duplicate that gradient to avoid contradicting its own rubric.
     val abv = n.alcoholPercentVol ?: 0.0
     val alcoholLabel = if (en) "Alcohol" else "Alcool"
     when {
@@ -111,6 +122,15 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // (~32mg/100ml, e.g. Red Bull) stays under the minor bar; concentrated
     // energy shots/certain "extra strength" drinks (150mg+/100ml) push past
     // EFSA's single-dose caution level.
+    //
+    // "Per-100g/100ml" here assumes density ~1 (true for the vast majority of
+    // real caffeinated products - coffee, tea, energy drinks, sodas are all
+    // ~water-density), the same assumption NutritionPer100g makes implicitly
+    // for every field, matching OFF's own schema convention. It would
+    // under-report a hypothetical dense caffeine concentrate/syrup sold "as
+    // is" rather than diluted, but no such product exists in this app's
+    // AdditivesDb/FoodDb entries today - noted rather than "fixed" since
+    // there's no concrete misscoring case to correct against.
     val caffeine = n.caffeineMg ?: 0.0
     val caffeineLabel = if (en) "Caffeine" else "Caféine"
     when {

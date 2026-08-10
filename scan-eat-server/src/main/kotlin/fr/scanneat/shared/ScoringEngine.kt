@@ -238,7 +238,11 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // such a condiment to grade C even though the pillar itself only scored it
     // MAJOR, not CRITICAL - the same category-blindness class already fixed
     // for BMI/diabetes thresholds elsewhere in this engine.
-    if (product.category != ProductCategory.SNACK_SWEET && product.category != ProductCategory.CONDIMENT && sugars > 30)
+    // SPREAD_SWEET (honey/jam) exempted for the same eaten-by-the-tablespoon
+    // reasoning, now with its own thresholds tuned to intrinsic fruit sugar
+    // (40/55/70/85) instead of sharing CONDIMENT's savory-sauce band.
+    if (product.category != ProductCategory.SNACK_SWEET && product.category != ProductCategory.CONDIMENT &&
+        product.category != ProductCategory.SPREAD_SWEET && sugars > 30)
         candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", VetoCap.MODERATE)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }

@@ -102,6 +102,17 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // own 700-900 range already uses two lines below.
     ProductCategory.CONDIMENT        to CategoryThresholds(Triple(0.0,3.0,7.0),   Triple(0.0,1.0,3.0),  Pair(20.0,750.0),  false,
         sugarThresholds = Quadruple(10.0,20.0,30.0,45.0), saltThresholds = Triple(2.0,5.0,10.0)),
+    // Honey ~76-80g sugar/100g, jam/marmalade ~55-65g/100g - all intrinsic
+    // fructose from fruit/nectar, not an added-sugar manufacturing choice,
+    // the same reasoning BEVERAGE_JUICE's own sugarThresholds override uses.
+    // Previously shared CONDIMENT's 10/20/30/45 band (tuned for oversweetened
+    // savory sauces), which put plain honey past the 45g "critical" ceiling -
+    // the same category-blind-threshold bug already fixed for juice, applied
+    // here to close the gap for real this time (a prior comment claimed this
+    // was already fixed via the CONDIMENT reroute, but the reroute only ever
+    // shared CONDIMENT's bucket, never gave honey/jam their own thresholds).
+    ProductCategory.SPREAD_SWEET     to CategoryThresholds(Triple(0.0,0.0,1.0),   Triple(0.0,1.0,2.0),  Pair(250.0,320.0), false,
+        sugarThresholds = Quadruple(40.0,55.0,70.0,85.0), saltThresholds = Triple(0.5,1.0,1.5)),
     ProductCategory.OIL_FAT          to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(700.0,900.0), false,
         satFatThresholds = Triple(20.0,35.0,50.0)),
     ProductCategory.OTHER            to DEFAULT_THRESHOLDS,
@@ -160,14 +171,13 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bpain\b|\bbread\b|baguette|brioche|focaccia|ciabatta|\btoasts?\b|\bpita\b|tortilla|\bcracotte""", RegexOption.IGNORE_CASE) to ProductCategory.BREAD,
     Regex("""plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
     Regex("""\bsoupe?s?\b|velout[eé]s?(?![\w\p{L}])|\bpotages?\b|\bbouillons?\b|\bbroths?\b|consomm[eé]s?(?![\w\p{L}])|minestrone|gaspacho|gazpacho""", RegexOption.IGNORE_CASE) to ProductCategory.SOUP,
-    // confiture/marmelade/honey added — same "eaten by the tablespoon, not the
-    // 100g this scale is normalized to" reasoning checkVeto's own comment uses
-    // to exempt CONDIMENT from its flat added-sugar veto, but jam/marmalade/
-    // honey previously had no category match at all and fell through to
-    // DEFAULT_THRESHOLDS/OTHER, which the veto's exemption list doesn't cover
-    // - a jam sat unprotected next to a structurally identical chutney that
-    // was explicitly protected.
-    Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b|confiture|marmelade|marmalade|\bmiel\b|\bhoney\b|gel[eé]e de fruits|\bjam\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
+    // Own category, checked before CONDIMENT below - honey/jam/marmalade's
+    // sugar is intrinsic fruit/nectar fructose (~55-80g/100g), nutritionally
+    // unlike the near-zero-sugar savory sauces CONDIMENT's regex otherwise
+    // matches. See SPREAD_SWEET's threshold-table entry above for the full
+    // rationale.
+    Regex("""confiture|marmelade|marmalade|\bmiel\b|\bhoney\b|gel[eé]e de fruits|\bjam\b""", RegexOption.IGNORE_CASE) to ProductCategory.SPREAD_SWEET,
+    Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
     Regex("""huile d['']olive|huile de colza|huile de tournesol|huile v[eé]g[eé]tale|\bolive oil\b|sunflower oil|canola oil|margarine|\bbeurre\b|\bbutter\b|saindoux""", RegexOption.IGNORE_CASE) to ProductCategory.OIL_FAT,
     Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|\bpopcorn\b|\bpretzels?\b|cacahu[eè]tes?\b|noix de cajou|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
 )

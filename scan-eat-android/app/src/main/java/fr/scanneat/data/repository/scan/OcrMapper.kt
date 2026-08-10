@@ -151,6 +151,18 @@ internal fun buildWarnings(product: Product, dto: LlmProductDto, lang: String): 
     if (dto.nutrition?.energy_kcal != null && dto.nutrition.energy_kcal > NutritionLimits.MAX_ENERGY_KCAL_PER_100G)
         w += if (lang == "en") "Energy value on label seems implausibly high and was capped"
              else "La valeur énergétique de l'étiquette semble anormalement élevée et a été plafonnée"
+    // saltG (unlike transFatG/addedSugarsG/caffeineMg/alcoholPercentVol) is a
+    // non-nullable Double on NutritionPer100g, so coerceDouble's `?: 0.0`
+    // fallback for a missing salt_g reads as "verified zero salt" downstream
+    // with no way to recover the distinction - the same null-vs-declared-zero
+    // ambiguity ScoringEngine.collectWarnings() already discloses for its
+    // four nullable siblings, but structurally can't for salt. Disclosed here
+    // instead, at the one point (the raw LLM DTO, before coerceDouble erases
+    // it) where "not declared" is still knowable, without widening saltG's
+    // type across the ~45 call sites that assume it's always non-null.
+    if (dto.nutrition?.salt_g == null)
+        w += if (lang == "en") "Salt value not found on label — scored as 0g, may be inaccurate"
+             else "Valeur de sel introuvable sur l'étiquette — comptée comme 0g, possiblement inexacte"
     return w
 }
 

@@ -35,6 +35,11 @@ enum class ProductCategory(val key: String) {
     BEVERAGE_WATER("beverage_water"),
     ALCOHOLIC_BEVERAGE("alcoholic_beverage"),
     CONDIMENT("condiment"),
+    // See Android Product.kt for the full rationale: honey/jam/marmalade
+    // were routed into CONDIMENT only to reach its added-sugar veto
+    // exemption, but CONDIMENT's sugarThresholds are tuned for savory
+    // sauces, not honey/jam's ~55-80g/100g intrinsic sugar.
+    SPREAD_SWEET("spread_sweet"),
     OIL_FAT("oil_fat"),
     OTHER("other");
 

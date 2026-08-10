@@ -42,6 +42,17 @@ enum class ProductCategory(val key: String) {
     // inheriting soft-drink norms.
     ALCOHOLIC_BEVERAGE("alcoholic_beverage"),
     CONDIMENT("condiment"),
+    // Honey/jam/marmalade were routed into CONDIMENT purely to reach its
+    // checkVeto added-sugar exemption (see CategoryThresholds.kt comment on
+    // the CONDIMENT regex), but CONDIMENT's own sugarThresholds
+    // (10/20/30/45) were tuned for oversweetened savory sauces, not for a
+    // product whose sugar is ~55-80g/100g and entirely intrinsic (fructose
+    // from fruit/nectar, not an added-sugar manufacturing choice) - the same
+    // natural-vs-added-sugar gap already fixed for BEVERAGE_JUICE via its own
+    // category-specific thresholds. Split out so honey/jam get thresholds
+    // scaled to their actual natural sugar range instead of inheriting a
+    // savory-sauce band that reads any jam as "critical" sugar.
+    SPREAD_SWEET("spread_sweet"),
     OIL_FAT("oil_fat"),
     OTHER("other");
 

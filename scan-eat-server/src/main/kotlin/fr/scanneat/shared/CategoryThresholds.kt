@@ -87,6 +87,12 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // identical fix on the Android side (see Scoring Drift Check).
     ProductCategory.CONDIMENT        to CategoryThresholds(Triple(0.0,3.0,7.0),   Triple(0.0,1.0,3.0),  Pair(20.0,750.0),  false,
         sugarThresholds = Quadruple(10.0,20.0,30.0,45.0), saltThresholds = Triple(2.0,5.0,10.0)),
+    // Honey/jam split out of CONDIMENT: their sugar is intrinsic fruit/nectar
+    // fructose (~55-80g/100g), not an added-sugar choice, and CONDIMENT's
+    // 10/20/30/45 band was tuned for oversweetened savory sauces - mirrors
+    // the identical fix on the Android side (see Scoring Drift Check).
+    ProductCategory.SPREAD_SWEET     to CategoryThresholds(Triple(0.0,0.0,1.0),   Triple(0.0,1.0,2.0),  Pair(250.0,320.0), false,
+        sugarThresholds = Quadruple(40.0,55.0,70.0,85.0), saltThresholds = Triple(0.5,1.0,1.5)),
     ProductCategory.OIL_FAT          to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(700.0,900.0), false,
         satFatThresholds = Triple(20.0,35.0,50.0)),
     ProductCategory.OTHER            to DEFAULT_THRESHOLDS,
@@ -133,15 +139,12 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bpain\b|\bbread\b|baguette|brioche|focaccia|ciabatta|\btoasts?\b|\bpita\b|tortilla|\bcracotte""", RegexOption.IGNORE_CASE) to ProductCategory.BREAD,
     Regex("""plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
     Regex("""\bsoupe?s?\b|velout[eé]s?(?![\w\p{L}])|\bpotages?\b|\bbouillons?\b|\bbroths?\b|consomm[eé]s?(?![\w\p{L}])|minestrone|gaspacho|gazpacho""", RegexOption.IGNORE_CASE) to ProductCategory.SOUP,
-    // confiture/marmelade/honey added — same "eaten by the tablespoon, not the
-    // 100g this scale is normalized to" reasoning checkVeto's own comment uses
-    // to exempt CONDIMENT from its flat added-sugar veto, but jam/marmalade/
-    // honey previously had no category match at all and fell through to
-    // DEFAULT_THRESHOLDS/OTHER, which the veto's exemption list doesn't cover
-    // - a jam sat unprotected next to a structurally identical chutney that
-    // was explicitly protected. Mirrors the identical fix on the Android side
-    // (see Scoring Drift Check).
-    Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b|confiture|marmelade|marmalade|\bmiel\b|\bhoney\b|gel[eé]e de fruits|\bjam\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
+    // Own category, checked before CONDIMENT below - honey/jam/marmalade's
+    // sugar is intrinsic fruit/nectar fructose, unlike the near-zero-sugar
+    // savory sauces CONDIMENT otherwise matches. Mirrors the identical fix
+    // on the Android side (see Scoring Drift Check).
+    Regex("""confiture|marmelade|marmalade|\bmiel\b|\bhoney\b|gel[eé]e de fruits|\bjam\b""", RegexOption.IGNORE_CASE) to ProductCategory.SPREAD_SWEET,
+    Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
     Regex("""huile d['']olive|huile de colza|huile de tournesol|huile v[eé]g[eé]tale|\bolive oil\b|sunflower oil|canola oil|margarine|\bbeurre\b|\bbutter\b|saindoux""", RegexOption.IGNORE_CASE) to ProductCategory.OIL_FAT,
     Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|\bpopcorn\b|\bpretzels?\b|cacahu[eè]tes?\b|noix de cajou|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
 )

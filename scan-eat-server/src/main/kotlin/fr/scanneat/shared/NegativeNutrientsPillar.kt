@@ -74,6 +74,14 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // audit trail proportional to %vol. Same layering applies to trans fat and
     // nitrites in ScoringEngine.kt's checkVeto. Mirrors the identical
     // clarifying comment on the Android side (see Scoring Drift Check).
+    //
+    // Assessed and kept uniform: all three tiers below use Severity.CRITICAL
+    // rather than a graduated ladder matching the -6/-9/-12 point gradient.
+    // Intentional - the Severity rubric explicitly names ethanol, at any
+    // amount, as the "established no-safe-level hazard" case for CRITICAL,
+    // because the hazard classification attaches to the substance's WHO/IARC
+    // Group 1 status, not a dose-response curve. The point spread already
+    // carries the %vol-proportionality.
     val abv = n.alcoholPercentVol ?: 0.0
     val alcoholLabel = if (en) "Alcohol" else "Alcool"
     when {
@@ -82,6 +90,12 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         abv > 1.2  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv.formatDecimal(1)}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -6.0, Severity.CRITICAL) }
     }
 
+    // "Per-100g/100ml" assumes density ~1 (true for coffee/tea/energy drinks/
+    // sodas), matching OFF's own schema convention and NutritionPer100g's
+    // implicit assumption for every field - would under-report a hypothetical
+    // dense caffeine concentrate, but no such entry exists in this app's
+    // databases today. Mirrors the identical clarifying comment on the
+    // Android side (see Scoring Drift Check).
     val caffeine = n.caffeineMg ?: 0.0
     val caffeineLabel = if (en) "Caffeine" else "Caféine"
     when {

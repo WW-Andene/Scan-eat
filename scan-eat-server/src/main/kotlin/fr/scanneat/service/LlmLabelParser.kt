@@ -294,13 +294,13 @@ private fun mapToProduct(dto: LlmProductDto): Product {
     )
 }
 
-private data class SingleParse(val product: Product, val barcode: String?, val rawEnergyKcal: Double?)
+private data class SingleParse(val product: Product, val barcode: String?, val rawEnergyKcal: Double?, val saltDeclared: Boolean)
 
 private fun parseSingle(raw: String): SingleParse {
     val jsonStr = extractJson(raw)
     val dto = runCatching { json.decodeFromString<LlmProductDto>(jsonStr) }.getOrNull()
-        ?: return SingleParse(Product("(parse error)", ProductCategory.OTHER, NovaClass.ULTRA_PROCESSED, emptyList(), NutritionPer100g.EMPTY), null, null)
-    return SingleParse(mapToProduct(dto), dto.barcode, dto.nutrition?.energyKcal)
+        ?: return SingleParse(Product("(parse error)", ProductCategory.OTHER, NovaClass.ULTRA_PROCESSED, emptyList(), NutritionPer100g.EMPTY), null, null, true)
+    return SingleParse(mapToProduct(dto), dto.barcode, dto.nutrition?.energyKcal, dto.nutrition?.saltG != null)
 }
 
 // ============================================================================
@@ -316,7 +316,7 @@ suspend fun GroqService.parseLabel(
     model: String = DEFAULT_GROQ_MODEL,
 ): ParseResult {
     val raw = complete(labelPrompt(lang), images, apiKey, model)
-    val (product, barcode, rawEnergyKcal) = parseSingle(raw)
+    val (product, barcode, rawEnergyKcal, saltDeclared) = parseSingle(raw)
     val warnings = buildList {
         if (product.nutrition.energyKcal == 0.0 && product.nutrition.proteinG == 0.0) add("Nutrition values could not be read")
         if (product.ingredients.isEmpty()) add("Ingredients list could not be parsed")
@@ -329,6 +329,13 @@ suspend fun GroqService.parseLabel(
         // real EAN/UPC (wrong digit count or non-digit noise), so callers can
         // choose to ignore it instead of silently trusting a misread value.
         if (barcode != null && !barcode.matches(NutritionLimits.BARCODE_DIGITS_REGEX)) add("Barcode '$barcode' found on label may be incorrect")
+        // saltG is non-nullable on NutritionPer100g (unlike transFatG/
+        // addedSugarsG/caffeineMg/alcoholPercentVol), so coerceNutrient's
+        // `?: 0.0` fallback for a missing salt_g reads as "verified zero
+        // salt" downstream with no way to recover the distinction. Disclosed
+        // here, at the one point the raw DTO still knows the difference.
+        // Mirrors Android's OcrMapper.buildWarnings identical fix.
+        if (!saltDeclared) add("Salt value not found on label — scored as 0g, may be inaccurate")
     }
     return ParseResult(product, warnings, barcode)
 }
