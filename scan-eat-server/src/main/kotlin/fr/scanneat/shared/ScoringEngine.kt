@@ -35,22 +35,24 @@ private fun scoreToGrade(score: Int): Grade = when {
     else        -> Grade.F
 }
 
-// D/F deliberately moderation-framed, not prohibition-framed. Mirrors the
-// identical fix on the Android side (see Scoring Drift Check).
+// Direct, not softened - a prior pass reworded D/F on food-anxiety grounds,
+// but that traded scientific bluntness for comfort rather than correcting a
+// factual error. Reverted; mirrors the identical revert on the Android side
+// (see Scoring Drift Check).
 private fun gradeVerdict(grade: Grade, lang: String = "en"): String = if (lang == "en") when (grade) {
     Grade.A_PLUS -> "Excellent — daily staple potential"
     Grade.A      -> "Good — regular consumption fine"
     Grade.B      -> "Acceptable — moderate frequency"
     Grade.C      -> "Mediocre — occasional only"
-    Grade.D      -> "Poor — best kept occasional, not a regular choice"
-    Grade.F      -> "Very poor — nutritionally the weakest tier; fine rarely, not a repeat choice"
+    Grade.D      -> "Poor — avoid regular use"
+    Grade.F      -> "Very poor — avoid"
 } else when (grade) {
     Grade.A_PLUS -> "Excellent — potentiel de consommation quotidienne"
     Grade.A      -> "Bon — consommation régulière adaptée"
     Grade.B      -> "Acceptable — fréquence modérée"
     Grade.C      -> "Médiocre — occasionnel uniquement"
-    Grade.D      -> "Mauvais — à réserver à l'occasionnel, pas un choix régulier"
-    Grade.F      -> "Très mauvais — niveau nutritionnel le plus faible ; à réserver à de rares occasions"
+    Grade.D      -> "Mauvais — à éviter en usage régulier"
+    Grade.F      -> "Très mauvais — à éviter"
 }
 
 private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<Deduction> {
@@ -307,7 +309,11 @@ private fun buildFlags(audit: ScoreAudit, lang: String = "en"): Pair<List<String
         }
     }
 
-    if (audit.veto.triggered) red.add(0, (if (en) "VETO: " else "VETO : ") + audit.veto.reason)
+    // "Critical:", not "VETO:" - stops leaking this engine's internal
+    // mechanism name into end-user copy, without softening the judgment
+    // itself (the veto still hard-caps the score exactly as before). Mirrors
+    // the identical fix on the Android side (see Scoring Drift Check).
+    if (audit.veto.triggered) red.add(0, (if (en) "Critical: " else "Critique : ") + audit.veto.reason)
     return Pair(red, green)
 }
 

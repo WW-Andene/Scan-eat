@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
+import fr.scanneat.domain.engine.nutrition.ImprovementTip
 import fr.scanneat.domain.engine.scoring.PersonalScoreResult
 import fr.scanneat.domain.engine.scoring.personalGrade
 import fr.scanneat.domain.model.NutritionPer100g
@@ -46,6 +47,7 @@ internal fun ResultContent(
     scoreHistory: List<Int> = emptyList(),
     priceEntries: List<fr.scanneat.data.repository.expense.PriceEntry> = emptyList(),
     currencySymbol: String = "€",
+    improvementTips: List<ImprovementTip> = emptyList(),
     onSavePrice: (Double, Double?) -> Unit = { _, _ -> },
     onDeletePrice: (String) -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
@@ -144,6 +146,15 @@ internal fun ResultContent(
         // Personal score adjustments
         if (personalScore != null && personalScore.applicable && personalScore.adjustments.isNotEmpty()) {
             AdjustmentsSection(adjustments = personalScore.adjustments)
+        }
+
+        // What to do about it, not just what's wrong - moved ahead of the pure
+        // diagnostic FlagsSection below. Previously the only genuinely
+        // actionable content on a scan ("what's costing the most points,"
+        // ranked) lived exclusively behind the top-bar hint icon; the primary
+        // screen was 100% "here's what's wrong" with no "here's what to do."
+        if (improvementTips.isNotEmpty()) {
+            ImprovementTipsSection(stringResource(R.string.hint_section_improve), improvementTips)
         }
 
         // Classic flags

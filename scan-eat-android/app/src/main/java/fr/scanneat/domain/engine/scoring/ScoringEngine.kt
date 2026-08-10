@@ -40,29 +40,27 @@ internal fun scoreToGrade(score: Int): Grade = when {
     else        -> Grade.F
 }
 
-// D/F deliberately moderation-framed ("best kept occasional"/"a rare treat"),
-// not prohibition-framed ("avoid") - a fixed grade-keyed string asserting a
-// frequency verdict was already editorializing beyond what any single /100g
-// score can actually support (see NutritionPer100g's whole normalization
-// basis: this is a concentration, not a consumed-portion measurement), and
-// "avoid" reads as a clinical directive rather than a health-literacy signal.
-// For a user prone to food-anxiety patterns, an unqualified command to
-// "avoid" a product outright is a materially worse framing than "keep this
-// occasional" for conveying the identical underlying grade.
+// Direct, not softened: a prior pass reworded D/F to "best kept occasional"
+// phrasing on food-anxiety grounds, but that traded scientific bluntness for
+// comfort rather than correcting a factual error - unlike the caffeine/
+// nitrite fixes elsewhere in this file, which corrected an actual
+// misattribution (wrong unit, wrong classification target). The grade itself
+// already IS the calibrated, evidence-based verdict; euphemizing the verdict
+// text undermines that without adding accuracy.
 private fun gradeVerdict(grade: Grade, lang: String = "en"): String = if (lang == "en") when (grade) {
     Grade.A_PLUS -> "Excellent — daily staple potential"
     Grade.A      -> "Good — regular consumption fine"
     Grade.B      -> "Acceptable — moderate frequency"
     Grade.C      -> "Mediocre — occasional only"
-    Grade.D      -> "Poor — best kept occasional, not a regular choice"
-    Grade.F      -> "Very poor — nutritionally the weakest tier; fine rarely, not a repeat choice"
+    Grade.D      -> "Poor — avoid regular use"
+    Grade.F      -> "Very poor — avoid"
 } else when (grade) {
     Grade.A_PLUS -> "Excellent — potentiel de consommation quotidienne"
     Grade.A      -> "Bon — consommation régulière adaptée"
     Grade.B      -> "Acceptable — fréquence modérée"
     Grade.C      -> "Médiocre — occasionnel uniquement"
-    Grade.D      -> "Mauvais — à réserver à l'occasionnel, pas un choix régulier"
-    Grade.F      -> "Très mauvais — niveau nutritionnel le plus faible ; à réserver à de rares occasions"
+    Grade.D      -> "Mauvais — à éviter en usage régulier"
+    Grade.F      -> "Très mauvais — à éviter"
 }
 
 private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<Deduction> {
@@ -328,7 +326,11 @@ private fun buildFlags(audit: ScoreAudit, lang: String = "en"): Pair<List<String
         }
     }
 
-    if (audit.veto.triggered) red.add(0, (if (en) "VETO: " else "VETO : ") + audit.veto.reason)
+    // "Critical:", not "VETO:" - the veto still hard-caps the score exactly
+    // as before (no softening of the judgment), this only stops leaking this
+    // engine's internal mechanism name ("veto") into end-user copy, which is
+    // jargon rather than a claim about severity.
+    if (audit.veto.triggered) red.add(0, (if (en) "Critical: " else "Critique : ") + audit.veto.reason)
     return Pair(red, green)
 }
 

@@ -93,6 +93,21 @@ fun bmi(p: Profile): Double? {
 
 enum class BmiCategory { UNDERWEIGHT, NORMAL, OVERWEIGHT, OBESE_1, OBESE_2, OBESE_3 }
 
+// Correctness fix, not a softening one: BmiAdjustments.kt previously printed
+// bmiCat.name.lowercase() directly into user-facing reason text, producing
+// the raw internal token "obese_1" verbatim instead of the actual WHO
+// clinical term ("Obesity class I"). The classification itself is accurate
+// and stays exactly as blunt as WHO's own terminology - this only replaces a
+// malformed enum-name leak with the real term it was supposed to represent.
+fun BmiCategory.label(lang: String): String = when (this) {
+    BmiCategory.UNDERWEIGHT -> if (lang == "en") "underweight" else "insuffisance pondérale"
+    BmiCategory.NORMAL      -> if (lang == "en") "normal weight" else "poids normal"
+    BmiCategory.OVERWEIGHT  -> if (lang == "en") "overweight" else "surpoids"
+    BmiCategory.OBESE_1     -> if (lang == "en") "obesity class I" else "obésité classe I"
+    BmiCategory.OBESE_2     -> if (lang == "en") "obesity class II" else "obésité classe II"
+    BmiCategory.OBESE_3     -> if (lang == "en") "obesity class III" else "obésité classe III"
+}
+
 fun bmiCategory(value: Double?): BmiCategory? = when {
     value == null   -> null
     value < 18.5    -> BmiCategory.UNDERWEIGHT

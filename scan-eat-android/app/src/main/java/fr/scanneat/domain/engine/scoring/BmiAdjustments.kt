@@ -47,8 +47,8 @@ internal fun computeBmiAdjustments(
             adjustments += PersonalAdjustment(
                 points   = -4.0,
                 reason   = if (lang == "en")
-                    "BMI $bmiValue (${bmiCat?.name?.lowercase()}) — high sat fat/sugar penalty amplified (WHO BMI 2000)"
-                else "IMC $bmiValue (${bmiCat?.name?.lowercase()}) — pénalité accrue sur graisses saturées/sucres (OMS 2000)",
+                    "BMI $bmiValue (${bmiCat?.label(lang)}) — high sat fat/sugar penalty amplified (WHO BMI 2000)"
+                else "IMC $bmiValue (${bmiCat?.label(lang)}) — pénalité accrue sur graisses saturées/sucres (OMS 2000)",
                 category = AdjustmentCategory.BMI,
             )
         }

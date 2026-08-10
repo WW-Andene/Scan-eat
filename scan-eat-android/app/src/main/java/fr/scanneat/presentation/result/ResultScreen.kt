@@ -190,6 +190,16 @@ fun ResultScreen(
                 scoreHistory      = s.scoreHistory,
                 priceEntries      = priceEntries.value,
                 currencySymbol    = currencySymbol.value,
+                // Nutritionist-delivery audit: the ranked "what's costing the
+                // most points" list was previously reachable only via the
+                // top-bar hint icon, several taps removed from the headline
+                // grade a user actually reads first - the one genuinely
+                // actionable ("what to do", not just "what's wrong") piece of
+                // content on the whole screen was the least visible. Same
+                // generateProductHints call already used for HintIconButton
+                // above; pure/cheap, safe to compute again here rather than
+                // threading it across the TopBar/content composable boundary.
+                improvementTips   = generateProductHints(s.scanResult.product, profile.value, language.value).improvementTips,
                 onSavePrice       = { price, weight -> viewModel.savePrice(price, weight) },
                 onDeletePrice     = { id -> viewModel.deletePrice(id) },
                 onOpenResult      = onOpenResult,
