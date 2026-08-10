@@ -104,12 +104,12 @@ internal suspend fun buildHeavyDashboardState(
     // convention (% of *attempted* fasts that hit target, not % of the
     // week, since fasting is often deliberately not a daily practice) -
     // hydration is expected daily, so it divides by the fixed 7-day week.
-    val weeklyFastCompletions = fastingRepo.history.first().filter { c ->
+    val weeklyFastCompletions = fastingRepo.history(profileId).first().filter { c ->
         runCatching { LocalDate.parse(c.date) }.getOrNull()?.let { it in weekStart..date } == true
     }
     val weeklyFastingAdherencePct = weeklyFastCompletions.takeIf { it.isNotEmpty() }
         ?.let { it.count { c -> c.reached } * 100 / it.size }
-    val weeklyHydrationEntries = hydrationRepo.exportAll().filter { (d, _) -> d in weekStart..date }
+    val weeklyHydrationEntries = hydrationRepo.observeAll(profileId).first().filter { (d, _) -> d in weekStart..date }
     val hydrationGoal = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions)
     val weeklyHydrationAdherencePct = weeklyHydrationEntries.takeIf { it.isNotEmpty() && hydrationGoal > 0 }
         ?.let { entries -> entries.count { (_, ml) -> ml >= hydrationGoal } * 100 / 7 }

@@ -14,6 +14,7 @@ import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.domain.engine.dashboard.RollupResult
 import fr.scanneat.domain.engine.dashboard.customRollup
 import fr.scanneat.domain.model.Profile
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
 import javax.inject.Inject
@@ -21,6 +22,7 @@ import javax.inject.Inject
 /** Trailing window every Evolution-tab card charts, so the tab tells one coherent "last 3 months" story. */
 internal const val EVOLUTION_WINDOW_DAYS = 90
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class EvolutionViewModel @Inject constructor(
     biolismRepo: BiolismRepository,
@@ -36,6 +38,11 @@ class EvolutionViewModel @Inject constructor(
     val useImperial = prefs.useImperialWeight.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val sessions = biolismRepo.sessions.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
     private val windowStart get() = LocalDate.now().minusDays((EVOLUTION_WINDOW_DAYS - 1).toLong())
 
     // ── Weight — bounded to the 90-day window in SQL via WeightRepository.observeRange,
@@ -44,7 +51,7 @@ class EvolutionViewModel @Inject constructor(
     // to filter almost all of it away in-memory - the exact pattern already
     // fixed for Dashboard/Calendar (see WeightDao.observeRange's own doc
     // comment), reintroduced here by this screen bypassing the bounded API. ──
-    val weightEntries: StateFlow<List<WeightEntry>> = weightRepo.observeRange(windowStart, LocalDate.now())
+    val weightEntries: StateFlow<List<WeightEntry>> = activeProfileId.flatMapLatest { id -> weightRepo.observeRange(windowStart, LocalDate.now(), id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // ── Body composition — Fat%/lean mass have no dated history of their own
@@ -103,7 +110,7 @@ class EvolutionViewModel @Inject constructor(
     // above (both real Flows), this previously only read hydration once at
     // construction, so water logged elsewhere while the Evolution tab stayed
     // open never showed up here without leaving and re-entering the tab. ──
-    val hydrationHistory: StateFlow<List<Pair<LocalDate, Int>>> = hydrationRepo.observeAll()
+    val hydrationHistory: StateFlow<List<Pair<LocalDate, Int>>> = activeProfileId.flatMapLatest { id -> hydrationRepo.observeAll(id) }
         .map { all -> all.filter { !it.first.isBefore(windowStart) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val hydrationGoalMl: StateFlow<Int> = mainProfile.map { p ->
@@ -111,8 +118,8 @@ class EvolutionViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
 
     // ── Macro intake — real per-day history via the Diary, same source Dashboard uses ──
-    val macroRollup: StateFlow<RollupResult?> = consumptionRepo
-        .observeRange(windowStart, LocalDate.now())
+    val macroRollup: StateFlow<RollupResult?> = activeProfileId
+        .flatMapLatest { id -> consumptionRepo.observeRange(windowStart, LocalDate.now(), id) }
         .map { entries -> customRollup(entries, LocalDate.now(), EVOLUTION_WINDOW_DAYS) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 }

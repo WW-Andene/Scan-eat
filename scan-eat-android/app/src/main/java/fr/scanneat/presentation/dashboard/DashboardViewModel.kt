@@ -245,8 +245,8 @@ class DashboardViewModel @Inject constructor(
 
     val otherTrackers: StateFlow<OtherTrackersSnapshot> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
         combine(
-            hydrationRepo.observe(date),
-            fastingRepo.state,
+            hydrationRepo.observe(date, id),
+            fastingRepo.state(id),
             medicationRepo.observeAll(id),
             medicationRepo.observeLogByDate(date, id),
             prefs.profile,

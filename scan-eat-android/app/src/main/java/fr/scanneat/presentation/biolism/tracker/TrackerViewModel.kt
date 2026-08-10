@@ -15,6 +15,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TrackerViewModel @Inject constructor(
     internal val repo: BiolismRepository,
@@ -156,7 +157,7 @@ class TrackerViewModel @Inject constructor(
     // when one happens to be running, so the two don't have to be re-entered
     // by hand and can't silently drift out of agreement if the user wants them
     // aligned.
-    val realFastHours: StateFlow<Double?> = fastingRepo.state
+    val realFastHours: StateFlow<Double?> = prefs.activeProfileId.flatMapLatest { id -> fastingRepo.state(id) }
         .map { it?.takeIf { f -> f.isActive }?.elapsedHours }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 

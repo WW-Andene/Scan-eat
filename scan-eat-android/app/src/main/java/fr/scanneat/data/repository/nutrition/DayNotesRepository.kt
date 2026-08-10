@@ -40,9 +40,14 @@ class DayNotesRepository @Inject constructor(
         if (e is IOException) emit(emptyPreferences()) else throw e
     }
 
-    private fun key(date: LocalDate) = stringPreferencesKey("note_${date}")
+    // R&D audit finding: day notes was a DataStore singleton with no profileId
+    // concept at all, unlike every Room-backed tracker. "default" keeps the
+    // exact same key shape pre-existing installs already use (zero migration);
+    // any other profile gets its own namespaced key so its notes can never
+    // collide with (or be read/pruned as) another profile's.
+    private fun keyPrefix(profileId: String) = if (profileId == "default") "note_" else "notep_${profileId}_"
+    private fun key(date: LocalDate, profileId: String = "default") = stringPreferencesKey("${keyPrefix(profileId)}${date}")
 
-    private val KEY_PREFIX = "note_"
     private val PRUNE_KEEP_DAYS = 400L
 
     /**
@@ -52,11 +57,12 @@ class DayNotesRepository @Inject constructor(
      * the whole preferences file into memory on first access, so years of use
      * means thousands of stale keys parsed on every app start.
      */
-    private fun prune(prefs: MutablePreferences) {
+    private fun prune(prefs: MutablePreferences, profileId: String) {
         val cutoff = LocalDate.now().minusDays(PRUNE_KEEP_DAYS)
+        val prefix = keyPrefix(profileId)
         val staleKeys = prefs.asMap().keys.filter { pref ->
-            pref.name.startsWith(KEY_PREFIX) &&
-                runCatching { LocalDate.parse(pref.name.removePrefix(KEY_PREFIX)) }.getOrNull()?.isBefore(cutoff) == true
+            pref.name.startsWith(prefix) &&
+                runCatching { LocalDate.parse(pref.name.removePrefix(prefix)) }.getOrNull()?.isBefore(cutoff) == true
         }
         for (pref in staleKeys) prefs.remove(pref)
     }
@@ -66,25 +72,27 @@ class DayNotesRepository @Inject constructor(
      * every edit() call for ANY date, not just this one; without dedup every
      * unrelated note write (a different day, a backup import) would re-fire
      * this flow with an unchanged value. */
-    fun observe(date: LocalDate): Flow<String> =
-        storeData.map { prefs -> prefs[key(date)] ?: "" }.distinctUntilChanged()
+    fun observe(date: LocalDate, profileId: String = "default"): Flow<String> =
+        storeData.map { prefs -> prefs[key(date, profileId)] ?: "" }.distinctUntilChanged()
 
     /** Set or clear a note. Truncates to DAY_NOTE_MAX_CHARS. */
-    suspend fun set(date: LocalDate, text: String) {
+    suspend fun set(date: LocalDate, text: String, profileId: String = "default") {
         val trimmed = text.take(DAY_NOTE_MAX_CHARS)
         store.edit { prefs ->
-            if (trimmed.isEmpty()) prefs.remove(key(date))
-            else prefs[key(date)] = trimmed
-            prune(prefs)
+            val k = key(date, profileId)
+            if (trimmed.isEmpty()) prefs.remove(k)
+            else prefs[k] = trimmed
+            prune(prefs, profileId)
         }
     }
 
-    /** List all dates that have a note, sorted ascending. */
-    suspend fun listDates(): List<LocalDate> {
+    /** List all dates that have a note for the given profile, sorted ascending. */
+    suspend fun listDates(profileId: String = "default"): List<LocalDate> {
         val prefs = storeData.first()
+        val prefix = keyPrefix(profileId)
         return prefs.asMap().keys
-            .filter { it.name.startsWith("note_") }
-            .mapNotNull { runCatching { LocalDate.parse(it.name.removePrefix("note_")) }.getOrNull() }
+            .filter { it.name.startsWith(prefix) }
+            .mapNotNull { runCatching { LocalDate.parse(it.name.removePrefix(prefix)) }.getOrNull() }
             .sorted()
     }
 

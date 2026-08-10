@@ -8,21 +8,29 @@ import fr.scanneat.data.repository.health.FastCompletion
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.FastingState
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class FastingViewModel @Inject constructor(
     private val repo: FastingRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
-    val fastingState: StateFlow<FastingState?> = repo.state
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real. FastingRepository is DataStore-backed
+    // and previously had no profileId concept at all - now namespaced per profile.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    val fastingState: StateFlow<FastingState?> = activeProfileId.flatMapLatest { id -> repo.state(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-    val history: StateFlow<List<FastCompletion>> = repo.history
+    val history: StateFlow<List<FastCompletion>> = activeProfileId.flatMapLatest { id -> repo.history(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val streak: StateFlow<Int> = repo.streak
+    val streak: StateFlow<Int> = activeProfileId.flatMapLatest { id -> repo.streak(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
@@ -44,11 +52,11 @@ class FastingViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
-    fun start(hours: Int) = viewModelScope.launch { runCatching { repo.start(hours) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    fun stop()            = viewModelScope.launch { runCatching { repo.stop() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    fun cancel()           = viewModelScope.launch { runCatching { repo.cancel() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun start(hours: Int) = viewModelScope.launch { runCatching { repo.start(hours, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun stop()            = viewModelScope.launch { runCatching { repo.stop(activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun cancel()           = viewModelScope.launch { runCatching { repo.cancel(activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
 
     /** Removes a single mis-logged history entry — previously only clearHistory() (nuke-all) existed. */
-    fun deleteHistoryEntry(id: String) = viewModelScope.launch { runCatching { repo.deleteEntry(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun deleteHistoryEntry(id: String) = viewModelScope.launch { runCatching { repo.deleteEntry(id, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
 }
 

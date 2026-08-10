@@ -26,9 +26,16 @@ import javax.inject.Singleton
 
 private val Context.fastingDataStore by preferencesDataStore(name = "fasting")
 
-private val KEY_START_MS     = longPreferencesKey("fasting_start_ms")
-private val KEY_TARGET_HOURS = intPreferencesKey("fasting_target_hours")
-private val KEY_HISTORY_JSON = stringPreferencesKey("fasting_history")
+// R&D audit finding: fasting was a DataStore singleton with no profileId
+// concept at all, unlike every Room-backed tracker. "default" keeps the
+// exact same key names pre-existing installs already use (zero migration);
+// any other profile gets its own namespaced keys.
+private fun keyStartMs(profileId: String) =
+    longPreferencesKey(if (profileId == "default") "fasting_start_ms" else "fasting_${profileId}_start_ms")
+private fun keyTargetHours(profileId: String) =
+    intPreferencesKey(if (profileId == "default") "fasting_target_hours" else "fasting_${profileId}_target_hours")
+private fun keyHistoryJson(profileId: String) =
+    stringPreferencesKey(if (profileId == "default") "fasting_history" else "fasting_${profileId}_history")
 
 data class FastingState(
     val startMs: Long,
@@ -79,27 +86,27 @@ class FastingRepository @Inject constructor(
 
     // ---- Current fast state ----
 
-    val state: Flow<FastingState?> = storeData.map { prefs ->
-        val start  = prefs[KEY_START_MS] ?: return@map null
-        val target = prefs[KEY_TARGET_HOURS] ?: 16
+    fun state(profileId: String = "default"): Flow<FastingState?> = storeData.map { prefs ->
+        val start  = prefs[keyStartMs(profileId)] ?: return@map null
+        val target = prefs[keyTargetHours(profileId)] ?: 16
         FastingState(start, target)
     }.distinctUntilChanged()
 
-    val isActive: Flow<Boolean> = state.map { it?.isActive == true }
+    fun isActive(profileId: String = "default"): Flow<Boolean> = state(profileId).map { it?.isActive == true }
 
-    suspend fun start(targetHours: Int = 16) {
+    suspend fun start(targetHours: Int = 16, profileId: String = "default") {
         store.edit { prefs ->
-            prefs[KEY_START_MS]     = System.currentTimeMillis()
-            prefs[KEY_TARGET_HOURS] = targetHours.coerceIn(1, 72)
+            prefs[keyStartMs(profileId)]     = System.currentTimeMillis()
+            prefs[keyTargetHours(profileId)] = targetHours.coerceIn(1, 72)
         }
     }
 
     /** Stop fasting — persists a completion record to history. */
-    suspend fun stop() {
+    suspend fun stop(profileId: String = "default") {
         val now = System.currentTimeMillis()
         store.edit { prefs ->
-            val start  = prefs[KEY_START_MS] ?: return@edit
-            val target = prefs[KEY_TARGET_HOURS] ?: 16
+            val start  = prefs[keyStartMs(profileId)] ?: return@edit
+            val target = prefs[keyTargetHours(profileId)] ?: 16
             val achieved = (now - start) / 3_600_000.0
 
             val completion = FastCompletion(
@@ -110,26 +117,26 @@ class FastingRepository @Inject constructor(
                 achievedHours = achieved.roundTo1Decimal(),
                 reached       = achieved >= target,
             )
-            val history = loadHistory(prefs).toMutableList()
+            val history = loadHistory(prefs, profileId).toMutableList()
             history.add(0, completion)
-            prefs[KEY_HISTORY_JSON] = serializeHistory(history.take(90)) // keep 90 entries max
+            prefs[keyHistoryJson(profileId)] = serializeHistory(history.take(90)) // keep 90 entries max
 
-            prefs.remove(KEY_START_MS)
-            prefs.remove(KEY_TARGET_HOURS)
+            prefs.remove(keyStartMs(profileId))
+            prefs.remove(keyTargetHours(profileId))
         }
     }
 
-    suspend fun cancel() {
+    suspend fun cancel(profileId: String = "default") {
         store.edit { prefs ->
-            prefs.remove(KEY_START_MS)
-            prefs.remove(KEY_TARGET_HOURS)
+            prefs.remove(keyStartMs(profileId))
+            prefs.remove(keyTargetHours(profileId))
         }
     }
 
     // ---- History ----
 
-    val history: Flow<List<FastCompletion>> = storeData.map { prefs ->
-        loadHistory(prefs)
+    fun history(profileId: String = "default"): Flow<List<FastCompletion>> = storeData.map { prefs ->
+        loadHistory(prefs, profileId)
     }.distinctUntilChanged()
 
     /**
@@ -138,7 +145,7 @@ class FastingRepository @Inject constructor(
      * still in progress today shouldn't zero out the streak before the day is
      * even over, so the walk starts from yesterday when today has no completion yet.
      */
-    val streak: Flow<Int> = history.map { list ->
+    fun streak(profileId: String = "default"): Flow<Int> = history(profileId).map { list ->
         if (list.isEmpty()) return@map 0
         // toSortedSet(reverseOrder()) instead of toSortedSet().reversed() - SortedSet#reversed()
         // is only available from API 35, but minSdk here is 26.
@@ -155,8 +162,8 @@ class FastingRepository @Inject constructor(
         streak
     }
 
-    suspend fun clearHistory() {
-        store.edit { prefs -> prefs.remove(KEY_HISTORY_JSON) }
+    suspend fun clearHistory(profileId: String = "default") {
+        store.edit { prefs -> prefs.remove(keyHistoryJson(profileId)) }
     }
 
     /**
@@ -166,40 +173,40 @@ class FastingRepository @Inject constructor(
      * support editing/deleting a single entry. Matched by [FastCompletion.id] now
      * (see that field's own doc comment for the startMs-as-id history this replaces).
      */
-    suspend fun deleteEntry(id: String) {
+    suspend fun deleteEntry(id: String, profileId: String = "default") {
         store.edit { prefs ->
-            val history = loadHistory(prefs).filterNot { it.id == id }
-            prefs[KEY_HISTORY_JSON] = serializeHistory(history)
+            val history = loadHistory(prefs, profileId).filterNot { it.id == id }
+            prefs[keyHistoryJson(profileId)] = serializeHistory(history)
         }
     }
 
     // ---- Backup export/import ----
 
-    /** Current active session (if any) plus history, for BackupRepository. */
+    /** Current active session (if any) plus history for the default profile, for BackupRepository. */
     suspend fun exportForBackup(): Triple<Long?, Int?, List<FastCompletion>> {
         val prefs = storeData.first()
-        val activeStart  = prefs[KEY_START_MS]
-        val activeTarget = prefs[KEY_TARGET_HOURS]
-        return Triple(activeStart, activeTarget, loadHistory(prefs))
+        val activeStart  = prefs[keyStartMs("default")]
+        val activeTarget = prefs[keyTargetHours("default")]
+        return Triple(activeStart, activeTarget, loadHistory(prefs, "default"))
     }
 
-    /** Restores an active session and/or history from a backup. */
+    /** Restores an active session and/or history from a backup, into the default profile. */
     suspend fun importForBackup(activeStartMs: Long?, activeTargetHours: Int?, history: List<FastCompletion>) {
         store.edit { prefs ->
             if (activeStartMs != null && activeTargetHours != null) {
-                prefs[KEY_START_MS] = activeStartMs
-                prefs[KEY_TARGET_HOURS] = activeTargetHours
+                prefs[keyStartMs("default")] = activeStartMs
+                prefs[keyTargetHours("default")] = activeTargetHours
             }
             if (history.isNotEmpty()) {
-                prefs[KEY_HISTORY_JSON] = serializeHistory(history.take(90))
+                prefs[keyHistoryJson("default")] = serializeHistory(history.take(90))
             }
         }
     }
 
     // ---- Serialization (lightweight, no Moshi dep in DataStore layer) ----
 
-    private fun loadHistory(prefs: Preferences): List<FastCompletion> {
-        val raw = prefs[KEY_HISTORY_JSON] ?: return emptyList()
+    private fun loadHistory(prefs: Preferences, profileId: String): List<FastCompletion> {
+        val raw = prefs[keyHistoryJson(profileId)] ?: return emptyList()
         return raw.split("|").mapNotNull { parseEntry(it) }
     }
 

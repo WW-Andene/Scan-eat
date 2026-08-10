@@ -11,11 +11,13 @@ import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.domain.model.ActivityLevel
 import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class HydrationViewModel @Inject constructor(
     private val repo: HydrationRepository,
@@ -24,13 +26,19 @@ class HydrationViewModel @Inject constructor(
     private val activityRepo: ActivityRepository,
 ) : ViewModel() {
 
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real. HydrationRepository is DataStore-backed
+    // and previously had no profileId concept at all - now namespaced per profile.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
     init {
         // R&D audit finding: Hydration was write-only to Health Connect, unlike
         // Weight/Activity which already read back - see HydrationRepository.
         // syncFromHealthConnect's own doc comment. Same best-effort, swallow-
         // on-failure shape as ActivityViewModel's identical init call: runs
         // once per screen open, no-ops if Health Connect isn't available/permitted.
-        viewModelScope.launch { runCatching { repo.syncFromHealthConnect() }.onFailure { e -> if (e is CancellationException) throw e } }
+        viewModelScope.launch { runCatching { repo.syncFromHealthConnect(profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e } }
     }
 
     // LocalDate.now() captured once at construction would keep observing
@@ -44,7 +52,8 @@ class HydrationViewModel @Inject constructor(
         }
     }.distinctUntilChanged()
 
-    val intake: StateFlow<Int> = today.flatMapLatest { date -> repo.observe(date) }
+    val intake: StateFlow<Int> = combine(today, activeProfileId) { date, id -> date to id }
+        .flatMapLatest { (date, id) -> repo.observe(date, id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // In-app language (Settings) can differ from the device locale - the weekly
@@ -76,21 +85,21 @@ class HydrationViewModel @Inject constructor(
     }
 
     /** Null when no override is set - screen shows this to offer "reset to formula". */
-    val customGoalMl: StateFlow<Int?> = repo.customGoalMl
+    val customGoalMl: StateFlow<Int?> = activeProfileId.flatMapLatest { id -> repo.customGoalMl(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val goal: StateFlow<Int> = combine(formulaGoal, repo.customGoalMl) { formula, custom -> custom ?: formula }
+    val goal: StateFlow<Int> = combine(formulaGoal, customGoalMl) { formula, custom -> custom ?: formula }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
 
     fun setCustomGoal(ml: Int?) = viewModelScope.launch {
-        runCatching { repo.setCustomGoalMl(ml) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        runCatching { repo.setCustomGoalMl(ml, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
     // Improvement: consecutive-days streak — counts backwards from yesterday
     // (today is still in progress, so excluding it avoids a misleading "1-day
     // streak" that resets every morning before the first glass).
-    val streak: StateFlow<Int> = combine(intake, goal) { _, goalMl ->
-        val all = repo.exportAll().toMap()
+    val streak: StateFlow<Int> = combine(intake, goal, activeProfileId) { _, goalMl, id -> goalMl to id }.map { (goalMl, id) ->
+        val all = repo.observeAll(id).first().toMap()
         var count = 0
         var date = LocalDate.now().minusDays(1)
         while (true) {
@@ -116,8 +125,8 @@ class HydrationViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // 7 days of intake (date → ml) for the weekly bar chart
-    val weeklyIntake: StateFlow<List<Pair<LocalDate, Int>>> = intake.map {
-        val all = repo.exportAll().toMap()
+    val weeklyIntake: StateFlow<List<Pair<LocalDate, Int>>> = combine(intake, activeProfileId) { _, id -> id }.map { id ->
+        val all = repo.observeAll(id).first().toMap()
         val today = LocalDate.now()
         (6 downTo 0).map { daysBack ->
             val d = today.minusDays(daysBack.toLong())
@@ -139,8 +148,8 @@ class HydrationViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
-    fun addGlass()    = viewModelScope.launch { runCatching { repo.addGlass() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    fun removeGlass() = viewModelScope.launch { runCatching { repo.removeGlass() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun addGlass()    = viewModelScope.launch { runCatching { repo.addGlass(profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun removeGlass() = viewModelScope.launch { runCatching { repo.removeGlass(profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
 
     /**
      * Per-day log history - hydration is stored as one running total per day
@@ -151,19 +160,19 @@ class HydrationViewModel @Inject constructor(
      * Previously there was no way to see or fix a past day at all - the only
      * remedy for a mistaken tap was removeGlass() on *today's* running count.
      */
-    val history: StateFlow<List<Pair<LocalDate, Int>>> = intake.map {
-        repo.exportAll().filter { (_, ml) -> ml > 0 }.sortedByDescending { (date, _) -> date }
+    val history: StateFlow<List<Pair<LocalDate, Int>>> = combine(intake, activeProfileId) { _, id -> id }.map { id ->
+        repo.observeAll(id).first().filter { (_, ml) -> ml > 0 }.sortedByDescending { (date, _) -> date }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Corrects a whole day's total - see [history]'s own doc comment on why this
      *  is day-level, not per-glass. */
     fun editDay(date: LocalDate, ml: Int) = viewModelScope.launch {
-        runCatching { repo.set(date, ml) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        runCatching { repo.set(date, ml, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
     /** Clears a day's total back to zero (removes it from [history]). */
     fun deleteDay(date: LocalDate) = viewModelScope.launch {
-        runCatching { repo.set(date, 0) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        runCatching { repo.set(date, 0, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
     // Same CsvExportReady-then-SAF-picker split as ExpensesViewModel's own CSV

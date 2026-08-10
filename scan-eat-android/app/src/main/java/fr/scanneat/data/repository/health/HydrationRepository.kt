@@ -47,7 +47,13 @@ class HydrationRepository @Inject constructor(
         if (e is IOException) emit(emptyPreferences()) else throw e
     }
 
-    private fun key(date: LocalDate) = intPreferencesKey("hyd_${date}")
+    // R&D audit finding: hydration was a DataStore singleton with no profileId
+    // concept at all, unlike every Room-backed tracker. "default" keeps the
+    // exact same key shape pre-existing installs already use (zero migration);
+    // any other profile gets its own namespaced key so its entries can never
+    // collide with (or be read/pruned as) another profile's.
+    private fun keyPrefix(profileId: String) = if (profileId == "default") "hyd_" else "hydp_${profileId}_"
+    private fun key(date: LocalDate, profileId: String = "default") = intPreferencesKey("${keyPrefix(profileId)}${date}")
 
     private val KEY_PREFIX = "hyd_"
     private val PRUNE_KEEP_DAYS = 90L
@@ -56,14 +62,16 @@ class HydrationRepository @Inject constructor(
     // line - Hydration's goal was purely formula-derived (sex/activity/health
     // conditions) with no way to override it, e.g. for a doctor-recommended
     // target that doesn't match the EFSA formula.
-    private val KEY_CUSTOM_GOAL = intPreferencesKey("hyd_custom_goal_ml")
+    private fun customGoalKey(profileId: String) =
+        intPreferencesKey(if (profileId == "default") "hyd_custom_goal_ml" else "hydp_${profileId}_custom_goal_ml")
 
     /** User-set override for the formula-derived goal, if any. Null means "use the formula". */
-    val customGoalMl: Flow<Int?> = storeData.map { it[KEY_CUSTOM_GOAL] }.distinctUntilChanged()
+    fun customGoalMl(profileId: String = "default"): Flow<Int?> = storeData.map { it[customGoalKey(profileId)] }.distinctUntilChanged()
 
     /** Sets (or clears, when [ml] is null) the custom goal override. */
-    suspend fun setCustomGoalMl(ml: Int?) {
-        store.edit { prefs -> if (ml == null) prefs.remove(KEY_CUSTOM_GOAL) else prefs[KEY_CUSTOM_GOAL] = ml.coerceAtLeast(1) }
+    suspend fun setCustomGoalMl(ml: Int?, profileId: String = "default") {
+        val key = customGoalKey(profileId)
+        store.edit { prefs -> if (ml == null) prefs.remove(key) else prefs[key] = ml.coerceAtLeast(1) }
     }
 
     /**
@@ -72,20 +80,21 @@ class HydrationRepository @Inject constructor(
      * whole preferences file into memory on first access, so years of use means
      * thousands of stale keys parsed on every app start.
      */
-    private fun prune(prefs: MutablePreferences) {
+    private fun prune(prefs: MutablePreferences, profileId: String) {
         val cutoff = LocalDate.now().minusDays(PRUNE_KEEP_DAYS)
+        val prefix = keyPrefix(profileId)
         // Materialize before mutating — removing from prefs while iterating its
         // own live key view risks a ConcurrentModificationException.
         val staleKeys = prefs.asMap().keys.filter { pref ->
-            pref.name.startsWith(KEY_PREFIX) &&
-                runCatching { LocalDate.parse(pref.name.removePrefix(KEY_PREFIX)) }.getOrNull()?.isBefore(cutoff) == true
+            pref.name.startsWith(prefix) &&
+                runCatching { LocalDate.parse(pref.name.removePrefix(prefix)) }.getOrNull()?.isBefore(cutoff) == true
         }
         for (pref in staleKeys) prefs.remove(pref)
     }
 
     /** Observe intake for a given date in mL. Emits 0 when none. */
-    fun observe(date: LocalDate): Flow<Int> =
-        storeData.map { prefs -> prefs[key(date)] ?: 0 }.distinctUntilChanged()
+    fun observe(date: LocalDate, profileId: String = "default"): Flow<Int> =
+        storeData.map { prefs -> prefs[key(date, profileId)] ?: 0 }.distinctUntilChanged()
 
     /**
      * Add (or subtract) mL for a date. Clamps to ≥ 0.
@@ -97,21 +106,21 @@ class HydrationRepository @Inject constructor(
      * so mirroring a past-dated correction as "now" would misrepresent when it
      * was actually drunk.
      */
-    suspend fun add(date: LocalDate, ml: Int) {
+    suspend fun add(date: LocalDate, ml: Int, profileId: String = "default") {
         store.edit { prefs ->
-            val current = prefs[key(date)] ?: 0
+            val current = prefs[key(date, profileId)] ?: 0
             val next = (current + ml).coerceAtLeast(0)
-            prefs[key(date)] = next
-            prune(prefs)
+            prefs[key(date, profileId)] = next
+            prune(prefs, profileId)
         }
         if (ml > 0 && date == LocalDate.now()) healthConnect.writeHydrationDelta(ml)
     }
 
     /** Set intake directly (for edit flows). */
-    suspend fun set(date: LocalDate, ml: Int) {
+    suspend fun set(date: LocalDate, ml: Int, profileId: String = "default") {
         store.edit { prefs ->
-            prefs[key(date)] = ml.coerceAtLeast(0)
-            prune(prefs)
+            prefs[key(date, profileId)] = ml.coerceAtLeast(0)
+            prune(prefs, profileId)
         }
     }
 
@@ -124,18 +133,18 @@ class HydrationRepository @Inject constructor(
      * readExternalHydrationTotalMl's own doc comment on why that's safely
      * idempotent instead of double-counting on repeat syncs.
      */
-    suspend fun syncFromHealthConnect(date: LocalDate = LocalDate.now()) {
+    suspend fun syncFromHealthConnect(date: LocalDate = LocalDate.now(), profileId: String = "default") {
         val external = healthConnect.readExternalHydrationTotalMl(date)
         if (external <= 0) return
-        val current = observe(date).first()
-        if (external > current) set(date, external)
+        val current = observe(date, profileId).first()
+        if (external > current) set(date, external, profileId)
     }
 
     /** Convenience: +1 glass. */
-    suspend fun addGlass(date: LocalDate = LocalDate.now()) = add(date, HYD_GLASS_ML)
+    suspend fun addGlass(date: LocalDate = LocalDate.now(), profileId: String = "default") = add(date, HYD_GLASS_ML, profileId)
 
     /** Convenience: −1 glass. */
-    suspend fun removeGlass(date: LocalDate = LocalDate.now()) = add(date, -HYD_GLASS_ML)
+    suspend fun removeGlass(date: LocalDate = LocalDate.now(), profileId: String = "default") = add(date, -HYD_GLASS_ML, profileId)
 
     /**
      * Derive daily water goal from sex + activity level via BiolismEngine's
@@ -179,16 +188,22 @@ class HydrationRepository @Inject constructor(
     /** Reactive equivalent of [exportAll] — for screens (e.g. the Evolution tab)
      * that must reflect hydration logged elsewhere while they stay open, unlike
      * a one-shot suspend read taken once at construction. */
-    fun observeAll(): Flow<List<Pair<LocalDate, Int>>> = storeData.map { prefs ->
+    // profileId defaults to "default" - BackupRepository's exportAll/importAll
+    // (below) call this with no args, so their behavior/format is unchanged
+    // and stays scoped to the default profile (multi-profile backup is a
+    // separate, larger schema change, not covered by this profileId threading
+    // pass). EvolutionViewModel passes the real active profile id.
+    fun observeAll(profileId: String = "default"): Flow<List<Pair<LocalDate, Int>>> = storeData.map { prefs ->
+        val prefix = keyPrefix(profileId)
         prefs.asMap().entries.mapNotNull { (pref, value) ->
-            if (!pref.name.startsWith(KEY_PREFIX)) return@mapNotNull null
-            val date = runCatching { LocalDate.parse(pref.name.removePrefix(KEY_PREFIX)) }.getOrNull() ?: return@mapNotNull null
+            if (!pref.name.startsWith(prefix)) return@mapNotNull null
+            val date = runCatching { LocalDate.parse(pref.name.removePrefix(prefix)) }.getOrNull() ?: return@mapNotNull null
             val ml = value as? Int ?: return@mapNotNull null
             date to ml
         }
     }
 
-    /** All (date, mL) entries currently stored, for BackupRepository. */
+    /** All (date, mL) entries currently stored for the default profile, for BackupRepository. */
     suspend fun exportAll(): List<Pair<LocalDate, Int>> = observeAll().first()
 
     /** Restores entries from a backup — overwrites any existing value for the same date. */

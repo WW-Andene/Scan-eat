@@ -268,7 +268,7 @@ class MedicationViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 repo.logTaken(medication, profileId = activeProfileId.value)
-                hydrationRepo.addGlass()
+                hydrationRepo.addGlass(profileId = activeProfileId.value)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

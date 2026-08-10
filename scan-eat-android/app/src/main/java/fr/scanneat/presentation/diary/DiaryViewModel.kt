@@ -251,12 +251,12 @@ class DiaryViewModel @Inject constructor(
     val isToday: Flow<Boolean> = combine(_selectedDate, currentDate) { selected, today -> selected == today }
 
     // ── Day notes ─────────────────────────────────────────────────────────────
-    val dayNote: Flow<String> = _selectedDate.flatMapLatest { date ->
-        notesRepo.observe(date)
+    val dayNote: Flow<String> = combine(_selectedDate, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
+        notesRepo.observe(date, id)
     }
 
     fun saveNote(text: String) {
-        viewModelScope.launch { runCatching { notesRepo.set(_selectedDate.value, text) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { notesRepo.set(_selectedDate.value, text, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     // ── Manual add: search + log ─────────────────────────────────────────────

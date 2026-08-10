@@ -87,6 +87,13 @@ class CalendarViewModel @Inject constructor(
     prefs: UserPreferences,
 ) : ViewModel() {
 
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real. FastingRepository/DayNotesRepository
+    // are DataStore-backed and previously had no profileId concept at all -
+    // now namespaced per profile alongside HydrationRepository.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
     private val _month = MutableStateFlow(YearMonth.now())
     val month: StateFlow<YearMonth> = _month.asStateFlow()
 
@@ -132,19 +139,19 @@ class CalendarViewModel @Inject constructor(
      * on the same month refreshes its dots immediately instead of only on
      * the next month change.
      */
-    val markers: StateFlow<Map<LocalDate, Set<CalendarSource>>> = _month.flatMapLatest { m ->
+    val markers: StateFlow<Map<LocalDate, Set<CalendarSource>>> = combine(_month, activeProfileId) { m, id -> m to id }.flatMapLatest { (m, id) ->
         val start = m.atDay(1)
         val end = m.atEndOfMonth()
         combine(
-            consumptionRepo.observeRange(start, end),
-            weightRepo.observeRange(start, end),
-            fastingRepo.history,
-            activityRepo.observeRange(start, end),
+            consumptionRepo.observeRange(start, end, id),
+            weightRepo.observeRange(start, end, id),
+            fastingRepo.history(id),
+            activityRepo.observeRange(start, end, id),
             // Was a one-shot flow{ emit(getLogRange(...)) } - unlike activityRepo.observeRange
             // above (a real Flow), medication dots never refreshed while Calendar stayed
             // open on the same month; dayDetail elsewhere in this file already correctly
             // uses medicationRepo.observeLogByDate for the same reason.
-            medicationRepo.observeLogRange(start, end),
+            medicationRepo.observeLogRange(start, end, id),
         ) { diaryEntries, weights, fastHistory, activities, medicationLog ->
             val out = mutableMapOf<LocalDate, MutableSet<CalendarSource>>()
             fun mark(date: LocalDate, source: CalendarSource) {
@@ -162,10 +169,10 @@ class CalendarViewModel @Inject constructor(
         // that a given day even had a note, so finding one meant opening Diary and
         // paging through days by hand. Nested rather than folded into the 5-arg
         // combine above since kotlinx.coroutines' typed combine() overloads stop at 5.
-        }.combine(flow { emit(dayNotesRepo.listDates()) }) { out, noteDates ->
+        }.combine(flow { emit(dayNotesRepo.listDates(id)) }) { out, noteDates ->
             noteDates.filter { it in start..end }.forEach { d -> out.getOrPut(d) { mutableSetOf() } += CalendarSource.NOTE }
             out
-        }.combine(priceRepo.observeRange(start, end)) { out, expenseEntries ->
+        }.combine(priceRepo.observeRange(start, end, id)) { out, expenseEntries ->
             expenseEntries.forEach { entry ->
                 if (entry.date in start..end) out.getOrPut(entry.date) { mutableSetOf() } += CalendarSource.EXPENSES
             }
@@ -176,13 +183,13 @@ class CalendarViewModel @Inject constructor(
     // New: per-week summaries for the visible month — aggregated kcal, active minutes,
     // hydration, and active days. Previously the calendar showed only per-day dots with
     // no way to see a week-level roll-up without mentally summing seven day panels.
-    val weekSummaries: StateFlow<Map<LocalDate, WeekSummary>> = _month.flatMapLatest { m ->
+    val weekSummaries: StateFlow<Map<LocalDate, WeekSummary>> = combine(_month, activeProfileId) { m, id -> m to id }.flatMapLatest { (m, id) ->
         val start = m.atDay(1)
         val end = m.atEndOfMonth()
         combine(
-            consumptionRepo.observeRange(start, end),
-            activityRepo.observeRange(start, end),
-            flow { emit(hydrationRepo.exportAll().toMap()) },
+            consumptionRepo.observeRange(start, end, id),
+            activityRepo.observeRange(start, end, id),
+            flow { emit(hydrationRepo.observeAll(id).first().toMap()) },
             // markers already correctly tracks all six sources (meals, weight,
             // activity, hydration, fasting, medication) - activeDays below
             // previously recomputed a narrower 2-source subset from scratch
@@ -225,13 +232,13 @@ class CalendarViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /** Aggregated detail for [selectedDate], reactive to any of the eight sources changing. */
-    val dayDetail: StateFlow<CalendarDayDetail> = _selectedDate.flatMapLatest { date ->
+    val dayDetail: StateFlow<CalendarDayDetail> = combine(_selectedDate, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
         combine(
-            consumptionRepo.observeDay(date),
-            weightRepo.observeByDate(date),
-            activityRepo.observeByDate(date),
-            hydrationRepo.observe(date),
-            fastingRepo.history,
+            consumptionRepo.observeDay(date, id),
+            weightRepo.observeByDate(date, id),
+            activityRepo.observeByDate(date, id),
+            hydrationRepo.observe(date, id),
+            fastingRepo.history(id),
         ) { daily, weightEntry, activities, hydrationMl, fastHistory ->
             CalendarDayDetail(
                 date           = date,
@@ -242,11 +249,11 @@ class CalendarViewModel @Inject constructor(
                 hydrationMl    = hydrationMl,
                 fastCompletion = fastHistory.find { it.date == date.toString() },
             )
-        }.combine(medicationRepo.observeLogByDate(date)) { detail, medsTaken ->
+        }.combine(medicationRepo.observeLogByDate(date, id)) { detail, medsTaken ->
             detail.copy(medicationsTaken = medsTaken)
-        }.combine(dayNotesRepo.observe(date)) { detail, note ->
+        }.combine(dayNotesRepo.observe(date, id)) { detail, note ->
             detail.copy(note = note)
-        }.combine(priceRepo.observeRange(date, date)) { detail, expenseEntries ->
+        }.combine(priceRepo.observeRange(date, date, id)) { detail, expenseEntries ->
             detail.copy(expensesTotal = expenseEntries.sumOf { it.priceEuros })
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalendarDayDetail(LocalDate.now()))

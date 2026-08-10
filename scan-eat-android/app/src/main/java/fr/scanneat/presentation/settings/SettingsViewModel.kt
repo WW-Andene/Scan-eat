@@ -307,7 +307,7 @@ class SettingsViewModel @Inject constructor(
 
     /** clearHistory() was fully implemented with zero callers — FastingScreen shows the full
      *  history/streak but had no way to reset it. Mirrors clearScanHistory()'s reset entry point. */
-    fun clearFastingHistory() = guardedLaunch { fastingRepo.clearHistory() }
+    fun clearFastingHistory() = guardedLaunch { fastingRepo.clearHistory(prefs.activeProfileId.first()) }
 
     /**
      * Full wipe — the exact same OS-level operation as Settings > App > Clear

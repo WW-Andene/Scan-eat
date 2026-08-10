@@ -125,7 +125,7 @@ class TodayWidget : GlanceAppWidget() {
         // identical fix for the same bug).
         val loggedDates = consumptionRepo.getAllLoggedDates(profile.id)
         val streak = logStreakDays(loggedDates, today)
-        val hydrationMl = hydrationRepo.observe(today).first()
+        val hydrationMl = hydrationRepo.observe(today, profile.id).first()
         // Same taken/active join DashboardViewModel.otherTrackers already does for its
         // "meds: taken/active" glance card - the widget just never surfaced it.
         val activeMeds = medicationRepo.observeAll(profile.id).first().filter { it.active }
