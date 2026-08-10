@@ -75,6 +75,16 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     // 4. Hidden sugars (+2)
     val sugarAliases = mutableSetOf<String>()
     for (ing in product.ingredients) {
+        // Additive ingredients excluded - AdditivesDb.kt/AdditivesTier2.kt
+        // model "caramel" (E150/E150a-d) explicitly as a COLORANT, not a
+        // sweetener, but HIDDEN_SUGAR_NAMES' bare "caramel" entry matched it
+        // anyway since this loop (unlike the recognizable-ingredient check
+        // just above, which filters via findAdditive(...) == null) never
+        // excluded additive ingredients. A cola or dark spirit listing
+        // "colorant : caramel" was silently counted as a sugar source
+        // alongside real syrups, inflating the >=2-sources deduction below
+        // for an ingredient that contributes zero sugar.
+        if (findAdditive(ing.eNumber, ing.name, ing.category) != null) continue
         val n = ing.name.lowercase()
         // Longest matching alias wins, not every matching alias - HIDDEN_SUGAR_NAMES
         // has nested substrings ("glucose" and "sirop" both sit inside "sirop de

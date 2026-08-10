@@ -50,6 +50,11 @@ internal val HIDDEN_SUGAR_NAMES = listOf(
     "sirop de glucose","sirop de fructose","sirop de maïs","dextrose",
     "maltodextrine","saccharose","fructose","galactose","glucose",
     "caramel","jus de canne","concentré de jus","purée de fruits","sirop",
+    // Mirrors the identical addition on the Android side (see Scoring Drift
+    // Check) - closes the gap for English-labeled products with no
+    // "sirop"/"sucre" prefix.
+    "agave","sirop d'agave","sirop d'érable","maple syrup","sirop de riz",
+    "rice syrup","sirop de malt","malt syrup","sucre inverti","invert sugar",
 )
 
 internal val UPF_MARKER_PATTERNS = listOf(

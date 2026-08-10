@@ -47,6 +47,13 @@ internal val HIDDEN_SUGAR_NAMES = listOf(
     "sirop de glucose","sirop de fructose","sirop de maïs","dextrose",
     "maltodextrine","saccharose","fructose","galactose","glucose",
     "caramel","jus de canne","concentré de jus","purée de fruits","sirop",
+    // Added — same "sugar wearing a different name" euphemism class already
+    // targeted above (e.g. "jus de canne" for cane-juice-as-sugar), but these
+    // were conspicuously absent. Bare "sirop"/"sucre" above already catches
+    // their French forms via substring/prefix match, so these mainly close
+    // the gap for English-labeled products with no "sirop"/"sucre" prefix.
+    "agave","sirop d'agave","sirop d'érable","maple syrup","sirop de riz",
+    "rice syrup","sirop de malt","malt syrup","sucre inverti","invert sugar",
 )
 
 internal val UPF_MARKER_PATTERNS = listOf(
