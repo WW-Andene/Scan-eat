@@ -48,6 +48,7 @@ internal fun ProductCategory.displayLabel(): String = stringResource(
         ProductCategory.BEVERAGE_WATER    -> R.string.category_beverage_water
         ProductCategory.ALCOHOLIC_BEVERAGE -> R.string.category_alcoholic_beverage
         ProductCategory.CONDIMENT         -> R.string.category_condiment
+        ProductCategory.SPREAD_SWEET      -> R.string.category_spread_sweet
         ProductCategory.OIL_FAT           -> R.string.category_oil_fat
         ProductCategory.OTHER             -> R.string.category_other
     },

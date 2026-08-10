@@ -905,6 +905,7 @@
     <string name="category_beverage_water">Eau</string>
     <string name="category_alcoholic_beverage">Boisson alcoolisée</string>
     <string name="category_condiment">Condiments</string>
+    <string name="category_spread_sweet">Miel &amp; confitures</string>
     <string name="category_oil_fat">Huiles &amp; matières grasses</string>
     <string name="category_other">Autres</string>
     <string name="expenses_no_budget_hint">Définissez un objectif hebdomadaire pour suivre votre budget</string>
