@@ -117,4 +117,34 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun clearSaved() { _saved.value = false }
+
+    // R&D audit finding: profileId was threaded through every tracker
+    // repository but nothing in the app ever actually created or switched a
+    // second one - see UserPreferences' own doc comment on the Profile
+    // section for how this real storage now works.
+    val profileList: StateFlow<List<Profile>> = prefs.profileList
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    fun switchProfile(id: String) {
+        guardedLaunch { prefs.setActiveProfileId(id) }
+    }
+
+    fun createProfile(name: String) {
+        if (name.isBlank()) return
+        guardedLaunch { prefs.createProfile(name.trim()) }
+    }
+
+    fun renameProfile(id: String, name: String) {
+        if (name.isBlank()) return
+        guardedLaunch { prefs.renameProfile(id, name.trim()) }
+    }
+
+    /** [id] must not be "default" - see UserPreferences.deleteProfile's own
+     *  doc comment on why that one can't be removed. */
+    fun deleteProfile(id: String) {
+        if (id == "default") return
+        guardedLaunch { prefs.deleteProfile(id) }
+    }
 }

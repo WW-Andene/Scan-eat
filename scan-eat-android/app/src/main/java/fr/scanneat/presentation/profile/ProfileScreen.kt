@@ -31,6 +31,7 @@ import fr.scanneat.presentation.profile.components.ProfileBodySection
 import fr.scanneat.presentation.profile.components.ProfileMeasurementsSection
 import fr.scanneat.presentation.profile.components.ProfileMetricsPreviewCard
 import fr.scanneat.presentation.profile.components.ProfileSection
+import fr.scanneat.presentation.profile.components.ProfileSwitcherCard
 import fr.scanneat.presentation.profile.components.SexSelector
 import fr.scanneat.presentation.onboarding.enumSaver
 import fr.scanneat.presentation.ui.theme.*
@@ -58,6 +59,8 @@ fun ProfileScreen(
     val bmiCat = viewModel.bmiCat.collectAsStateWithLifecycle()
     val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
     val profileLoaded = viewModel.profileLoaded.collectAsStateWithLifecycle()
+    val profileList = viewModel.profileList.collectAsStateWithLifecycle()
+    val activeProfileId = viewModel.activeProfileId.collectAsStateWithLifecycle()
 
     // save()'s DataStore writes previously ran completely unguarded - see
     // ProfileViewModel.actionFailed's own comment. A failed write now surfaces
@@ -124,6 +127,11 @@ fun ProfileScreen(
                 // (e.g. a very tall/heavy user) should still save, just not corrupt math.
                 viewModel.save(
                     profile = Profile(
+                        // R&D audit finding: this previously never passed id at all,
+                        // so it defaulted to Profile()'s "default" every time -
+                        // editing while on a switched-to profile silently overwrote
+                        // "default"'s data instead of the profile actually being edited.
+                        id            = profile.value.id,
                         name          = name.trim(),
                         sex           = sex,
                         ageYears      = age.toIntOrNull()?.coerceIn(1, 120),
@@ -173,6 +181,18 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
+
+            // ---- Profile switcher (R&D audit finding: profileId was dead
+            // scaffolding until this) ----
+            item {
+                ProfileSwitcherCard(
+                    profiles = profileList.value,
+                    activeId = activeProfileId.value,
+                    onSwitch = { viewModel.switchProfile(it) },
+                    onCreate = { viewModel.createProfile(it) },
+                    onDelete = { viewModel.deleteProfile(it) },
+                )
+            }
 
             // ---- BMI / TDEE preview ----
             if (bmi.value != null || tdee.value != null || tdeeGoal.value != null) {

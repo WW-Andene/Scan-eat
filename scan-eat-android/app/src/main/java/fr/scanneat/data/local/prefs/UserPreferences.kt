@@ -9,6 +9,7 @@ import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.io.IOException
@@ -58,6 +59,13 @@ class UserPreferences @Inject constructor(
         val KEY_ACTIVITY_BEST_STREAK = intPreferencesKey("activity_best_streak_days")
         val KEY_ACTIVITY_WEEKLY_GOAL_MIN = intPreferencesKey("activity_weekly_goal_minutes")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
+        // R&D audit finding: profileId was threaded through every tracker
+        // repository (Diary/Weight/Activity/...) but nothing in the app ever
+        // created or switched a second one - pure dead scaffolding. CSV of
+        // every profile id besides "default", which always exists implicitly
+        // (it's this app's original single-profile identity, never explicitly
+        // registered) - see profileIds' own doc comment.
+        val KEY_PROFILE_IDS          = stringPreferencesKey("profile_ids")
         val KEY_BUDGET_WEEKLY        = floatPreferencesKey("budget_weekly_euros")
         val KEY_BUDGET_PER_MEAL      = floatPreferencesKey("budget_per_meal_euros")
         val KEY_BUDGET_DAILY         = floatPreferencesKey("budget_daily_euros")
@@ -218,24 +226,119 @@ class UserPreferences @Inject constructor(
     suspend fun setIsPremium(v: Boolean) = store.edit { it[KEY_IS_PREMIUM] = v }
 
     // ---- Profile ----
+    //
+    // R&D audit finding, now real: profileId was pervasive scaffolding (every
+    // tracker repository accepted one) but the app only ever had ONE flat set
+    // of profile_* keys, so nothing could actually switch. Each profile's
+    // data now lives under its own id-namespaced keys (profileKey/
+    // profileIntKey/profileFloatKey/profileBoolKey below); "default" - the
+    // app's original single-profile identity - transparently falls back to
+    // reading the legacy flat KEY_PROFILE_* keys until it's ever explicitly
+    // saved under its own namespaced keys (see readProfile), so an existing
+    // single-profile installation loses nothing and needs no migration step.
 
-    val profile: Flow<Profile> = storeData.map { p ->
-        Profile(
-            id             = p[KEY_ACTIVE_PROFILE] ?: "default",
-            name           = p[KEY_PROFILE_NAME]   ?: "",
-            sex            = Sex.values().firstOrNull { it.name == p[KEY_PROFILE_SEX] } ?: Sex.NOT_SPECIFIED,
-            ageYears       = p[KEY_PROFILE_AGE],
-            weightKg       = p[KEY_PROFILE_WEIGHT]?.toDouble(),
-            heightCm       = p[KEY_PROFILE_HEIGHT]?.toDouble(),
-            goalWeightKg   = p[KEY_PROFILE_GOAL_WEIGHT]?.toDouble(),
-            diet           = DietKey.entries.firstOrNull { it.key == p[KEY_PROFILE_DIET] } ?: DietKey.NONE,
-            activityLevel  = ActivityLevel.values().firstOrNull { it.name == p[KEY_PROFILE_ACTIVITY] } ?: ActivityLevel.MODERATELY_ACTIVE,
-            goal           = Goal.values().firstOrNull { it.name == p[KEY_PROFILE_GOAL] } ?: Goal.MAINTAIN,
-            isMenstruating = p[KEY_PROFILE_MENSTRUATING] ?: false,
-            allergens      = decryptCsvSet(p[KEY_PROFILE_ALLERGENS]),
-            healthConditions = decryptCsvSet(p[KEY_PROFILE_CONDITIONS]),
-        )
-    }.distinctUntilChanged()
+    private fun profileKey(id: String, field: String) = stringPreferencesKey("profile_${id}_$field")
+    private fun profileIntKey(id: String, field: String) = intPreferencesKey("profile_${id}_$field")
+    private fun profileFloatKey(id: String, field: String) = floatPreferencesKey("profile_${id}_$field")
+    private fun profileBoolKey(id: String, field: String) = booleanPreferencesKey("profile_${id}_$field")
+
+    private fun readProfile(p: Preferences, id: String): Profile {
+        val hasOwnData = p[profileKey(id, "sex")] != null
+        return when {
+            hasOwnData -> Profile(
+                id             = id,
+                name           = p[profileKey(id, "name")] ?: "",
+                sex            = Sex.values().firstOrNull { it.name == p[profileKey(id, "sex")] } ?: Sex.NOT_SPECIFIED,
+                ageYears       = p[profileIntKey(id, "age")],
+                weightKg       = p[profileFloatKey(id, "weight")]?.toDouble(),
+                heightCm       = p[profileFloatKey(id, "height")]?.toDouble(),
+                goalWeightKg   = p[profileFloatKey(id, "goal_weight")]?.toDouble(),
+                diet           = DietKey.entries.firstOrNull { it.key == p[profileKey(id, "diet")] } ?: DietKey.NONE,
+                activityLevel  = ActivityLevel.values().firstOrNull { it.name == p[profileKey(id, "activity")] } ?: ActivityLevel.MODERATELY_ACTIVE,
+                goal           = Goal.values().firstOrNull { it.name == p[profileKey(id, "goal")] } ?: Goal.MAINTAIN,
+                isMenstruating = p[profileBoolKey(id, "menstruating")] ?: false,
+                allergens      = decryptCsvSet(p[profileKey(id, "allergens")]),
+                healthConditions = decryptCsvSet(p[profileKey(id, "conditions")]),
+            )
+            // Legacy fallback — the only profile storage that existed before
+            // multi-profile support, read as-is until "default" is ever saved
+            // under its own namespaced keys (saveProfile below always writes
+            // the new-style keys, so this branch stops being reached the
+            // first time the user opens and saves Profile).
+            id == "default" -> Profile(
+                id             = "default",
+                name           = p[KEY_PROFILE_NAME]   ?: "",
+                sex            = Sex.values().firstOrNull { it.name == p[KEY_PROFILE_SEX] } ?: Sex.NOT_SPECIFIED,
+                ageYears       = p[KEY_PROFILE_AGE],
+                weightKg       = p[KEY_PROFILE_WEIGHT]?.toDouble(),
+                heightCm       = p[KEY_PROFILE_HEIGHT]?.toDouble(),
+                goalWeightKg   = p[KEY_PROFILE_GOAL_WEIGHT]?.toDouble(),
+                diet           = DietKey.entries.firstOrNull { it.key == p[KEY_PROFILE_DIET] } ?: DietKey.NONE,
+                activityLevel  = ActivityLevel.values().firstOrNull { it.name == p[KEY_PROFILE_ACTIVITY] } ?: ActivityLevel.MODERATELY_ACTIVE,
+                goal           = Goal.values().firstOrNull { it.name == p[KEY_PROFILE_GOAL] } ?: Goal.MAINTAIN,
+                isMenstruating = p[KEY_PROFILE_MENSTRUATING] ?: false,
+                allergens      = decryptCsvSet(p[KEY_PROFILE_ALLERGENS]),
+                healthConditions = decryptCsvSet(p[KEY_PROFILE_CONDITIONS]),
+            )
+            else -> Profile(id = id) // freshly created, not yet saved
+        }
+    }
+
+    private fun storedProfileIds(p: Preferences): List<String> =
+        p[KEY_PROFILE_IDS]?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
+    val profile: Flow<Profile> = storeData.map { p -> readProfile(p, p[KEY_ACTIVE_PROFILE] ?: "default") }.distinctUntilChanged()
+
+    val activeProfileId: Flow<String> = storeData.map { it[KEY_ACTIVE_PROFILE] ?: "default" }.distinctUntilChanged()
+
+    /** Every profile id that exists, "default" always first — the id every
+     *  tracker repository's own `profileId: String = "default"` default
+     *  parameter already assumes. */
+    val profileIds: Flow<List<String>> = storeData.map { p -> (listOf("default") + storedProfileIds(p)).distinct() }.distinctUntilChanged()
+
+    /** Full Profile for every registered id, for the profile-switcher UI. */
+    val profileList: Flow<List<Profile>> = combine(profileIds, storeData) { ids, p -> ids.map { id -> readProfile(p, id) } }.distinctUntilChanged()
+
+    suspend fun setActiveProfileId(id: String) = store.edit { it[KEY_ACTIVE_PROFILE] = id }
+
+    /** Creates a new, empty profile and registers it (does not switch to it -
+     *  the caller decides, same as every other explicit-confirm write in this
+     *  app). Returns the generated id. */
+    suspend fun createProfile(name: String): String {
+        val id = java.util.UUID.randomUUID().toString()
+        store.edit { p ->
+            p[KEY_PROFILE_IDS] = (storedProfileIds(p) + id).joinToString(",")
+            p[profileKey(id, "name")] = name
+            // Marks this id as having "own data" (see readProfile's hasOwnData
+            // check) so it never falls into the id=="default" legacy branch,
+            // which only applies to the literal "default" id anyway - written
+            // for consistency and so an immediate profileList read shows a
+            // real Sex value rather than one only implied by the field's absence.
+            p[profileKey(id, "sex")] = Sex.NOT_SPECIFIED.name
+        }
+        return id
+    }
+
+    /** Removes [id] from the switcher and its own stored data. Never touches
+     *  tracker rows (Diary/Weight/Activity/... still tagged with this
+     *  profileId) - same conservative-deletion stance the rest of this app
+     *  takes elsewhere (e.g. a removed health-condition key stays stored,
+     *  just unread) rather than risking silently destroying logged history.
+     *  "default" can't be deleted - it always exists implicitly. Switches the
+     *  active profile back to "default" first if [id] was the active one. */
+    suspend fun deleteProfile(id: String) {
+        if (id == "default") return
+        store.edit { p ->
+            p[KEY_PROFILE_IDS] = storedProfileIds(p).filter { it != id }.joinToString(",")
+            listOf("name", "sex", "diet", "activity", "goal", "allergens", "conditions").forEach { p.remove(profileKey(id, it)) }
+            p.remove(profileIntKey(id, "age"))
+            p.remove(profileFloatKey(id, "weight"))
+            p.remove(profileFloatKey(id, "height"))
+            p.remove(profileFloatKey(id, "goal_weight"))
+            p.remove(profileBoolKey(id, "menstruating"))
+            if (p[KEY_ACTIVE_PROFILE] == id) p[KEY_ACTIVE_PROFILE] = "default"
+        }
+    }
 
     // Allergens and health conditions (diabetes, pregnancy, kidney disease,
     // allergies, ...) are real medical data, not incidental settings — stored
@@ -252,26 +355,32 @@ class UserPreferences @Inject constructor(
     }
 
     suspend fun saveProfile(profile: Profile) = store.edit { p ->
-        p[KEY_ACTIVE_PROFILE]       = profile.id
-        p[KEY_PROFILE_NAME]         = profile.name
-        p[KEY_PROFILE_SEX]          = profile.sex.name
+        val id = profile.id
+        p[KEY_ACTIVE_PROFILE] = id
+        if (id != "default" && id !in storedProfileIds(p)) p[KEY_PROFILE_IDS] = (storedProfileIds(p) + id).joinToString(",")
+        p[profileKey(id, "name")] = profile.name
+        p[profileKey(id, "sex")]  = profile.sex.name
         // Clearing a field must actually remove the stored value — leaving the old
         // one behind made a blanked-out age/weight/height/goal silently reappear
         // the next time Profile was opened.
-        profile.ageYears?.let      { p[KEY_PROFILE_AGE]         = it } ?: p.remove(KEY_PROFILE_AGE)
-        profile.weightKg?.let      { p[KEY_PROFILE_WEIGHT]      = it.toFloat() } ?: p.remove(KEY_PROFILE_WEIGHT)
-        profile.heightCm?.let      { p[KEY_PROFILE_HEIGHT]      = it.toFloat() } ?: p.remove(KEY_PROFILE_HEIGHT)
-        profile.goalWeightKg?.let  { p[KEY_PROFILE_GOAL_WEIGHT] = it.toFloat() } ?: p.remove(KEY_PROFILE_GOAL_WEIGHT)
-        p[KEY_PROFILE_DIET]         = profile.diet.key
-        p[KEY_PROFILE_ACTIVITY]     = profile.activityLevel.name
-        p[KEY_PROFILE_GOAL]         = profile.goal.name
-        p[KEY_PROFILE_MENSTRUATING] = profile.isMenstruating
-        p[KEY_PROFILE_ALLERGENS]    = SecureFieldCipher.encrypt(profile.allergens.joinToString(","))
-        p[KEY_PROFILE_CONDITIONS]   = SecureFieldCipher.encrypt(profile.healthConditions.joinToString(","))
+        profile.ageYears?.let      { p[profileIntKey(id, "age")]           = it } ?: p.remove(profileIntKey(id, "age"))
+        profile.weightKg?.let      { p[profileFloatKey(id, "weight")]      = it.toFloat() } ?: p.remove(profileFloatKey(id, "weight"))
+        profile.heightCm?.let      { p[profileFloatKey(id, "height")]      = it.toFloat() } ?: p.remove(profileFloatKey(id, "height"))
+        profile.goalWeightKg?.let  { p[profileFloatKey(id, "goal_weight")] = it.toFloat() } ?: p.remove(profileFloatKey(id, "goal_weight"))
+        p[profileKey(id, "diet")]         = profile.diet.key
+        p[profileKey(id, "activity")]     = profile.activityLevel.name
+        p[profileKey(id, "goal")]         = profile.goal.name
+        p[profileBoolKey(id, "menstruating")] = profile.isMenstruating
+        p[profileKey(id, "allergens")]    = SecureFieldCipher.encrypt(profile.allergens.joinToString(","))
+        p[profileKey(id, "conditions")]   = SecureFieldCipher.encrypt(profile.healthConditions.joinToString(","))
     }
 
-    /** Convenience — update only weight (used by WeightRepository after logging). */
-    suspend fun updateWeight(kg: Double) = store.edit { it[KEY_PROFILE_WEIGHT] = kg.toFloat() }
+    /** Convenience — update only weight (used by WeightRepository after logging
+     *  for the currently active profile). */
+    suspend fun updateWeight(kg: Double) = store.edit { p ->
+        val id = p[KEY_ACTIVE_PROFILE] ?: "default"
+        p[profileFloatKey(id, "weight")] = kg.toFloat()
+    }
 
     // ---- Expenses (Dépenses) budget targets ----
     // Both null means "no target set yet" - ExpensesScreen shows spend-only

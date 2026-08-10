@@ -669,6 +669,10 @@
     <string name="profile_section_diet">Alimentation</string>
     <string name="profile_section_allergens">Allergènes déclarés</string>
     <string name="profile_field_name">Prénom (optionnel)</string>
+    <string name="profile_switcher_title">Profils</string>
+    <string name="profile_switcher_unnamed">Sans nom</string>
+    <string name="profile_switcher_add">Nouveau profil</string>
+    <string name="profile_switcher_add_title">Créer un profil</string>
     <string name="profile_field_age">Âge (ans)</string>
     <string name="profile_field_height">Taille (cm)</string>
     <string name="profile_field_height_imperial">Taille (in)</string>
