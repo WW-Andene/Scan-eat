@@ -49,7 +49,7 @@ internal class ScanHistoryQueries(
     private val toDomain: (ScanHistoryEntity) -> ScanResult?,
     /** Same adapters as [toDomain], serializing the other direction - used to persist a stale rescore, see rescoreStale(). */
     private val serializeProduct: (fr.scanneat.domain.model.Product) -> String,
-    private val serializeAudit: (fr.scanneat.domain.engine.scoring.ScoreAudit) -> String,
+    private val serializeAudit: (fr.scanneat.domain.model.ScoreAudit) -> String,
 ) {
     fun observeHistory(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeRecent(profileId = profileId, limit = limit).map { entities ->
