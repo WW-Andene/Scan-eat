@@ -73,6 +73,12 @@ enum class ProductCategory(val key: String) {
     ICE_CREAM("ice_cream"),
     GRAIN("grain"),
     FRESH_PRODUCE("fresh_produce"),
+    // Eggs are one of the most commonly scanned single-ingredient products
+    // with no category of their own before this - very tight, well-defined
+    // nutrition (raw egg ~155kcal/100g, ~13g protein, ~11g fat, ~1g carbs,
+    // essentially no fiber/sugar), unlike every other category added in this
+    // sweep which needed a wide band to span real heterogeneity.
+    EGG("egg"),
     OTHER("other");
 
     companion object {

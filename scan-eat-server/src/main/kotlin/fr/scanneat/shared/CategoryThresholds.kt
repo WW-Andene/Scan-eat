@@ -135,6 +135,10 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // approaches even the default band, so only the fruit side needed room.
     ProductCategory.FRESH_PRODUCE to CategoryThresholds(Triple(1.0,2.5,5.0), Triple(2.0,3.5,6.0), Pair(10.0,200.0), true,
         sugarThresholds = Quadruple(8.0,14.0,20.0,30.0)),
+    // Eggs are tightly consistent nutritionally (raw egg ~155kcal, ~13g
+    // protein, ~11g fat/100g, near-zero carbs/fiber/sugar), unlike every
+    // other category above which needed a wide band for real heterogeneity.
+    ProductCategory.EGG to CategoryThresholds(Triple(8.0,11.0,15.0), Triple(0.0,0.0,0.0), Pair(120.0,180.0), true),
     ProductCategory.OTHER            to DEFAULT_THRESHOLDS,
 )
 
@@ -150,7 +154,7 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bjus\b|\bjuice\b|\bnectar\b|smoothie|fruit drink""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_JUICE,
     Regex("""\bbi[eè]res?\b|\bbeers?\b|\bvins?\b|\bwines?\b|\bcidres?\b|\bciders?\b|champagne|\bwhisky\b|\bwhiskey\b|\bvodka\b|\bgin\b|\brhum\b|\brum\b|\bcognac\b|\barmagnac\b|\bcalvados\b|\bporto\b|\bliqueurs?\b|spiritueux|\bp[aâ]stis\b|\btequila\b|\bmojito\b|hard seltzer""", RegexOption.IGNORE_CASE) to ProductCategory.ALCOHOLIC_BEVERAGE,
     Regex("""\bsoda\b|\bcola\b|boisson gaz[eé]use|soft drink|\btonic\b|limonade|ice[-\s]?tea|th[eé] glac[eé]|energy drink|red bull|monster""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_SOFT,
-    Regex("""\byaourts?\b|yoghurt|yogurt|\bskyr\b|fromage[-\s]?blanc|faisselle|\bquark\b|petit[-\s]suisse""", RegexOption.IGNORE_CASE) to ProductCategory.YOGURT,
+    Regex("""\byaourts?\b|yoghurt|yogurt|\bskyr\b|fromage[-\s]?blanc|faisselle|\bquark\b|petit[-\s]suisse|cr[eè]me dessert|\bflans?\b|li[eé]geois|panna cotta|riz au lait|entremets?\b""", RegexOption.IGNORE_CASE) to ProductCategory.YOGURT,
     // Standalone regional cheese names that don't necessarily contain the word
     // "fromage" itself in the product name (e.g. a plain "Cantal AOP" or
     // "Boursin ail & fines herbes") - "bleu"/"raclette" deliberately left out,
@@ -202,6 +206,7 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bpain\b|\bbread\b|baguette|brioche|focaccia|ciabatta|\btoasts?\b|\bpita\b|tortilla|\bcracotte""", RegexOption.IGNORE_CASE) to ProductCategory.BREAD,
     Regex("""plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
     Regex("""\bp[aâ]tes\b|spaghettis?\b|macaronis?\b|pennes?\b|fusillis?\b|tagliatelles?\b|coquillettes?\b|nouilles?\b|vermicelles?\b|\briz\b|couscous|semoule|quinoa|boulgour""", RegexOption.IGNORE_CASE) to ProductCategory.GRAIN,
+    Regex("""\bœufs?\b|\boeufs?\b|\beggs?\b""", RegexOption.IGNORE_CASE) to ProductCategory.EGG,
     Regex("""\bsoupe?s?\b|velout[eé]s?(?![\w\p{L}])|\bpotages?\b|\bbouillons?\b|\bbroths?\b|consomm[eé]s?(?![\w\p{L}])|minestrone|gaspacho|gazpacho""", RegexOption.IGNORE_CASE) to ProductCategory.SOUP,
     // Own category, checked before CONDIMENT below - honey/jam/marmalade's
     // sugar is intrinsic fruit/nectar fructose, unlike the near-zero-sugar
@@ -213,7 +218,7 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // covered; the vinegar itself wasn't).
     Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bvinaigres?\b|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
     Regex("""huile d['']olive|huile de colza|huile de tournesol|huile v[eé]g[eé]tale|\bolive oil\b|sunflower oil|canola oil|margarine|\bbeurre\b|\bbutter\b|saindoux""", RegexOption.IGNORE_CASE) to ProductCategory.OIL_FAT,
-    Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|\bpopcorn\b|\bpretzels?\b|cacahu[eè]tes?\b|noix de cajou|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
+    Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|\bpopcorn\b|\bpretzels?\b|cacahu[eè]tes?\b|\bamandes?\b|\bnoix\b|noisettes?\b|noix de cajou|noix de p[eé]can|noix du br[eé]sil|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
     Regex("""\bfruits?\b|\bl[eé]gumes?\b|\bpommes?\b|\bpoires?\b|\bbananes?\b|\boranges?\b|\bfraises?\b|\bframboises?\b|\braisins?\b|\bp[eê]ches?\b|\babricots?\b|\bkiwis?\b|\bmangues?\b|\bananas\b|\bcitrons?\b|\bpast[eè]ques?\b|\bmelons?\b|\bavocats?\b|\btomates?\b|\bcarottes?\b|\bcourgettes?\b|\baubergines?\b|\bpoivrons?\b|\boignons?\b|\bail\b|\bsalade\b|\blaitue\b|\b[eé]pinards?\b|\bbrocolis?\b|\bchoux?\b|\bharicots? verts?\b|\bpetits? pois\b|\bpoireaux?\b|\bconcombres?\b|\bradis\b|\bc[eé]leri\b|\bchampignons?\b|pommes? de terre|\bpatates?\b""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_PRODUCE,
 )
 

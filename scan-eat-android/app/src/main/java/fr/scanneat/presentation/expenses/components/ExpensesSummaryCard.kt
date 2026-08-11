@@ -54,6 +54,7 @@ internal fun ProductCategory.displayLabel(): String = stringResource(
         ProductCategory.ICE_CREAM         -> R.string.category_ice_cream
         ProductCategory.GRAIN             -> R.string.category_grain
         ProductCategory.FRESH_PRODUCE     -> R.string.category_fresh_produce
+        ProductCategory.EGG               -> R.string.category_egg
         ProductCategory.OTHER             -> R.string.category_other
     },
 )
