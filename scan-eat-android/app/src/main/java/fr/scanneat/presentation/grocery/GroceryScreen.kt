@@ -39,6 +39,8 @@ import fr.scanneat.presentation.shell.PlanningDestination
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
 
+private enum class GroceryTab { LIST, LOYALTY }
+
 @Composable
 fun GroceryScreen(
     viewModel: GroceryViewModel = hiltViewModel(),
@@ -48,8 +50,12 @@ fun GroceryScreen(
     // list - see AppRoutes.SCAN_FOR_GROCERY's own comment. Defaults to a
     // no-op so this remains source-compatible with any other call site.
     onScanToAdd: () -> Unit = {},
-    onOpenLoyaltyCards: () -> Unit = {},
+    // User-requested: a "Fidélité" tab (see GroceryTab below) with its own
+    // camera scan button, reading a loyalty card's barcode the same way Scan
+    // reads a product's - pushes AppRoutes.LOYALTY_CARD_SCAN.
+    onOpenLoyaltyCardScan: () -> Unit = {},
 ) {
+    var groceryTab by rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver()) { mutableStateOf(GroceryTab.LIST) }
     var quickAddText by rememberSaveable { mutableStateOf("") }
     // Grocery had no search at all, unlike every other list-heavy screen (Recipes,
     // Templates, ScanHistory, CustomFood) — aggregating many recipes/templates into
@@ -137,7 +143,6 @@ fun GroceryScreen(
                     scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
                 },
                 onScanToAdd = onScanToAdd,
-                onOpenLoyaltyCards = onOpenLoyaltyCards,
             )
         },
     ) { padding ->
@@ -148,6 +153,29 @@ fun GroceryScreen(
         // reaching behind the header itself. Reordered so the gloom paints across
         // the full fillMaxSize screen first, matching every other screen's pattern.
         Column(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(padding)) {
+            // User-requested: a "Fidélité" tab inside Courses, alongside the
+            // shopping list itself - previously loyalty cards had no home in
+            // the app at all.
+            TabRow(
+                selectedTabIndex = groceryTab.ordinal,
+                containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                contentColor = AccentCoral,
+            ) {
+                Tab(
+                    selected = groceryTab == GroceryTab.LIST,
+                    onClick = { groceryTab = GroceryTab.LIST },
+                    text = { Text(stringResource(R.string.grocery_tab_list)) },
+                )
+                Tab(
+                    selected = groceryTab == GroceryTab.LOYALTY,
+                    onClick = { groceryTab = GroceryTab.LOYALTY },
+                    text = { Text(stringResource(R.string.loyalty_title)) },
+                )
+            }
+            if (groceryTab == GroceryTab.LOYALTY) {
+                fr.scanneat.presentation.loyalty.LoyaltyCardsTabContent(onScanCard = onOpenLoyaltyCardScan)
+                return@Column
+            }
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS),
                 verticalAlignment = Alignment.CenterVertically,

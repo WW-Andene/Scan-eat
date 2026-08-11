@@ -632,6 +632,14 @@
     <string name="loyalty_empty_body">No cards saved yet. Add your loyalty cards to always have them on hand.</string>
     <string name="loyalty_store_placeholder">Store (e.g. Carrefour)</string>
     <string name="loyalty_code_placeholder">Card number</string>
+    <string name="grocery_tab_list">List</string>
+    <string name="loyalty_scan">Scan a card</string>
+    <string name="loyalty_scan_hint">Point at the card\'s barcode</string>
+    <string name="loyalty_scan_confirm_title">Code read — which store?</string>
+    <string name="loyalty_scan_retry">Rescan</string>
+    <string name="loyalty_scan_no_camera_body">Camera unavailable. Add the card manually from the Loyalty tab.</string>
+    <string name="loyalty_scan_permission_body">Camera access is needed to read the card\'s barcode.</string>
+    <string name="loyalty_scan_grant_permission">Allow camera</string>
     <string name="grocery_group_by_aisle">Group by aisle</string>
     <string name="grocery_category_produce">Produce</string>
     <string name="grocery_category_dairy">Dairy</string>

@@ -257,7 +257,7 @@ fun AppNavGraph(
                 onBack = { navController.popBackStack() },
                 onNavigateToPlanning = { navController.navigateToPlanning(it) },
                 onScanToAdd = { navController.navigate(AppRoutes.SCAN_FOR_GROCERY) },
-                onOpenLoyaltyCards = { navController.navigate(AppRoutes.LOYALTY_CARDS) },
+                onOpenLoyaltyCardScan = { navController.navigate(AppRoutes.LOYALTY_CARD_SCAN) },
             )
         }
         // See AppRoutes.SCAN_FOR_GROCERY's own comment - only ever pushed from
@@ -275,10 +275,19 @@ fun AppNavGraph(
                 onResultReady = { id -> groceryViewModel.addScannedProduct(id); navController.popBackStack() },
             )
         }
-        // User-requested: keep store loyalty cards (e.g. Carrefour) on hand at
-        // checkout - manual entry only, see LoyaltyCardsScreen's own doc comment.
-        composable(AppRoutes.LOYALTY_CARDS) {
-            fr.scanneat.presentation.loyalty.LoyaltyCardsScreen(onBack = { navController.popBackStack() })
+        // User-requested: scan a loyalty card's barcode the same way Scan reads
+        // a product's - see LoyaltyCardScanScreen's own doc comment. Only ever
+        // pushed from the GROCERY entry above (Fidélité tab), same
+        // shared-ViewModel reasoning as SCAN_FOR_GROCERY above so a card saved
+        // here shows up immediately in that tab on the way back.
+        composable(AppRoutes.LOYALTY_CARD_SCAN) {
+            val groceryBackStackEntry = remember(navController) { navController.getBackStackEntry(AppRoutes.GROCERY) }
+            val loyaltyViewModel: fr.scanneat.presentation.loyalty.LoyaltyCardsViewModel =
+                androidx.hilt.navigation.compose.hiltViewModel(groceryBackStackEntry)
+            fr.scanneat.presentation.loyalty.LoyaltyCardScanScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = loyaltyViewModel,
+            )
         }
         composable(AppRoutes.CUSTOM_FOODS) {
             CustomFoodScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
