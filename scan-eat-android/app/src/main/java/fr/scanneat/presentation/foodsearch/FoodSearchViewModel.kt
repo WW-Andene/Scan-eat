@@ -27,7 +27,10 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 /** Simple threshold-based filters over the unified fields both sources below map into. */
-enum class FoodSearchFilter { ALL, HIGH_PROTEIN, LOW_CARB, HIGH_FIBER, IRON_SOURCE, CALCIUM_SOURCE }
+enum class FoodSearchFilter {
+    ALL, HIGH_PROTEIN, HIGH_CARB, HIGH_FAT, HIGH_FIBER, HIGH_VITAMIN, HIGH_MINERAL,
+    LOW_CARB, IRON_SOURCE, CALCIUM_SOURCE,
+}
 
 /**
  * Which accordion section a result groups under. NOT ProductCategory
@@ -143,6 +146,14 @@ class FoodSearchViewModel @Inject constructor(
     val filter: StateFlow<FoodSearchFilter> = _filter.asStateFlow()
     fun setFilter(f: FoodSearchFilter) { _filter.value = f }
 
+    // "Note" (Nutri-Score-style grade) filter, independent of and AND-combined
+    // with [filter] above - a user browsing for e.g. high-fiber food may still
+    // want to exclude the D/E/F results within that set rather than pick one
+    // axis or the other.
+    private val _gradeFilter = MutableStateFlow<Grade?>(null)
+    val gradeFilter: StateFlow<Grade?> = _gradeFilter.asStateFlow()
+    fun setGradeFilter(g: Grade?) { _gradeFilter.value = g }
+
     private val _displayMode = MutableStateFlow(SearchDisplayMode.PRODUCTS)
     val displayMode: StateFlow<SearchDisplayMode> = _displayMode.asStateFlow()
 
@@ -191,11 +202,13 @@ class FoodSearchViewModel @Inject constructor(
 
     /** Grouped by [FoodSearchCategory] (accordion sections), each sorted alphabetically. */
     val groupedResults: StateFlow<Map<FoodSearchCategory, List<FoodSearchItem>>> =
-        combine(scannedItems, localItems, _filter, debouncedQuery) { scanned, local, f, q ->
+        combine(scannedItems, localItems, _filter, _gradeFilter, debouncedQuery) { scanned, local, f, grade, q ->
             // An explicitly-tapped filter chip always wins; a typed nutrient query
             // only kicks in while the chip row is still on its default ALL state.
             val typedPredicate = if (f == FoodSearchFilter.ALL) predicateFor(q) else null
-            val effectivePredicate: (FoodSearchItem) -> Boolean = typedPredicate ?: { it.matches(f) }
+            val nutrientPredicate: (FoodSearchItem) -> Boolean = typedPredicate ?: { it.matches(f) }
+            val effectivePredicate: (FoodSearchItem) -> Boolean =
+                if (grade == null) nutrientPredicate else { item -> nutrientPredicate(item) && item.grade == grade }
             val scannedNames = scanned.map { it.name.lowercase() }.toSet()
             (scanned + local.filterNot { it.name.lowercase() in scannedNames })
                 .filter(effectivePredicate)

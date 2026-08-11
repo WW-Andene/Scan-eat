@@ -1,6 +1,9 @@
 package fr.scanneat.presentation.foodsearch
 
+import fr.scanneat.domain.engine.nutrition.FOOD_DB
 import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.toProduct
+import fr.scanneat.domain.engine.scoring.scoreProduct
 import fr.scanneat.domain.model.ScanResult
 
 // Explicit per-item classification, built once at class-init (not per search) -
@@ -88,6 +91,15 @@ internal val FOOD_DB_CATEGORY_BY_NAME: Map<String, FoodSearchCategory> = buildMa
     ).forEach { put(it, FoodSearchCategory.PREPARED_MEALS) }
 }
 
+// Grade computed once per FOOD_DB entry (a fixed ~130-item reference table,
+// not per-search) rather than re-scoring on every keystroke - the same
+// memoization FOOD_DB_CATEGORY_BY_NAME above already applies. A custom food's
+// grade instead computed live in toItem() below since that list is small and
+// user-editable, so nothing here can go stale after an edit.
+private val FOOD_DB_GRADE_BY_NAME: Map<String, fr.scanneat.domain.model.Grade> by lazy {
+    FOOD_DB.associate { it.name to scoreProduct(it.toProduct(), "fr").grade }
+}
+
 internal fun FoodEntry.toItem(isCustom: Boolean) = FoodSearchItem(
     name = name, kcal = kcal, proteinG = proteinG, carbsG = carbsG, fatG = fatG,
     fiberG = fiberG, saltG = saltG, ironMg = ironMg, calciumMg = calciumMg, vitDUg = vitDUg, b12Ug = b12Ug,
@@ -95,6 +107,7 @@ internal fun FoodEntry.toItem(isCustom: Boolean) = FoodSearchItem(
     vitAUg = vitAUg, b9Ug = b9Ug, vitEMg = vitEMg, vitKUg = vitKUg, b6Mg = b6Mg,
     category = if (isCustom) FoodSearchCategory.CUSTOM
                else FOOD_DB_CATEGORY_BY_NAME[name] ?: FoodSearchCategory.OTHER,
+    grade = if (isCustom) scoreProduct(this.toProduct(), "fr").grade else FOOD_DB_GRADE_BY_NAME[name],
 )
 
 internal fun ScanResult.toItem(): FoodSearchItem {
@@ -110,11 +123,23 @@ internal fun ScanResult.toItem(): FoodSearchItem {
     )
 }
 
+// "Riche en vitamine"/"riche en minéraux" use the EU labeling "source of" rule
+// (>=15% of the nutrient reference value/NRV per 100g) rather than a single
+// arbitrary cutoff, since no one vitamin/mineral field alone represents the
+// whole group - same >=15%-of-NRV logic already used individually for
+// IRON_SOURCE (14mg NRV) and CALCIUM_SOURCE (800mg NRV) below.
 internal fun FoodSearchItem.matches(filter: FoodSearchFilter): Boolean = when (filter) {
     FoodSearchFilter.ALL            -> true
     FoodSearchFilter.HIGH_PROTEIN   -> proteinG >= 15.0
-    FoodSearchFilter.LOW_CARB       -> carbsG <= 10.0
+    FoodSearchFilter.HIGH_CARB      -> carbsG >= 45.0
+    FoodSearchFilter.HIGH_FAT       -> fatG >= 17.5
     FoodSearchFilter.HIGH_FIBER     -> fiberG >= 3.0
+    FoodSearchFilter.HIGH_VITAMIN   ->
+        vitCMg >= 12.0 || vitAUg >= 120.0 || vitDUg >= 0.75 || vitEMg >= 1.8 ||
+            vitKUg >= 11.25 || b9Ug >= 30.0 || b12Ug >= 0.375 || b6Mg >= 0.21
+    FoodSearchFilter.HIGH_MINERAL   ->
+        ironMg >= 2.0 || calciumMg >= 120.0 || magnesiumMg >= 56.25 || potassiumMg >= 300.0 || zincMg >= 1.5
+    FoodSearchFilter.LOW_CARB       -> carbsG <= 10.0
     FoodSearchFilter.IRON_SOURCE    -> ironMg >= 2.0
     FoodSearchFilter.CALCIUM_SOURCE -> calciumMg >= 100.0
 }

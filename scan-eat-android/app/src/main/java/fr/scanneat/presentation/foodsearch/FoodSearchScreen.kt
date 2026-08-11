@@ -16,6 +16,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.foodsearch.components.CategoryHeader
 import fr.scanneat.presentation.foodsearch.components.DisplayModeButton
 import fr.scanneat.presentation.foodsearch.components.FiltersSection
+import fr.scanneat.presentation.foodsearch.components.GradeFilterSection
 import fr.scanneat.presentation.foodsearch.components.FoodSearchRow
 import fr.scanneat.presentation.foodsearch.components.OnlineSearchSection
 import fr.scanneat.presentation.foodsearch.components.SourceLinksSection
@@ -35,12 +36,14 @@ import fr.scanneat.presentation.ui.theme.*
 fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: () -> Unit, onOpenResult: (Long) -> Unit) {
     val query        = viewModel.query.collectAsStateWithLifecycle()
     val filter       = viewModel.filter.collectAsStateWithLifecycle()
+    val gradeFilter  = viewModel.gradeFilter.collectAsStateWithLifecycle()
     val grouped      = viewModel.groupedResults.collectAsStateWithLifecycle()
     val onlineResults = viewModel.onlineResults.collectAsStateWithLifecycle()
     val onlineState   = viewModel.onlineSearchState.collectAsStateWithLifecycle()
     val displayMode   = viewModel.displayMode.collectAsStateWithLifecycle()
     val sourceLinks   = viewModel.sourceLinks.collectAsStateWithLifecycle()
     var filtersExpanded by remember { mutableStateOf(false) }
+    var gradeFilterExpanded by remember { mutableStateOf(false) }
     // SCANNED starts expanded - a user's own scanned products are the most
     // personally relevant/immediately useful section; the curated reference
     // categories start folded so the screen opens uncluttered.
@@ -119,6 +122,14 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                         onToggle = { filtersExpanded = !filtersExpanded },
                         filter = filter.value,
                         onFilterChange = viewModel::setFilter,
+                    )
+                }
+                item {
+                    GradeFilterSection(
+                        expanded = gradeFilterExpanded,
+                        onToggle = { gradeFilterExpanded = !gradeFilterExpanded },
+                        gradeFilter = gradeFilter.value,
+                        onGradeFilterChange = viewModel::setGradeFilter,
                     )
                 }
                 if (query.value.isNotBlank()) {
