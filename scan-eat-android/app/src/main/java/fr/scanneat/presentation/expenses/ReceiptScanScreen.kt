@@ -179,9 +179,21 @@ private fun ReceiptReviewList(lines: List<ReceiptReviewLine>, onBack: () -> Unit
                             }
                         }
                         Spacer(Modifier.width(Spacing.S))
+                        // Was `value = "%.2f".format(line.priceEuros)` bound directly to
+                        // the parsed Double - a classic controlled-field trap: every
+                        // keystroke re-derived the displayed text from the just-parsed
+                        // value, snapping back to a 2-decimal-formatted string and
+                        // fighting the user's own typing/cursor position (e.g. typing
+                        // "3" then trying to add ".50" got reformatted to "3.00"
+                        // immediately). A local text buffer decouples what's on screen
+                        // from the formatted Double, only pushing a re-parse to the
+                        // ViewModel on each change - same "type freely, parse on the
+                        // side" shape as every other price field in this app
+                        // (ExpensesDialogs.kt's AddExpenseDialog/EditExpenseDialog).
+                        var priceText by remember(line.id) { mutableStateOf("%.2f".format(line.priceEuros)) }
                         OutlinedTextField(
-                            value = "%.2f".format(line.priceEuros),
-                            onValueChange = { it.replace(',', '.').toDoubleOrNull()?.let { p -> viewModel.updateLine(line.id, line.name, p) } },
+                            value = priceText,
+                            onValueChange = { priceText = it; it.replace(',', '.').toDoubleOrNull()?.let { p -> viewModel.updateLine(line.id, line.name, p) } },
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.width(84.dp),
