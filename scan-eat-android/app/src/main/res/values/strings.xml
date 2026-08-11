@@ -701,6 +701,8 @@
     <string name="profile_switcher_unnamed">Sans nom</string>
     <string name="profile_switcher_add">Nouveau profil</string>
     <string name="profile_switcher_add_title">Créer un profil</string>
+    <string name="profile_switcher_delete_title">Supprimer ce profil ?</string>
+    <string name="profile_switcher_delete_body">« %1$s » et toutes ses données (journal, poids, activité, métabolisme…) seront définitivement supprimés. Cette action est irréversible.</string>
     <string name="profile_field_age">Âge (ans)</string>
     <string name="profile_field_height">Taille (cm)</string>
     <string name="profile_field_height_imperial">Taille (in)</string>

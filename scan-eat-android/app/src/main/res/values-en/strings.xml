@@ -697,6 +697,8 @@
     <string name="profile_switcher_unnamed">Unnamed</string>
     <string name="profile_switcher_add">New profile</string>
     <string name="profile_switcher_add_title">Create a profile</string>
+    <string name="profile_switcher_delete_title">Delete this profile?</string>
+    <string name="profile_switcher_delete_body">"%1$s" and all of its data (diary, weight, activity, metabolism…) will be permanently deleted. This action is irreversible.</string>
     <string name="profile_field_age">Age (years)</string>
     <string name="profile_field_height">Height (cm)</string>
     <string name="profile_field_height_imperial">Height (in)</string>

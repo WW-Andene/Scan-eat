@@ -48,6 +48,15 @@ internal fun ProfileSwitcherCard(
     onDelete: (String) -> Unit,
 ) {
     var showCreate by remember { mutableStateOf(false) }
+    // deleteProfile() (ProfileViewModel) is a permanent, cascading wipe of
+    // every tracker repository keyed on this profileId (diary, weight,
+    // activity, Biolism body-composition data, ...) - by far the most
+    // destructive single action in the app, yet the X here previously called
+    // onDelete directly with zero confirmation, on an IconSize.Tiny tap
+    // target easy to misfire on a crowded chip row. Every lesser delete flow
+    // in the app (loyalty cards, reminders, recipes, ...) already goes
+    // through DeleteConfirmDialog first - this was the one gap left.
+    var deleteTarget by remember { mutableStateOf<Profile?>(null) }
     ProfileSection(stringResource(R.string.profile_switcher_title)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             profiles.forEach { p ->
@@ -67,7 +76,7 @@ internal fun ProfileSwitcherCard(
                         {
                             Icon(
                                 TablerIcons.X, stringResource(R.string.common_delete),
-                                modifier = Modifier.size(IconSize.Tiny).clickable { onDelete(p.id) },
+                                modifier = Modifier.size(IconSize.Tiny).clickable { deleteTarget = p },
                                 tint = OnBackground.copy(0.5f),
                             )
                         }
@@ -107,6 +116,19 @@ internal fun ProfileSwitcherCard(
                 }
             },
             dismissButton = { TextButton(onClick = { showCreate = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        )
+    }
+    deleteTarget?.let { target ->
+        // ConfirmDialog (not the generic DeleteConfirmDialog) so the body can
+        // spell out exactly what's being lost - the plain "will be deleted,
+        // irreversible" wording every other delete flow uses doesn't convey
+        // that this one action also wipes diary/weight/activity/Biolism data.
+        ConfirmDialog(
+            title = stringResource(R.string.profile_switcher_delete_title),
+            body = stringResource(R.string.profile_switcher_delete_body, target.name.ifBlank { stringResource(R.string.profile_switcher_unnamed) }),
+            confirmLabel = stringResource(R.string.common_delete),
+            onConfirm = { onDelete(target.id); deleteTarget = null },
+            onDismiss = { deleteTarget = null },
         )
     }
 }
