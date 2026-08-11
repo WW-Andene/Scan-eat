@@ -1044,6 +1044,9 @@
     <string name="medication_reminder_extra_times_label">Autres prises</string>
     <string name="medication_reminder_add_time">+ Ajouter une heure</string>
     <string name="medication_reminder_days_label">Jours (aucun = tous les jours)</string>
+    <string name="medication_detail_form">%1$s · voie %2$s</string>
+    <string name="medication_detail_composition">Composition : %1$s</string>
+    <string name="medication_detail_no_data">Aucune information détaillée disponible — ce médicament n\'a pas été trouvé dans la base publique des médicaments (BDPM), ou n\'a pas de code-barres associé.</string>
     <string name="medication_interaction_title">Interaction potentielle</string>
     <string name="medication_interaction_cta">Consultez votre médecin ou pharmacien.</string>
     <string name="medication_interaction_group_dup">Plusieurs %1$s actifs simultanément — risque hémorragique</string>

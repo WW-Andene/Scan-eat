@@ -1,14 +1,20 @@
 package fr.scanneat.presentation.medication
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.data.repository.health.MedicationLogEntry
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
+import fr.scanneat.domain.engine.medication.MedicationDbEntry
+import fr.scanneat.domain.engine.medication.findMedicationByBarcode
+import fr.scanneat.domain.engine.medication.findMedicationByName
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +30,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -133,6 +140,7 @@ class MedicationViewModel @Inject constructor(
     private val hydrationRepo: HydrationRepository,
     private val weightRepo: WeightRepository,
     private val prefs: fr.scanneat.data.local.prefs.UserPreferences,
+    @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real.
@@ -148,6 +156,32 @@ class MedicationViewModel @Inject constructor(
     // it to render short day names in the right language.
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // User-requested: there was no way to see a saved medication's own
+    // information sheet (composition, general safety cautions, condition-
+    // specific cautions, interactions) - generateMedicationHints() already
+    // existed and was fully sourced (BDPM/Wikipedia-sourced substance facts,
+    // EU SmPC-level drug-class cautions - see MedicationSubstanceDb.kt's own
+    // doc comment), but was only ever shown once, transiently, at the moment
+    // of scanning a NEW medication (ScanStateOverlay's MedicationFound
+    // dialog) - never reachable again for an already-saved one.
+    val healthConditions: StateFlow<Set<String>> = prefs.profile
+        .map { it.healthConditions }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    /**
+     * Resolves a saved [Medication] back to its real BDPM record so the
+     * detail sheet can show sourced composition/facts/cautions instead of
+     * fabricating any - barcode-first (the precise, unambiguous match every
+     * scanned medication already has), falling back to a name match for a
+     * manually-typed entry that happens to match a real BDPM denomination.
+     * Returns null (caller shows a clear "no detailed info available"
+     * fallback, never a guess) when neither resolves.
+     */
+    suspend fun findDbEntry(medication: Medication): MedicationDbEntry? = withContext(Dispatchers.IO) {
+        medication.barcode?.let { findMedicationByBarcode(appContext, it) }
+            ?: findMedicationByName(appContext, medication.name)
+    }
 
     // LocalDate.now() captured once at construction would keep observing
     // today's bucket forever if this ViewModel outlives midnight - same fix

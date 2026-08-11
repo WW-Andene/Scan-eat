@@ -22,8 +22,11 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.data.repository.health.MedicationLogEntry
+import fr.scanneat.domain.engine.medication.MedicationDbEntry
+import fr.scanneat.domain.engine.medication.generateMedicationHints
 import fr.scanneat.presentation.reminders.components.PermissionBanner
 import fr.scanneat.presentation.reminders.components.permissionState
+import fr.scanneat.presentation.result.FactsCautionsColumn
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -41,10 +44,17 @@ internal fun MedicationEntryRow(
     // history to compute a real "since" delta (see MedicationViewModel.
     // weightDeltaSinceStart's own doc comment).
     weightDeltaKg: Double? = null,
+    // User-requested: there was no way to see a saved medication's own
+    // information sheet at all - see MedicationDetailDialog's own doc
+    // comment. Row tap now opens that (same "row = view detail, pencil =
+    // edit" split DiaryEntryCard already uses), defaulting to onEdit so any
+    // other call site that doesn't pass this keeps its old tap-to-edit
+    // behavior unchanged.
+    onOpenDetail: () -> Unit = onEdit,
 ) {
     val m = medication
     val haptics = LocalHapticFeedback.current
-    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M), onClick = onEdit) {
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M), onClick = onOpenDetail) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -267,5 +277,77 @@ internal fun MedicationReminderDialog(
             ) { Text(stringResource(R.string.common_save), color = if (canSave) Teal else OnBackground.copy(0.3f)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+    )
+}
+
+/**
+ * User-requested: "there's no info panel for medications" - a saved
+ * medication had no way to see its own composition/side-effects/risks/
+ * pregnancy-and-condition-specific cautions/usage advice again after the
+ * one-time MedicationFound dialog shown at scan time (ScanStateOverlay.kt) -
+ * once added to Traitement, that information was gone for good. Not a
+ * nutrition score (there's nothing to score for a medication) - reuses the
+ * exact same sourced facts/cautions generateMedicationHints() already
+ * produces from the real BDPM record (composition, dispensing condition,
+ * Wikipedia-sourced substance facts, EU SmPC-level drug-class cautions
+ * cross-referenced against the user's own Profile.healthConditions - see
+ * MedicationSubstanceDb.kt's own doc comment on why this is deliberately
+ * NOT fabricated dosage/diagnosis/treatment advice).
+ *
+ * [dbEntry] is null while the async BDPM lookup is still running OR when it
+ * genuinely found nothing (no barcode, or no BDPM match for a manually-typed
+ * name) - shown as an honest "no detailed info available" state rather than
+ * inventing content for a medication this app can't actually identify.
+ */
+@Composable
+internal fun MedicationDetailDialog(
+    medication: Medication,
+    dbEntry: MedicationDbEntry?,
+    isLoading: Boolean,
+    healthConditions: Set<String>,
+    language: String,
+    onDismiss: () -> Unit,
+) {
+    val m = medication
+    val hints = remember(dbEntry, healthConditions, language) {
+        dbEntry?.let { generateMedicationHints(it, healthConditions, language) }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
+        title = { Text(m.name, color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                if (m.dosage.isNotBlank()) {
+                    Text(m.dosage, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                }
+                when {
+                    isLoading -> Box(Modifier.fillMaxWidth().padding(Spacing.L), contentAlignment = Alignment.Center) {
+                        ScanEatLoadingIndicator(color = AccentCoral)
+                    }
+                    dbEntry != null -> {
+                        // Real BDPM fields, not an inference - form/route/composition are
+                        // quoted as-is from the official database record this matched.
+                        Text(stringResource(R.string.medication_detail_form, dbEntry.form, dbEntry.route),
+                            style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                        if (dbEntry.activeSubstances.isNotEmpty()) {
+                            Text(
+                                stringResource(R.string.medication_detail_composition, dbEntry.activeSubstances.joinToString(", ")),
+                                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f),
+                            )
+                        }
+                        hints?.let { FactsCautionsColumn(it.facts, it.cautions) }
+                    }
+                    else -> Text(
+                        stringResource(R.string.medication_detail_no_data),
+                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = OnBackground.copy(0.6f)) } },
     )
 }

@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.presentation.medication.components.AddMedicationDialog
+import fr.scanneat.presentation.medication.components.MedicationDetailDialog
 import fr.scanneat.presentation.medication.components.MedicationEntryRow
 import fr.scanneat.presentation.medication.components.MedicationInteractionWarningBanner
 import fr.scanneat.presentation.medication.components.MedicationReminderDialog
@@ -80,6 +81,20 @@ fun MedicationScreen(
     var editTarget by remember { mutableStateOf<Medication?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var reminderTarget by remember { mutableStateOf<Medication?>(null) }
+    // User-requested medication info panel - see MedicationDetailDialog's own
+    // doc comment. The BDPM lookup is a suspend (asset file read), so it
+    // fires once per detailTarget change rather than for every visible row.
+    var detailTarget by remember { mutableStateOf<Medication?>(null) }
+    var detailDbEntry by remember { mutableStateOf<fr.scanneat.domain.engine.medication.MedicationDbEntry?>(null) }
+    var detailLoading by remember { mutableStateOf(false) }
+    val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
+    LaunchedEffect(detailTarget) {
+        val target = detailTarget
+        if (target == null) { detailDbEntry = null; return@LaunchedEffect }
+        detailLoading = true
+        detailDbEntry = viewModel.findDbEntry(target)
+        detailLoading = false
+    }
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
@@ -145,6 +160,7 @@ fun MedicationScreen(
                     onOpenReminder = { reminderTarget = m },
                     onEdit = { editTarget = m },
                     onDelete = { deleteTarget = m.id },
+                    onOpenDetail = { detailTarget = m },
                     weightDeltaKg = weightDeltaSinceStart.value[m.id]?.first,
                 )
             }
@@ -211,6 +227,17 @@ fun MedicationScreen(
             onDismiss = { reminderTarget = null },
             onSave = { on, time, daysMask, extraTimes -> viewModel.setReminder(m, on, time, daysMask, extraTimes); reminderTarget = null },
             language = language.value,
+        )
+    }
+
+    detailTarget?.let { m ->
+        MedicationDetailDialog(
+            medication = m,
+            dbEntry = detailDbEntry,
+            isLoading = detailLoading,
+            healthConditions = healthConditions.value,
+            language = language.value,
+            onDismiss = { detailTarget = null },
         )
     }
 }
