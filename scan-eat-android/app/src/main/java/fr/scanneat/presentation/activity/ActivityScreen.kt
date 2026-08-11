@@ -25,6 +25,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.health.ActivityType
 import fr.scanneat.presentation.activity.components.ActivityDailyTotalsCard
 import fr.scanneat.presentation.activity.components.ActivityEntryRow
+import fr.scanneat.presentation.activity.components.ActivityQuickLogRow
 import fr.scanneat.presentation.activity.components.ActivityStreakRow
 import fr.scanneat.presentation.activity.components.ActivityWeeklyBurnChart
 import fr.scanneat.presentation.activity.components.ActivityWeeklyMinutesCard
@@ -67,6 +68,7 @@ fun ActivityScreen(
     val customWeeklyGoalMinutes = viewModel.customWeeklyGoalMinutes.collectAsStateWithLifecycle()
     val sortedTypes      = viewModel.sortedActivityTypes.collectAsStateWithLifecycle()
     val streak           = viewModel.streak.collectAsStateWithLifecycle()
+    val quickLogSuggestions = viewModel.quickLogSuggestions.collectAsStateWithLifecycle()
     val language         = viewModel.language.collectAsStateWithLifecycle()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by rememberSaveable { mutableStateOf("30") }
@@ -142,6 +144,18 @@ fun ActivityScreen(
             // now routes to the unified Calendar (Dashboard), which shows
             // activity alongside every other tracker.
             item { ActivityStreakRow(streakDays = streak.value, onOpenCalendar = onOpenCalendar) }
+
+            // User-requested: one-tap re-log of a frequently repeated workout -
+            // see ActivityViewModel.quickLogSuggestions' own doc comment.
+            if (quickLogSuggestions.value.isNotEmpty()) {
+                item {
+                    ActivityQuickLogRow(
+                        suggestions = quickLogSuggestions.value,
+                        typeLabels = typeLabels, subTypeLabels = subTypeLabels,
+                        onQuickLog = { viewModel.quickLog(it) },
+                    )
+                }
+            }
 
             // Daily burned summary
             val totalKcal = entries.value.sumOf { it.kcalBurned }

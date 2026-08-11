@@ -8,12 +8,16 @@ import fr.scanneat.data.repository.health.ActivityEntry
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.ActivityType
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
+
+/** Groups an ActivityEntry by the fields that define "the same workout" for [ActivityViewModel.quickLogSuggestions]. */
+private data class QuickLogKey(val type: ActivityType, val subType: String?, val minutes: Int, val sets: Int?, val reps: Int?)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -109,6 +113,40 @@ class ActivityViewModel @Inject constructor(
                 .mapValues { (_, subs) -> subs.distinct().sorted() }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // User-requested: one-tap re-log of a frequently repeated workout (same
+    // type + sub-type + duration + sets/reps combo, seen at least twice in
+    // the last 90 days) instead of re-filling the whole Add dialog every
+    // time - most real workout routines repeat week to week. Same "seen at
+    // least twice" bar and shape as Grocery's frequentSuggestions
+    // (GroceryViewModel.kt) - a one-off entry isn't a real routine worth
+    // surfacing as a shortcut. Excludes combos already logged today, same
+    // reason Grocery's own suggestions exclude names already on the list -
+    // no point one-tap-suggesting something the user just did.
+    val quickLogSuggestions: StateFlow<List<ActivityEntry>> = combine(yearRange, entries) { all, today ->
+        val cutoff = LocalDate.now().minusDays(90)
+        val todayKeys = today.map { QuickLogKey(it.type, it.subType, it.minutes, it.sets, it.reps) }.toSet()
+        all.filter { it.date >= cutoff }
+            .groupBy { QuickLogKey(it.type, it.subType, it.minutes, it.sets, it.reps) }
+            .filterKeys { it !in todayKeys }
+            .mapNotNull { (_, group) ->
+                if (group.size < 2) return@mapNotNull null
+                // Most recent instance of the combo - carries the representative
+                // distanceKm/weightUsedKg/wasOutdoors values for the quick-log tap.
+                group.maxByOrNull { it.date }
+            }
+            .sortedWith(compareByDescending<ActivityEntry> { entry -> all.count { QuickLogKey(it.type, it.subType, it.minutes, it.sets, it.reps) == QuickLogKey(entry.type, entry.subType, entry.minutes, entry.sets, entry.reps) } }.thenByDescending { it.date })
+            .take(5)
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Logs [entry]'s type/sub-type/duration/sets/reps/distance/weight/outdoors again, dated today - see [quickLogSuggestions]. */
+    fun quickLog(entry: ActivityEntry) = log(
+        type = entry.type, minutes = entry.minutes, subType = entry.subType,
+        sets = entry.sets, reps = entry.reps, distanceKm = entry.distanceKm,
+        weightUsedKg = entry.weightUsedKg, wasOutdoors = entry.wasOutdoors,
+    )
 
     // Improvement: 7-day burn chart data — kcal burned per day for the last 7 days
     val weeklyBurn: StateFlow<List<Pair<LocalDate, Int>>> = yearRange

@@ -1081,6 +1081,7 @@
     <string name="activity_entry_distance">%1$.1f km</string>
     <string name="activity_duration_invalid">Enter a valid duration</string>
     <string name="activity_number_invalid">Enter a valid number (ignored otherwise)</string>
+    <string name="activity_quick_log_title">Quick log</string>
     <string name="activity_was_outdoors">Was it outdoors?</string>
 
     <!-- ── Fasting screen ─────────────────────────────────────────────────── -->
