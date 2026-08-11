@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.presentation.expenses.components.displayLabel
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -45,7 +46,11 @@ internal fun ScanHistoryCard(scan: ScanResult, warning: String? = null, onItemCl
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')),
+                // §A5-audit finding: was scan.product.category.key.replace('_', ' ') -
+                // the raw enum key, always English. Same fix as ScanHistoryRow/
+                // ResultContent - this card is the first thing a user sees on
+                // Dashboard for a past scan.
+                Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.displayLabel()),
                     style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                 // Same checkUserAllergens()/checkDiet() warning Diary/History already show -
                 // this card is the very first place a user sees a past scan again after

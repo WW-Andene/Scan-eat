@@ -28,6 +28,7 @@ import fr.scanneat.domain.engine.scoring.personalGrade
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.domain.model.ScanSource
+import fr.scanneat.presentation.expenses.components.displayLabel
 import fr.scanneat.presentation.result.cards.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
@@ -87,7 +88,14 @@ internal fun ResultContent(
         // Product name + source
         Text(audit.productName, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-            Text(scan.product.category.key.replace('_', ' ').replaceFirstChar { it.uppercase() },
+            // §A5-audit finding: was scan.product.category.key.replace('_', ' ') -
+            // the raw enum key with underscores swapped for spaces (e.g. "processed
+            // meat"), always English regardless of app language, shown on the
+            // Result screen's own header - the single most-seen surface in the
+            // app after every scan. ExpensesSummaryCard.displayLabel() already
+            // exists as the proper localized mapping; reused here instead of a
+            // third raw-key fallback (see the identical fix on ScanHistoryRow).
+            Text(scan.product.category.displayLabel(),
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
             Text("•", color = TextMuted)
             // Was scan.source.name.lowercase().replace('_', ' ') - the internal
