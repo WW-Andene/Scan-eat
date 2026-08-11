@@ -113,6 +113,19 @@ private fun detectInteractions(meds: List<Medication>): List<InteractionWarning>
     return warnings
 }
 
+/**
+ * Was this medication active on [date], independent of its CURRENT `active`
+ * flag - i.e. it already existed (createdAt <= date) and hadn't been
+ * deactivated yet as of that date (deactivatedAt is null, or its own date is
+ * after [date]). Used by adherenceStreak/weeklyAdherence so deactivating a
+ * medication only affects future adherence denominators, not past ones.
+ */
+private fun Medication.wasActiveOn(date: LocalDate): Boolean {
+    val createdDate = Instant.ofEpochMilli(createdAt).atZone(ZoneId.systemDefault()).toLocalDate()
+    val deactivatedDate = deactivatedAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate() }
+    return createdDate <= date && (deactivatedDate == null || deactivatedDate > date)
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MedicationViewModel @Inject constructor(
@@ -170,23 +183,21 @@ class MedicationViewModel @Inject constructor(
     // re-emit of `medications`.
     val adherenceStreak: StateFlow<Int> = combine(medications, today, activeProfileId) { allMeds, date, id -> Triple(allMeds, date, id) }
         .flatMapLatest { (allMeds, today, id) ->
-            val activeMeds = allMeds.filter { it.active }
-            if (activeMeds.isEmpty()) return@flatMapLatest flowOf(0)
+            if (allMeds.isEmpty()) return@flatMapLatest flowOf(0)
             repo.observeLogRange(today.minusDays(30), today.minusDays(1), id).map { logs ->
                 val logsByDate = logs.groupBy { it.date }
                 var streak = 0
                 var date = today.minusDays(1)
                 repeat(30) {
                     val takenIds = logsByDate[date]?.map { it.medicationId }?.toSet() ?: emptySet()
-                    // Only require a log for medications that actually existed on
-                    // [date] - the domain Medication previously dropped createdAt
-                    // entirely (see MedicationRepository.toDomain()'s matching fix),
-                    // so adding any new active medication made yesterday's takenIds
-                    // unable to contain it (it didn't exist yesterday), dropping the
-                    // whole combined streak to 0 even with a flawless prior history.
-                    val relevantMeds = activeMeds.filter { med ->
-                        Instant.ofEpochMilli(med.createdAt).atZone(ZoneId.systemDefault()).toLocalDate() <= date
-                    }
+                    // Was `activeMeds.filter { existed on [date] }`, i.e. filtered by
+                    // the CURRENT `active` flag first - deactivating a medication (not
+                    // deleting it) retroactively dropped it out of every past day's
+                    // relevantMeds too, silently erasing its real historical misses/
+                    // successes instead of freezing them at the deactivation date.
+                    // wasActiveOn() checks createdAt/deactivatedAt against [date]
+                    // itself, independent of the medication's current active state.
+                    val relevantMeds = allMeds.filter { med -> med.wasActiveOn(date) }
                     if (relevantMeds.all { it.id in takenIds }) { streak++; date = date.minusDays(1) }
                     else return@map streak
                 }
@@ -207,14 +218,12 @@ class MedicationViewModel @Inject constructor(
     // Same medication_log-reactivity fix as adherenceStreak above - see its comment.
     val weeklyAdherence: StateFlow<List<DayAdherence>> = combine(medications, today, activeProfileId) { allMeds, date, id -> Triple(allMeds, date, id) }
         .flatMapLatest { (allMeds, today, id) ->
-            val activeMeds = allMeds.filter { it.active }
             repo.observeLogRange(today.minusDays(6), today, id).map { logs ->
                 val logsByDate = logs.groupBy { it.date }
                 (6 downTo 0).map { i ->
                     val date = today.minusDays(i.toLong())
-                    val relevantMeds = activeMeds.filter { med ->
-                        Instant.ofEpochMilli(med.createdAt).atZone(ZoneId.systemDefault()).toLocalDate() <= date
-                    }
+                    // Same wasActiveOn() fix as adherenceStreak above - see its comment.
+                    val relevantMeds = allMeds.filter { med -> med.wasActiveOn(date) }
                     if (relevantMeds.isEmpty()) {
                         DayAdherence(date, null)
                     } else {
@@ -294,7 +303,8 @@ class MedicationViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 repo.save(name, dosage, scheduleNote, medication.barcode, medication.active, id = medication.id,
-                    reminderOn = medication.reminderOn, reminderTime = medication.reminderTime, profileId = activeProfileId.value)
+                    reminderOn = medication.reminderOn, reminderTime = medication.reminderTime, profileId = activeProfileId.value,
+                    deactivatedAt = medication.deactivatedAt)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -304,7 +314,7 @@ class MedicationViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 repo.save(medication.name, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
-                    reminderOn = on, reminderTime = time, profileId = activeProfileId.value)
+                    reminderOn = on, reminderTime = time, profileId = activeProfileId.value, deactivatedAt = medication.deactivatedAt)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -334,7 +344,8 @@ class MedicationViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 repo.save(entry.name, entry.dosage, entry.scheduleNote, entry.barcode, entry.active, id = entry.id,
-                    reminderOn = entry.reminderOn, reminderTime = entry.reminderTime, profileId = activeProfileId.value)
+                    reminderOn = entry.reminderOn, reminderTime = entry.reminderTime, profileId = activeProfileId.value,
+                    deactivatedAt = entry.deactivatedAt)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

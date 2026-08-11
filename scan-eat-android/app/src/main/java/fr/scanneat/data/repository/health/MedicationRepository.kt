@@ -38,6 +38,12 @@ data class Medication(
     // own start date to avoid punishing the streak for the ordinary act of
     // adding a new active medication.
     val createdAt: Long = 0,
+    // See MedicationEntity's own doc comment - null means "currently active,
+    // or was always active up to now" (a pre-migration row, or a row that's
+    // never been deactivated); non-null is the moment `active` last flipped
+    // false, letting adherence math ask "was this active on date X" instead of
+    // "is it active right now."
+    val deactivatedAt: Long? = null,
 )
 
 /** One "I took this" event on a given day - see MedicationLogEntity for why this needed its own table. */
@@ -76,6 +82,14 @@ class MedicationRepository @Inject constructor(
         profileId: String = "default",
         reminderOn: Boolean = false,
         reminderTime: String = "08:00",
+        // Callers editing an existing (possibly already-inactive) medication -
+        // MedicationViewModel.edit/setReminder/undoDelete - must pass the
+        // medication's own current deactivatedAt through, same as they already
+        // do for `active` itself. Without this, save()'s upsert (a REPLACE)
+        // would silently reset an inactive medication's real deactivation
+        // timestamp to null on the very next unrelated edit (fixing a dosage
+        // typo, toggling the reminder), defeating the point of tracking it.
+        deactivatedAt: Long? = null,
     ): Medication {
         // Barcode-first dedup (see MedicationDao.upsertMedication) - without an
         // explicit id, rescanning the same medication's barcode now updates the
@@ -86,7 +100,7 @@ class MedicationRepository @Inject constructor(
                 id = resolvedId, name = SecureFieldCipher.encrypt(name.trim()), dosage = SecureFieldCipher.encrypt(dosage.trim()),
                 scheduleNote = SecureFieldCipher.encrypt(scheduleNote.trim()),
                 barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
-                reminderOn = reminderOn, reminderTime = reminderTime,
+                reminderOn = reminderOn, reminderTime = reminderTime, deactivatedAt = deactivatedAt,
             )
         }
         return entity.toDomain()
@@ -94,7 +108,11 @@ class MedicationRepository @Inject constructor(
 
     suspend fun setActive(medication: Medication, active: Boolean, profileId: String = "default") {
         val createdAt = dao.findById(medication.id)?.createdAt ?: System.currentTimeMillis()
-        dao.upsert(medication.copy(active = active).toEntity(createdAt, profileId))
+        // Stamp deactivatedAt the moment `active` flips false, clear it if it
+        // flips back true - see MedicationEntity's own doc comment on why this
+        // needs to exist at all.
+        val deactivatedAt = if (active) null else System.currentTimeMillis()
+        dao.upsert(medication.copy(active = active, deactivatedAt = deactivatedAt).toEntity(createdAt, profileId))
     }
 
     suspend fun delete(id: String) = dao.delete(id)
@@ -111,7 +129,7 @@ class MedicationRepository @Inject constructor(
         id = id, name = SecureFieldCipher.encrypt(name), dosage = SecureFieldCipher.encrypt(dosage),
         scheduleNote = SecureFieldCipher.encrypt(scheduleNote),
         barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
-        reminderOn = reminderOn, reminderTime = reminderTime,
+        reminderOn = reminderOn, reminderTime = reminderTime, deactivatedAt = deactivatedAt,
     )
 
     private fun MedicationEntity.toDomain() = Medication(
@@ -119,7 +137,7 @@ class MedicationRepository @Inject constructor(
         dosage = SecureFieldCipher.decryptOrNull(dosage) ?: dosage,
         scheduleNote = SecureFieldCipher.decryptOrNull(scheduleNote) ?: scheduleNote,
         barcode = barcode, active = active,
-        reminderOn = reminderOn, reminderTime = reminderTime, createdAt = createdAt,
+        reminderOn = reminderOn, reminderTime = reminderTime, createdAt = createdAt, deactivatedAt = deactivatedAt,
     )
 
     // ── Adherence log ("I took this") ────────────────────────────────────────

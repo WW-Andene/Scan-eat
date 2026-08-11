@@ -48,7 +48,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         OnlineSearchCacheEntity::class,
         RecallEntity::class,
     ],
-    version = 31,
+    version = 32,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -504,5 +504,19 @@ val MIGRATION_30_31 = object : Migration(30, 31) {
         // category, same as toCheckProduct()'s old OTHER placeholder) - no
         // retroactive hydration credit is fabricated for already-logged water.
         db.execSQL("ALTER TABLE `consumption_log` ADD COLUMN `category` TEXT")
+    }
+}
+
+val MIGRATION_31_32 = object : Migration(31, 32) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v31 → v32: medications gains deactivatedAt - see MedicationEntity's
+        // own doc comment. Existing rows default to NULL regardless of their
+        // current `active` value (we have no historical record of when an
+        // already-inactive row was actually deactivated) - adherence math
+        // treats a NULL deactivatedAt on an inactive row as "always was active"
+        // for any date at or before today, matching this migration's inability
+        // to fabricate a real timestamp for pre-existing data, and matching the
+        // pre-fix behavior exactly for rows that don't change state again.
+        db.execSQL("ALTER TABLE `medications` ADD COLUMN `deactivatedAt` INTEGER")
     }
 }
