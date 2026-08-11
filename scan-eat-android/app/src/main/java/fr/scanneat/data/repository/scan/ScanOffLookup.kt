@@ -6,6 +6,7 @@ import fr.scanneat.data.remote.api.OpenFoodFactsApi
 import fr.scanneat.domain.engine.nutrition.OffProductResponse
 import fr.scanneat.domain.engine.nutrition.classifyNonFood
 import fr.scanneat.domain.engine.nutrition.detectSourceConflicts
+import fr.scanneat.domain.engine.nutrition.hasOffNutritionData
 import fr.scanneat.domain.engine.nutrition.isOffSparse
 import fr.scanneat.domain.engine.nutrition.mapOffProduct
 import fr.scanneat.domain.engine.nutrition.mergeOffWithLlm
@@ -178,7 +179,19 @@ internal class ScanOffLookup(
             // handling there) so the user's next scan attempt includes a photo of
             // the nutrition panel, which the existing OFF+LLM merge branch above
             // then reads for real - never a guess.
-            offProduct != null && isOffSparse(offProduct) && images.isEmpty() ->
+            //
+            // User-reported (3rd round): this used the full isOffSparse() check,
+            // which also fires when ingredients or category are missing - a very
+            // common OFF data gap on otherwise-complete records (e.g. a Candia milk
+            // entry with a full nutrition panel but an empty ingredients_text
+            // field), and unrelated to whether there's real nutrition data to show.
+            // That blocked the scan entirely and demanded a photo for a product
+            // whose actual macros were already known, with an error message that
+            // even claimed "no nutrition data" when there was some. Narrowed to
+            // hasOffNutritionData() - the "do we have anything to show" question -
+            // so a missing ingredients list or an unmapped category no longer
+            // blocks a scan whose real nutrition facts are already in hand.
+            offProduct != null && !hasOffNutritionData(offProduct) && images.isEmpty() ->
                 throw ProductNotFoundException(
                     if (lang == "en") "\"${offProduct.name}\" found, but has no nutrition data on Open Food Facts — add a photo of the nutrition facts panel to read it"
                     else "« ${offProduct.name} » trouvé, mais sans données nutritionnelles sur Open Food Facts — ajoutez une photo du tableau nutritionnel pour le lire"
