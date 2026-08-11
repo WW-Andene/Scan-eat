@@ -149,7 +149,14 @@ private fun EditGroceryQuantityDialog(itemName: String, initialGrams: Double, on
         title = { Text(itemName, color = OnBackground) },
         text = {
             OutlinedTextField(
-                value = text, onValueChange = { text = it },
+                // ProfileScreen/ProfileCapturePage already normalize comma->period
+                // before parsing - see their own doc comment on why (this app's
+                // default French locale's numeric keypad decimal key is a comma,
+                // which Kotlin's toDoubleOrNull() doesn't accept). This field had
+                // the same KeyboardType.Number comma trap but no such fix - typing
+                // "1,5" here just silently failed to validate (isError, Save
+                // disabled) with no indication of why to the user.
+                value = text, onValueChange = { text = it.replace(',', '.').filter { c -> c.isDigit() || c == '.' } },
                 label = { Text(stringResource(R.string.grocery_edit_quantity_label)) },
                 singleLine = true,
                 isError = text.isNotBlank() && grams == null,
