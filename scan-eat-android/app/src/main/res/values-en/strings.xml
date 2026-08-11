@@ -951,6 +951,7 @@
     <string name="category_grain">Dry grains &amp; pasta</string>
     <string name="category_fresh_produce">Fresh fruit &amp; vegetables</string>
     <string name="category_egg">Eggs</string>
+    <string name="category_nuts_seeds">Nuts / seeds</string>
     <string name="category_other">Other</string>
     <string name="expenses_no_budget_hint">Set a weekly target to track your budget</string>
     <string name="expenses_no_budget_hint_day">Set a daily target to track your budget</string>

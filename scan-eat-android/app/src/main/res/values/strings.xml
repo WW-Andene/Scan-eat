@@ -955,6 +955,7 @@
     <string name="category_grain">Féculents secs</string>
     <string name="category_fresh_produce">Fruits et légumes frais</string>
     <string name="category_egg">Œufs</string>
+    <string name="category_nuts_seeds">Fruits à coque / graines</string>
     <string name="category_other">Autres</string>
     <string name="expenses_no_budget_hint">Définissez un objectif hebdomadaire pour suivre votre budget</string>
     <string name="expenses_no_budget_hint_day">Définissez un objectif journalier pour suivre votre budget</string>

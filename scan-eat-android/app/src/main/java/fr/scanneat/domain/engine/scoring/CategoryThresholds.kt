@@ -69,13 +69,21 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // Salted by design (chips ~1.0-1.6g, pretzels ~1.5-2.2g, salted crackers
     // ~1.2-1.8g/100g) - same category-blindness pattern as bread above, just
     // more pronounced since this category IS defined by intentional salting.
-    // Kcal range widened from 400-550 (tuned for fried starch snacks) to
-    // 110-630 - the same regex also routes olives (~115-145kcal, brine-
-    // packed/mostly water) and nuts (almonds/cashews/pistachios ~550-630kcal)
-    // into this category, so the chip-tuned band flagged completely ordinary
-    // olives and nuts for "abnormal" energy density.
-    ProductCategory.SNACK_SALTY      to CategoryThresholds(Triple(6.0,9.0,14.0),  Triple(3.0,5.0,8.0),  Pair(110.0,630.0), false,
+    // Kcal band narrowed back to 110-560 (chips/pretzels/crackers ~400-560,
+    // olives ~115-145) now that nuts have their own NUTS_SEEDS category (see
+    // ProductCategory.NUTS_SEEDS's own doc comment) - previously widened to
+    // 630 purely to also cover nuts sharing this category, which also forced
+    // protein/fiber expectations up into nut-like territory even for a plain
+    // bag of chips.
+    ProductCategory.SNACK_SALTY      to CategoryThresholds(Triple(4.0,7.0,10.0),  Triple(2.0,4.0,6.0),  Pair(110.0,560.0), false,
         saltThresholds = Triple(1.3,1.8,2.5)),
+    // Nuts (almonds/cashews/walnuts/pistachios/peanuts ~550-630kcal, 15-25g
+    // protein, 5-12g fiber) and seeds (sunflower/pumpkin/chia/flax, similar
+    // profile) split out of SNACK_SALTY - see ProductCategory.NUTS_SEEDS's
+    // own doc comment for why sharing a threshold band with chips/pretzels/
+    // olives was scoring both groups against the wrong expectation.
+    ProductCategory.NUTS_SEEDS       to CategoryThresholds(Triple(12.0,18.0,25.0), Triple(5.0,8.0,12.0), Pair(480.0,650.0), true,
+        satFatThresholds = Triple(4.0,8.0,12.0)),
     ProductCategory.BEVERAGE_SOFT    to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(0.0,50.0),    false),
     // 100% fruit juice with zero added sugar is naturally high in sugar from
     // the fruit itself (OJ ~8-10g, apple ~10-11g, grape ~15-16g/100ml, all
@@ -158,7 +166,11 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // Eggs are tightly consistent nutritionally (raw egg ~155kcal, ~13g
     // protein, ~11g fat/100g, near-zero carbs/fiber/sugar), unlike every
     // other category above which needed a wide band for real heterogeneity.
-    ProductCategory.EGG to CategoryThresholds(Triple(8.0,11.0,15.0), Triple(0.0,0.0,0.0), Pair(120.0,180.0), true),
+    // User-requested category audit: floor lowered from 120 to 45 - an
+    // egg-white-only carton (~50kcal, ~11g protein, near-zero fat, a real
+    // supermarket product) previously tripped an "energy too low for this
+    // category" anomaly purely for having none of the yolk's fat.
+    ProductCategory.EGG to CategoryThresholds(Triple(8.0,11.0,15.0), Triple(0.0,0.0,0.0), Pair(45.0,180.0), true),
     ProductCategory.OTHER            to DEFAULT_THRESHOLDS,
 )
 
@@ -285,7 +297,11 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // only the dry-cured "saucisson" was covered), boudin and foie gras (both
     // already recognized by DietDefinitions.kt's meat keyword lists, but never
     // added here for category inference), and andouille/andouillette.
-    Regex("""\bjambon\b|saucissons?|\bsaucisses?\b|chorizo|\bbacon\b|\blardon|\bsalami\b|pancetta|prosciutto|merguez|\brillettes\b|\bterrines?\b|\bboudins?\b|andouillettes?|andouilles?|foie gras|\bp[aâ]t[eé](?![\w\p{L}])""", RegexOption.IGNORE_CASE) to ProductCategory.PROCESSED_MEAT,
+    // User-requested category audit: a pack simply labeled "Charcuterie"/
+    // "Plateau de charcuterie"/"Planche apéro" (no specific meat named)
+    // previously matched nothing here at all and fell to OTHER - added
+    // alongside the specific-meat keywords already covered.
+    Regex("""\bjambon\b|saucissons?|\bsaucisses?\b|chorizo|\bbacon\b|\blardon|\bsalami\b|pancetta|prosciutto|merguez|\brillettes\b|\bterrines?\b|\bboudins?\b|andouillettes?|andouilles?|foie gras|\bp[aâ]t[eé](?![\w\p{L}])|charcuterie|planche (de|ap[eé]ro)|plateau de charcuterie""", RegexOption.IGNORE_CASE) to ProductCategory.PROCESSED_MEAT,
     // veau/lapin added alongside the PROCESSED_MEAT sweep above - previously
     // only caught indirectly if the name also happened to contain "escalope"
     // or "steak" (e.g. "Escalope de veau" matched, but "Rôti de veau" or
@@ -306,7 +322,13 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // rémoulade, etc.), all mayo/vinaigrette-dressed prepared vegetable
     // dishes closer to READY_MEAL's kcal/fiber band than any raw-produce or
     // condiment category.
-    Regex("""r[eé]moulade|salade compos[eé]e|c[eé]leri.{0,20}moutarde|crudit[eé]s\b|plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
+    // User-requested category audit: "pizza" had no keyword anywhere in this
+    // list at all (not shadowed - genuinely absent) despite being one of the
+    // most commonly scanned product names, falling to OTHER's generic band.
+    // "Quiche" (savoury egg-custard-in-pastry) and "taboulé" (a dressed
+    // bulgur/couscous deli salad, same prepared-and-dressed shape as
+    // rémoulade above) were equally absent.
+    Regex("""r[eé]moulade|salade compos[eé]e|c[eé]leri.{0,20}moutarde|crudit[eé]s\b|tabboul[eé]|taboul[eé]|\bpizzas?\b|\bquiches?\b|plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
     // §-audit finding: dry pasta/rice/grains had no category at all - see
     // CategoryThresholds' own GRAIN entry above for the dry-vs-cooked-weight
     // caveat. Checked after READY_MEAL above (first-match-wins), so a real
@@ -333,10 +355,10 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bvinaigres?\b|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b|houmous|hummus|guacamole|\btarama\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
     // User-flagged: "beurre" alone matched inside nut butters (beurre de
     // cacahuète/arachide/amande/noisette/noix) before the engine ever
-    // reached SNACK_SALTY's cacahuètes/amandes/noisettes keywords further
+    // reached NUTS_SEEDS's cacahuètes/amandes/noisettes keywords further
     // down - peanut butter (~25g protein, ~590-600kcal/100g) was scored
     // against OIL_FAT's zero-protein-expectation, 700-900kcal band instead.
-    // Excluded here so it falls through to SNACK_SALTY, a much closer fit
+    // Excluded here so it falls through to NUTS_SEEDS, a much closer fit
     // (also added "arachides?\b" there so "beurre d'arachide" - the
     // Québécois/technical term for peanut, also used in France - still
     // matches even without the word "cacahuète" itself in the name).
@@ -355,7 +377,16 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // that generic match) - closer fit than Other's default thresholds even
     // if not perfect (desiccated coconut ~660kcal is slightly past this
     // category's 630kcal ceiling).
-    Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|pop[-\s]?corn|\b(pretzels?|bretzels?)\b|cacahu[eè]tes?\b|arachides?\b|\bamandes?\b|\bnoix\b(?!\s*de\s*(saint-jacques|veau|coco))|noisettes?\b(?!\s*(de|d['’])\s*(veau|agneau|porc))|noix de cajou|noix de p[eé]can|noix du br[eé]sil|noix de coco|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
+    // User-requested category audit: nuts/seeds split out of SNACK_SALTY into
+    // their own category (see ProductCategory.NUTS_SEEDS's own doc comment) -
+    // checked here, ahead of SNACK_SALTY's remaining chips/crackers/pretzels/
+    // olives pattern below, so "Amandes grillées"/"Noix de cajou" etc. no
+    // longer fall through to a chip-shaped threshold band. Same exclusions
+    // the prior single pattern already needed (butchery cuts, seafood,
+    // coconut - a different nutrition profile, left in SNACK_SALTY below)
+    // carried over unchanged.
+    Regex("""cacahu[eè]tes?\b|arachides?\b|\bamandes?\b|\bnoix\b(?!\s*de\s*(saint-jacques|veau|coco))|noisettes?\b(?!\s*(de|d['’])\s*(veau|agneau|porc))|noix de cajou|noix de p[eé]can|noix du br[eé]sil|noix de macadamia|amande grill[eé]e|pistaches?\b|graines? de (tournesol|courge|potiron|chia|lin|s[eé]same)""", RegexOption.IGNORE_CASE) to ProductCategory.NUTS_SEEDS,
+    Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|pop[-\s]?corn|\b(pretzels?|bretzels?)\b|noix de coco|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
     // §-audit finding: fresh fruit/vegetables had no category at all - see
     // CategoryThresholds' own FRESH_PRODUCE entry above for the wide-band
     // reasoning. Deliberately LAST in this list (first-match-wins) so every

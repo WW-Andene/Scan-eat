@@ -91,6 +91,13 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         "meat" in tag || "viande" in tag -> ProductCategory.FRESH_MEAT
         "fish" in tag || "seafood" in tag || "poisson" in tag -> ProductCategory.FISH
         "biscuit" in tag || "cookie" in tag || "chocolate" in tag || "snack" in tag && ("sweet" in tag || "sucre" in tag) -> ProductCategory.SNACK_SWEET
+        // Checked before the generic "snack" catch-all below - OFF tags nuts/
+        // seeds as "en:nuts", "en:seeds", "en:dried-fruits-and-nuts" etc, and
+        // often ALSO under its own "en:salty-snacks" parent tag, so without
+        // this a nut/seed product's real, more specific tag was shadowed by
+        // the generic snack branch and scored against chip-shaped thresholds
+        // (see ProductCategory.NUTS_SEEDS's own doc comment).
+        "nut" in tag || "seed" in tag || "graine" in tag || "amande" in tag || "noisette" in tag -> ProductCategory.NUTS_SEEDS
         "chips" in tag || "crisp" in tag || "snack" in tag -> ProductCategory.SNACK_SALTY
         // Checked before the generic "beverage" branches below - OFF tags beer/
         // wine/spirits as "en:beverages" too, so without this an alcoholic
@@ -122,7 +129,7 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         "sauce" in tag || "condiment" in tag || "dressing" in tag -> ProductCategory.CONDIMENT
         "oil" in tag || "fat" in tag || "huile" in tag -> ProductCategory.OIL_FAT
         "soup" in tag || "soupe" in tag || "broth" in tag || "bouillon" in tag -> ProductCategory.SOUP
-        "ready-meal" in tag || "plat-prepare" in tag -> ProductCategory.READY_MEAL
+        "ready-meal" in tag || "plat-prepare" in tag || "pizza" in tag || "quiche" in tag -> ProductCategory.READY_MEAL
         else -> ProductCategory.OTHER
     }
 }

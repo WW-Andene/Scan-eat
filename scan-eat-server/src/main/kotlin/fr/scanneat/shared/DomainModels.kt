@@ -66,6 +66,18 @@ enum class ProductCategory(val key: String) {
     // essentially no fiber/sugar), unlike every other category added in this
     // sweep which needed a wide band to span real heterogeneity.
     EGG("egg"),
+    // User-requested category audit: SNACK_SALTY's kcal band had been widened
+    // to 110-630 specifically to also cover nuts (~550-630kcal, 15-25g
+    // protein) and olives (~115-145kcal, ~1g protein) alongside chips/
+    // pretzels/crackers (~400-560kcal, ~6-9g protein) - one threshold band
+    // doing triple duty for three nutritionally unrelated snack shapes, so a
+    // bag of plain chips (mostly carb/fat) always read as protein/fiber-
+    // deficient purely because nuts shared its category. Split out: nuts and
+    // seeds (almonds, cashews, walnuts, sunflower/pumpkin/chia/flax seeds -
+    // real protein/fiber/"healthy fat" sources) get their own band; olives
+    // stay in SNACK_SALTY (low-kcal/high-salt outlier, but at least not
+    // sharing a threshold with high-protein nuts anymore).
+    NUTS_SEEDS("nuts_seeds"),
     OTHER("other");
 
     companion object {

@@ -66,12 +66,16 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     ProductCategory.FRESH_MEAT       to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(100.0,300.0), true),
     ProductCategory.FISH             to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(80.0,250.0),  true),
     ProductCategory.SNACK_SWEET      to CategoryThresholds(Triple(4.0,7.0,10.0),  Triple(2.0,4.0,6.0),  Pair(350.0,550.0), false),
-    // Salted by design (chips ~1.0-1.6g, pretzels ~1.5-2.2g/100g). Kcal range
-    // widened from 400-550 to 110-630 - the same regex also routes olives
-    // (~115-145kcal) and nuts (~550-630kcal) into this category. Mirrors the
-    // identical fix on the Android side (see Scoring Drift Check).
-    ProductCategory.SNACK_SALTY      to CategoryThresholds(Triple(6.0,9.0,14.0),  Triple(3.0,5.0,8.0),  Pair(110.0,630.0), false,
+    // Salted by design (chips ~1.0-1.6g, pretzels ~1.5-2.2g/100g). Kcal band
+    // narrowed back to 110-560 now that nuts have their own NUTS_SEEDS
+    // category. Mirrors the identical fix on the Android side (see Scoring
+    // Drift Check).
+    ProductCategory.SNACK_SALTY      to CategoryThresholds(Triple(4.0,7.0,10.0),  Triple(2.0,4.0,6.0),  Pair(110.0,560.0), false,
         saltThresholds = Triple(1.3,1.8,2.5)),
+    // Nuts/seeds split out of SNACK_SALTY - mirrors the identical fix on the
+    // Android side (see Scoring Drift Check / ProductCategory.NUTS_SEEDS).
+    ProductCategory.NUTS_SEEDS       to CategoryThresholds(Triple(12.0,18.0,25.0), Triple(5.0,8.0,12.0), Pair(480.0,650.0), true,
+        satFatThresholds = Triple(4.0,8.0,12.0)),
     ProductCategory.BEVERAGE_SOFT    to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(0.0,50.0),    false),
     // 100% fruit juice with zero added sugar is naturally high in sugar from
     // the fruit itself (OJ ~8-10g, apple ~10-11g, grape ~15-16g/100ml, all
@@ -138,7 +142,9 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // Eggs are tightly consistent nutritionally (raw egg ~155kcal, ~13g
     // protein, ~11g fat/100g, near-zero carbs/fiber/sugar), unlike every
     // other category above which needed a wide band for real heterogeneity.
-    ProductCategory.EGG to CategoryThresholds(Triple(8.0,11.0,15.0), Triple(0.0,0.0,0.0), Pair(120.0,180.0), true),
+    // Floor lowered from 120 to 45 - an egg-white-only carton (~50kcal, ~11g
+    // protein) previously tripped an energy-too-low anomaly.
+    ProductCategory.EGG to CategoryThresholds(Triple(8.0,11.0,15.0), Triple(0.0,0.0,0.0), Pair(45.0,180.0), true),
     ProductCategory.OTHER            to DEFAULT_THRESHOLDS,
 )
 
@@ -253,7 +259,7 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // only the dry-cured "saucisson" was covered), boudin and foie gras (both
     // already recognized by DietDefinitions.kt's meat keyword lists, but never
     // added here for category inference), and andouille/andouillette.
-    Regex("""\bjambon\b|saucissons?|\bsaucisses?\b|chorizo|\bbacon\b|\blardon|\bsalami\b|pancetta|prosciutto|merguez|\brillettes\b|\bterrines?\b|\bboudins?\b|andouillettes?|andouilles?|foie gras|\bp[aâ]t[eé](?![\w\p{L}])""", RegexOption.IGNORE_CASE) to ProductCategory.PROCESSED_MEAT,
+    Regex("""\bjambon\b|saucissons?|\bsaucisses?\b|chorizo|\bbacon\b|\blardon|\bsalami\b|pancetta|prosciutto|merguez|\brillettes\b|\bterrines?\b|\bboudins?\b|andouillettes?|andouilles?|foie gras|\bp[aâ]t[eé](?![\w\p{L}])|charcuterie|planche (de|ap[eé]ro)|plateau de charcuterie""", RegexOption.IGNORE_CASE) to ProductCategory.PROCESSED_MEAT,
     // veau/lapin added alongside the PROCESSED_MEAT sweep above - previously
     // only caught indirectly if the name also happened to contain "escalope"
     // or "steak" (e.g. "Escalope de veau" matched, but "Rôti de veau" or
@@ -274,7 +280,7 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // rémoulade, etc.), all mayo/vinaigrette-dressed prepared vegetable
     // dishes closer to READY_MEAL's kcal/fiber band than any raw-produce or
     // condiment category.
-    Regex("""r[eé]moulade|salade compos[eé]e|c[eé]leri.{0,20}moutarde|crudit[eé]s\b|plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
+    Regex("""r[eé]moulade|salade compos[eé]e|c[eé]leri.{0,20}moutarde|crudit[eé]s\b|tabboul[eé]|taboul[eé]|\bpizzas?\b|\bquiches?\b|plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
     Regex("""\bp[aâ]tes\b|spaghettis?\b|macaronis?\b|pennes?\b|fusillis?\b|tagliatelles?\b|coquillettes?\b|nouilles?\b|vermicelles?\b|\briz\b|couscous|semoule|quinoa|boulgour""", RegexOption.IGNORE_CASE) to ProductCategory.GRAIN,
     // "omelette" added - a very common refrigerated ready-to-eat product
     // ("Omelette nature", "Omelette aux fines herbes") that had no keyword.
@@ -316,7 +322,8 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // that generic match) - closer fit than Other's default thresholds even
     // if not perfect (desiccated coconut ~660kcal is slightly past this
     // category's 630kcal ceiling).
-    Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|pop[-\s]?corn|\b(pretzels?|bretzels?)\b|cacahu[eè]tes?\b|arachides?\b|\bamandes?\b|\bnoix\b(?!\s*de\s*(saint-jacques|veau|coco))|noisettes?\b(?!\s*(de|d['’])\s*(veau|agneau|porc))|noix de cajou|noix de p[eé]can|noix du br[eé]sil|noix de coco|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
+    Regex("""cacahu[eè]tes?\b|arachides?\b|\bamandes?\b|\bnoix\b(?!\s*de\s*(saint-jacques|veau|coco))|noisettes?\b(?!\s*(de|d['’])\s*(veau|agneau|porc))|noix de cajou|noix de p[eé]can|noix du br[eé]sil|noix de macadamia|amande grill[eé]e|pistaches?\b|graines? de (tournesol|courge|potiron|chia|lin|s[eé]same)""", RegexOption.IGNORE_CASE) to ProductCategory.NUTS_SEEDS,
+    Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|pop[-\s]?corn|\b(pretzels?|bretzels?)\b|noix de coco|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
     Regex("""\bfruits?\b|\bl[eé]gumes?\b|\bpommes?\b|\bpoires?\b|\bbananes?\b|\boranges?\b|\bfraises?\b|\bframboises?\b|\braisins?\b|\bp[eê]ches?\b|\babricots?\b|\bkiwis?\b|\bmangues?\b|\bananas\b|\bcitrons?\b|\bpast[eè]ques?\b|\bmelons?\b|\bavocats?\b|\btomates?\b|\bcarottes?\b|\bcourgettes?\b|\baubergines?\b|\bpoivrons?\b|\boignons?\b|\bail\b|\bsalade\b|\blaitue\b|\b[eé]pinards?\b|\bbrocolis?\b|\bchoux?\b(?!\s*[aà]\s*la\s*cr[eè]me)|\bharicots? verts?\b|\bpetits? pois\b|\bpoireaux?\b|\bconcombres?\b|\bradis\b|\bc[eé]leri\b|\bchampignons?\b|pommes? de terre|\bpatates?\b""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_PRODUCE,
 )
 
