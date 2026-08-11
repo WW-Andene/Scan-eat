@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.ActivityType
+import fr.scanneat.domain.engine.health.OvertrainingSeverity
 import fr.scanneat.presentation.activity.components.ActivityDailyTotalsCard
 import fr.scanneat.presentation.activity.components.ActivityEntryRow
 import fr.scanneat.presentation.activity.components.ActivityQuickLogRow
@@ -131,6 +132,21 @@ fun ActivityScreen(
             // uses for the equivalent widget/fasting streak counts.
             val message = context.resources.getQuantityString(R.plurals.activity_new_streak_record, days, days)
             snackbarHostState.showSnackbar(CelebrationSnackbarVisuals(message))
+        }
+    }
+
+    // User-requested: same excessive-volume awareness as AddActivityDialog's
+    // own inline text (see ActivityViewModel.overtrainingWarning's own doc
+    // comment), surfaced as a snackbar too so quickLog() - which skips the
+    // dialog entirely - still warns the user.
+    LaunchedEffect(Unit) {
+        viewModel.overtrainingWarning.collect { warning ->
+            val message = context.getString(
+                if (warning.severity == OvertrainingSeverity.HIGH) R.string.activity_overtraining_high
+                else R.string.activity_overtraining_moderate,
+                warning.totalMinutes,
+            )
+            snackbarHostState.showSnackbar(message)
         }
     }
 
@@ -265,6 +281,12 @@ fun ActivityScreen(
             // reopened (FAB/CTA) - calling it again here on dismiss was redundant and
             // composed an extra recomposition of a now-empty dialog right before it
             // closed, unlike Weight/Medication which only reset fields at the open call site.
+            // Excludes the entry being edited (if any) from its own type's
+            // already-logged total, so re-saving an unchanged edit doesn't
+            // double-count that same session against itself.
+            todayMinutesForType = entries.value
+                .filter { it.type == selectedType && it.id != editTargetId }
+                .sumOf { it.minutes },
             onDismiss = { showAdd = false },
             onAdd = {
                 // Clamped to sane ranges, same rationale as Profile/Weight/CustomFood's

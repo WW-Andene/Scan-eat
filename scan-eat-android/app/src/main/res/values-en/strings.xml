@@ -1086,6 +1086,8 @@
     <string name="activity_entry_weight">%1$.1f kg</string>
     <string name="activity_entry_distance">%1$.1f km</string>
     <string name="activity_duration_invalid">Enter a valid duration</string>
+    <string name="activity_overtraining_moderate">High volume today (%1$d min for this type) — consider recovery time</string>
+    <string name="activity_overtraining_high">Very high volume today (%1$d min for this type) — overtraining risk</string>
     <string name="activity_number_invalid">Enter a valid number (ignored otherwise)</string>
     <string name="activity_quick_log_title">Quick log</string>
     <string name="activity_was_outdoors">Was it outdoors?</string>

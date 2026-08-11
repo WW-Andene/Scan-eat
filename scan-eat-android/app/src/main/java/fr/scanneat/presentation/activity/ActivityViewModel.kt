@@ -7,6 +7,8 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.ActivityEntry
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.ActivityType
+import fr.scanneat.domain.engine.health.OvertrainingWarning
+import fr.scanneat.domain.engine.health.checkDailyOvertraining
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -247,6 +249,16 @@ class ActivityViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
+    // User-requested: is the app "aware" of an excessive single-day training
+    // volume (e.g. 6h running, 3h strength) and does it warn about it? See
+    // checkDailyOvertraining's own doc comment - AddActivityDialog already
+    // shows this live while typing, but a user could still log via quickLog()
+    // (no dialog at all) or simply not notice the inline text before tapping
+    // Add. Emitted here too as a one-shot snackbar cue, same
+    // shape as [newStreakRecord] above.
+    private val _overtrainingWarning = MutableSharedFlow<OvertrainingWarning>(extraBufferCapacity = 1)
+    val overtrainingWarning: SharedFlow<OvertrainingWarning> = _overtrainingWarning.asSharedFlow()
+
     fun log(
         type: ActivityType, minutes: Int,
         subType: String? = null, sets: Int? = null, reps: Int? = null,
@@ -259,6 +271,13 @@ class ActivityViewModel @Inject constructor(
                     subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
                     wasOutdoors = wasOutdoors, profileId = activeProfileId.value,
                 )
+            }.onSuccess {
+                // entries.value is the pre-write snapshot (Room's Flow re-emit
+                // hasn't necessarily landed yet) - the same total AddActivityDialog's
+                // own live preview would have shown, computed here so quickLog()
+                // (which never goes through that dialog at all) still gets it.
+                val total = entries.value.filter { it.type == type }.sumOf { it.minutes } + minutes
+                checkDailyOvertraining(type, total)?.let { _overtrainingWarning.emit(it) }
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

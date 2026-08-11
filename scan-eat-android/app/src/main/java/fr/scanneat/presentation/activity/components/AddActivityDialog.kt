@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.ACTIVITY_SUB_TYPES
 import fr.scanneat.data.repository.health.ActivityType
+import fr.scanneat.domain.engine.health.OvertrainingSeverity
+import fr.scanneat.domain.engine.health.checkDailyOvertraining
 import fr.scanneat.presentation.ui.theme.*
 
 /**
@@ -62,6 +64,13 @@ internal fun AddActivityDialog(
     actions: AddActivityFormActions,
     onDismiss: () -> Unit,
     onAdd: () -> Unit,
+    // User-requested: is the app "aware" of an unusually large single-day
+    // training volume (e.g. 6h of running) and does it warn about it? Answer:
+    // it wasn't - see checkDailyOvertraining's own doc comment. This is the
+    // selected type's own minutes already logged today (excluding the entry
+    // being edited, if any) - the dialog adds the in-progress minutes field to
+    // it live, so the warning updates as the user types, before they even save.
+    todayMinutesForType: Int = 0,
 ) {
     val (selectedType, selectedSubType, customSubTypeText, setsText, repsText, distanceText, weightUsedText, minutesText) = values
     val onSelectedTypeChange = actions.onSelectedTypeChange
@@ -213,6 +222,7 @@ internal fun AddActivityDialog(
                 }
                 val minutes = minutesText.toIntOrNull()
                 val minutesValid = minutes != null && minutes in 1..1440
+                val overtraining = minutes?.let { checkDailyOvertraining(selectedType, todayMinutesForType + it) }
                 OutlinedTextField(
                     value = minutesText, onValueChange = onMinutesTextChange,
                     label = { Text(stringResource(R.string.activity_duration_label)) }, singleLine = true,
@@ -220,6 +230,19 @@ internal fun AddActivityDialog(
                     supportingText = {
                         if (minutesText.isNotBlank() && !minutesValid) {
                             Text(stringResource(R.string.activity_duration_invalid), color = semanticRed())
+                        } else if (overtraining != null) {
+                            // Non-blocking (unlike the isError case above) - unusual volume
+                            // is worth flagging, not preventing, same as every other
+                            // caution in this app (Result's cautions/vetoes never block a
+                            // save either).
+                            Text(
+                                stringResource(
+                                    if (overtraining.severity == OvertrainingSeverity.HIGH) R.string.activity_overtraining_high
+                                    else R.string.activity_overtraining_moderate,
+                                    overtraining.totalMinutes,
+                                ),
+                                color = semanticAmber(),
+                            )
                         }
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
