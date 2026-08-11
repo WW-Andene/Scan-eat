@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -160,7 +162,10 @@ private fun EditGroceryQuantityDialog(itemName: String, initialGrams: Double, on
                 label = { Text(stringResource(R.string.grocery_edit_quantity_label)) },
                 singleLine = true,
                 isError = text.isNotBlank() && grams == null,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                // UX friction pass: no imeAction meant the keyboard's Done key
+                // did nothing, forcing a reach back to "Enregistrer" after typing.
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { grams?.let(onConfirm) }),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 colors = scanEatTextFieldColors(),
             )

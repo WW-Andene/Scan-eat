@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -107,7 +108,10 @@ private fun HydrationCustomAmountDialog(useImperial: Boolean, onConfirm: (Int) -
                 label = { Text(stringResource(if (useImperial) R.string.hydration_history_edit_label_imperial else R.string.hydration_history_edit_label)) },
                 singleLine = true,
                 isError = text.isNotBlank() && typed == null,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                // UX friction pass: no imeAction meant the keyboard's Done key
+                // did nothing, forcing a reach back to "Ajouter" after typing.
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number, imeAction = androidx.compose.ui.text.input.ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { ml?.let(onConfirm) }),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 colors = scanEatTextFieldColors(),
