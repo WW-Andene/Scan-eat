@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -24,6 +25,8 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import java.text.Collator
+import java.util.Locale
 
 /** Extracted from SeasonalProduceScreen (§T1 composition-root split). */
 @OptIn(ExperimentalLayoutApi::class)
@@ -35,10 +38,21 @@ internal fun SeasonalGroupCard(
     selectedProduct: SeasonalProduce?,
     onProductClick: (SeasonalProduce) -> Unit,
 ) {
+    // Was in SeasonalProduceDb's own declaration order (roughly grouped by
+    // month) - fine for a handful of items, but scanning ~15-20 chips per
+    // group to find one specific product meant reading the whole row instead
+    // of jumping straight to it. Collator (not a plain String sort) so
+    // accented French names ("Épinard", "Étoile" if ever added) sort next to
+    // their unaccented neighbors the way a French speaker expects, rather
+    // than a raw Unicode ordering pushing every accented letter to the end.
+    val collator = remember(isFrench) { Collator.getInstance(if (isFrench) Locale.FRENCH else Locale.ENGLISH) }
+    val sortedItems = remember(items, isFrench, collator) {
+        items.sortedWith(compareBy(collator) { if (isFrench) it.nameFr else it.nameEn })
+    }
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Text(stringResource(titleRes), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f), fontWeight = FontWeight.SemiBold)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            items.forEach { produce ->
+            sortedItems.forEach { produce ->
                 val selected = produce == selectedProduct
                 Text(
                     if (isFrench) produce.nameFr else produce.nameEn,
