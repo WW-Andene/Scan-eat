@@ -257,6 +257,7 @@ fun AppNavGraph(
                 onBack = { navController.popBackStack() },
                 onNavigateToPlanning = { navController.navigateToPlanning(it) },
                 onScanToAdd = { navController.navigate(AppRoutes.SCAN_FOR_GROCERY) },
+                onOpenLoyaltyCards = { navController.navigate(AppRoutes.LOYALTY_CARDS) },
             )
         }
         // See AppRoutes.SCAN_FOR_GROCERY's own comment - only ever pushed from
@@ -273,6 +274,11 @@ fun AppNavGraph(
             ScanScreen(
                 onResultReady = { id -> groceryViewModel.addScannedProduct(id); navController.popBackStack() },
             )
+        }
+        // User-requested: keep store loyalty cards (e.g. Carrefour) on hand at
+        // checkout - manual entry only, see LoyaltyCardsScreen's own doc comment.
+        composable(AppRoutes.LOYALTY_CARDS) {
+            fr.scanneat.presentation.loyalty.LoyaltyCardsScreen(onBack = { navController.popBackStack() })
         }
         composable(AppRoutes.CUSTOM_FOODS) {
             CustomFoodScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })

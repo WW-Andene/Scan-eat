@@ -628,6 +628,14 @@
     <string name="grocery_scan_to_add">Scanner pour ajouter à la liste</string>
     <string name="grocery_new_list">Nouvelle liste</string>
     <string name="grocery_new_list_placeholder">Ex. Semaine, BBQ…</string>
+    <string name="grocery_log_price_title">Prix payé pour « %1$s » ?</string>
+    <string name="grocery_log_price_placeholder">Prix (%1$s)</string>
+    <string name="grocery_skip_price">Passer</string>
+    <string name="loyalty_title">Cartes de fidélité</string>
+    <string name="loyalty_add">Ajouter une carte</string>
+    <string name="loyalty_empty_body">Aucune carte enregistrée. Ajoutez vos cartes de fidélité pour les avoir toujours sous la main.</string>
+    <string name="loyalty_store_placeholder">Enseigne (ex. Carrefour)</string>
+    <string name="loyalty_code_placeholder">Numéro de carte</string>
     <string name="grocery_group_by_aisle">Grouper par rayon</string>
     <string name="grocery_category_produce">Fruits &amp; légumes</string>
     <string name="grocery_category_dairy">Produits laitiers</string>

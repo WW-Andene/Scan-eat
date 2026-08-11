@@ -38,10 +38,17 @@ internal fun GroceryTopBarActions(
     // hasItems like the actions below) since scanning is how a user with an
     // empty list would start filling it.
     onScanToAdd: () -> Unit,
+    // User-requested: quick access to stored loyalty cards from Courses,
+    // where they're most useful (right before checkout). Always shown, same
+    // reasoning as onScanToAdd above.
+    onOpenLoyaltyCards: () -> Unit,
 ) {
     PlanningSwitcherMenu(current = PlanningDestination.GROCERY, onNavigate = onNavigateToPlanning)
     IconButton(onClick = onScanToAdd) {
         Icon(TablerIcons.Barcode, stringResource(R.string.grocery_scan_to_add), tint = AccentCoral)
+    }
+    IconButton(onClick = onOpenLoyaltyCards) {
+        Icon(Icons.Rounded.CreditCard, stringResource(R.string.loyalty_title), tint = OnBackground.copy(0.7f))
     }
     if (hasCheckedItems) {
         IconButton(onClick = onShowClearConfirm) {

@@ -624,6 +624,14 @@
     <string name="grocery_scan_to_add">Scan to add to list</string>
     <string name="grocery_new_list">New list</string>
     <string name="grocery_new_list_placeholder">e.g. Week, BBQ…</string>
+    <string name="grocery_log_price_title">Price paid for "%1$s"?</string>
+    <string name="grocery_log_price_placeholder">Price (%1$s)</string>
+    <string name="grocery_skip_price">Skip</string>
+    <string name="loyalty_title">Loyalty cards</string>
+    <string name="loyalty_add">Add a card</string>
+    <string name="loyalty_empty_body">No cards saved yet. Add your loyalty cards to always have them on hand.</string>
+    <string name="loyalty_store_placeholder">Store (e.g. Carrefour)</string>
+    <string name="loyalty_code_placeholder">Card number</string>
     <string name="grocery_group_by_aisle">Group by aisle</string>
     <string name="grocery_category_produce">Produce</string>
     <string name="grocery_category_dairy">Dairy</string>

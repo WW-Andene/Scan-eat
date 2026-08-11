@@ -375,6 +375,32 @@ class GroceryViewModel @Inject constructor(
         viewModelScope.launch { runCatching { checkedRepo.clearAll(activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
+    /**
+     * User-requested: logging a price directly from Courses, so a purchase
+     * checked off while shopping can feed the same PriceRepository history
+     * budgetEstimate/frequentSuggestions already read, instead of that link
+     * only working one way (Diary/Scan/Expenses -> Courses, never back).
+     * category is always OTHER, same as GroceryItem.toCheckProduct() - a
+     * grocery row is a bare ingredient name with no real product category of
+     * its own.
+     */
+    fun logPrice(item: GroceryItem, priceEuros: Double) {
+        if (priceEuros <= 0.0) return
+        viewModelScope.launch {
+            runCatching {
+                priceRepo.log(
+                    date = LocalDate.now(),
+                    productName = item.name,
+                    barcode = null,
+                    category = fr.scanneat.domain.model.ProductCategory.OTHER,
+                    priceEuros = priceEuros,
+                    weightG = if (item.grams > 0) item.grams.toDouble() else null,
+                    profileId = activeProfileId.value,
+                )
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     // ManualGroceryRepository.remove() previously had zero callers anywhere in the
     // app — an ad-hoc item (e.g. "Save to grocery" from a scanned product) could
     // only ever be hidden by checking it off, never actually removed, so it

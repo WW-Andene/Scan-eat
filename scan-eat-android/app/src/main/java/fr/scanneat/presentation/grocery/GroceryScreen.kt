@@ -48,6 +48,7 @@ fun GroceryScreen(
     // list - see AppRoutes.SCAN_FOR_GROCERY's own comment. Defaults to a
     // no-op so this remains source-compatible with any other call site.
     onScanToAdd: () -> Unit = {},
+    onOpenLoyaltyCards: () -> Unit = {},
 ) {
     var quickAddText by rememberSaveable { mutableStateOf("") }
     // Grocery had no search at all, unlike every other list-heavy screen (Recipes,
@@ -70,9 +71,20 @@ fun GroceryScreen(
     val availableLists = viewModel.availableLists.collectAsStateWithLifecycle()
     var showNewListDialog by remember { mutableStateOf(false) }
     var newListText by rememberSaveable { mutableStateOf("") }
+    // User-requested: checking an item off offers to log its price right away,
+    // so a real purchase feeds PriceRepository (Journal/Expenses/budgetEstimate)
+    // instead of Courses staying a dead end for price data. Optional - "Passer"
+    // just checks the item off with no price logged, same as before this feature.
+    var priceLogItem by remember { mutableStateOf<GroceryItem?>(null) }
+    var priceLogText by rememberSaveable { mutableStateOf("") }
     val clipboard = LocalClipboardManager.current
     val haptics   = LocalHapticFeedback.current
     val context   = LocalContext.current
+    val onToggleChecked: (GroceryItem, Boolean) -> Unit = { item, checked ->
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        viewModel.toggleChecked(item, checked)
+        if (checked) { priceLogText = ""; priceLogItem = item }
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val copiedMessage = stringResource(R.string.grocery_copied)
@@ -125,6 +137,7 @@ fun GroceryScreen(
                     scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
                 },
                 onScanToAdd = onScanToAdd,
+                onOpenLoyaltyCards = onOpenLoyaltyCards,
             )
         },
     ) { padding ->
@@ -292,7 +305,7 @@ fun GroceryScreen(
                             GroceryItemRow(
                                 checkableItem, warning = itemWarnings.value[checkableItem.item.key],
                                 isManual = checkableItem.item.key in manualItemKeys.value,
-                                onToggleChecked = { checked -> haptics.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.toggleChecked(checkableItem.item, checked) },
+                                onToggleChecked = { checked -> onToggleChecked(checkableItem.item, checked) },
                                 onDeleteManual = {
                                 viewModel.deleteManualContribution(checkableItem.item.key)
                                 scope.launch {
@@ -309,7 +322,7 @@ fun GroceryScreen(
                         GroceryItemRow(
                             checkableItem, warning = itemWarnings.value[checkableItem.item.key],
                             isManual = checkableItem.item.key in manualItemKeys.value,
-                            onToggleChecked = { checked -> haptics.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.toggleChecked(checkableItem.item, checked) },
+                            onToggleChecked = { checked -> onToggleChecked(checkableItem.item, checked) },
                             onDeleteManual = {
                                 viewModel.deleteManualContribution(checkableItem.item.key)
                                 scope.launch {
@@ -360,6 +373,36 @@ fun GroceryScreen(
                 ) { Text(stringResource(R.string.common_add)) }
             },
             dismissButton = { TextButton(onClick = { showNewListDialog = false }) { Text(stringResource(R.string.common_cancel)) } },
+        )
+    }
+
+    // User-requested: checking an item off can log its price - see
+    // onToggleChecked above. Purely optional, "Passer" dismisses with the
+    // item already checked off from onToggleChecked (this dialog never
+    // un-checks it).
+    priceLogItem?.let { item ->
+        AlertDialog(
+            onDismissRequest = { priceLogItem = null },
+            title = { Text(stringResource(R.string.grocery_log_price_title, item.name)) },
+            text = {
+                OutlinedTextField(
+                    value = priceLogText,
+                    onValueChange = { priceLogText = it },
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.grocery_log_price_placeholder, currencySymbol.value)) },
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = priceLogText.replace(',', '.').toDoubleOrNull()?.let { it > 0.0 } == true,
+                    onClick = {
+                        priceLogText.replace(',', '.').toDoubleOrNull()?.let { viewModel.logPrice(item, it) }
+                        priceLogItem = null
+                    },
+                ) { Text(stringResource(R.string.common_add)) }
+            },
+            dismissButton = { TextButton(onClick = { priceLogItem = null }) { Text(stringResource(R.string.grocery_skip_price)) } },
         )
     }
 }
