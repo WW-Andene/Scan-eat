@@ -104,6 +104,11 @@ internal fun ResultContent(
             UncertainCategoryBanner()
         }
 
+        // User-requested: see RescoredBanner's own doc comment - only present
+        // right after ScanRepositoryHistory's staleness rescore actually
+        // changed the score, not on every load.
+        scan.rescoredFrom?.let { previous -> RescoredBanner(previousScore = previous, currentScore = audit.score) }
+
         // NutriScore / Eco-Score / NOVA — fully computed by the scoring engine
         // for every scan but previously never surfaced anywhere in this screen.
         ScoreBadgesRow(audit = audit, novaClass = scan.product.novaClass)

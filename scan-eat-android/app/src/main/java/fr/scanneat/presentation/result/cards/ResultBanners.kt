@@ -152,6 +152,31 @@ internal fun AllergenUnverifiedBanner() {
     }
 }
 
+// User-requested: the ENGINE_VERSION staleness rescore (ScanRepositoryHistory.
+// rescoreStale) silently swapped in a corrected score with no explanation -
+// a user reopening a product they'd seen before could see the number change
+// with zero indication why, which reads as arbitrary/untrustworthy rather
+// than "we fixed something." Shown only when rescoredFrom is non-null (the
+// score actually moved - see that field's own doc comment).
+@Composable
+internal fun RescoredBanner(previousScore: Int, currentScore: Int) {
+    val improved = currentScore > previousScore
+    val tint = if (improved) semanticGreen() else semanticAmber()
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = tint.copy(alpha = 0.15f),
+        contentPadding = PaddingValues(Spacing.L),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Icon(TablerIcons.AlertTriangle, null, tint = tint, modifier = Modifier.size(IconSize.Inline))
+            Text(
+                stringResource(R.string.result_rescored, previousScore, currentScore),
+                style = MaterialTheme.typography.bodySmall, color = OnBackground, modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
 // User-requested: mapCategory() couldn't confidently place this product into
 // any of its specific buckets (unrecognized/missing OFF category tags) and
 // fell back to ProductCategory.OTHER, which scores against DEFAULT_THRESHOLDS

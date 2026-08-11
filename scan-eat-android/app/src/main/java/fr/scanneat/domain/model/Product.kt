@@ -295,6 +295,14 @@ data class ScanResult(
     val dbId: Long = 0,   // Row id from scan_history; 0 when not yet persisted
     val favorite: Boolean = false,
     val scannedAt: Long = 0,   // epoch millis from scan_history; 0 when not yet persisted
+    // User-requested: transient signal set only by ScanRepositoryHistory's
+    // stale-scan rescore (never persisted - not part of productJson/auditJson,
+    // not mirrored on the server since it's Android-only UI feedback) so
+    // ResultContent can show "this score just changed from X to Y" instead of
+    // silently swapping the number with no explanation. Null on every other
+    // read path (a fresh scan, an already-current row) and whenever a rescore
+    // happened to land on the exact same score.
+    val rescoredFrom: Int? = null,
 )
 
 enum class ScanSource { OPEN_FOOD_FACTS, LLM, MERGED, MANUAL }

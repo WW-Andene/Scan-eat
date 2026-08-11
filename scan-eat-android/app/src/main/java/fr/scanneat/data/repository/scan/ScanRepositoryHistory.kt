@@ -122,7 +122,13 @@ internal class ScanHistoryQueries(
         val refreshedCategory = cached.barcode?.let { offLookup.refreshCategory(it) }
         val product = if (refreshedCategory != null && refreshedCategory != cached.product.category)
             cached.product.copy(category = refreshedCategory) else cached.product
-        val rescored = cached.copy(product = product, audit = scoreProduct(product, lang))
+        val newAudit = scoreProduct(product, lang)
+        // See ScanResult.rescoredFrom's own doc comment - only set when the
+        // score actually moved, so a stale row whose rescore happened to land
+        // on the identical number (e.g. only the engine's INFO-level wording
+        // changed) doesn't show a "your score changed!" banner for nothing.
+        val previousScore = cached.audit.score.takeIf { it != newAudit.score }
+        val rescored = cached.copy(product = product, audit = newAudit, rescoredFrom = previousScore)
         if (rescored.dbId != 0L) {
             try {
                 dao.updateRescored(
