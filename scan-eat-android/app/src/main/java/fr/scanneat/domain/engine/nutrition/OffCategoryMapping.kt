@@ -37,7 +37,11 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         // drink fell through to BEVERAGE_SOFT and was scored against
         // soda-shaped sugar/kcal reference ranges (see ProductCategory.
         // ALCOHOLIC_BEVERAGE's own doc comment for the bug this fixes).
-        "alcoholic-beverage" in tag || "beer" in tag || "biere" in tag || "wine" in tag || "vin" in tag ||
+        // "non-alcoholic-beverage" (OFF's own tag for e.g. sparkling water) contains
+        // "alcoholic-beverage" as a raw substring, so this branch was firing on
+        // every non-alcoholic product too - a water scanned as an alcoholic drink,
+        // inheriting its 30-280kcal/100g norm range instead of water's 0-5 one.
+        ("alcoholic-beverage" in tag && "non-alcoholic-beverage" !in tag) || "beer" in tag || "biere" in tag || "wine" in tag || "vin" in tag ||
             "cider" in tag || "cidre" in tag || "spirit" in tag || "spiritueux" in tag || "liquor" in tag ||
             "liqueur" in tag || "whisky" in tag || "whiskey" in tag || "vodka" in tag || "rum" in tag ||
             "champagne" in tag -> ProductCategory.ALCOHOLIC_BEVERAGE

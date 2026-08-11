@@ -47,7 +47,11 @@ private fun mapCategory(tags: List<String>?): ProductCategory {
         "fish" in tag || "seafood" in tag || "poisson" in tag -> ProductCategory.FISH
         "biscuit" in tag || "cookie" in tag || "chocolate" in tag || "snack" in tag && ("sweet" in tag || "sucre" in tag) -> ProductCategory.SNACK_SWEET
         "chips" in tag || "crisp" in tag || "snack" in tag -> ProductCategory.SNACK_SALTY
-        "alcoholic-beverage" in tag || "beer" in tag || "biere" in tag || "wine" in tag || "vin" in tag ||
+        // "non-alcoholic-beverage" (OFF's own tag for e.g. sparkling water) contains
+        // "alcoholic-beverage" as a raw substring, so this branch was firing on
+        // every non-alcoholic product too - a water scanned as an alcoholic drink,
+        // inheriting its 30-280kcal/100g norm range instead of water's 0-5 one.
+        ("alcoholic-beverage" in tag && "non-alcoholic-beverage" !in tag) || "beer" in tag || "biere" in tag || "wine" in tag || "vin" in tag ||
             "cider" in tag || "cidre" in tag || "spirit" in tag || "spiritueux" in tag || "liquor" in tag ||
             "liqueur" in tag || "whisky" in tag || "whiskey" in tag || "vodka" in tag || "rum" in tag ||
             "champagne" in tag -> ProductCategory.ALCOHOLIC_BEVERAGE
