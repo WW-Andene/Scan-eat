@@ -111,15 +111,18 @@ fun closeTheGap(
         // density foods (e.g. maquereau/saumon/sardine for vitamin D, every
         // single day, for every user with the same deficit) regardless of
         // what the user actually eats, since this ranking has zero rotation.
-        // Widening to the top 6 and picking 3 with a day-seeded shuffle keeps
+        // Widening to the top 8 and keeping 6 with a day-seeded shuffle keeps
         // suggestions nutritionally sound (still drawn from the strongest
         // sources for this nutrient, never the weak tail of the list) while
         // rotating day to day instead of freezing on one fixed top-3 forever.
         // Seeded by date + nutrient (not just date) so different nutrients
-        // don't all reshuffle in lockstep on the same day.
-        val pool = ranked.take(6)
+        // don't all reshuffle in lockstep on the same day. Widened from
+        // 6/3 to 8/6 so GapCloserCard's refresh button has a real pool of
+        // spare candidates to shuffle through instead of re-showing the same
+        // 3 chips every tap.
+        val pool = ranked.take(8)
         val seed = date.toEpochDay() * 31 + def.label.hashCode()
-        val chosen = pool.shuffled(kotlin.random.Random(seed)).take(3)
+        val chosen = pool.shuffled(kotlin.random.Random(seed)).take(6)
 
         out += GapEntry(
             nutrient    = def.label,
