@@ -6,6 +6,7 @@ import compose.icons.tablericons.ArrowLeft
 import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -22,9 +23,11 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.data.repository.planning.DEFAULT_LIST
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.presentation.grocery.components.GroceryFrequentSuggestionsRow
 import fr.scanneat.presentation.grocery.components.GroceryItemRow
@@ -63,6 +66,10 @@ fun GroceryScreen(
     val frequentSuggestions = viewModel.frequentSuggestions.collectAsStateWithLifecycle()
     val sortAlpha = viewModel.sortAlpha.collectAsStateWithLifecycle()
     val groupByAisle = viewModel.groupByAisle.collectAsStateWithLifecycle()
+    val activeListName = viewModel.activeListName.collectAsStateWithLifecycle()
+    val availableLists = viewModel.availableLists.collectAsStateWithLifecycle()
+    var showNewListDialog by remember { mutableStateOf(false) }
+    var newListText by rememberSaveable { mutableStateOf("") }
     val clipboard = LocalClipboardManager.current
     val haptics   = LocalHapticFeedback.current
     val context   = LocalContext.current
@@ -143,6 +150,40 @@ fun GroceryScreen(
                     onCheckedChange = { viewModel.setScopeToPlanned(it) },
                     colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
                 )
+            }
+            // User-requested: named multiple lists ("Semaine", "BBQ"...) - Courses
+            // previously held exactly one shopping list with no way to separate
+            // e.g. a weekly grocery run from a one-off BBQ list. Only shown once
+            // there's more than the always-present default list, or once the user
+            // has started creating others, to keep the common single-list case
+            // uncluttered.
+            if (availableLists.value.size > 1) {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                ) {
+                    items(availableLists.value, key = { it }) { list ->
+                        FilterChip(
+                            selected = list == activeListName.value,
+                            onClick = { viewModel.switchList(list) },
+                            label = { Text(list) },
+                            trailingIcon = if (list != DEFAULT_LIST) {
+                                {
+                                    IconButton(onClick = { viewModel.deleteList(list) }, modifier = Modifier.size(16.dp)) {
+                                        Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.6f))
+                                    }
+                                }
+                            } else null,
+                        )
+                    }
+                    item {
+                        AssistChip(onClick = { newListText = ""; showNewListDialog = true }, label = { Text("+") })
+                    }
+                }
+            } else {
+                Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
+                    AssistChip(onClick = { newListText = ""; showNewListDialog = true }, label = { Text(stringResource(R.string.grocery_new_list)) })
+                }
             }
             if (items.value.isEmpty()) {
                 // Was wrapped in a fillMaxSize() Box, vertically centering it in the
@@ -297,6 +338,28 @@ fun GroceryScreen(
                 scope.launch { snackbarHostState.showSnackbar(clearedMessage) }
             },
             onDismiss = { showClearConfirm = false },
+        )
+    }
+
+    if (showNewListDialog) {
+        AlertDialog(
+            onDismissRequest = { showNewListDialog = false },
+            title = { Text(stringResource(R.string.grocery_new_list)) },
+            text = {
+                OutlinedTextField(
+                    value = newListText,
+                    onValueChange = { newListText = it },
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.grocery_new_list_placeholder)) },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = newListText.isNotBlank(),
+                    onClick = { viewModel.createList(newListText); showNewListDialog = false },
+                ) { Text(stringResource(R.string.common_add)) }
+            },
+            dismissButton = { TextButton(onClick = { showNewListDialog = false }) { Text(stringResource(R.string.common_cancel)) } },
         )
     }
 }

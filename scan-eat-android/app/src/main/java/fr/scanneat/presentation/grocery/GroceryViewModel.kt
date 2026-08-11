@@ -83,6 +83,36 @@ class GroceryViewModel @Inject constructor(
     val currencySymbol: StateFlow<String> = prefs.currencySymbol
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "€")
 
+    // User-requested: named multiple lists ("Semaine", "BBQ"...) so Courses can
+    // hold more than one shopping list at once. Only manual items are scoped by
+    // list - recipe/template-derived ingredients stay a single unscoped "planned"
+    // set, since splitting those by list would mean tagging every recipe/template
+    // with a list too, well beyond what was asked for here.
+    private val _activeListName = MutableStateFlow(fr.scanneat.data.repository.planning.DEFAULT_LIST)
+    val activeListName: StateFlow<String> = _activeListName.asStateFlow()
+
+    val availableLists: StateFlow<List<String>> = activeProfileId.flatMapLatest { id -> manualGroceryRepo.listNames(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), listOf(fr.scanneat.data.repository.planning.DEFAULT_LIST))
+
+    fun switchList(name: String) { _activeListName.value = name }
+
+    fun createList(name: String) {
+        viewModelScope.launch {
+            runCatching { manualGroceryRepo.createList(name, activeProfileId.value) }
+                .onSuccess { if (name.trim().isNotBlank()) _activeListName.value = name.trim() }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** Deletes a named list and its items, falling back to DEFAULT_LIST if it was the active one. */
+    fun deleteList(name: String) {
+        viewModelScope.launch {
+            runCatching { manualGroceryRepo.deleteList(name, activeProfileId.value) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+        if (_activeListName.value == name) _activeListName.value = fr.scanneat.data.repository.planning.DEFAULT_LIST
+    }
+
     // "Planned this week only" scope: when on, the grocery list is built from the
     // recipes actually assigned to a day in the current 7-day meal plan window
     // (MealPlanRepository/MealPlanScreen), not from every recipe ever saved. A
@@ -160,7 +190,7 @@ class GroceryViewModel @Inject constructor(
         combine(recipes, plannedRecipeCounts, ::Pair),
         combine(templates, plannedTemplateCounts, ::Pair),
         _scopeToPlanned,
-        activeProfileId.flatMapLatest { id -> manualGroceryRepo.asRecipeInputs(id) },
+        combine(activeProfileId, _activeListName, ::Pair).flatMapLatest { (id, list) -> manualGroceryRepo.asRecipeInputs(id, list) },
     ) { (recipeList, recipeCounts), (templateList, templateCounts), scoped, manual ->
         val inputs = if (!scoped) {
             recipeList.map { it.toGroceryInput() } + templateList.map { it.toGroceryInput() }
@@ -352,7 +382,7 @@ class GroceryViewModel @Inject constructor(
     // identity aggregateGroceryList() builds it from, so a manual item can be
     // matched back to (and deleted from) the aggregated row it contributes to
     // without needing the aggregation itself to carry per-source ids.
-    val manualItemKeys: StateFlow<Set<String>> = combine(activeProfileId.flatMapLatest { id -> manualGroceryRepo.items(id) }, rawItems) { list, items ->
+    val manualItemKeys: StateFlow<Set<String>> = combine(combine(activeProfileId, _activeListName, ::Pair).flatMapLatest { (id, list) -> manualGroceryRepo.items(id, list) }, rawItems) { list, items ->
         val existingKeys = items.map { it.key }.toSet()
         list.map { canonicalGroceryKey(it.name, existingKeys) }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
@@ -360,7 +390,7 @@ class GroceryViewModel @Inject constructor(
     /** Add a free-text item directly from the grocery screen's inline input row. */
     fun quickAdd(name: String) {
         if (name.isBlank()) return
-        viewModelScope.launch { runCatching { manualGroceryRepo.add(name.trim(), 0.0, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { manualGroceryRepo.add(name.trim(), 0.0, activeProfileId.value, _activeListName.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     /**
@@ -377,7 +407,7 @@ class GroceryViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 val scan = scanRepo.getById(scanId, prefs.language.first()) ?: return@runCatching
-                manualGroceryRepo.add(scan.product.name, scan.product.weightG ?: 0.0, activeProfileId.value)
+                manualGroceryRepo.add(scan.product.name, scan.product.weightG ?: 0.0, activeProfileId.value, _activeListName.value)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -394,7 +424,7 @@ class GroceryViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 val existingKeys = rawItems.value.map { it.key }.toSet()
-                val toRemove = manualGroceryRepo.items(activeProfileId.value).first()
+                val toRemove = manualGroceryRepo.items(activeProfileId.value, _activeListName.value).first()
                     .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
                 toRemove.forEach { manualGroceryRepo.remove(it.id, activeProfileId.value) }
                 toRemove
@@ -415,7 +445,7 @@ class GroceryViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 val existingKeys = rawItems.value.map { it.key }.toSet()
-                manualGroceryRepo.items(activeProfileId.value).first()
+                manualGroceryRepo.items(activeProfileId.value, _activeListName.value).first()
                     .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
                     .forEach { manualGroceryRepo.updateGrams(it.id, grams, activeProfileId.value) }
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
@@ -426,7 +456,7 @@ class GroceryViewModel @Inject constructor(
         val removed = lastDeleted ?: return
         lastDeleted = null
         viewModelScope.launch {
-            runCatching { removed.forEach { manualGroceryRepo.add(it.name, it.grams, activeProfileId.value) } }
+            runCatching { removed.forEach { manualGroceryRepo.add(it.name, it.grams, activeProfileId.value, it.listName) } }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
