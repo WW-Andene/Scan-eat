@@ -60,24 +60,38 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
         id: String? = null,
         profileId: String = "default",
         notes: String = "",
+        // §A5-audit finding: RecipesOperationsExt.undoDelete() re-saves a just-
+        // deleted row with its original `id` to restore it - but dao.delete()
+        // actually removes the row, so by the time undoDelete()'s save() runs,
+        // `existing` below is always null (nothing left to find), silently
+        // resetting createdAt to now() and favorite to false regardless of the
+        // deleted entry's real values. A restored recipe jumped to the top of
+        // the createdAt-sorted list and lost its favorite star, with nothing
+        // in this function's signature able to tell it "restore exactly this."
+        // These two optional overrides let a caller supply the exact prior
+        // values in that one restore case, while every other call site (which
+        // never passes them) keeps the existing existing?.field-or-default
+        // behavior unchanged.
+        createdAt: Long? = null,
+        favorite: Boolean? = null,
     ): Recipe {
         // Editing an existing recipe (rename/re-portion, called with its own id)
         // previously re-stamped createdAt to now on every save - same bug already
         // fixed in MedicationRepository/CustomFoodRepository - preserve the
         // original row's createdAt when one exists.
         val existing = id?.let { dao.findById(it) }
-        val createdAt = existing?.createdAt ?: System.currentTimeMillis()
+        val resolvedCreatedAt = createdAt ?: existing?.createdAt ?: System.currentTimeMillis()
         val recipe = Recipe(
             id         = id ?: UUID.randomUUID().toString(),
             name       = name.trim(),
             servings   = servings.coerceAtLeast(1),
             components = components,
-            createdAt  = createdAt,
+            createdAt  = resolvedCreatedAt,
             notes      = notes,
             // Same reconstruct-from-scratch shape as createdAt above - without
             // this, editing/renaming a favorited recipe would silently drop
             // favorite back to its false default on every save.
-            favorite   = existing?.favorite ?: false,
+            favorite   = favorite ?: existing?.favorite ?: false,
         )
         dao.upsert(recipe.toEntity(profileId, componentsAdapter))
         // Same retention cap/pattern as ScanHistoryDao.trimNonFavorites - this

@@ -50,7 +50,12 @@ fun RecipesViewModel.undoDelete() {
     val entry = lastDeleted ?: return
     lastDeleted = null
     viewModelScope.launch {
-        runCatching { repo.save(entry.name, entry.components, entry.servings, id = entry.id, profileId = activeProfileId.value, notes = entry.notes) }
+        // §A5-audit finding: dao.delete() actually removes the row, so without
+        // passing these explicitly, repo.save()'s own existing-row lookup finds
+        // nothing and silently resets createdAt to now() and favorite to false -
+        // a restored recipe jumped to the top of the createdAt-sorted list and
+        // lost its favorite star. See RecipeRepository.save()'s own doc comment.
+        runCatching { repo.save(entry.name, entry.components, entry.servings, id = entry.id, profileId = activeProfileId.value, notes = entry.notes, createdAt = entry.createdAt, favorite = entry.favorite) }
             .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 }
