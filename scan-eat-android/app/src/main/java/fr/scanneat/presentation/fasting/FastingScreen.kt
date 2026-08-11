@@ -55,6 +55,7 @@ fun FastingScreen(
     val streak         = viewModel.streak.collectAsStateWithLifecycle()
     val language       = viewModel.language.collectAsStateWithLifecycle()
     val personalRecord = viewModel.personalRecord.collectAsStateWithLifecycle()
+    val preferredTargetHours = viewModel.preferredTargetHours.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle() // force recomposition every second
 
     // start()/stop()/cancel() previously failed completely silently - see
@@ -97,6 +98,19 @@ fun FastingScreen(
     var deleteTarget by remember { mutableStateOf<String?>(null) }
 
     var targetHours by remember { mutableIntStateOf(16) }
+    // User-requested: seed the target-hours chip from the user's own most-
+    // used protocol (ViewModel.preferredTargetHours) instead of always
+    // defaulting to 16h - applied once, the first time history actually
+    // loads with a real preference, so it never fights a manual chip tap
+    // made afterward.
+    var appliedPreferredTargetHours by remember { mutableStateOf(false) }
+    LaunchedEffect(preferredTargetHours.value) {
+        val preferred = preferredTargetHours.value
+        if (!appliedPreferredTargetHours && preferred != null) {
+            targetHours = preferred
+            appliedPreferredTargetHours = true
+        }
+    }
     var customMode by remember { mutableStateOf(false) }
     var customStart by remember { mutableStateOf("18:00") }
     var customEnd by remember { mutableStateOf("06:00") }

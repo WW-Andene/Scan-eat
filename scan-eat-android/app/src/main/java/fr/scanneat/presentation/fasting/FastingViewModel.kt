@@ -38,6 +38,25 @@ class FastingViewModel @Inject constructor(
     val personalRecord: StateFlow<Double> = history.map { list -> list.maxOfOrNull { it.achievedHours } ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
+    /**
+     * User-requested: "develop the tool" for Fasting - StartFastForm's target-
+     * hours chip always defaulted to a hardcoded 16h, so a user who
+     * consistently does 18h (or any protocol other than 16h) had to reselect
+     * it on every single visit. Most-frequently-used targetHours in history,
+     * ties broken by most recent use - the user's actual habit, not just
+     * their latest (possibly one-off) fast. Null when there's no history yet,
+     * so FastingScreen's own hardcoded 16h default still applies for a new user.
+     */
+    val preferredTargetHours: StateFlow<Int?> = history.map { list ->
+        list.groupBy { it.targetHours }
+            .entries
+            .maxWithOrNull(
+                compareBy<Map.Entry<Int, List<FastCompletion>>> { it.value.size }
+                    .thenBy { entry -> entry.value.maxOf { it.endMs } },
+            )
+            ?.key
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     // Tick every second so the UI re-draws the elapsed counter
     val tick: StateFlow<Long> = flow {
         while (true) { emit(System.currentTimeMillis()); delay(1000) }
