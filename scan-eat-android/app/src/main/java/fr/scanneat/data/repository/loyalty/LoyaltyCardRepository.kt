@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import java.util.UUID
@@ -74,4 +75,22 @@ class LoyaltyCardRepository @Inject constructor(
     }
 
     private fun serialize(list: List<LoyaltyCard>): String = adapter.toJson(list)
+
+    // ---- Backup export/import ----
+    // §-audit finding: these were entirely missing - a saved loyalty card was
+    // silently lost on backup/restore or device migration, same gap
+    // ManualGroceryRepository's own exportAll/importAll close for manual
+    // grocery items (see that class's own comment on the same pattern).
+
+    suspend fun exportAll(): List<LoyaltyCard> = parse(storeData.first()[cardsKey("default")])
+
+    /** Restores entries from a backup - merged with (not replacing) whatever cards already exist locally, keyed by id, same non-destructive intent as every other importAll() in this app. */
+    suspend fun importAll(entries: List<LoyaltyCard>) {
+        if (entries.isEmpty()) return
+        store.edit { prefs ->
+            val k = cardsKey("default")
+            val merged = (parse(prefs[k]) + entries).distinctBy { it.id }
+            prefs[k] = serialize(merged)
+        }
+    }
 }

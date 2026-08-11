@@ -76,4 +76,5 @@ internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle)
     groceryCheckedRepo.restoreAll(bundle.groceryCheckedKeys.toSet())
     bundle.biolism?.let { biolismRepo.importForBackup(it) }
     manualGroceryRepo.importAll(bundle.manualGroceryItems)
+    loyaltyCardRepo.importAll(bundle.loyaltyCards)
 }

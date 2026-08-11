@@ -13,6 +13,7 @@ import fr.scanneat.data.local.db.template.MealTemplateEntity
 import fr.scanneat.data.local.db.weight.WeightEntity
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastCompletion
+import fr.scanneat.data.repository.loyalty.LoyaltyCard
 import fr.scanneat.data.repository.planning.ManualGroceryItem
 import fr.scanneat.data.repository.reminders.ReminderSettings
 
@@ -148,6 +149,12 @@ data class BackupBundle(
     val medicationLog: List<MedicationLogEntity> = emptyList(),
     val scanScoreHistory: List<ScanScoreHistoryEntity> = emptyList(),
     val priceLog: List<PriceEntity> = emptyList(),
+    // §-audit finding: loyalty cards (LoyaltyCardRepository, added alongside
+    // Courses' Fidélité tab) were never wired into backup/restore at all -
+    // silently lost on reinstall or device migration, same class of gap
+    // manualGroceryItems/groceryCheckedKeys above were added to close for
+    // their own DataStore files.
+    val loyaltyCards: List<LoyaltyCard> = emptyList(),
 )
 
 data class BackupSummary(

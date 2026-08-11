@@ -82,6 +82,7 @@ class BackupRepository @Inject constructor(
     internal val remindersRepo: RemindersRepository,
     internal val groceryCheckedRepo: GroceryCheckedRepository,
     internal val manualGroceryRepo: ManualGroceryRepository,
+    internal val loyaltyCardRepo: fr.scanneat.data.repository.loyalty.LoyaltyCardRepository,
     internal val biolismRepo: BiolismRepository,
     private val moshi: Moshi,
 ) {
@@ -153,6 +154,7 @@ class BackupRepository @Inject constructor(
             groceryCheckedKeys = groceryCheckedRepo.checkedKeys().first().toList(),
             biolism = biolismRepo.exportForBackup(),
             manualGroceryItems = manualGroceryRepo.exportAll(),
+            loyaltyCards = loyaltyCardRepo.exportAll(),
         )
         val plainJson = bundleAdapter.indent("  ").toJson(bundle)
         // Opt-in - see BackupPassphraseCipher's own doc comment for the file
