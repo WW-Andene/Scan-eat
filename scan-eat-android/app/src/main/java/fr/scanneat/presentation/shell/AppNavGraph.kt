@@ -267,8 +267,8 @@ fun AppNavGraph(
         // list state the user was looking at, and addScannedProduct() can
         // write straight into it without a second round-trip through
         // observeAll/DataStore before this screen even sees the result.
-        composable(AppRoutes.SCAN_FOR_GROCERY) {
-            val groceryBackStackEntry = remember(navController) { navController.getBackStackEntry(AppRoutes.GROCERY) }
+        composable(AppRoutes.SCAN_FOR_GROCERY) { thisEntry ->
+            val groceryBackStackEntry = remember(thisEntry) { navController.getBackStackEntry(AppRoutes.GROCERY) }
             val groceryViewModel: fr.scanneat.presentation.grocery.GroceryViewModel =
                 androidx.hilt.navigation.compose.hiltViewModel(groceryBackStackEntry)
             ScanScreen(
@@ -280,8 +280,8 @@ fun AppNavGraph(
         // pushed from the GROCERY entry above (Fidélité tab), same
         // shared-ViewModel reasoning as SCAN_FOR_GROCERY above so a card saved
         // here shows up immediately in that tab on the way back.
-        composable(AppRoutes.LOYALTY_CARD_SCAN) {
-            val groceryBackStackEntry = remember(navController) { navController.getBackStackEntry(AppRoutes.GROCERY) }
+        composable(AppRoutes.LOYALTY_CARD_SCAN) { thisEntry ->
+            val groceryBackStackEntry = remember(thisEntry) { navController.getBackStackEntry(AppRoutes.GROCERY) }
             val loyaltyViewModel: fr.scanneat.presentation.loyalty.LoyaltyCardsViewModel =
                 androidx.hilt.navigation.compose.hiltViewModel(groceryBackStackEntry)
             fr.scanneat.presentation.loyalty.LoyaltyCardScanScreen(
