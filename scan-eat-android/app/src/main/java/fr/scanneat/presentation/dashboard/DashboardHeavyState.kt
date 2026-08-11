@@ -17,14 +17,6 @@ import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 
 /**
- * Rough per-day vitamin D credit for a logged outdoor activity (see
- * ActivityEntity.wasOutdoors) - deliberately conservative, roughly a third of
- * the EFSA adult DRV (15µg/day), reflecting typical casual midday sun
- * exposure rather than a targeted "vitamin D sunbathing" session.
- */
-private const val VITD_OUTDOOR_UG = 5.0
-
-/**
  * The full per-tick computation behind [DashboardViewModel.heavyState] - split out of the
  * ViewModel so the flatMapLatest wiring in that file stays readable; this is a pure
  * (aside from the suspend repo reads it was already making in-place) continuation of that
@@ -42,6 +34,7 @@ internal suspend fun buildHeavyDashboardState(
     activityRepo: ActivityRepository,
     fastingRepo: FastingRepository,
     hydrationRepo: HydrationRepository,
+    hadOutdoorActivity: Boolean,
     profileId: String = "default",
 ): DashboardUiState {
     // WeeklyBarsCard/gap engines below all read targets.kcal directly, but
@@ -71,17 +64,15 @@ internal suspend fun buildHeavyDashboardState(
         weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
     else WeightForecast.InsufficientData
     // User-requested: an outdoor activity is a real (if rough) vitamin D source
-    // via sun exposure - previously had no way to reach the dashboard's vitD
-    // total at all, so even a genuine outdoor session credited nothing.
-    // Flat per-day estimate (not scaled by minutes - sun exposure's actual
-    // vitD yield depends on far more than session length, e.g. skin area,
-    // latitude, time of day, this is deliberately a rough "you were outside
-    // today" signal, not a measured dose) applied once regardless of how many
-    // outdoor activities were logged that day.
-    val hadOutdoorActivity = activityRepo.observeByDate(date, profileId).first().any { it.wasOutdoors }
-    val totalsWithOutdoorVitD = if (hadOutdoorActivity)
-        todayData.totals.copy(vitDUg = todayData.totals.vitDUg + VITD_OUTDOOR_UG)
-    else todayData.totals
+    // via sun exposure - see VITD_OUTDOOR_UG's own doc comment. [hadOutdoorActivity]
+    // now comes in as a param, computed by the caller from a reactive
+    // ActivityRepository Flow rather than fetched here as a one-shot read - this
+    // suspend function's own inputs (todayData, allEntries, profile, bioProfile)
+    // were already the combine()'s recompute triggers, but activityRepo wasn't
+    // one of them, so logging a new outdoor activity never actually re-ran this
+    // function; the credit only appeared next time some other input happened to
+    // change (e.g. logging food).
+    val totalsWithOutdoorVitD = todayData.totals.withOutdoorVitD(hadOutdoorActivity)
     val gaps = if (targets != null && todayData.entries.isNotEmpty())
         closeTheGap(totalsWithOutdoorVitD, targets, foodDb)
     else emptyList()

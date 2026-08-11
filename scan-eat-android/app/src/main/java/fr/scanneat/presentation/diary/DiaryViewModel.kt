@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
+import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
@@ -14,6 +15,7 @@ import fr.scanneat.domain.engine.biolism.BiolismEngine
 import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.nutrition.withOutdoorVitD
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
@@ -47,6 +49,7 @@ class DiaryViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val biolismRepo: BiolismRepository,
     private val priceRepo: PriceRepository,
+    private val activityRepo: ActivityRepository,
 ) : ViewModel() {
 
     // Fix 13: selectedDate as a StateFlow — avoids stale data across midnight
@@ -97,8 +100,20 @@ class DiaryViewModel @Inject constructor(
 
     // Flat-map so the observation restarts whenever the date OR the active
     // profile changes.
+    //
+    // User-reported: logging an outdoor activity credits vitamin D on Dashboard
+    // (see VITD_OUTDOOR_UG) but this same day's Journal macro summary
+    // (MacroSummaryCard) never reflected it and never even reacted to a new
+    // activity log - consumptionRepo.observeDay alone has no way to know an
+    // activity was logged. Combined here with activityRepo so an outdoor
+    // activity both contributes vitD to this total and re-triggers the summary
+    // the same way logging a food ingredient already does.
     val summary: StateFlow<DailySummary> = combine(_selectedDate, activeProfileId) { date, id -> date to id }
-        .flatMapLatest { (date, id) -> consumptionRepo.observeDay(date, id) }
+        .flatMapLatest { (date, id) ->
+            combine(consumptionRepo.observeDay(date, id), activityRepo.observeByDate(date, id)) { day, activity ->
+                day.copy(totals = day.totals.withOutdoorVitD(activity.any { it.wasOutdoors }))
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),
             DailySummary(LocalDate.now(), emptyList(), ConsumedNutrition.ZERO))
 

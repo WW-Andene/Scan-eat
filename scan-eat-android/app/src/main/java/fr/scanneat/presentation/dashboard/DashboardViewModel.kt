@@ -115,7 +115,15 @@ class DashboardViewModel @Inject constructor(
             // FOOD_DB, so a user's own custom foods (e.g. "Lentilles maison",
             // high in iron) could never be suggested to close a real deficit.
             .combine(customFoodRepo.observeAll(id)) { quad, customFoods -> quad to customFoods }
-            .flatMapLatest { (quad, customFoods) ->
+            // Was a one-shot activityRepo.observeByDate(...).first() read inside
+            // buildHeavyDashboardState itself - meant logging a new outdoor
+            // activity never re-triggered this combine chain, so its vitamin D
+            // credit (see VITD_OUTDOOR_UG) only appeared next time some other
+            // input happened to change. Chained here (already at the 5-flow
+            // combine()'s typed-overload limit above) the same way customFoods was.
+            .combine(activityRepo.observeByDate(date, id)) { pair, activity -> pair to activity.any { it.wasOutdoors } }
+            .flatMapLatest { (pair, hadOutdoorActivity) ->
+                val (quad, customFoods) = pair
                 val (todayData, allEntries, profile, bioProfile) = quad
                 val foodDb = FOOD_DB + customFoods
                 // Full computation extracted to buildHeavyDashboardState() in
@@ -140,6 +148,7 @@ class DashboardViewModel @Inject constructor(
                             activityRepo = activityRepo,
                             fastingRepo = fastingRepo,
                             hydrationRepo = hydrationRepo,
+                            hadOutdoorActivity = hadOutdoorActivity,
                             profileId = id,
                         )
                     )
