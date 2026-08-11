@@ -62,10 +62,17 @@ internal fun EditPortionDialog(
         title = { Text(entry.productName, color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                // §A5-audit finding: gave no visual feedback for an out-of-range
+                // value on any of its three fields - the Save button just silently
+                // stayed disabled, the exact "typed something, but it's out of
+                // bounds" gap already fixed elsewhere (AddExpenseDialog's own doc
+                // comment on why it added isError, unlike AddWeightDialog/
+                // MedicationReminderDialog which already had it).
                 OutlinedTextField(
                     value = text, onValueChange = { text = it },
                     label = { Text(stringResource(R.string.diary_edit_portion_label)) },
                     singleLine = true,
+                    isError = text.isNotBlank() && portion == null,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     colors = scanEatTextFieldColors(),
@@ -91,6 +98,7 @@ internal fun EditPortionDialog(
                         value = priceText, onValueChange = { priceText = it },
                         label = { Text(stringResource(R.string.result_price_field_euros)) },
                         singleLine = true,
+                        isError = priceText.isNotBlank() && price == null,
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                         shape = RoundedCornerShape(CardRadius.CONTROL),
                         colors = scanEatTextFieldColors(),
@@ -99,6 +107,7 @@ internal fun EditPortionDialog(
                         value = weightText, onValueChange = { weightText = it },
                         label = { Text(stringResource(R.string.result_price_field_weight)) },
                         singleLine = true,
+                        isError = weightText.isNotBlank() && weight == null,
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                         shape = RoundedCornerShape(CardRadius.CONTROL),
                         colors = scanEatTextFieldColors(),
