@@ -15,6 +15,8 @@ import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogDao
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.pantry.PantryDao
+import fr.scanneat.data.local.db.pantry.PantryEntity
 import fr.scanneat.data.local.db.price.PriceDao
 import fr.scanneat.data.local.db.price.PriceEntity
 import fr.scanneat.data.local.db.recall.RecallDao
@@ -47,8 +49,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         PriceEntity::class,
         OnlineSearchCacheEntity::class,
         RecallEntity::class,
+        PantryEntity::class,
     ],
-    version = 33,
+    version = 34,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -65,6 +68,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun priceDao(): PriceDao
     abstract fun onlineSearchCacheDao(): OnlineSearchCacheDao
     abstract fun recallDao(): RecallDao
+    abstract fun pantryDao(): PantryDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -531,5 +535,29 @@ val MIGRATION_32_33 = object : Migration(32, 33) {
         // the user explicitly edits a medication's new schedule fields.
         db.execSQL("ALTER TABLE `medications` ADD COLUMN `scheduleDaysMask` INTEGER NOT NULL DEFAULT 0")
         db.execSQL("ALTER TABLE `medications` ADD COLUMN `extraReminderTimes` TEXT NOT NULL DEFAULT ''")
+    }
+}
+
+val MIGRATION_33_34 = object : Migration(33, 34) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v33 → v34: new `pantry` table - a real persisted "what do I have at
+        // home" inventory, distinct from `price_log` (financial/cost-attribution
+        // lots, no expiry concept) and the grocery list (what to buy, not what's
+        // already owned) - see PantryEntity's own doc comment.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `pantry` (" +
+                "`id` TEXT NOT NULL, " +
+                "`name` TEXT NOT NULL, " +
+                "`barcode` TEXT, " +
+                "`category` TEXT NOT NULL, " +
+                "`quantity` REAL NOT NULL, " +
+                "`unit` TEXT NOT NULL, " +
+                "`expiryDate` TEXT, " +
+                "`addedAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, " +
+                "PRIMARY KEY(`id`))"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_pantry_profileId_expiryDate` ON `pantry` (`profileId`, `expiryDate`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_pantry_barcode_profileId` ON `pantry` (`barcode`, `profileId`)")
     }
 }

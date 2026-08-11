@@ -62,6 +62,19 @@ internal fun ResultViewModel.saveToDestinations(destinations: Set<SaveDestinatio
                     profileId = profile.value.id,
                 )
             }
+            if (SaveDestination.GARDE_MANGER in destinations) {
+                // Quantity/expiry aren't asked here - this popup is a quick
+                // multi-select "save to..." action, not a full pantry-entry
+                // form (see AddPantryItemDialog for that). Defaults to the
+                // label's own package weight (same fallback COURSES uses just
+                // below) with no expiry set; the user can edit both from the
+                // Pantry screen itself once it's there.
+                pantryRepo.addOrUpdate(
+                    name = scan.product.name, barcode = scan.barcode, category = scan.product.category,
+                    quantity = scan.product.weightG ?: 100.0, unit = fr.scanneat.data.repository.pantry.PantryUnit.GRAMS,
+                    expiryDate = null, profileId = profile.value.id,
+                )
+            }
             if (SaveDestination.COURSES in destinations) {
                 // Previously hardcoded to 100g regardless of the actual product — a
                 // 1.5kg bag of rice and a 30g snack both landed on the grocery list

@@ -69,6 +69,7 @@ fun DashboardScreen(
     onOpenResult: (Long) -> Unit = {},
     onOpenCalendar: () -> Unit = {},
     onOpenFoodSearch: () -> Unit = {},
+    onOpenPantry: () -> Unit = {},
     // Restructuration audit (§XI): generalized from the previous single-purpose
     // onOpenExpenses (which hardcoded "EXPENSES") - OtherTrackersCard's
     // Water/Fasting/Treatment glance stats now deep-link the same way
@@ -246,6 +247,7 @@ fun DashboardScreen(
                     onOpenHistory = onOpenHistory,
                     onOpenFoodSearch = onOpenFoodSearch,
                     onOpenSeasonalProduce = onOpenSeasonalProduce,
+                    onOpenPantry = onOpenPantry,
                 )
             }
 

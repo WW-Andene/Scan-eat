@@ -163,6 +163,7 @@ fun AppNavGraph(
                 onOpenResult         = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenCalendar       = { navController.navigate(AppRoutes.CALENDAR) },
                 onOpenFoodSearch     = { navController.navigate(AppRoutes.FOOD_SEARCH) },
+                onOpenPantry         = { navController.navigate(AppRoutes.PANTRY) },
                 // Restructuration audit (§XI): generalized from the previous
                 // Expenses-only onOpenExpenses - now also drives
                 // OtherTrackersCard's tappable Water/Fasting/Treatment glance
@@ -204,6 +205,12 @@ fun AppNavGraph(
                 onBack = { navController.popBackStack() },
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
             )
+        }
+
+        // User-requested: a real persisted pantry inventory - see
+        // PantryScreen/PantryViewModel's own doc comments.
+        composable(AppRoutes.PANTRY) {
+            fr.scanneat.presentation.pantry.PantryScreen(onBack = { navController.popBackStack() })
         }
 
         composable(TopTab.Settings.route) {

@@ -1605,6 +1605,22 @@
     <string name="hint_section_condition_risks">Risque lié à votre profil</string>
     <string name="hint_section_medication_risks">Risque lié à vos médicaments</string>
     <string name="dashboard_safety_center_title">Centre de vigilance (%1$d)</string>
+    <string name="dashboard_tile_pantry">Garde-manger</string>
+    <string name="pantry_title">Garde-manger</string>
+    <string name="pantry_add_dialog_title">Ajouter au garde-manger</string>
+    <string name="pantry_field_name">Nom</string>
+    <string name="pantry_field_quantity">Quantité</string>
+    <string name="pantry_field_unit">Unité</string>
+    <string name="pantry_field_no_expiry">Pas de date de péremption</string>
+    <string name="pantry_clear_expiry">Retirer</string>
+    <string name="pantry_set_expiry">Définir une date</string>
+    <string name="pantry_empty">Votre garde-manger est vide. Ajoutez ce que vous avez chez vous.</string>
+    <string name="pantry_deleted_message">Article supprimé</string>
+    <string name="pantry_undo">Annuler</string>
+    <plurals name="pantry_expiring_count">
+        <item quantity="one">%1$d article à surveiller (bientôt périmé ou périmé)</item>
+        <item quantity="other">%1$d articles à surveiller (bientôt périmés ou périmés)</item>
+    </plurals>
     <string name="hint_section_pair_well">S\'associe bien avec</string>
     <string name="hint_section_avoid_pairing">À éviter en association</string>
     <string name="hint_section_facts">Le saviez-vous ?</string>
@@ -1654,6 +1670,7 @@
     <string name="save_destinations_mes_aliments">Mes aliments</string>
     <string name="save_destinations_repas">Repas</string>
     <string name="save_destinations_favoris">Favoris</string>
+    <string name="save_destinations_garde_manger">Garde-manger</string>
     <string name="result_score_out_of_100">%1$d / 100</string>
     <string name="result_comparison_title">Comparaison A→B</string>
     <string name="result_comparison_score">Score : %1$s pts</string>

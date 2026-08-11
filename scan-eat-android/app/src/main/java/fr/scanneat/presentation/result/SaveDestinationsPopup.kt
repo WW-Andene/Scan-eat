@@ -68,6 +68,10 @@ fun SaveDestinationsPopup(
                 DestinationRow(SaveDestination.MES_ALIMENTS, stringResource(R.string.save_destinations_mes_aliments), selected) { toggle(it) }
                 DestinationRow(SaveDestination.REPAS, stringResource(R.string.save_destinations_repas), selected) { toggle(it) }
                 DestinationRow(SaveDestination.FAVORIS, stringResource(R.string.save_destinations_favoris), selected) { toggle(it) }
+                // User-requested: a real persisted pantry, reachable as a
+                // save-to destination the same way Courses/Mes Aliments/Repas
+                // already are - see PantryRepository's own doc comment.
+                DestinationRow(SaveDestination.GARDE_MANGER, stringResource(R.string.save_destinations_garde_manger), selected) { toggle(it) }
             }
         },
         confirmButton = {

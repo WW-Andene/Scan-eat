@@ -13,6 +13,7 @@ import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.pantry.PantryRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.RecipeRepository
@@ -84,6 +85,7 @@ class ResultViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
     private val recallRepo: RecallRepository,
     private val medicationRepo: MedicationRepository,
+    internal val pantryRepo: PantryRepository,
     savedStateHandle: SavedStateHandle,
 ) : ActionFailureViewModel() {
 
@@ -240,4 +242,4 @@ class ResultViewModel @Inject constructor(
     // (same package) — was already a public member, external callers unaffected.
 }
 
-enum class SaveDestination { COURSES, MES_ALIMENTS, REPAS, FAVORIS }
+enum class SaveDestination { COURSES, MES_ALIMENTS, REPAS, FAVORIS, GARDE_MANGER }

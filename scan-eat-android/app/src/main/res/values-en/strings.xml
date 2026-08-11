@@ -1543,6 +1543,22 @@
     <string name="hint_section_condition_risks">Risk linked to your profile</string>
     <string name="hint_section_medication_risks">Risk linked to your medications</string>
     <string name="dashboard_safety_center_title">Safety center (%1$d)</string>
+    <string name="dashboard_tile_pantry">Pantry</string>
+    <string name="pantry_title">Pantry</string>
+    <string name="pantry_add_dialog_title">Add to pantry</string>
+    <string name="pantry_field_name">Name</string>
+    <string name="pantry_field_quantity">Quantity</string>
+    <string name="pantry_field_unit">Unit</string>
+    <string name="pantry_field_no_expiry">No expiry date</string>
+    <string name="pantry_clear_expiry">Clear</string>
+    <string name="pantry_set_expiry">Set date</string>
+    <string name="pantry_empty">Your pantry is empty. Add what you have at home.</string>
+    <string name="pantry_deleted_message">Item deleted</string>
+    <string name="pantry_undo">Undo</string>
+    <plurals name="pantry_expiring_count">
+        <item quantity="one">%1$d item to watch (expiring soon or expired)</item>
+        <item quantity="other">%1$d items to watch (expiring soon or expired)</item>
+    </plurals>
     <string name="hint_section_pair_well">Pairs well with</string>
     <string name="hint_section_avoid_pairing">Avoid pairing with</string>
     <string name="hint_section_facts">Did you know?</string>
@@ -1592,6 +1608,7 @@
     <string name="save_destinations_mes_aliments">My foods</string>
     <string name="save_destinations_repas">Meals</string>
     <string name="save_destinations_favoris">Favorites</string>
+    <string name="save_destinations_garde_manger">Pantry</string>
     <string name="result_score_out_of_100">%1$d / 100</string>
     <string name="result_comparison_title">A→B Comparison</string>
     <string name="result_comparison_score">Score: %1$s pts</string>

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.rounded.Eco
 import androidx.compose.material.icons.rounded.EventNote
 import androidx.compose.material.icons.rounded.Fastfood
+import androidx.compose.material.icons.rounded.Kitchen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -41,6 +42,7 @@ fun DashboardFeatureTilesGrid(
     onOpenHistory: () -> Unit,
     onOpenFoodSearch: () -> Unit,
     onOpenSeasonalProduce: () -> Unit,
+    onOpenPantry: () -> Unit,
 ) {
     // Column, not bare sibling Rows - a LazyColumn `item {}` slot has no implicit
     // vertical-stack layout of its own (unlike the LazyColumn itself), so multiple
@@ -81,9 +83,11 @@ fun DashboardFeatureTilesGrid(
     }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         FeatureTile(Icons.Rounded.Eco, stringResource(R.string.dashboard_tile_seasonal), Modifier.weight(1f), onClick = onOpenSeasonalProduce)
-        // Two empty weighted slots keep this tile the same size as every
-        // other 3-per-row tile above instead of stretching to full width.
-        Spacer(Modifier.weight(1f))
+        // User-requested: a real persisted pantry inventory - see
+        // PantryScreen's own doc comment. Was an empty weighted spacer slot.
+        FeatureTile(Icons.Rounded.Kitchen, stringResource(R.string.dashboard_tile_pantry), Modifier.weight(1f), onClick = onOpenPantry)
+        // One remaining empty weighted slot keeps this tile the same size as
+        // every other 3-per-row tile above instead of stretching to full width.
         Spacer(Modifier.weight(1f))
     }
     }
