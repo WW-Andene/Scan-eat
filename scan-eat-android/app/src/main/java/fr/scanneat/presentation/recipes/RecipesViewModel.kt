@@ -47,6 +47,14 @@ class RecipesViewModel @Inject constructor(
 ) : ViewModel() {
     enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }
 
+    /**
+     * User-requested: "develop the tool" for Recipes - the list had a name
+     * search and macro-goal filter chips, but no way to actually order it
+     * (e.g. "which of my recipes has the most protein?" meant scanning the
+     * whole list by eye). Same shape as ScanHistoryViewModel's HistorySort.
+     */
+    enum class RecipeSort { RECENT, NAME_AZ, PROTEIN_DENSITY_DESC, KCAL_ASC }
+
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real.
     internal val activeProfileId: StateFlow<String> = prefs.activeProfileId
@@ -75,12 +83,16 @@ class RecipesViewModel @Inject constructor(
     val recipeQuery: StateFlow<String> = _recipeQuery.asStateFlow()
     fun setRecipeQuery(q: String) { _recipeQuery.value = q }
 
+    private val _recipeSort = MutableStateFlow(RecipeSort.RECENT)
+    val recipeSort: StateFlow<RecipeSort> = _recipeSort.asStateFlow()
+    fun setRecipeSort(sort: RecipeSort) { _recipeSort.value = sort }
+
     // Widened from private to internal - RecipesOperationsExt.kt's delete()/
     // undoDelete() extension functions need the current snapshot directly.
     internal val _allRecipes: StateFlow<List<Recipe>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val recipes: StateFlow<List<Recipe>> = combine(_allRecipes, _goalFilter, _recipeQuery.debounce(150)) { list, filter, query ->
+    val recipes: StateFlow<List<Recipe>> = combine(_allRecipes, _goalFilter, _recipeQuery.debounce(150), _recipeSort) { list, filter, query, sort ->
         val filtered = when (filter) {
             GoalFilter.ALL         -> list
             GoalFilter.HIGH_PROTEIN -> list.filter { r -> r.totalGrams > 0 && r.totalProteinG / r.totalGrams * 100 >= 15 }
@@ -91,10 +103,21 @@ class RecipesViewModel @Inject constructor(
             val key = normalizeKey(query)
             filtered.filter { normalizeKey(it.name).contains(key) }
         }
-        // Favorites first (Recipe had no equivalent to ScanResult's favorite field
-        // at all) - sortedByDescending is stable, so createdAt-DESC ordering
-        // (already applied by RecipeDao.observeAll) is preserved within each group.
-        searched.sortedByDescending { it.favorite }
+        when (sort) {
+            // Favorites first (Recipe had no equivalent to ScanResult's favorite
+            // field at all) - sortedByDescending is stable, so createdAt-DESC
+            // ordering (already applied by RecipeDao.observeAll) is preserved
+            // within each group. The only sort that groups favorites first -
+            // the other three are an explicit user choice of order, which
+            // should win over that implicit default.
+            RecipeSort.RECENT -> searched.sortedByDescending { it.favorite }
+            RecipeSort.NAME_AZ -> searched.sortedBy { normalizeKey(it.name) }
+            // Density (per 100g), not raw totalProteinG - otherwise a large
+            // batch recipe would always outrank a genuinely protein-dense
+            // small one just by having more total grams.
+            RecipeSort.PROTEIN_DENSITY_DESC -> searched.sortedByDescending { r -> if (r.totalGrams > 0) r.totalProteinG / r.totalGrams else 0.0 }
+            RecipeSort.KCAL_ASC -> searched.sortedBy { it.totalKcal }
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Every write below previously called repo's/templateRepo's/consumptionRepo's Room

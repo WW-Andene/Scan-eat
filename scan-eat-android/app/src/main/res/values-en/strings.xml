@@ -1423,6 +1423,11 @@
     <string name="recipes_official_section_hint">Nutrition computed from the CIQUAL (ANSES) food composition tables; plate split follows Manger Bouger / PNNS guidelines (½ vegetables, ¼ starches, ¼ protein).</string>
     <string name="recipes_official_clone_cd">Add to my recipes</string>
     <string name="recipes_cd_new">New recipe</string>
+    <string name="recipes_sort_cd">Sort</string>
+    <string name="recipes_sort_recent">Most recent</string>
+    <string name="recipes_sort_name">Name (A-Z)</string>
+    <string name="recipes_sort_protein">Highest protein</string>
+    <string name="recipes_sort_kcal">Lowest calorie</string>
     <string name="recipes_cd_import_url">Import from a URL</string>
     <string name="recipes_cd_import_photo">Import from a photo</string>
     <string name="recipes_import_photo_loading">Analyzing photo…</string>

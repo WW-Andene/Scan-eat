@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,7 @@ import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
 import fr.scanneat.presentation.recipes.components.RecipeCard
 import fr.scanneat.presentation.recipes.components.RecipesFilterChipsRow
 import fr.scanneat.presentation.recipes.components.RecipesImportStateDialogs
+import fr.scanneat.presentation.recipes.components.RecipesSortMenu
 import fr.scanneat.presentation.recipes.components.RecipesTopBarActions
 import fr.scanneat.presentation.recipes.components.SaveAsTemplateDialog
 import fr.scanneat.presentation.recipes.components.ScaleRecipeDialog
@@ -54,6 +56,8 @@ fun RecipesScreen(
     val officialHints = viewModel.officialRecipeHints.collectAsStateWithLifecycle()
     val goalFilter = viewModel.goalFilter.collectAsStateWithLifecycle()
     val recipeQuery = viewModel.recipeQuery.collectAsStateWithLifecycle()
+    val recipeSort = viewModel.recipeSort.collectAsStateWithLifecycle()
+    var sortMenuExpanded by remember { mutableStateOf(false) }
     val totalRecipesCount = viewModel.totalRecipesCount.collectAsStateWithLifecycle()
     val historyItems = viewModel.historyItems.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
@@ -152,13 +156,25 @@ fun RecipesScreen(
                 )
             }
             item {
-                RecipesFilterChipsRow(
-                    expanded = filtersExpanded, onToggle = { filtersExpanded = !filtersExpanded },
-                    goalFilter = goalFilter.value,
-                    onFilterChange = { viewModel.setGoalFilter(it) },
-                    filtered = recipes.value.size,
-                    total = totalRecipesCount.value,
-                )
+                // Sort menu placed inline here, not in the top bar - that actions
+                // row is already documented as "unusually wide" (7 icons) and had
+                // to force the title to single-line/ellipsis to avoid wrapping;
+                // an 8th icon there would only compound that.
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f)) {
+                        RecipesFilterChipsRow(
+                            expanded = filtersExpanded, onToggle = { filtersExpanded = !filtersExpanded },
+                            goalFilter = goalFilter.value,
+                            onFilterChange = { viewModel.setGoalFilter(it) },
+                            filtered = recipes.value.size,
+                            total = totalRecipesCount.value,
+                        )
+                    }
+                    RecipesSortMenu(
+                        expanded = sortMenuExpanded, onExpandedChange = { sortMenuExpanded = it },
+                        currentSort = recipeSort.value, onSortChange = { viewModel.setRecipeSort(it) },
+                    )
+                }
             }
 
             if (recipes.value.isEmpty()) {
