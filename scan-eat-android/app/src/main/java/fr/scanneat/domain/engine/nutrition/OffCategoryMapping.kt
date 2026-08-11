@@ -1,11 +1,52 @@
 package fr.scanneat.domain.engine.nutrition
 
+import fr.scanneat.domain.engine.scoring.inferCategoryFromName
 import fr.scanneat.domain.model.ProductCategory
 
 // ============================================================================
 // OFF CATEGORY MAPPING — split out of OffMapper.kt: maps OFF's raw category
 // tags to our domain ProductCategory, and separately flags non-food products.
 // ============================================================================
+
+/** The category group whose thresholds are most skewed by a wrong
+ *  assignment - all four assume near-zero solid-food kcal (0-50 for soft
+ *  drinks, up to ~280 for the widest, ALCOHOLIC_BEVERAGE), so a mistagged
+ *  solid/semi-solid food landing here gets an energy/sugar/salt verdict that
+ *  can be off by an order of magnitude. See [resolveCategory]'s own doc comment. */
+private val BEVERAGE_CATEGORIES = setOf(
+    ProductCategory.BEVERAGE_SOFT, ProductCategory.BEVERAGE_JUICE,
+    ProductCategory.BEVERAGE_WATER, ProductCategory.ALCOHOLIC_BEVERAGE,
+)
+
+/**
+ * User-reported: a mustard/celery condiment ("CELERI MOUTARDE") scanned via
+ * barcode came back tagged into a beverage category on Open Food Facts
+ * (crowd-sourced, error-prone category tags - this is a real, observed
+ * upstream data issue, not a keyword-matching bug in [mapCategory] itself)
+ * and was scored entirely against soda-shaped 0-50kcal/100g thresholds - a
+ * completely wrong verdict for what the product's own name plainly says it
+ * is. [mapCategory]'s tag-based result previously had zero cross-check
+ * against the product's own name unless it landed in OTHER outright; a
+ * confidently wrong non-OTHER category (like this one) passed straight
+ * through untouched.
+ *
+ * Narrowly scoped rather than a general "name always wins" override (OFF's
+ * structured tags are usually more reliable than a keyword regex run over a
+ * free-text name, and second-guessing them broadly would trade this one bug
+ * for a worse one): only overrides when OFF's own category is specifically
+ * a beverage - the group most distorted by a wrong assignment - AND the
+ * product's name confidently matches a real, different, non-beverage
+ * category via the exact same [inferCategoryFromName] patterns already
+ * trusted as the OTHER-fallback below. A product OFF genuinely tagged as a
+ * beverage, or one whose name doesn't clearly say otherwise, is untouched.
+ */
+internal fun resolveCategory(tags: List<String>?, name: String): ProductCategory {
+    val offCategory = mapCategory(tags)
+    if (offCategory == ProductCategory.OTHER) return inferCategoryFromName(name)
+    if (offCategory !in BEVERAGE_CATEGORIES) return offCategory
+    val nameCategory = inferCategoryFromName(name)
+    return if (nameCategory != ProductCategory.OTHER && nameCategory !in BEVERAGE_CATEGORIES) nameCategory else offCategory
+}
 
 internal fun mapCategory(tags: List<String>?): ProductCategory {
     if (tags.isNullOrEmpty()) return ProductCategory.OTHER

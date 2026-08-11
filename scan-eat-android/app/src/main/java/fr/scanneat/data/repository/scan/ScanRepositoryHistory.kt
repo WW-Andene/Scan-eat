@@ -119,7 +119,7 @@ internal class ScanHistoryQueries(
      * next time" optimization is lost, not the fix itself.
      */
     private suspend fun rescoreStale(cached: ScanResult, lang: String): ScanResult {
-        val refreshedCategory = cached.barcode?.let { offLookup.refreshCategory(it) }
+        val refreshedCategory = cached.barcode?.let { offLookup.refreshCategory(it, cached.product.name) }
         val product = if (refreshedCategory != null && refreshedCategory != cached.product.category)
             cached.product.copy(category = refreshedCategory) else cached.product
         val newAudit = scoreProduct(product, lang)

@@ -1,6 +1,5 @@
 package fr.scanneat.domain.engine.nutrition
 
-import fr.scanneat.domain.engine.scoring.inferCategoryFromName
 import fr.scanneat.domain.model.*
 
 // ============================================================================
@@ -85,9 +84,7 @@ fun mapOffProduct(off: OffProductResponse): Product? {
     val labelTags = off.labelsTags ?: emptyList()
     val organic   = labelTags.any { "organic" in it || "bio" in it }
 
-    val category = mapCategory(off.categoriesTags).let {
-        if (it == ProductCategory.OTHER) inferCategoryFromName(name) else it
-    }
+    val category = resolveCategory(off.categoriesTags, name)
 
     val nutrition = NutritionPer100g(
         energyKcal    = numOf(nm["energy-kcal_100g"] ?: nm["energy_100g"]?.let { (numOf(it) / 4.184) }),

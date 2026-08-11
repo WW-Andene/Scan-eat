@@ -137,11 +137,11 @@ internal class ScanOffLookup(
      * load into a hard failure or a multi-second stall for something that was
      * already showing a perfectly renderable (if possibly stale) score.
      */
-    suspend fun refreshCategory(barcode: String): fr.scanneat.domain.model.ProductCategory? =
+    suspend fun refreshCategory(barcode: String, name: String): fr.scanneat.domain.model.ProductCategory? =
         try {
             kotlinx.coroutines.withTimeoutOrNull(3000L) {
                 offApi.getProduct(barcode, fields = "categories_tags").product?.categoriesTags
-            }?.let { tags -> fr.scanneat.domain.engine.nutrition.mapCategory(tags) }
+            }?.let { tags -> fr.scanneat.domain.engine.nutrition.resolveCategory(tags, name) }
         } catch (e: Exception) {
             null
         }
