@@ -55,6 +55,7 @@ fun MedicationScreen(
     onOpenCalendar: () -> Unit = {},
 ) {
     val medications          = viewModel.medications.collectAsStateWithLifecycle()
+    val language             = viewModel.language.collectAsStateWithLifecycle()
     val weightDeltaSinceStart = viewModel.weightDeltaSinceStart.collectAsStateWithLifecycle()
     val todayTaken           = viewModel.todayTaken.collectAsStateWithLifecycle()
     val interactionWarnings  = viewModel.interactionWarnings.collectAsStateWithLifecycle()
@@ -208,7 +209,8 @@ fun MedicationScreen(
         MedicationReminderDialog(
             medication = m,
             onDismiss = { reminderTarget = null },
-            onSave = { on, time -> viewModel.setReminder(m, on, time); reminderTarget = null },
+            onSave = { on, time, daysMask, extraTimes -> viewModel.setReminder(m, on, time, daysMask, extraTimes); reminderTarget = null },
+            language = language.value,
         )
     }
 }

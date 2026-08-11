@@ -1653,6 +1653,9 @@
     <string name="medication_reminder_dialog_title">Reminder — %1$s</string>
     <string name="medication_reminder_toggle">Enable daily reminder</string>
     <string name="medication_reminder_time_label">Time (HH:mm)</string>
+    <string name="medication_reminder_extra_times_label">Additional doses</string>
+    <string name="medication_reminder_add_time">+ Add a time</string>
+    <string name="medication_reminder_days_label">Days (none = every day)</string>
     <string name="medication_interaction_title">Potential interaction</string>
     <string name="medication_interaction_cta">Consult your doctor or pharmacist.</string>
     <string name="medication_interaction_group_dup">Several %1$s active at the same time — bleeding risk</string>

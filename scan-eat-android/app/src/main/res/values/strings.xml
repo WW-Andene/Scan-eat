@@ -1041,6 +1041,9 @@
     <string name="medication_reminder_dialog_title">Rappel — %1$s</string>
     <string name="medication_reminder_toggle">Activer le rappel quotidien</string>
     <string name="medication_reminder_time_label">Heure (HH:mm)</string>
+    <string name="medication_reminder_extra_times_label">Autres prises</string>
+    <string name="medication_reminder_add_time">+ Ajouter une heure</string>
+    <string name="medication_reminder_days_label">Jours (aucun = tous les jours)</string>
     <string name="medication_interaction_title">Interaction potentielle</string>
     <string name="medication_interaction_cta">Consultez votre médecin ou pharmacien.</string>
     <string name="medication_interaction_group_dup">Plusieurs %1$s actifs simultanément — risque hémorragique</string>

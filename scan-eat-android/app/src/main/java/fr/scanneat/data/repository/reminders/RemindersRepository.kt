@@ -180,11 +180,18 @@ class RemindersRepository @Inject constructor(
 
     val customLastFiredKey: (Int) -> Preferences.Key<String> = { id -> stringPreferencesKey("rem_custom_${id}_last") }
 
-    /** Per-medication daily-reminder fired-today key, keyed by the medication's own stable id. */
-    val medicationLastFiredKey: (String) -> Preferences.Key<String> = { id -> stringPreferencesKey("rem_medication_${id}_last") }
+    /**
+     * Per-medication-per-timeslot daily-reminder fired-today key. [time] defaults
+     * to "" for call sites still tracking a medication as a single daily
+     * reminder; ReminderWorker's per-slot loop passes the real "HH:mm" so a
+     * medication with multiple daily times (see Medication.reminderTimes) fires
+     * and re-notifies each slot independently instead of one slot's "already
+     * fired today" flag suppressing every other slot the same day.
+     */
+    val medicationLastFiredKey: (String, String) -> Preferences.Key<String> = { id, time -> stringPreferencesKey("rem_medication_${id}_${time}_last") }
 
-    /** Per-medication re-notify timestamp — see medicationRenotifyDueAndMark. */
-    private val medicationLastNotifiedMsKey: (String) -> Preferences.Key<Long> = { id -> longPreferencesKey("rem_medication_${id}_last_notified_ms") }
+    /** Per-medication-per-timeslot re-notify timestamp — see medicationRenotifyDueAndMark. */
+    private val medicationLastNotifiedMsKey: (String, String) -> Preferences.Key<Long> = { id, time -> longPreferencesKey("rem_medication_${id}_${time}_last_notified_ms") }
 
     suspend fun setBreakfast(on: Boolean, time: String) = store.edit {
         it[K_BREAKFAST_ON] = on; it[K_BREAKFAST_TIME] = time
@@ -274,6 +281,6 @@ class RemindersRepository @Inject constructor(
      * last re-notify — used to keep nudging about an unlogged dose after the initial scheduled
      * reminder, instead of firing once and going silent regardless of whether it was taken.
      */
-    suspend fun medicationRenotifyDueAndMark(medicationId: String, intervalMinutes: Long): Boolean =
-        dueAndMarkMs(medicationLastNotifiedMsKey(medicationId), intervalMinutes * 60_000L)
+    suspend fun medicationRenotifyDueAndMark(medicationId: String, time: String, intervalMinutes: Long): Boolean =
+        dueAndMarkMs(medicationLastNotifiedMsKey(medicationId, time), intervalMinutes * 60_000L)
 }

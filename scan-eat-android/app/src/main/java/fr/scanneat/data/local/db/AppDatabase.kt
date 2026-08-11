@@ -48,7 +48,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         OnlineSearchCacheEntity::class,
         RecallEntity::class,
     ],
-    version = 32,
+    version = 33,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -518,5 +518,18 @@ val MIGRATION_31_32 = object : Migration(31, 32) {
         // to fabricate a real timestamp for pre-existing data, and matching the
         // pre-fix behavior exactly for rows that don't change state again.
         db.execSQL("ALTER TABLE `medications` ADD COLUMN `deactivatedAt` INTEGER")
+    }
+}
+
+val MIGRATION_32_33 = object : Migration(32, 33) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v32 → v33: medications gains scheduleDaysMask/extraReminderTimes - see
+        // MedicationEntity's own doc comment. Existing rows default to
+        // scheduleDaysMask=0 (every day, matching their actual pre-migration
+        // behavior exactly) and extraReminderTimes='' (no second/third dose
+        // time), so no existing reminder's real-world behavior changes until
+        // the user explicitly edits a medication's new schedule fields.
+        db.execSQL("ALTER TABLE `medications` ADD COLUMN `scheduleDaysMask` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE `medications` ADD COLUMN `extraReminderTimes` TEXT NOT NULL DEFAULT ''")
     }
 }

@@ -24,4 +24,16 @@ data class MedicationEntity(
     // ones. This timestamp lets those computations ask "was this medication
     // active on THIS historical date" instead of "is it active right now."
     val deactivatedAt: Long? = null,
+    // User-requested: medication tracking had no structured dosing schedule at
+    // all - just this single daily reminderTime and a free-text scheduleNote
+    // ("2x/jour", "lundi/mercredi/vendredi") that never actually drove the
+    // reminder. 0 = every day (matches every pre-existing row's implicit
+    // behavior); otherwise a 7-bit mask, bit (DayOfWeek.value - 1) set = active
+    // that day (bit 0 = Monday ... bit 6 = Sunday). See Medication.isScheduledOn().
+    val scheduleDaysMask: Int = 0,
+    // Comma-separated "HH:mm" times beyond the first (reminderTime itself is
+    // always slot 0) - lets a medication taken multiple times/day (e.g.
+    // "matin et soir") get reminded at each real time instead of only once.
+    // See Medication.reminderTimes().
+    val extraReminderTimes: String = "",
 )

@@ -142,6 +142,13 @@ class MedicationViewModel @Inject constructor(
     val medications: StateFlow<List<Medication>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // In-app language (Settings) can differ from the device locale - every
+    // sibling date-heavy screen already threads this through instead of
+    // Locale.getDefault(); MedicationReminderDialog's day-of-week picker needs
+    // it to render short day names in the right language.
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
     // LocalDate.now() captured once at construction would keep observing
     // today's bucket forever if this ViewModel outlives midnight - same fix
     // HydrationViewModel/DiaryViewModel already apply. Without this, todayTaken
@@ -304,17 +311,25 @@ class MedicationViewModel @Inject constructor(
             runCatching {
                 repo.save(name, dosage, scheduleNote, medication.barcode, medication.active, id = medication.id,
                     reminderOn = medication.reminderOn, reminderTime = medication.reminderTime, profileId = activeProfileId.value,
-                    deactivatedAt = medication.deactivatedAt)
+                    deactivatedAt = medication.deactivatedAt,
+                    scheduleDaysMask = medication.scheduleDaysMask, extraReminderTimes = medication.extraReminderTimes)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
-    /** Toggles/updates a medication's own reminder — previously "schedule" was display-only text with no actual reminder capability. */
-    fun setReminder(medication: Medication, on: Boolean, time: String) {
+    /**
+     * Toggles/updates a medication's own reminder - previously "schedule" was
+     * display-only text with no actual reminder capability, and later only a
+     * single daily time with no day-of-week/multiple-doses-per-day support.
+     * [daysMask] 0 = every day (see Medication.isScheduledOn); [extraTimes] is
+     * every additional dose time beyond [time] itself (slot 0).
+     */
+    fun setReminder(medication: Medication, on: Boolean, time: String, daysMask: Int = 0, extraTimes: List<String> = emptyList()) {
         viewModelScope.launch {
             runCatching {
                 repo.save(medication.name, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
-                    reminderOn = on, reminderTime = time, profileId = activeProfileId.value, deactivatedAt = medication.deactivatedAt)
+                    reminderOn = on, reminderTime = time, profileId = activeProfileId.value, deactivatedAt = medication.deactivatedAt,
+                    scheduleDaysMask = daysMask, extraReminderTimes = extraTimes.joinToString(","))
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -345,7 +360,8 @@ class MedicationViewModel @Inject constructor(
             runCatching {
                 repo.save(entry.name, entry.dosage, entry.scheduleNote, entry.barcode, entry.active, id = entry.id,
                     reminderOn = entry.reminderOn, reminderTime = entry.reminderTime, profileId = activeProfileId.value,
-                    deactivatedAt = entry.deactivatedAt)
+                    deactivatedAt = entry.deactivatedAt,
+                    scheduleDaysMask = entry.scheduleDaysMask, extraReminderTimes = entry.extraReminderTimes)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

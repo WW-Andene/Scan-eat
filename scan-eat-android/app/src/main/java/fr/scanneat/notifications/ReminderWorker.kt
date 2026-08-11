@@ -54,8 +54,12 @@ class ReminderWorker @AssistedInject constructor(
     // each other, but that was already true of the raw hashCode and isn't what
     // this fix targets - closing the cross-type collision is the real, deterministic
     // improvement here.
-    private fun medicationNotificationId(medId: String): Int =
-        MEDICATION_NOTIF_ID_BASE + (medId.hashCode() and 0x7FFFFFFF) % MEDICATION_NOTIF_ID_RANGE
+    // [time] included in the hash input so a medication with multiple daily
+    // reminder times gets a distinct notification id per slot - without it,
+    // every slot's reminder would silently replace (FLAG_UPDATE_CURRENT) the
+    // previous slot's still-unread notification on screen.
+    private fun medicationNotificationId(medId: String, time: String): Int =
+        MEDICATION_NOTIF_ID_BASE + ("$medId|$time".hashCode() and 0x7FFFFFFF) % MEDICATION_NOTIF_ID_RANGE
 
     override suspend fun doWork(): Result {
         val s = remindersRepo.settings.first()
@@ -117,26 +121,41 @@ class ReminderWorker @AssistedInject constructor(
         }
 
         val takenMedIds = medicationRepo.observeLogByDate(LocalDate.now(), profileId).first().map { it.medicationId }.toSet()
-        medicationRepo.observeAll(profileId).first().filter { it.active && it.reminderOn }.forEach { med ->
-            val title = localizedString(lang, R.string.reminders_notif_medication_title)
-            val body = String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name)
-            val justFired = checkMeal(true, med.reminderTime, remindersRepo.medicationLastFiredKey(med.id), now, medicationNotificationId(med.id), title, body, NotifChannel.MEDICATION)
+        val today = LocalDate.now().dayOfWeek
+        medicationRepo.observeAll(profileId).first()
+            .filter { it.active && it.reminderOn && it.isScheduledOn(today) }
+            .forEach { med ->
+                val title = localizedString(lang, R.string.reminders_notif_medication_title)
+                val body = String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name)
+                // User-requested: medications taken multiple times/day previously had
+                // only one reminderTime and one fired-today flag shared across the
+                // whole medication - the second/third dose of the day never got its
+                // own reminder at all. Each of med.reminderTimes (reminderTime plus
+                // any extraReminderTimes) now fires and re-notifies independently via
+                // its own per-slot key (medicationLastFiredKey(id, time)).
+                med.reminderTimes.forEach { time ->
+                    val slotId = medicationNotificationId(med.id, time)
+                    val justFired = checkMeal(true, time, remindersRepo.medicationLastFiredKey(med.id, time), now, slotId, title, body, NotifChannel.MEDICATION)
 
-            // Dose reminders used to fire once at the scheduled time and go silent
-            // regardless of whether the dose was ever logged. MedicationLogEntry
-            // already records real per-dose "taken" timestamps, so re-notify every
-            // hour until it's logged, instead of only reminding once.
-            val alreadyFiredToday = justFired || remindersRepo.wasFiredToday(remindersRepo.medicationLastFiredKey(med.id))
-            if (!justFired && alreadyFiredToday && med.id !in takenMedIds &&
-                remindersRepo.medicationRenotifyDueAndMark(med.id, MEDICATION_RENOTIFY_MINUTES)) {
-                // Was the exact same title/body as the original on-time reminder,
-                // repeated verbatim every hour indefinitely until logged - reads as
-                // naggy rather than a helpful nudge, with no acknowledgment this is
-                // a repeat.
-                val repeatBody = String.format(localizedString(lang, R.string.reminders_notif_medication_body_repeat), med.name)
-                NotificationHelper.show(applicationContext, medicationNotificationId(med.id), title, repeatBody, NotifChannel.MEDICATION)
+                    // Dose reminders used to fire once at the scheduled time and go silent
+                    // regardless of whether the dose was ever logged. MedicationLogEntry
+                    // already records real per-dose "taken" timestamps, so re-notify every
+                    // hour until it's logged, instead of only reminding once. "Taken today"
+                    // is still a single daily flag per medication (not per time slot - see
+                    // MedicationLogEntry's own shape), so logging any one dose quiets every
+                    // remaining slot's re-notify for the rest of the day.
+                    val alreadyFiredToday = justFired || remindersRepo.wasFiredToday(remindersRepo.medicationLastFiredKey(med.id, time))
+                    if (!justFired && alreadyFiredToday && med.id !in takenMedIds &&
+                        remindersRepo.medicationRenotifyDueAndMark(med.id, time, MEDICATION_RENOTIFY_MINUTES)) {
+                        // Was the exact same title/body as the original on-time reminder,
+                        // repeated verbatim every hour indefinitely until logged - reads as
+                        // naggy rather than a helpful nudge, with no acknowledgment this is
+                        // a repeat.
+                        val repeatBody = String.format(localizedString(lang, R.string.reminders_notif_medication_body_repeat), med.name)
+                        NotificationHelper.show(applicationContext, slotId, title, repeatBody, NotifChannel.MEDICATION)
+                    }
+                }
             }
-        }
 
         fastingRepo.state(profileId).first()?.let { fast ->
             if (fast.elapsedHours >= fast.targetHours && !remindersRepo.fastingTargetAlreadyNotified(fast.startMs)) {

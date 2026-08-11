@@ -163,17 +163,35 @@ internal fun AddMedicationDialog(
 }
 
 @Composable
-internal fun MedicationReminderDialog(medication: Medication, onDismiss: () -> Unit, onSave: (on: Boolean, time: String) -> Unit) {
+internal fun MedicationReminderDialog(
+    medication: Medication,
+    onDismiss: () -> Unit,
+    // User-requested: medication tracking previously had no structured dosing
+    // schedule at all - a single daily reminderTime and a free-text
+    // scheduleNote ("2x/jour", "lundi/mercredi/vendredi") that never actually
+    // drove the reminder. daysMask: 0 = every day (see Medication.
+    // isScheduledOn); extraTimes: every dose time beyond the primary one.
+    onSave: (on: Boolean, time: String, daysMask: Int, extraTimes: List<String>) -> Unit,
+    // In-app language, not device locale - see MedicationViewModel.language's
+    // own doc comment.
+    language: String = "fr",
+) {
     val m = medication
     var on by rememberSaveable(m.id) { mutableStateOf(m.reminderOn) }
     var time by rememberSaveable(m.id) { mutableStateOf(m.reminderTime) }
+    var daysMask by rememberSaveable(m.id) { mutableStateOf(m.scheduleDaysMask) }
+    var extraTimes by rememberSaveable(m.id) {
+        mutableStateOf(m.extraReminderTimes.split(',').map { it.trim() }.filter { it.isNotEmpty() })
+    }
     val isValidTime = remember(time) { runCatching { java.time.LocalTime.parse(time) }.isSuccess }
+    val invalidExtraTime = remember(extraTimes) { extraTimes.any { runCatching { java.time.LocalTime.parse(it) }.isFailure } }
     // Every sibling reminder card (meal/hydration/weight/activity, see
     // RemindersCard.kt) shows this banner - this dialog didn't, so a user with
     // POST_NOTIFICATIONS denied could enable a medication reminder that would
     // silently never fire (NotificationHelper.show() no-ops without the
     // permission), with the switch looking "on" and nothing telling them why.
     val (permGranted, permDenied, onRequest) = permissionState()
+    val locale = remember(language) { java.util.Locale(language) }
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -194,6 +212,47 @@ internal fun MedicationReminderDialog(medication: Medication, onDismiss: () -> U
                     isError = !isValidTime,
                     colors = scanEatTextFieldColors(),
                 )
+                // Additional dose times ("matin et soir") - each fires and
+                // re-notifies independently (see ReminderWorker's per-slot key).
+                Text(stringResource(R.string.medication_reminder_extra_times_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                extraTimes.forEachIndexed { index, extraTime ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        OutlinedTextField(
+                            value = extraTime,
+                            onValueChange = { newValue -> extraTimes = extraTimes.toMutableList().also { it[index] = newValue } },
+                            placeholder = { Text("20:00") }, singleLine = true,
+                            isError = runCatching { java.time.LocalTime.parse(extraTime) }.isFailure,
+                            modifier = Modifier.weight(1f),
+                            colors = scanEatTextFieldColors(),
+                        )
+                        IconButton(onClick = { extraTimes = extraTimes.toMutableList().also { it.removeAt(index) } }) {
+                            Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnBackground.copy(0.5f))
+                        }
+                    }
+                }
+                TextButton(onClick = { extraTimes = extraTimes + "12:00" }) {
+                    Text(stringResource(R.string.medication_reminder_add_time), color = Teal)
+                }
+                // Day-of-week picker - an empty selection means "every day" (mask 0),
+                // matching every pre-existing medication's implicit behavior; tapping
+                // any day switches to that explicit subset.
+                Text(stringResource(R.string.medication_reminder_days_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    java.time.DayOfWeek.entries.forEach { day ->
+                        val bit = 1 shl (day.value - 1)
+                        val selected = daysMask != 0 && (daysMask and bit) != 0
+                        FilterChip(
+                            selected = selected,
+                            onClick = { daysMask = if (selected) daysMask and bit.inv() else daysMask or bit },
+                            label = { Text(day.getDisplayName(java.time.format.TextStyle.NARROW, locale), style = MaterialTheme.typography.labelSmall) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AccentCoral.copy(0.2f),
+                                selectedLabelColor = AccentCoral,
+                                labelColor = OnBackground.copy(0.7f),
+                            ),
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
@@ -201,9 +260,9 @@ internal fun MedicationReminderDialog(medication: Medication, onDismiss: () -> U
             // was gating Save on isValidTime unconditionally, so a stale/blank time
             // field blocked a user from saving even when their only intent was to
             // disable the reminder.
-            val canSave = !on || isValidTime
+            val canSave = !on || (isValidTime && !invalidExtraTime)
             TextButton(
-                onClick = { onSave(on, time) },
+                onClick = { onSave(on, time, daysMask, extraTimes) },
                 enabled = canSave,
             ) { Text(stringResource(R.string.common_save), color = if (canSave) Teal else OnBackground.copy(0.3f)) }
         },

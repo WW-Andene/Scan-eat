@@ -44,7 +44,23 @@ data class Medication(
     // false, letting adherence math ask "was this active on date X" instead of
     // "is it active right now."
     val deactivatedAt: Long? = null,
-)
+    // See MedicationEntity's own doc comment. 0 = every day.
+    val scheduleDaysMask: Int = 0,
+    // Comma-separated "HH:mm" times beyond reminderTime (slot 0) - see
+    // MedicationEntity's own doc comment and [reminderTimes] below.
+    val extraReminderTimes: String = "",
+) {
+    /** All of this medication's real reminder times, reminderTime first,
+     *  followed by extraReminderTimes in the order the user added them. */
+    val reminderTimes: List<String> get() =
+        listOf(reminderTime) + extraReminderTimes.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+
+    /** True when [day] is one of this medication's scheduled days -
+     *  scheduleDaysMask == 0 means "every day", matching every pre-existing
+     *  medication's implicit behavior before this field existed. */
+    fun isScheduledOn(day: java.time.DayOfWeek): Boolean =
+        scheduleDaysMask == 0 || (scheduleDaysMask and (1 shl (day.value - 1))) != 0
+}
 
 /** One "I took this" event on a given day - see MedicationLogEntity for why this needed its own table. */
 data class MedicationLogEntry(
@@ -90,6 +106,12 @@ class MedicationRepository @Inject constructor(
         // timestamp to null on the very next unrelated edit (fixing a dosage
         // typo, toggling the reminder), defeating the point of tracking it.
         deactivatedAt: Long? = null,
+        // Callers editing an existing medication must pass its current schedule
+        // fields through too, same reasoning as deactivatedAt just above -
+        // otherwise a dosage-typo fix or reminder toggle would silently wipe an
+        // already-configured day/time schedule back to "every day, one time".
+        scheduleDaysMask: Int = 0,
+        extraReminderTimes: String = "",
     ): Medication {
         // Barcode-first dedup (see MedicationDao.upsertMedication) - without an
         // explicit id, rescanning the same medication's barcode now updates the
@@ -101,6 +123,7 @@ class MedicationRepository @Inject constructor(
                 scheduleNote = SecureFieldCipher.encrypt(scheduleNote.trim()),
                 barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
                 reminderOn = reminderOn, reminderTime = reminderTime, deactivatedAt = deactivatedAt,
+                scheduleDaysMask = scheduleDaysMask, extraReminderTimes = extraReminderTimes,
             )
         }
         return entity.toDomain()
@@ -130,6 +153,7 @@ class MedicationRepository @Inject constructor(
         scheduleNote = SecureFieldCipher.encrypt(scheduleNote),
         barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
         reminderOn = reminderOn, reminderTime = reminderTime, deactivatedAt = deactivatedAt,
+        scheduleDaysMask = scheduleDaysMask, extraReminderTimes = extraReminderTimes,
     )
 
     private fun MedicationEntity.toDomain() = Medication(
@@ -138,6 +162,7 @@ class MedicationRepository @Inject constructor(
         scheduleNote = SecureFieldCipher.decryptOrNull(scheduleNote) ?: scheduleNote,
         barcode = barcode, active = active,
         reminderOn = reminderOn, reminderTime = reminderTime, createdAt = createdAt, deactivatedAt = deactivatedAt,
+        scheduleDaysMask = scheduleDaysMask, extraReminderTimes = extraReminderTimes,
     )
 
     // ── Adherence log ("I took this") ────────────────────────────────────────
