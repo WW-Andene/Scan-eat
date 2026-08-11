@@ -617,6 +617,7 @@
     <string name="grocery_copied">Grocery list copied to clipboard</string>
     <string name="grocery_sort_alpha">Sort alphabetically</string>
     <string name="grocery_checked_progress">%1$d/%2$d items checked</string>
+    <string name="grocery_budget_estimate">~%1$s estimated (%2$d/%3$d items with price history)</string>
     <string name="grocery_copy_plain">Copy (plain text)</string>
     <string name="grocery_copy_checklist">Copy (Markdown checklist)</string>
     <string name="grocery_cd_share">Share list</string>

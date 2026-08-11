@@ -621,6 +621,7 @@
     <string name="grocery_copied">Liste copiée dans le presse-papiers</string>
     <string name="grocery_sort_alpha">Trier par ordre alphabétique</string>
     <string name="grocery_checked_progress">%1$d/%2$d articles cochés</string>
+    <string name="grocery_budget_estimate">~%1$s estimé (%2$d/%3$d articles avec historique de prix)</string>
     <string name="grocery_copy_plain">Copier (texte)</string>
     <string name="grocery_copy_checklist">Copier (liste à cocher Markdown)</string>
     <string name="grocery_cd_share">Partager la liste</string>

@@ -53,6 +53,8 @@ fun GroceryScreen(
     val itemWarnings = viewModel.itemWarnings.collectAsStateWithLifecycle()
     val scopeToPlanned = viewModel.scopeToPlanned.collectAsStateWithLifecycle()
     val checkedProgress = viewModel.checkedProgress.collectAsStateWithLifecycle()
+    val budgetEstimate = viewModel.budgetEstimate.collectAsStateWithLifecycle()
+    val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val sortAlpha = viewModel.sortAlpha.collectAsStateWithLifecycle()
     val groupByAisle = viewModel.groupByAisle.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
@@ -191,7 +193,14 @@ fun GroceryScreen(
                         modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S),
                     )
                 }
-                item { GroceryProgressRow(itemCount = items.value.size, checkedProgress = checkedProgress.value) }
+                item {
+                    GroceryProgressRow(
+                        itemCount = items.value.size,
+                        checkedProgress = checkedProgress.value,
+                        budgetEstimate = budgetEstimate.value,
+                        currencySymbol = currencySymbol.value,
+                    )
+                }
                 if (searchQuery.isNotBlank() && filteredCheckable.isEmpty()) {
                     item {
                         Text(

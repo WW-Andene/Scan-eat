@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.planning.GroceryCheckedRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.MealPlanRepository
@@ -27,6 +28,19 @@ import javax.inject.Inject
 
 data class CheckableGroceryItem(val item: GroceryItem, val checked: Boolean)
 
+/** See GroceryViewModel.budgetEstimate's own doc comment. */
+data class GroceryBudgetEstimate(val totalEuros: Double, val matchedCount: Int, val totalCount: Int)
+
+/** Whole-word containment on already-normalizeKey()'d strings - plain
+ *  `.contains` would let e.g. "riz" match inside "chorizo". Both inputs are
+ *  already lowercase/accent-stripped, so this only needs a non-letter/digit
+ *  boundary check, same pattern IngredientIntegrityPillar.kt's containsWord
+ *  already establishes in the scoring engine. */
+private fun containsWholeWord(haystack: String, needle: String): Boolean {
+    if (needle.isBlank()) return false
+    return Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(haystack)
+}
+
 private fun Recipe.toGroceryInput(): GroceryRecipeInput =
     GroceryRecipeInput(name = name, components = components.map { c -> GroceryComponent(c.productName, c.grams) })
 
@@ -48,6 +62,7 @@ class GroceryViewModel @Inject constructor(
     private val mealPlanRepo: MealPlanRepository,
     private val manualGroceryRepo: ManualGroceryRepository,
     private val prefs: UserPreferences,
+    private val priceRepo: PriceRepository,
 ) : ViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real. GroceryCheckedRepository/
@@ -62,6 +77,10 @@ class GroceryViewModel @Inject constructor(
     // instead of only reaching prefs.language buried inside itemWarnings' combine().
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // Settings > Devise - same pattern ResultViewModel/PriceEntryCard already use.
+    val currencySymbol: StateFlow<String> = prefs.currencySymbol
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "€")
 
     // "Planned this week only" scope: when on, the grocery list is built from the
     // recipes actually assigned to a day in the current 7-day meal plan window
@@ -215,6 +234,43 @@ class GroceryViewModel @Inject constructor(
         val validKeys = items.map { it.key }.toSet()
         checked.count { it in validKeys } to items.size
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0 to 0)
+
+    /**
+     * User-requested: a real shopping app tells you roughly what the list
+     * will cost, not just what's on it. Matches each item against this
+     * profile's own price-log history (PriceRepository, already populated by
+     * Expenses/scanned-product price entries) by normalized name - a
+     * whole-word match either direction (item name a whole word inside the
+     * logged product name, or vice versa: "poulet" matches a logged "Filet
+     * de poulet fermier") since grocery items are generic ingredient names,
+     * not the exact branded product names price history is keyed by. Uses
+     * the most recently logged matching price (freshest = most
+     * representative of what this actually costs now). Deliberately partial
+     * rather than fabricated: an item with no matching price history simply
+     * isn't counted, and matchedCount/totalCount is exposed so the UI can
+     * show this is an estimate, not a guarantee.
+     */
+    val budgetEstimate: StateFlow<GroceryBudgetEstimate?> = combine(
+        rawItems, activeProfileId.flatMapLatest { id -> priceRepo.observeAll(id) },
+    ) { items, prices ->
+        val pricedItems = items.filter { it.grams > 0 }
+        if (pricedItems.isEmpty()) return@combine null
+        var total = 0.0
+        var matched = 0
+        for (item in pricedItems) {
+            val itemKey = normalizeKey(item.name)
+            val best = prices
+                .filter { it.pricePerKg != null }
+                .filter { p -> val pKey = normalizeKey(p.productName); containsWholeWord(pKey, itemKey) || containsWholeWord(itemKey, pKey) }
+                .maxByOrNull { it.date }
+                ?: continue
+            total += best.pricePerKg!! * (item.grams / 1000.0)
+            matched++
+        }
+        if (matched == 0) null else GroceryBudgetEstimate(totalEuros = total, matchedCount = matched, totalCount = pricedItems.size)
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // Self-healing: whenever the *unscoped* aggregated grocery list changes (recipe
     // added/edited/removed), drop any persisted checked key that no longer
