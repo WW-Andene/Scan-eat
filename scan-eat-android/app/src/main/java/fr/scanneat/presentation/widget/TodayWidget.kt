@@ -275,7 +275,17 @@ private fun TodayWidgetContent(
 
 class AddGlassAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        widgetEntryPoint(context).hydrationRepository().addGlass()
+        // §A5-audit finding: addGlass() defaults to profileId = "default" -
+        // this call previously passed no profileId at all, so the widget's
+        // "+250 mL" chip always logged to the default profile regardless of
+        // which one is actually active. provideGlance() above already reads
+        // prefs.profile for everything it *displays* (kcal, hydration total,
+        // meds) - this write path was the one place that active profile
+        // never got threaded through, so a non-default-profile user's glass
+        // taps silently landed on the wrong profile's hydration history.
+        val entryPoint = widgetEntryPoint(context)
+        val activeProfileId = entryPoint.userPreferences().profile.first().id
+        entryPoint.hydrationRepository().addGlass(profileId = activeProfileId)
         // update() is a member fun on GlanceAppWidget itself (no top-level import
         // exists for it, unlike updateAll()) - refreshes just this widget instance.
         TodayWidget().update(context, glanceId)
