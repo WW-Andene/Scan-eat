@@ -34,6 +34,7 @@ import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticBlue
 import fr.scanneat.presentation.ui.theme.semanticGreen
+import fr.scanneat.presentation.ui.theme.semanticRed
 import kotlin.math.roundToInt
 
 /**
@@ -69,9 +70,16 @@ internal fun OtherTrackersCard(
         // Equal-width slots make every icon sit at the same relative position.
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             val hydrationPct = if (snapshot.hydrationGoalMl > 0) (snapshot.hydrationMl * 100 / snapshot.hydrationGoalMl) else 0
+            // User-requested: does the Dashboard also flag a real water surplus
+            // (e.g. 10L/day), not just Hydration's own tab? Same >=2x-goal
+            // relative threshold checkOverhydration() uses, mirrored here rather
+            // than threaded as a new OtherTrackersSnapshot field, since this glance
+            // tile only needs the tint, not the full warning banner/message
+            // (shown on the Hydration tab this tile links to).
+            val isOverhydrated = snapshot.hydrationGoalMl > 0 && snapshot.hydrationMl >= snapshot.hydrationGoalMl * 2
             TrackerStat(
                 icon = TablerIcons.Droplet,
-                tint = semanticBlue(),
+                tint = if (isOverhydrated) semanticRed() else semanticBlue(),
                 value = stringResource(R.string.dashboard_other_trackers_hydration_value, hydrationPct.coerceAtMost(999)),
                 label = stringResource(R.string.dashboard_other_trackers_hydration_label),
                 modifier = Modifier.weight(1f).clickable(onClick = onOpenHydration),

@@ -8,6 +8,8 @@ import fr.scanneat.data.repository.backup.CsvExportRepository
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
 import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.domain.engine.health.OverhydrationWarning
+import fr.scanneat.domain.engine.health.checkOverhydration
 import fr.scanneat.domain.model.ActivityLevel
 import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
@@ -90,6 +92,14 @@ class HydrationViewModel @Inject constructor(
 
     val goal: StateFlow<Int> = combine(formulaGoal, customGoalMl) { formula, custom -> custom ?: formula }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
+
+    // User-requested: does the app catch genuine over-consumption (e.g. 10L in
+    // a day), not just under-consumption vs the goal? Previously no - see
+    // checkOverhydration's own doc comment. Reactive to both intake and goal
+    // (a custom-goal edit shouldn't need a new glass logged to re-evaluate).
+    val overhydrationWarning: StateFlow<OverhydrationWarning?> = combine(intake, goal) { ml, goalMl ->
+        checkOverhydration(ml, goalMl)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun setCustomGoal(ml: Int?) = viewModelScope.launch {
         runCatching { repo.setCustomGoalMl(ml, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }

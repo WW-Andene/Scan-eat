@@ -26,6 +26,7 @@ import fr.scanneat.presentation.hydration.components.HydrationHistorySection
 import fr.scanneat.presentation.hydration.components.HydrationQuickAddRow
 import fr.scanneat.presentation.hydration.components.HydrationRingAndControls
 import fr.scanneat.presentation.hydration.components.HydrationStreakRow
+import fr.scanneat.presentation.hydration.components.HydrationOverconsumptionBanner
 import fr.scanneat.presentation.hydration.components.HydrationSuggestedGoalBanner
 import fr.scanneat.presentation.hydration.components.HydrationWeeklyChart
 import fr.scanneat.presentation.reminders.HydrationReminderCard
@@ -67,6 +68,7 @@ fun HydrationScreen(
     val customGoal      = viewModel.customGoalMl.collectAsStateWithLifecycle()
     val exerciseBonusMl = viewModel.exerciseBonusMl.collectAsStateWithLifecycle()
     val history         = viewModel.history.collectAsStateWithLifecycle()
+    val overhydrationWarning = viewModel.overhydrationWarning.collectAsStateWithLifecycle()
     val useImperial     = viewModel.useImperial.collectAsStateWithLifecycle()
     var showGoalEditor by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<LocalDate?>(null) }
@@ -131,6 +133,12 @@ fun HydrationScreen(
         // New: smart goal suggestion banner
         suggestedGoal.value?.let { suggested ->
             item { HydrationSuggestedGoalBanner(suggested, onApply = { viewModel.setCustomGoal(it) }) }
+        }
+
+        // User-requested: real over-consumption warning (e.g. 10L/day) - see
+        // HydrationViewModel.overhydrationWarning's own doc comment.
+        overhydrationWarning.value?.let { warning ->
+            item { HydrationOverconsumptionBanner(warning) }
         }
 
         item {

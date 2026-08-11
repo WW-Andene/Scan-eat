@@ -74,6 +74,9 @@
     <string name="hydration_calendar_day_logged">%1$s : journée hydratée</string>
     <string name="hydration_calendar_day_empty">%1$s : aucune donnée</string>
     <string name="hydration_suggested_goal_hint">Selon votre profil, un objectif de %1$d mL pourrait mieux vous convenir.</string>
+    <string name="hydration_overconsumption_title">Consommation d\'eau très élevée</string>
+    <string name="hydration_overconsumption_moderate">%1$d mL aujourd\'hui — nettement au-dessus de votre besoin. Un excès d\'eau peut diluer le sodium sanguin ; espacez votre consommation sur la journée.</string>
+    <string name="hydration_overconsumption_high">%1$d mL aujourd\'hui — volume très élevé, risque d\'intoxication à l\'eau (hyponatrémie) en cas d\'apport rapide. En cas de nausées, maux de tête ou confusion, consultez un médecin.</string>
     <string name="hydration_suggested_goal_apply">Utiliser</string>
     <string name="hydration_7day_chart_title">7 derniers jours</string>
     <string name="hydration_weekly_goal_met">%1$d/7 objectifs atteints</string>
