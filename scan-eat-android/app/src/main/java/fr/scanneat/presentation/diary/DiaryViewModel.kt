@@ -235,6 +235,24 @@ class DiaryViewModel @Inject constructor(
     }
 
     /**
+     * User-reported: tapping a logged entry only ever opened the portion-edit
+     * dialog - there was no way to see the actual product's Result screen
+     * (full audit, ingredients, warnings) from the Diary at all. DiaryEntry
+     * itself carries no scan_history row id (it's a denormalized snapshot, see
+     * its own doc comment), so this resolves one by barcode instead - the same
+     * getCachedByBarcode() lookup ScanRepository already exposes, matching
+     * ScanHistoryCard's onItemClick(scan.dbId) pattern elsewhere in the app.
+     * Returns null (caller falls back to onEdit) for a FOOD_DB/custom-food
+     * quick-added entry with no barcode, or one whose barcode was never
+     * actually scanned/cached (e.g. imported via backup on a different device).
+     */
+    suspend fun findScanIdForEntry(entry: DiaryEntry): Long? {
+        val barcode = entry.barcode ?: return null
+        val scan = scanRepo.getCachedByBarcode(barcode, activeProfileId.value, language.value) ?: return null
+        return scan.dbId.takeIf { it > 0 }
+    }
+
+    /**
      * User-reported: there was no way to add/correct a logged entry's price
      * from Diary at all - [pricePerKgByBarcode] only ever displayed whatever
      * was already logged elsewhere (Result screen's PriceEntryCard/Expenses),

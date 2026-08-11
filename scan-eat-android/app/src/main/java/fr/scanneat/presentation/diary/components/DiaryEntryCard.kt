@@ -53,9 +53,17 @@ internal fun DiaryEntryCard(
     currencySymbol: String = "€",
     onDelete: () -> Unit,
     onEdit: () -> Unit,
+    // User-reported: tapping a logged entry only ever opened the portion-edit
+    // dialog, with no way to see the actual product's Result screen (full
+    // audit/ingredients/warnings) from Diary. Whole-card tap now opens that
+    // instead, same "row = view detail, pencil = edit" split ScanHistoryCard
+    // already uses elsewhere - the pencil IconButton below still opens the
+    // portion editor directly. Defaults to onEdit so any other call site that
+    // doesn't pass this keeps its old tap-to-edit behavior unchanged.
+    onOpenDetail: () -> Unit = onEdit,
 ) {
     ScanEatCard(
-        onClick = onEdit,
+        onClick = onOpenDetail,
         shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.L),
     ) {
         Row(

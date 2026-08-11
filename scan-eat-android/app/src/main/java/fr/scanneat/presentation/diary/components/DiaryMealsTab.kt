@@ -31,6 +31,12 @@ internal fun MealsTab(
     snackbarHostState: SnackbarHostState,
     topPadding: androidx.compose.ui.unit.Dp = 0.dp,
     bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    // User-reported: tapping a logged entry only ever opened the portion-edit
+    // dialog, with no way to see the product's actual Result screen. Resolving
+    // a scan_history row id needs a barcode lookup (DiaryEntry itself carries
+    // none - see findScanIdForEntry's own doc comment), so this fires on tap
+    // rather than precomputing it for every visible row.
+    onOpenProductDetail: (Long) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.diary_deleted_message)
@@ -195,6 +201,12 @@ internal fun MealsTab(
                             currencySymbol = currencySymbol.value,
                             onDelete = { deleteTarget = entry.id },
                             onEdit = { editTarget = entry },
+                            onOpenDetail = {
+                                scope.launch {
+                                    val scanId = viewModel.findScanIdForEntry(entry)
+                                    if (scanId != null) onOpenProductDetail(scanId) else editTarget = entry
+                                }
+                            },
                         )
                     }
                 }

@@ -61,6 +61,10 @@ fun DiaryScreen(
     // Meals regardless of which card the user actually tapped.
     pendingTab: String? = null,
     onPendingTabConsumed: () -> Unit = {},
+    // User-reported: tapping a logged Diary entry only opened the portion-edit
+    // dialog, with no way to see the product's Result screen. See
+    // MealsTab/DiaryEntryCard's own doc comments for the resolution logic.
+    onOpenResult: (Long) -> Unit = {},
 ) {
     var activeTab by rememberSaveable(stateSaver = DiaryTabSaver) { mutableStateOf(DiaryTab.MEALS) }
     var showAddEntry by remember { mutableStateOf(false) }
@@ -77,7 +81,11 @@ fun DiaryScreen(
     }
 
     LaunchedEffect(pendingTab) {
-        val tab = pendingTab?.let { runCatching { DiaryTab.valueOf(it) }.getOrNull() }
+        // "$tabName|$nanoTime" - the suffix (see AppNavGraph.kt's onOpenDiaryTab) exists
+        // only so this effect's key always changes on a fresh dispatch, even when the
+        // target tab name is identical to the last one; stripped back off here before
+        // parsing the actual DiaryTab.
+        val tab = pendingTab?.substringBefore('|')?.let { runCatching { DiaryTab.valueOf(it) }.getOrNull() }
         if (tab != null) activeTab = tab
         onPendingTabConsumed()
     }
@@ -130,7 +138,7 @@ fun DiaryScreen(
                 .hazeSource(hazeState),
         ) {
             when (activeTab) {
-                DiaryTab.MEALS    -> MealsTab(viewModel, snackbarHostState, topPadding = topPadding, bottomPadding = bottomClearance)
+                DiaryTab.MEALS    -> MealsTab(viewModel, snackbarHostState, topPadding = topPadding, bottomPadding = bottomClearance, onOpenProductDetail = onOpenResult)
                 DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)

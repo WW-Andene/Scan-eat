@@ -734,7 +734,7 @@
     <string name="logsheet_title">Log Meal</string>
     <string name="logsheet_quantity_label">Quantity (g)</string>
     <string name="logsheet_preset_grams">%1$d g</string>
-    <string name="logsheet_preset_package">%1$d g (pack)</string>
+    <string name="logsheet_preset_package">%1$d g (typical portion)</string>
     <string name="logsheet_meal_label">Meal</string>
     <string name="logsheet_confirm_plain">Confirm</string>
     <string name="logsheet_confirm_with_kcal">Confirm · %1$d kcal</string>

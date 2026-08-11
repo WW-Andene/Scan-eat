@@ -7,7 +7,11 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.backup.CsvExportRepository
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.data.repository.expense.PriceRepository
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
+import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.scoring.inferCategoryFromName
 import fr.scanneat.domain.model.ProductCategory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,6 +28,7 @@ class ExpensesViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val csvExportRepository: CsvExportRepository,
     private val groceryRepo: ManualGroceryRepository,
+    private val customFoodRepo: CustomFoodRepository,
 ) : ViewModel() {
 
     // R&D audit finding, phase 2: profileId was dead scaffolding until
@@ -59,6 +64,30 @@ class ExpensesViewModel @Inject constructor(
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
+
+    // User-reported: the Expenses "add product" name field had no search-as-
+    // you-type, unlike Diary/Meals' AddDiaryEntryDialog - same debounced
+    // search-over-observeAll() pattern as DiaryViewModel.searchResults, reused
+    // here for the same reason (results can't go stale after a save/delete the
+    // way a one-shot repo.search() snapshot could). Only FOOD_DB/custom-food
+    // matches, not scan-history - a manual expense entry has no barcode/scan
+    // concept to search against in the first place.
+    private val _expenseNameQuery = MutableStateFlow("")
+    val expenseNameQuery: StateFlow<String> = _expenseNameQuery.asStateFlow()
+
+    val expenseNameSuggestions: StateFlow<List<FoodEntry>> =
+        combine(_expenseNameQuery.debounce(200), activeProfileId.flatMapLatest { id -> customFoodRepo.observeAll(id) }) { q, customs -> q to customs }
+            .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 6, customs) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setExpenseNameQuery(q: String) { _expenseNameQuery.value = q }
+    fun clearExpenseNameQuery() { _expenseNameQuery.value = "" }
+
+    /** Best-effort category guess for a picked suggestion - a FoodEntry search
+     *  result carries no ProductCategory of its own (see CustomFoodRepository.
+     *  toProduct's identical inference), so this mirrors that same fallback
+     *  rather than leaving the picked name's category stuck on OTHER. */
+    fun inferExpenseCategory(name: String): ProductCategory = inferCategoryFromName(name)
 
     val budgetWeeklyEuros: StateFlow<Double?> = prefs.budgetWeeklyEuros
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

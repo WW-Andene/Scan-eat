@@ -233,12 +233,19 @@ fun ExpensesScreen(
     }
 
     if (showAddEntry) {
+        val expenseNameQuery = viewModel.expenseNameQuery.collectAsStateWithLifecycle()
+        val expenseNameSuggestions = viewModel.expenseNameSuggestions.collectAsStateWithLifecycle()
         AddExpenseDialog(
             onConfirm = { name, category, price, weight ->
                 viewModel.addEntry(LocalDate.now(), name, category, price, weight)
+                viewModel.clearExpenseNameQuery()
                 showAddEntry = false
             },
-            onDismiss = { showAddEntry = false },
+            onDismiss = { viewModel.clearExpenseNameQuery(); showAddEntry = false },
+            nameQuery = expenseNameQuery.value,
+            suggestions = expenseNameSuggestions.value,
+            onQueryChange = { viewModel.setExpenseNameQuery(it) },
+            inferCategory = { viewModel.inferExpenseCategory(it) },
         )
     }
 

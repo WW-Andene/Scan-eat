@@ -137,6 +137,7 @@ fun AppNavGraph(
                 onPendingDateConsumed = { backStackEntry.savedStateHandle.remove<String>("diary_selected_date") },
                 pendingTab = backStackEntry.savedStateHandle.get<String>("diary_selected_tab"),
                 onPendingTabConsumed = { backStackEntry.savedStateHandle.remove<String>("diary_selected_tab") },
+                onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
             )
         }
 
@@ -166,7 +167,19 @@ fun AppNavGraph(
                     // (which throws if Diary was never visited this session - the crash
                     // this used to hit tapping this widget from a fresh Dashboard launch) needed.
                     navController.switchToTab(TopTab.Diary.route)
-                    navController.currentBackStackEntry?.savedStateHandle?.set("diary_selected_tab", tab)
+                    // User-reported: tapping a Dashboard glance card (e.g. "Expenses"),
+                    // leaving Diary, and tapping the SAME card again didn't re-select that
+                    // tab - it took two taps. DiaryScreen's activeTab is rememberSaveable
+                    // (correctly restored across tab-switch navigation, see its own doc
+                    // comment), so a repeat deep-link with the identical tab NAME as the
+                    // already-restored value produced the same String key here -
+                    // LaunchedEffect(pendingTab) only re-runs when its key actually
+                    // CHANGES, so the second identical dispatch silently no-opped instead
+                    // of re-forcing the tab switch. Suffixing a monotonic timestamp makes
+                    // every dispatch a genuinely new key, so the effect always re-fires -
+                    // DiaryScreen's own LaunchedEffect strips this suffix back off before
+                    // parsing the DiaryTab.
+                    navController.currentBackStackEntry?.savedStateHandle?.set("diary_selected_tab", "$tab|${System.nanoTime()}")
                 },
                 onOpenScan           = { navController.switchToTab(TopTab.Scan.route) },
             )

@@ -3,16 +3,23 @@ package fr.scanneat.presentation.expenses.components
 import compose.icons.tablericons.Check
 import compose.icons.TablerIcons
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.expense.PriceEntry
+import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.util.formatDecimal
@@ -110,7 +117,19 @@ internal fun BudgetEditDialog(
  *  PriceEntryCard's PriceInputDialog (result/cards/PriceEntryCard.kt), which this
  *  intentionally mirrors rather than diverging on validation rules. */
 @Composable
-internal fun AddExpenseDialog(onConfirm: (name: String, category: ProductCategory, price: Double, weight: Double?) -> Unit, onDismiss: () -> Unit) {
+internal fun AddExpenseDialog(
+    onConfirm: (name: String, category: ProductCategory, price: Double, weight: Double?) -> Unit,
+    onDismiss: () -> Unit,
+    // User-reported: this name field had no search-as-you-type, unlike Diary/
+    // Meals' identical "add product" flow (AddDiaryEntryDialog). Defaults keep
+    // every other call site (EditExpenseDialog shares this same Composable's
+    // shape but isn't wired to search - correcting an already-logged entry's
+    // name doesn't need suggestions the way typing a brand-new one does) source-compatible.
+    nameQuery: String = "",
+    suggestions: List<FoodEntry> = emptyList(),
+    onQueryChange: (String) -> Unit = {},
+    inferCategory: (String) -> ProductCategory = { ProductCategory.OTHER },
+) {
     var nameText by remember { mutableStateOf("") }
     // Manual entries previously always landed in ProductCategory.OTHER with no
     // way to pick a real category - see ExpensesViewModel.addEntry's own doc
@@ -130,12 +149,49 @@ internal fun AddExpenseDialog(onConfirm: (name: String, category: ProductCategor
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 OutlinedTextField(
-                    value = nameText, onValueChange = { nameText = it },
+                    value = nameText,
+                    onValueChange = { nameText = it; onQueryChange(it) },
                     label = { Text(stringResource(R.string.expenses_add_entry_name_label)) },
                     singleLine = true,
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     colors = scanEatTextFieldColors(),
                 )
+                // Same suggestion-row shape as AddDiaryEntryDialog's search results -
+                // picking one fills the name AND infers a real category instead of
+                // leaving it on OTHER, matching what typing-then-manually-picking a
+                // category would have produced anyway.
+                if (nameQuery.isNotBlank() && suggestions.isNotEmpty() && nameText == nameQuery) {
+                    LazyColumn(
+                        modifier = Modifier.heightIn(max = 160.dp),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+                    ) {
+                        items(suggestions, key = { it.name }) { entry ->
+                            Surface(
+                                onClick = {
+                                    nameText = entry.name
+                                    onQueryChange("")
+                                    category = inferCategory(entry.name)
+                                },
+                                shape = RoundedCornerShape(CardRadius.CONTROL),
+                                color = SurfaceVariant.copy(alpha = 0.42f),
+                                modifier = Modifier.fillMaxWidth()
+                                    .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                    .clip(RoundedCornerShape(CardRadius.CONTROL)),
+                                shadowElevation = 0.dp,
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(entry.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground,
+                                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                }
                 ExpenseCategoryPicker(category = category, onCategoryChange = { category = it })
                 // Was giving no visual feedback for an out-of-range value - the Save
                 // button just silently stayed disabled, unlike AddWeightDialog/
