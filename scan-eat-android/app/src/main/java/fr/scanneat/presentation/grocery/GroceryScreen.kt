@@ -3,6 +3,7 @@ package fr.scanneat.presentation.grocery
 import compose.icons.tablericons.ShoppingCart
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
+import compose.icons.tablericons.Edit
 import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -79,19 +80,26 @@ fun GroceryScreen(
     // discards every item on it with no undo, unlike deleteManualContribution's
     // single-item delete (which does offer Undo).
     var listPendingDelete by remember { mutableStateOf<String?>(null) }
+    // User-requested: renaming a list previously required delete-and-recreate,
+    // losing its items in the process (or requiring a manual re-add pass).
+    var renameListTarget by remember { mutableStateOf<String?>(null) }
+    var renameListText by rememberSaveable { mutableStateOf("") }
     // User-requested: checking an item off offers to log its price right away,
     // so a real purchase feeds PriceRepository (Journal/Expenses/budgetEstimate)
     // instead of Courses staying a dead end for price data. Optional - "Passer"
     // just checks the item off with no price logged, same as before this feature.
     var priceLogItem by remember { mutableStateOf<GroceryItem?>(null) }
     var priceLogText by rememberSaveable { mutableStateOf("") }
+    val loggedTodayKeys = viewModel.loggedTodayKeys.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     val haptics   = LocalHapticFeedback.current
     val context   = LocalContext.current
     val onToggleChecked: (GroceryItem, Boolean) -> Unit = { item, checked ->
         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
         viewModel.toggleChecked(item, checked)
-        if (checked) { priceLogText = ""; priceLogItem = item }
+        // User-requested: don't re-ask for a price already logged today for
+        // this item (e.g. checked, unchecked, re-checked while sorting mid-trip).
+        if (checked && normalizeKey(item.name) !in loggedTodayKeys.value) { priceLogText = ""; priceLogItem = item }
     }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -212,8 +220,14 @@ fun GroceryScreen(
                             label = { Text(list) },
                             trailingIcon = if (list != DEFAULT_LIST) {
                                 {
-                                    IconButton(onClick = { listPendingDelete = list }, modifier = Modifier.size(16.dp)) {
-                                        Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.6f))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        IconButton(onClick = { renameListTarget = list; renameListText = list }, modifier = Modifier.size(16.dp)) {
+                                            Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnBackground.copy(0.6f))
+                                        }
+                                        Spacer(Modifier.width(Spacing.XS))
+                                        IconButton(onClick = { listPendingDelete = list }, modifier = Modifier.size(16.dp)) {
+                                            Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.6f))
+                                        }
                                     }
                                 }
                             } else null,
@@ -413,6 +427,28 @@ fun GroceryScreen(
             confirmLabel = stringResource(R.string.common_delete),
             onConfirm = { viewModel.deleteList(list); listPendingDelete = null },
             onDismiss = { listPendingDelete = null },
+        )
+    }
+
+    renameListTarget?.let { target ->
+        AlertDialog(
+            onDismissRequest = { renameListTarget = null },
+            title = { Text(stringResource(R.string.grocery_rename_list)) },
+            text = {
+                OutlinedTextField(
+                    value = renameListText,
+                    onValueChange = { renameListText = it },
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.grocery_new_list_placeholder)) },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = renameListText.isNotBlank() && renameListText.trim() != target,
+                    onClick = { viewModel.renameList(target, renameListText); renameListTarget = null },
+                ) { Text(stringResource(R.string.common_save)) }
+            },
+            dismissButton = { TextButton(onClick = { renameListTarget = null }) { Text(stringResource(R.string.common_cancel)) } },
         )
     }
 

@@ -623,6 +623,7 @@
     <string name="grocery_cd_share">Share list</string>
     <string name="grocery_scan_to_add">Scan to add to list</string>
     <string name="grocery_new_list">New list</string>
+    <string name="grocery_rename_list">Rename list</string>
     <string name="grocery_new_list_placeholder">e.g. Week, BBQ…</string>
     <string name="grocery_log_price_title">Price paid for "%1$s"?</string>
     <string name="grocery_log_price_placeholder">Price (%1$s)</string>

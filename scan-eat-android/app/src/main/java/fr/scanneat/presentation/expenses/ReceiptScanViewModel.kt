@@ -10,6 +10,8 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.expense.PriceRepository
+import fr.scanneat.data.repository.planning.GroceryCheckedRepository
+import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.domain.engine.expense.parseReceiptLines
 import fr.scanneat.domain.engine.planning.normalizeKey
 import fr.scanneat.domain.model.ProductCategory
@@ -89,6 +91,8 @@ sealed interface ReceiptScanState {
 class ReceiptScanViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
     private val prefs: UserPreferences,
+    private val manualGroceryRepo: ManualGroceryRepository,
+    private val checkedRepo: GroceryCheckedRepository,
 ) : ViewModel() {
     private val activeProfileId: StateFlow<String> = prefs.activeProfileId
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
@@ -159,7 +163,16 @@ class ReceiptScanViewModel @Inject constructor(
 
     fun retry() { _state.value = ReceiptScanState.Idle }
 
-    /** Logs every included line as its own price_log purchase - same shape addEntry()/logPrice() elsewhere already write. */
+    /**
+     * Logs every included line as its own price_log purchase - same shape
+     * addEntry()/logPrice() elsewhere already write. User-requested: also
+     * checks off any Courses manual item (any list, this profile) whose
+     * normalized name shares a whole word with a confirmed line - a best-
+     * effort link, not a guaranteed match (same containsWholeWord heuristic
+     * ReceiptScanViewModel's own suggestionsFor uses), so a receipt scan
+     * actually finishes the "buy this" loop instead of only recording the
+     * price with the shopping list left untouched.
+     */
     fun confirmAll() {
         val current = _state.value as? ReceiptScanState.Review ?: return
         val toLog = current.lines.filter { it.included && it.name.isNotBlank() && it.priceEuros > 0.0 }
@@ -175,6 +188,13 @@ class ReceiptScanViewModel @Inject constructor(
                         weightG = null,
                         profileId = activeProfileId.value,
                     )
+                }
+                val ocrKeys = toLog.map { normalizeKey(it.name) }
+                manualGroceryRepo.items(activeProfileId.value).first().forEach { item ->
+                    val itemKey = normalizeKey(item.name)
+                    if (ocrKeys.any { containsWholeWord(itemKey, it) || containsWholeWord(it, itemKey) }) {
+                        checkedRepo.setChecked(itemKey, true, activeProfileId.value)
+                    }
                 }
             }.onSuccess { _state.value = ReceiptScanState.Done }
                 .onFailure { e -> if (e is CancellationException) throw e; _state.value = ReceiptScanState.Error }

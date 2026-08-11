@@ -104,6 +104,20 @@ class GroceryViewModel @Inject constructor(
         }
     }
 
+    /** Renames a list, switching the active list along if it was the one renamed. */
+    fun renameList(oldName: String, newName: String) {
+        viewModelScope.launch {
+            runCatching { manualGroceryRepo.renameList(oldName, newName, activeProfileId.value) }
+                .onSuccess {
+                    val trimmed = newName.trim()
+                    if (_activeListName.value == oldName && trimmed.isNotBlank() && trimmed != fr.scanneat.data.repository.planning.DEFAULT_LIST) {
+                        _activeListName.value = trimmed
+                    }
+                }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     /** Deletes a named list and its items, falling back to DEFAULT_LIST if it was the active one. */
     fun deleteList(name: String) {
         viewModelScope.launch {
@@ -349,6 +363,19 @@ class GroceryViewModel @Inject constructor(
     }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * User-requested: checking an item off shouldn't re-ask for its price if
+     * one was already logged today (e.g. the same item checked, unchecked,
+     * then re-checked while sorting the list mid-trip) - names (normalized)
+     * with at least one price_log entry dated today for this profile.
+     * GroceryScreen skips the price-log prompt when the checked item's own
+     * normalized name is in this set.
+     */
+    val loggedTodayKeys: StateFlow<Set<String>> = activeProfileId.flatMapLatest { id -> priceRepo.observeAll(id) }
+        .map { prices -> prices.filter { it.date == LocalDate.now() }.map { normalizeKey(it.productName) }.toSet() }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     // Self-healing: whenever the *unscoped* aggregated grocery list changes (recipe
     // added/edited/removed), drop any persisted checked key that no longer

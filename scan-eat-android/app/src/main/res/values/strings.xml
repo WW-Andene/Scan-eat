@@ -627,6 +627,7 @@
     <string name="grocery_cd_share">Partager la liste</string>
     <string name="grocery_scan_to_add">Scanner pour ajouter à la liste</string>
     <string name="grocery_new_list">Nouvelle liste</string>
+    <string name="grocery_rename_list">Renommer la liste</string>
     <string name="grocery_new_list_placeholder">Ex. Semaine, BBQ…</string>
     <string name="grocery_log_price_title">Prix payé pour « %1$s » ?</string>
     <string name="grocery_log_price_placeholder">Prix (%1$s)</string>
