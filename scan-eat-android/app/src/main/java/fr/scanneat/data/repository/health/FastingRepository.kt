@@ -94,8 +94,20 @@ class FastingRepository @Inject constructor(
 
     fun isActive(profileId: String = "default"): Flow<Boolean> = state(profileId).map { it?.isActive == true }
 
+    /**
+     * No-ops if a fast is already active rather than silently overwriting its
+     * startMs - the shipped FastingScreen UI only ever calls this when
+     * state.value == null, so this guard isn't reachable through it today, but
+     * a repository-level call with no such precondition (a future widget quick-
+     * action, a deep link, a second concurrent caller) would otherwise discard
+     * the original fast's start time with no history record of it at all -
+     * unlike stop()/cancel(), which both already tolerate "no active fast"
+     * cleanly, start() had no equivalent guard for its own "already active"
+     * case.
+     */
     suspend fun start(targetHours: Int = 16, profileId: String = "default") {
         store.edit { prefs ->
+            if (prefs[keyStartMs(profileId)] != null) return@edit
             prefs[keyStartMs(profileId)]     = System.currentTimeMillis()
             prefs[keyTargetHours(profileId)] = targetHours.coerceIn(1, 72)
         }
