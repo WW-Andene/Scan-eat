@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.medication.generateMedicationHints
 import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
+import fr.scanneat.presentation.medication.InteractionWarning
+import fr.scanneat.presentation.medication.components.MedicationInteractionWarningBanner
 import fr.scanneat.presentation.result.FactsCautionsColumn
 import fr.scanneat.presentation.scan.ScanUiState
 import fr.scanneat.presentation.ui.theme.AccentCoral
@@ -66,6 +68,7 @@ internal fun BoxScope.ScanStateOverlay(
     onDismissFound: () -> Unit,
     onSaveDetectedMedication: (fr.scanneat.domain.engine.medication.MedicationDbEntry) -> Unit,
     onPickMultiFood: (Long) -> Unit,
+    medicationInteractionWarnings: List<InteractionWarning> = emptyList(),
 ) {
     when (val s = state) {
         is ScanUiState.Idle, is ScanUiState.Scanning, is ScanUiState.Success -> Unit
@@ -127,6 +130,11 @@ internal fun BoxScope.ScanStateOverlay(
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Text(stringResource(R.string.scan_medication_found_body, s.entry.name), color = OnBackground.copy(0.7f))
+                        // User-requested: surfaced right here, at scan time, against every
+                        // already-active saved medication - not just later on the
+                        // Médicament tab's own list screen (see
+                        // ScanViewModel.medicationInteractionWarnings' own doc comment).
+                        medicationInteractionWarnings.forEach { warning -> MedicationInteractionWarningBanner(warning) }
                         FactsCautionsColumn(hints.facts, hints.cautions)
                     }
                 },

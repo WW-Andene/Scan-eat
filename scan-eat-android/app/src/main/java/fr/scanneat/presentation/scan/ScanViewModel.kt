@@ -24,6 +24,8 @@ import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.presentation.medication.InteractionWarning
+import fr.scanneat.presentation.medication.detectInteractions
 import fr.scanneat.util.extractPriceFromText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -76,6 +78,25 @@ class ScanViewModel @Inject constructor(
     val healthConditions: StateFlow<Set<String>> = prefs.profile
         .map { it.healthConditions }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    // User-requested: is a drug-drug interaction check shown right on the
+    // scan sheet, at the moment a new medication is scanned - not just later,
+    // buried on the Médicament tab's own list screen (MedicationScreen's
+    // MedicationInteractionWarningBanner, which only ever covered medications
+    // already saved)? Previously no - this reuses the exact same
+    // detectInteractions() (see its own doc comment on why it now takes plain
+    // names) against the just-scanned candidate plus every already-active
+    // saved medication, reactive to both the scan state and the active list.
+    val medicationInteractionWarnings: StateFlow<List<InteractionWarning>> =
+        combine(_state, activeProfileId) { s, id -> s to id }
+            .flatMapLatest { (s, id) ->
+                val scannedName = (s as? ScanUiState.MedicationFound)?.entry?.name
+                if (scannedName == null) flowOf(emptyList())
+                else medicationRepo.observeAll(id).map { meds ->
+                    detectInteractions(meds.filter { it.active }.map { it.name } + scannedName)
+                }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     internal val _images = MutableStateFlow<List<ImagePayload>>(emptyList())
     val images: StateFlow<List<ImagePayload>> = _images.asStateFlow()

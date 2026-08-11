@@ -94,8 +94,15 @@ private val INTERACTION_GROUPS = mapOf(
     DrugGroup.MAOI           to listOf("phénelzine", "phenelzine", "tranylcypromine", "moclobémide", "moclobemide", "sélégiline", "selegiline"),
 ).mapValues { (_, keywords) -> keywords.map { fr.scanneat.domain.engine.scoring.normalizeForMatching(it) } }
 
-private fun detectInteractions(meds: List<Medication>): List<InteractionWarning> {
-    val activeNames = meds.filter { it.active }.map { fr.scanneat.domain.engine.scoring.normalizeForMatching(it.name) }
+/**
+ * Takes plain names (not [Medication] rows) so a not-yet-saved candidate -
+ * e.g. a medication barcode just scanned, before the user confirms adding it
+ * - can be checked against the already-active list too (see
+ * ScanViewModel.medicationInteractionWarnings), not just medications already
+ * persisted. `internal` (not `private`) for that same cross-package reuse.
+ */
+internal fun detectInteractions(activeMedicationNames: List<String>): List<InteractionWarning> {
+    val activeNames = activeMedicationNames.map { fr.scanneat.domain.engine.scoring.normalizeForMatching(it) }
     val warnings = mutableListOf<InteractionWarning>()
     // Same-group duplicates (e.g., two anticoagulants)
     for ((group, keywords) in INTERACTION_GROUPS) {
@@ -208,7 +215,7 @@ class MedicationViewModel @Inject constructor(
 
     // Improvement: keyword-based interaction warnings for the active medication list.
     val interactionWarnings: StateFlow<List<InteractionWarning>> = medications
-        .map { detectInteractions(it) }
+        .map { meds -> detectInteractions(meds.filter { it.active }.map { it.name }) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // New: daily adherence streak — consecutive past days where every active

@@ -76,7 +76,7 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 @Composable
 fun HintIconButton(hints: ProductHints, modifier: Modifier = Modifier, iconSize: androidx.compose.ui.unit.Dp = 24.dp) {
     var showHints by remember { mutableStateOf(false) }
-    val riskCount = hints.risks.size + hints.conditionRisks.size
+    val riskCount = hints.risks.size + hints.conditionRisks.size + hints.medicationRisks.size
     val hasRisks = riskCount > 0
     val totalCount = hints.benefits.size + riskCount + hints.facts.size + hints.pairWell.size + hints.avoidPairing.size + hints.improvementTips.size
     val baseLabel = stringResource(R.string.hint_cd_open)
@@ -107,7 +107,7 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
     val amber = semanticAmber()
     val red = semanticRed()
     val neutral = OnBackground.copy(0.7f)
-    val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.conditionRisks.isEmpty() && hints.facts.isEmpty() &&
+    val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.conditionRisks.isEmpty() && hints.medicationRisks.isEmpty() && hints.facts.isEmpty() &&
         hints.keyInfo.isEmpty() && hints.pairWell.isEmpty() && hints.avoidPairing.isEmpty() && hints.improvementTips.isEmpty()
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -149,6 +149,11 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
                 section(stringResource(R.string.hint_section_information), hints.keyInfo, neutral, Icons.Rounded.Info)
                 section(stringResource(R.string.hint_section_risks), hints.risks, amber, TablerIcons.AlertTriangle)
                 section(stringResource(R.string.hint_section_condition_risks), hints.conditionRisks, red, TablerIcons.AlertCircle)
+                // User-requested: medication+ingredient cross-reference, distinct from
+                // conditionRisks above since it's driven by the active Medication list,
+                // not Profile.healthConditions - see ProductHints.medicationRisks' own
+                // doc comment.
+                section(stringResource(R.string.hint_section_medication_risks), hints.medicationRisks, red, TablerIcons.AlertCircle)
                 if (hints.improvementTips.isNotEmpty()) {
                     if (shownAny) HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
                     ImprovementTipsSection(stringResource(R.string.hint_section_improve), hints.improvementTips)

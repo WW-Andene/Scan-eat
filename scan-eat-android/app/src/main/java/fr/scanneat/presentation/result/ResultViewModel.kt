@@ -11,6 +11,7 @@ import fr.scanneat.data.repository.scan.ComparisonRepository
 import fr.scanneat.data.repository.scan.ComparisonResult
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.data.repository.expense.PriceRepository
+import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
@@ -82,6 +83,7 @@ class ResultViewModel @Inject constructor(
     internal val manualGroceryRepo: ManualGroceryRepository,
     private val priceRepo: PriceRepository,
     private val recallRepo: RecallRepository,
+    private val medicationRepo: MedicationRepository,
     savedStateHandle: SavedStateHandle,
 ) : ActionFailureViewModel() {
 
@@ -111,6 +113,16 @@ class ResultViewModel @Inject constructor(
     // the hint panel is a separate UI surface and previously ignored the profile.
     val profile: StateFlow<Profile> = prefs.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
+
+    // User-requested: does the hint panel know about medication+ingredient
+    // risks for the specific product being viewed? Previously no - see
+    // ProductHints.medicationRisks/checkFoodDrugInteractions' own doc
+    // comments. Reactive to the active profile, same pattern every other
+    // ViewModel here already uses for its own repo reads.
+    val activeMedicationNames: StateFlow<Set<String>> = prefs.activeProfileId
+        .flatMapLatest { id -> medicationRepo.observeAll(id) }
+        .map { meds -> meds.filter { it.active }.map { it.name }.toSet() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     internal val _logState = MutableStateFlow<LogState>(LogState.Idle)
 

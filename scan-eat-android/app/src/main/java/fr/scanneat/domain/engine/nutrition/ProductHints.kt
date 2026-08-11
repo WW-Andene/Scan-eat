@@ -1,5 +1,6 @@
 package fr.scanneat.domain.engine.nutrition
 
+import fr.scanneat.domain.engine.medication.checkFoodDrugInteractions
 import fr.scanneat.domain.engine.scoring.scoreProduct
 import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.Profile
@@ -31,6 +32,14 @@ data class ProductHints(
      *  own condition were visually indistinguishable, even though they mean
      *  very different things to a reader without a diabetes diagnosis. */
     val conditionRisks: List<String>,
+    /** User-requested: does the app know about medication+ingredient risks?
+     *  Previously no real cross-reference existed anywhere (only static,
+     *  non-product-specific text on a medication's own detail sheet) - see
+     *  checkFoodDrugInteractions's own doc comment. Kept separate from
+     *  [conditionRisks] (profile.healthConditions-driven) since this is
+     *  driven by the user's active Medication list instead, a different
+     *  data source the reader should be able to tell apart at a glance. */
+    val medicationRisks: List<String> = emptyList(),
     val facts: List<String>,
     /** NOVA processing class + energy density — shown in their own section
      *  ahead of risks/benefits (see generateProductHints's own comment on
@@ -62,11 +71,18 @@ data class ProductHints(
         /** Fallback for a combine-into-map StateFlow lookup miss (e.g. the one-frame
          *  gap right after a new recipe/template is added, before its hints entry
          *  lands) — same role as NutritionPer100g.EMPTY elsewhere in the codebase. */
-        val EMPTY = ProductHints(emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+        val EMPTY = ProductHints(benefits = emptyList(), risks = emptyList(), conditionRisks = emptyList(), facts = emptyList())
     }
 }
 
-fun generateProductHints(product: Product, profile: Profile, lang: String): ProductHints {
+/**
+ * [activeMedicationNames] is optional (defaults to none) - only the Result
+ * screen (the food's own "fiche de scan") currently has a reactive
+ * MedicationRepository read wired in to pass real data here; Recipes/
+ * Templates/CustomFood's own call sites keep the prior behavior (no
+ * medication cross-reference) until they get the same wiring.
+ */
+fun generateProductHints(product: Product, profile: Profile, lang: String, activeMedicationNames: Set<String> = emptySet()): ProductHints {
     val benefits = mutableListOf<String>()
     val risks = mutableListOf<String>()
     val conditionRisks = mutableListOf<String>()
@@ -76,6 +92,7 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
 
     // ---- Personalized (Profile.healthConditions) ----
     val containsCaffeineSource = appendPersonalizedHints(product, profile, lang, benefits, conditionRisks)
+    val medicationRisks = checkFoodDrugInteractions(product, activeMedicationNames, lang)
 
     val keyInfo = buildKeyInfo(product, lang)
     val facts = buildFacts(product, lang).toMutableList()
@@ -91,5 +108,9 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     val scoreSummary = buildScoreSummary(audit)
     val pillarSummary = buildPillarSummary(audit)
 
-    return ProductHints(benefits, risks, conditionRisks, facts, keyInfo, pairWell, avoidPairing, improvementTips, scoreSummary, pillarSummary)
+    return ProductHints(
+        benefits = benefits, risks = risks, conditionRisks = conditionRisks, medicationRisks = medicationRisks,
+        facts = facts, keyInfo = keyInfo, pairWell = pairWell, avoidPairing = avoidPairing,
+        improvementTips = improvementTips, scoreSummary = scoreSummary, pillarSummary = pillarSummary,
+    )
 }

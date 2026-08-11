@@ -67,6 +67,7 @@ fun ScanScreen(
     val isPremium   = viewModel.isPremium.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
+    val medicationInteractionWarnings = viewModel.medicationInteractionWarnings.collectAsStateWithLifecycle()
     val recentBarcodes = viewModel.recentBarcodes.collectAsStateWithLifecycle()
     val todayScanCount = viewModel.todayScanCount.collectAsStateWithLifecycle()
     val cachedPreview  = viewModel.cachedPreview.collectAsStateWithLifecycle()
@@ -421,6 +422,7 @@ fun ScanScreen(
             // MultiFoodFound would stay current and the picked item's dialog (or a
             // stale photo queue) would still be there on returning to this screen.
             onPickMultiFood = { id -> onResultReady(id); viewModel.resultConsumed() },
+            medicationInteractionWarnings = medicationInteractionWarnings.value,
         )
     }
 }

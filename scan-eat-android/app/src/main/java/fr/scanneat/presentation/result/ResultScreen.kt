@@ -62,6 +62,7 @@ fun ResultScreen(
     val state       = viewModel.state.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
+    val activeMedicationNames = viewModel.activeMedicationNames.collectAsStateWithLifecycle()
     val priceEntries = viewModel.priceEntries.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
@@ -131,7 +132,7 @@ fun ResultScreen(
                 }) {
                     Icon(TablerIcons.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
                 }
-                HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value))
+                HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value, activeMedicationNames.value))
                 IconButton(onClick = { showSaveMenu = true }) {
                     // This opens SaveDestinationsPopup (a multi-select "save to..." dialog),
                     // not a direct favorite toggle - unlike the star buttons in
@@ -200,7 +201,7 @@ fun ResultScreen(
                 // generateProductHints call already used for HintIconButton
                 // above; pure/cheap, safe to compute again here rather than
                 // threading it across the TopBar/content composable boundary.
-                improvementTips   = generateProductHints(s.scanResult.product, profile.value, language.value).improvementTips,
+                improvementTips   = generateProductHints(s.scanResult.product, profile.value, language.value, activeMedicationNames.value).improvementTips,
                 onSavePrice       = { price, weight -> viewModel.savePrice(price, weight) },
                 onDeletePrice     = { id -> viewModel.deletePrice(id) },
                 onOpenResult      = onOpenResult,
