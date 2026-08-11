@@ -97,6 +97,13 @@ internal fun ResultContent(
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
         }
 
+        // User-requested: mapCategory() fell back to OTHER's generic,
+        // unverified thresholds for this product - see UncertainCategoryBanner's
+        // own doc comment.
+        if (scan.product.category == fr.scanneat.domain.model.ProductCategory.OTHER) {
+            UncertainCategoryBanner()
+        }
+
         // NutriScore / Eco-Score / NOVA — fully computed by the scoring engine
         // for every scan but previously never surfaced anywhere in this screen.
         ScoreBadgesRow(audit = audit, novaClass = scan.product.novaClass)

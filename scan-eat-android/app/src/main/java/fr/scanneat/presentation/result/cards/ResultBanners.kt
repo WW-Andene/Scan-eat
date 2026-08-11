@@ -152,6 +152,28 @@ internal fun AllergenUnverifiedBanner() {
     }
 }
 
+// User-requested: mapCategory() couldn't confidently place this product into
+// any of its specific buckets (unrecognized/missing OFF category tags) and
+// fell back to ProductCategory.OTHER, which scores against DEFAULT_THRESHOLDS
+// - a generic, unverified guess rather than a category-tuned norm. Previously
+// silent: the grade/pillars still rendered exactly like a confidently-matched
+// product, with nothing telling the user the category (and therefore every
+// category-relative threshold behind the score) is uncertain.
+@Composable
+internal fun UncertainCategoryBanner() {
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticAmber().copy(alpha = 0.15f),
+        contentPadding = PaddingValues(Spacing.L),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
+            Text(stringResource(R.string.result_category_uncertain), style = MaterialTheme.typography.bodySmall,
+                color = OnBackground, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
 @Composable
 internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String = "fr") {
     ScanEatCard(
