@@ -272,6 +272,37 @@ class GroceryViewModel @Inject constructor(
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    /**
+     * User-requested: "frequently bought" quick-add suggestions - names that
+     * appear at least twice in this profile's own price-log history (a
+     * one-off purchase isn't a habit) and aren't already on the current
+     * list, ranked by purchase count then most-recent purchase. Reuses the
+     * same PriceRepository history budgetEstimate above already reads, so no
+     * new query. Deliberately name-only (no auto-filled quantity) - a
+     * suggestion tapped here goes through the same quickAdd() path as
+     * hand-typed text, landing as a manual 0-gram entry the user can set a
+     * quantity on via the existing edit-quantity dialog if they want one.
+     */
+    val frequentSuggestions: StateFlow<List<String>> = combine(
+        rawItems, activeProfileId.flatMapLatest { id -> priceRepo.observeAll(id) },
+    ) { items, prices ->
+        val existingKeys = items.map { it.key }.toSet()
+        prices
+            .groupBy { normalizeKey(it.productName) }
+            .filterKeys { it !in existingKeys }
+            .mapNotNull { (_, group) ->
+                if (group.size < 2) return@mapNotNull null
+                // Longest raw name (not necessarily the most recent one) reads
+                // better as a suggestion label than an abbreviated older entry.
+                Triple(group.maxByOrNull { it.productName.length }!!.productName, group.size, group.maxOf { it.date })
+            }
+            .sortedWith(compareByDescending<Triple<String, Int, LocalDate>> { it.second }.thenByDescending { it.third })
+            .take(6)
+            .map { it.first }
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // Self-healing: whenever the *unscoped* aggregated grocery list changes (recipe
     // added/edited/removed), drop any persisted checked key that no longer
     // corresponds to a real item in any recipe, so stale keys don't accumulate in

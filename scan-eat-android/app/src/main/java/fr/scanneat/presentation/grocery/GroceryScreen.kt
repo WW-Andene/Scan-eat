@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.presentation.grocery.components.GroceryFrequentSuggestionsRow
 import fr.scanneat.presentation.grocery.components.GroceryItemRow
 import fr.scanneat.presentation.grocery.components.GroceryProgressRow
 import fr.scanneat.presentation.grocery.components.GroceryQuickAddRow
@@ -55,6 +56,7 @@ fun GroceryScreen(
     val checkedProgress = viewModel.checkedProgress.collectAsStateWithLifecycle()
     val budgetEstimate = viewModel.budgetEstimate.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
+    val frequentSuggestions = viewModel.frequentSuggestions.collectAsStateWithLifecycle()
     val sortAlpha = viewModel.sortAlpha.collectAsStateWithLifecycle()
     val groupByAisle = viewModel.groupByAisle.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
@@ -184,6 +186,13 @@ fun GroceryScreen(
                         quickAddText = quickAddText,
                         onQuickAddTextChange = { quickAddText = it },
                         onAdd = { viewModel.quickAdd(quickAddText); quickAddText = "" },
+                    )
+                }
+                item {
+                    Spacer(Modifier.height(Spacing.XS))
+                    GroceryFrequentSuggestionsRow(
+                        suggestions = frequentSuggestions.value,
+                        onAdd = { viewModel.quickAdd(it) },
                     )
                 }
                 item {
