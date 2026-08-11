@@ -253,11 +253,13 @@ fun ActivityScreen(
             // closed, unlike Weight/Medication which only reset fields at the open call site.
             onDismiss = { showAdd = false },
             onAdd = {
-                minutesText.toIntOrNull()?.let { min ->
-                    // Clamped to sane ranges, same rationale as Profile/Weight/CustomFood's
-                    // own coerceIn calls - previously unbounded, so a pasted or IME-entered
-                    // value like "999999" reps or a negative distance silently landed in
-                    // activity_log and skewed the weekly burn/minutes charts.
+                // Clamped to sane ranges, same rationale as Profile/Weight/CustomFood's
+                // own coerceIn calls - previously unbounded (sets/reps/distance/weight
+                // were already fixed, but minutes itself was missed), so a pasted or
+                // IME-entered value like "999999" minutes silently landed in
+                // activity_log, producing a proportionally huge kcalBurned that skewed
+                // the weekly burn/minutes charts and streak. 1440 = one full day.
+                minutesText.toIntOrNull()?.coerceIn(1, 1440)?.let { min ->
                     val sets = setsText.toIntOrNull()?.coerceIn(0, 999)
                     val reps = repsText.toIntOrNull()?.coerceIn(0, 999)
                     val distanceKm = distanceText.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 500.0)
