@@ -176,9 +176,23 @@ internal fun AddActivityDialog(
                             colors = scanEatTextFieldColors(),
                         )
                     }
+                    // §A5-audit finding: neither this field nor distanceText below gave
+                    // any feedback for an unparseable value - ActivityScreen.onAdd's own
+                    // distanceKm/weightUsedKg computation (toDoubleOrNull()?.coerceIn(...))
+                    // silently drops it to null and logs the activity anyway, so a typo
+                    // here just quietly discarded the data with nothing telling the user -
+                    // same "silent data loss" class as EditPortionDialog's identical gap,
+                    // and this dialog's own minutesText field two rows below already shows
+                    // exactly this isError/supportingText pattern.
                     OutlinedTextField(
                         value = weightUsedText, onValueChange = onWeightUsedTextChange, modifier = Modifier.fillMaxWidth(),
                         label = { Text(stringResource(R.string.activity_weight_used_label)) }, singleLine = true,
+                        isError = weightUsedText.isNotBlank() && weightUsedText.replace(',', '.').toDoubleOrNull() == null,
+                        supportingText = {
+                            if (weightUsedText.isNotBlank() && weightUsedText.replace(',', '.').toDoubleOrNull() == null) {
+                                Text(stringResource(R.string.activity_number_invalid), color = semanticRed())
+                            }
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         colors = scanEatTextFieldColors(),
                     )
@@ -187,6 +201,12 @@ internal fun AddActivityDialog(
                     OutlinedTextField(
                         value = distanceText, onValueChange = onDistanceTextChange, modifier = Modifier.fillMaxWidth(),
                         label = { Text(stringResource(R.string.activity_distance_label)) }, singleLine = true,
+                        isError = distanceText.isNotBlank() && distanceText.replace(',', '.').toDoubleOrNull() == null,
+                        supportingText = {
+                            if (distanceText.isNotBlank() && distanceText.replace(',', '.').toDoubleOrNull() == null) {
+                                Text(stringResource(R.string.activity_number_invalid), color = semanticRed())
+                            }
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         colors = scanEatTextFieldColors(),
                     )
