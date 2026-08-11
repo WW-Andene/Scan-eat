@@ -170,7 +170,9 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\beau\b(?!\s*de\s*vie)|water\b|spring water|eau de source|eau min[eé]rale|eau gaz[eé]use""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_WATER,
     Regex("""\bjus\b|\bjuice\b|\bnectar\b|smoothie|fruit drink""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_JUICE,
     Regex("""\bbi[eè]res?\b|\bbeers?\b|\bvins?\b|\bwines?\b|(?<!vinaigre de )\bcidres?\b|\bciders?\b|champagne|\bwhisky\b|\bwhiskey\b|\bvodka\b|\bgin\b|\brhum\b|\brum\b|\bcognac\b|\barmagnac\b|\bcalvados\b|\bporto\b|\bliqueurs?\b|spiritueux|\bp[aâ]stis\b|\btequila\b|\bmojito\b|hard seltzer""", RegexOption.IGNORE_CASE) to ProductCategory.ALCOHOLIC_BEVERAGE,
-    Regex("""\bsoda\b|\bcola\b|boisson gaz[eé]use|soft drink|\btonic\b|limonade|ice[-\s]?tea|th[eé] glac[eé]|energy drink|red bull|monster""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_SOFT,
+    // "énergisante(s)" added - the French phrasing ("Boisson énergisante")
+    // wasn't covered, only the English "energy drink" and specific brands.
+    Regex("""\bsoda\b|\bcola\b|boisson gaz[eé]use|soft drink|\btonic\b|limonade|ice[-\s]?tea|th[eé] glac[eé]|energy drink|red bull|monster|[eé]nergisantes?\b""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_SOFT,
     Regex("""\byaourts?\b|yoghurt|yogurt|\bskyr\b|fromage[-\s]?blanc|faisselle|\bquark\b|petit[-\s]suisse|cr[eè]me dessert|\bflans?\b|li[eé]geois|panna cotta|riz au lait|entremets?\b""", RegexOption.IGNORE_CASE) to ProductCategory.YOGURT,
     // Standalone regional cheese names that don't necessarily contain the word
     // "fromage" itself in the product name (e.g. a plain "Cantal AOP" or
@@ -179,6 +181,19 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // cheese with charcuterie/potatoes as one weighed product).
     Regex("""\bfromages?\b|\bcheese\b|\bbrie\b|camembert|cheddar|gruy[eè]re|\bgouda\b|mozzarella|parmesan|\bfeta\b|roquefort|emmental|comt[eé]|reblochon|munster|\bch[eè]vre\b|ricotta|mascarpone|halloumi|\bcantal\b|beaufort|morbier|\btomme\b|boursin|babybel|saint-nectaire""", RegexOption.IGNORE_CASE) to ProductCategory.CHEESE,
     Regex("""\bsandwich\b|\bburger\b|\bwrap\b|panini|\bkebab\b|\bcroque\b""", RegexOption.IGNORE_CASE) to ProductCategory.SANDWICH,
+    // §A5-audit finding (bulk pass): ProductCategory.PLANT_BASED_ALTERNATIVE
+    // has its own CATEGORY_THRESHOLDS entry above (tofu/tempeh/seitan-shaped
+    // protein/fiber/kcal bands) but NEVER appeared anywhere in this
+    // first-match-wins pattern list - inferCategoryFromName() could
+    // literally never return it. "Steak de soja" fell through to
+    // FRESH_MEAT's generic \bsteaks?\b instead (animal-meat thresholds for
+    // a soy product). Checked before FRESH_MEAT below so "steak de/végétal"
+    // wins that collision. Scoped to unambiguous keywords only - "yaourt
+    // végétal"/"fromage végétal"/"lait végétal" are deliberately left for a
+    // future pass since fixing those would require reordering ahead of
+    // YOGURT/CHEESE further up, a higher-risk change than this audit's
+    // scope justified.
+    Regex("""\btofu\b|tempeh|seitan|steak (de soja|v[eé]g[eé]tal)|galette de soja|simili[-\s]?carn[eé]""", RegexOption.IGNORE_CASE) to ProductCategory.PLANT_BASED_ALTERNATIVE,
     // §A5-audit finding (2nd pass): croissant/viennoiserie/pain au chocolat
     // weren't matched anywhere - "Croissant au beurre" fell through every
     // pattern down to OIL_FAT's bare "beurre" keyword (700-900kcal,
@@ -201,14 +216,28 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // thresholds, not candy's. Mirrors the identical fix on the Android side
     // (see Scoring Drift Check).
     Regex("""c[eé]r[eé]ales?\b|\bcereal\b|\bmuesli\b|\bgranola\b|porridge|flocons d['']avoine|\boats\b|cornflakes|chocapic|special k|fitness""", RegexOption.IGNORE_CASE) to ProductCategory.BREAKFAST_CEREAL,
-    Regex("""chocolats?\b|\bchocolate\b|\bbonbon|\bcandy\b|biscuits?\b(?!\s*(sal[eé]s?|ap[eé]ritif))|cookies?\b|g[aâ]teaux?\b|\bcakes?\b|\bmuffins?\b|\btartes?\b|\btarts?\b|brownie|\bdonut\b|beignet|barre chocolat[eé]e|kinder|nutella|m&m|haribo|m[aâ]rs|snickers|twix|bounty|gauffres?\b|cr[eê]pes?\b|p[aâ]te [aà] tartiner""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SWEET,
-    Regex("""\bglaces?\b|ice[-\s]?cream|\bsorbets?\b|cornet glac[eé]|esquimau|cr[eè]me glac[eé]e|popsicle""", RegexOption.IGNORE_CASE) to ProductCategory.ICE_CREAM,
+    // §A5-audit finding (bulk pass): ICE_CREAM used to be checked AFTER this
+    // pattern, so any ice cream product whose name contains "chocolat"
+    // (chocolate ice cream, choc-coated bars like "Esquimau chocolat") got
+    // candy-bar thresholds instead of ICE_CREAM's - moved ICE_CREAM above
+    // this pattern to fix it. Also added financier/madeleine/cannelé/
+    // palmier - all missing entirely before, so a plain "Financier amande"
+    // fell through to SNACK_SALTY via the bare "amande" keyword (savory-nut
+    // thresholds for a sweet almond cake).
+    Regex("""\bglaces?\b(?<!sucre glace)|ice[-\s]?cream|\bsorbets?\b|cornet glac[eé]|esquimau|cr[eè]me glac[eé]e|popsicle|b[aâ]tonnet glac[eé]""", RegexOption.IGNORE_CASE) to ProductCategory.ICE_CREAM,
+    Regex("""chocolats?\b|\bchocolate\b|\bbonbon|\bcandy\b|biscuits?\b(?!\s*(sal[eé]s?|ap[eé]ritif))|cookies?\b|g[aâ]teaux?\b|\bcakes?\b|\bmuffins?\b|financiers?\b|madeleines?\b|canel[eé]s?\b|cannel[eé]s?\b|palmiers?\b|\btartes?\b|\btarts?\b|brownie|\bdonut\b|beignet|barre chocolat[eé]e|kinder|nutella|m&m|haribo|m[aâ]rs|snickers|twix|bounty|gauffres?\b|cr[eê]pes?\b|p[aâ]te [aà] tartiner""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SWEET,
     // \bpoisson\b (generic "fish"/"fish fillet") added - a very common frozen
     // product name ("Poisson pané", "Filet de poisson") previously only
     // matched if it named a specific species. Also added a few common species/
     // preparations missing entirely: lieu, haddock/églefin, sole, turbot, surimi,
     // calamars/poulpe.
-    Regex("""\bpoissons?\b|\bsaumon\b|\bthon\b|sardine|maquereau|\bhareng\b|cabillaud|\bmerlu\b|\bcolin\b|\btruite\b|\blieu\b|haddock|[eé]glefin|\bsole\b|\bturbot\b|surimi|calamars?|\bpoulpe\b|crevette|\bcrabe\b|\bmoules\b|hu[iî]tres|(?:filet|darne|pav[eé]) de bar\b|\bdorade\b""", RegexOption.IGNORE_CASE) to ProductCategory.FISH,
+    // §A5-audit finding (bulk pass): scallops had no keyword at all, despite
+    // "noix de saint-jacques" already being referenced by name in
+    // SNACK_SALTY's own exclusion comment below (it excludes that phrase
+    // from matching bare "noix", but nothing ever routed it TO fish -
+    // it fell all the way to Other). Also added "pétoncles" (the Québécois/
+    // smaller-scallop term).
+    Regex("""\bpoissons?\b|\bsaumon\b|\bthon\b|sardine|maquereau|\bhareng\b|cabillaud|\bmerlu\b|\bcolin\b|\btruite\b|\blieu\b|haddock|[eé]glefin|\bsole\b|\bturbot\b|surimi|calamars?|\bpoulpe\b|crevette|\bcrabe\b|\bmoules\b|hu[iî]tres|(?:filet|darne|pav[eé]) de bar\b|\bdorade\b|coquilles? saint-jacques|noix de saint-jacques|p[eé]toncles?\b""", RegexOption.IGNORE_CASE) to ProductCategory.FISH,
     // Trailing \b right after an accented letter never matches in Java regex
     // (\b is defined via ASCII \w, so "e"/"é" is a non-word char to it - a
     // name ending exactly at "pâté" with no ASCII letter after the accent
@@ -233,7 +262,9 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bpain\b|\bbread\b|baguette|brioche|focaccia|ciabatta|\btoasts?\b|\bpita\b|tortilla|\bcracotte""", RegexOption.IGNORE_CASE) to ProductCategory.BREAD,
     Regex("""plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
     Regex("""\bp[aâ]tes\b|spaghettis?\b|macaronis?\b|pennes?\b|fusillis?\b|tagliatelles?\b|coquillettes?\b|nouilles?\b|vermicelles?\b|\briz\b|couscous|semoule|quinoa|boulgour""", RegexOption.IGNORE_CASE) to ProductCategory.GRAIN,
-    Regex("""\bœufs?\b|\boeufs?\b|\beggs?\b""", RegexOption.IGNORE_CASE) to ProductCategory.EGG,
+    // "omelette" added - a very common refrigerated ready-to-eat product
+    // ("Omelette nature", "Omelette aux fines herbes") that had no keyword.
+    Regex("""\bœufs?\b|\boeufs?\b|\beggs?\b|omelettes?\b""", RegexOption.IGNORE_CASE) to ProductCategory.EGG,
     Regex("""\bsoupe?s?\b|velout[eé]s?(?![\w\p{L}])|\bpotages?\b|\bbouillons?\b|\bbroths?\b|consomm[eé]s?(?![\w\p{L}])|minestrone|gaspacho|gazpacho""", RegexOption.IGNORE_CASE) to ProductCategory.SOUP,
     // Own category, checked before CONDIMENT below - honey/jam/marmalade's
     // sugar is intrinsic fruit/nectar fructose, unlike the near-zero-sugar
@@ -243,7 +274,10 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // vinaigre (plain vinegar) added - a common pantry item previously
     // uncategorized (vinaigrette, the salad-dressing product, was already
     // covered; the vinegar itself wasn't).
-    Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bvinaigres?\b|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
+    // houmous/guacamole/tarama added - common savory dips with no better
+    // home; CONDIMENT's already-wide kcal band (20-750) comfortably spans
+    // all three (houmous ~300kcal, guacamole ~150kcal, tarama ~350-500kcal).
+    Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bvinaigres?\b|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b|houmous|hummus|guacamole|\btarama\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
     // User-flagged: "beurre" alone matched inside nut butters (beurre de
     // cacahuète/arachide/amande/noisette/noix) before the engine ever
     // reached SNACK_SALTY's cacahuètes/amandes/noisettes keywords further
@@ -260,7 +294,15 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // salty snack nut); "noisette" wasn't excluded from French butchery cuts
     // at all ("noisette de veau"/"noisette d'agneau"/"noisette de porc" are
     // real small round meat cuts, same naming pattern as "noix de veau").
-    Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|\bpopcorn\b|\bpretzels?\b|cacahu[eè]tes?\b|arachides?\b|\bamandes?\b|\bnoix\b(?!\s*de\s*(saint-jacques|veau|coco))|noisettes?\b(?!\s*(de|d['’])\s*(veau|agneau|porc))|noix de cajou|noix de p[eé]can|noix du br[eé]sil|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
+    // "pop-corn" (hyphenated French spelling) and "bretzel" (French/Alsatian
+    // spelling, only the English "pretzel" was covered) added - both fell to
+    // Other before despite being extremely common snack names. "noix de
+    // coco" re-added as its own explicit phrase (distinct from the bare
+    // \bnoix\b exclusion above it, which deliberately keeps coconut out of
+    // that generic match) - closer fit than Other's default thresholds even
+    // if not perfect (desiccated coconut ~660kcal is slightly past this
+    // category's 630kcal ceiling).
+    Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|pop[-\s]?corn|\b(pretzels?|bretzels?)\b|cacahu[eè]tes?\b|arachides?\b|\bamandes?\b|\bnoix\b(?!\s*de\s*(saint-jacques|veau|coco))|noisettes?\b(?!\s*(de|d['’])\s*(veau|agneau|porc))|noix de cajou|noix de p[eé]can|noix du br[eé]sil|noix de coco|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
     Regex("""\bfruits?\b|\bl[eé]gumes?\b|\bpommes?\b|\bpoires?\b|\bbananes?\b|\boranges?\b|\bfraises?\b|\bframboises?\b|\braisins?\b|\bp[eê]ches?\b|\babricots?\b|\bkiwis?\b|\bmangues?\b|\bananas\b|\bcitrons?\b|\bpast[eè]ques?\b|\bmelons?\b|\bavocats?\b|\btomates?\b|\bcarottes?\b|\bcourgettes?\b|\baubergines?\b|\bpoivrons?\b|\boignons?\b|\bail\b|\bsalade\b|\blaitue\b|\b[eé]pinards?\b|\bbrocolis?\b|\bchoux?\b(?!\s*[aà]\s*la\s*cr[eè]me)|\bharicots? verts?\b|\bpetits? pois\b|\bpoireaux?\b|\bconcombres?\b|\bradis\b|\bc[eé]leri\b|\bchampignons?\b|pommes? de terre|\bpatates?\b""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_PRODUCE,
 )
 
