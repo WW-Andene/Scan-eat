@@ -28,8 +28,16 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         "cereal" in tag || "cereale" in tag || "granola" in tag -> ProductCategory.BREAKFAST_CEREAL
         "bread" in tag || "pain" in tag -> ProductCategory.BREAD
         "processed-meat" in tag || "charcuterie" in tag || "saucisson" in tag -> ProductCategory.PROCESSED_MEAT
-        "meat" in tag || "viande" in tag -> ProductCategory.FRESH_MEAT
-        "fish" in tag || "seafood" in tag || "poisson" in tag -> ProductCategory.FISH
+        // Same substring-match bug ALCOHOLIC_BEVERAGE's own fix below
+        // addresses for "non-alcoholic-beverage": OFF tags plant-based meat/
+        // fish substitutes as "en:meat-alternatives"/"en:meat-analogues"/
+        // "en:fish-alternatives"/"en:fish-analogues" (confirmed via live OFF
+        // data - e.g. tofu, textured-pea-protein products), all of which
+        // contain "meat"/"fish" as a raw substring - a soy-based product was
+        // silently scored against FRESH_MEAT's protein/kcal norms instead of
+        // falling through to a category that doesn't assume real meat/fish.
+        ("meat" in tag || "viande" in tag) && "meat-alternative" !in tag && "meat-analogue" !in tag -> ProductCategory.FRESH_MEAT
+        ("fish" in tag || "seafood" in tag || "poisson" in tag) && "fish-alternative" !in tag && "fish-analogue" !in tag -> ProductCategory.FISH
         "biscuit" in tag || "cookie" in tag || "chocolate" in tag || "snack" in tag && ("sweet" in tag || "sucre" in tag) -> ProductCategory.SNACK_SWEET
         "chips" in tag || "crisp" in tag || "snack" in tag -> ProductCategory.SNACK_SALTY
         // Checked before the generic "beverage" branches below - OFF tags beer/
