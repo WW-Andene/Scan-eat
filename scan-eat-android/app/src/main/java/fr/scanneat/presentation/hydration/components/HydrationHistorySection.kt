@@ -20,6 +20,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.math.roundToInt
 
 /**
  * Day-level history list - see HydrationViewModel.history's own doc comment on
@@ -76,26 +77,35 @@ private fun HydrationHistoryRow(date: LocalDate, ml: Int, dateFmt: DateTimeForma
     }
     if (showEdit) {
         HydrationHistoryEditDialog(
-            date = date, dateFmt = dateFmt, initialMl = ml,
+            date = date, dateFmt = dateFmt, initialMl = ml, useImperial = useImperial,
             onConfirm = { newMl -> onEdit(date, newMl); showEdit = false },
             onDismiss = { showEdit = false },
         )
     }
 }
 
+// §A5-audit finding: this dialog always edited/labeled the raw mL value
+// ("Total (mL)") regardless of useImperial, even though the row it opens
+// from already displays "24 fl oz" via dispVolume() when the setting is on
+// - an imperial user editing a day's total saw a mL figure with no unit
+// conversion or matching label, unlike WeightLogDialogs' AddWeightDialog
+// which already converts correctly for kg/lb. Now edits in whichever unit
+// the row itself displays, converting back to mL only for onConfirm/storage.
 @Composable
-private fun HydrationHistoryEditDialog(date: LocalDate, dateFmt: DateTimeFormatter, initialMl: Int, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
-    var mlText by remember { mutableStateOf(initialMl.toString()) }
-    val ml = mlText.toIntOrNull()?.takeIf { it in 0..20000 }
+private fun HydrationHistoryEditDialog(date: LocalDate, dateFmt: DateTimeFormatter, initialMl: Int, useImperial: Boolean, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
+    var text by remember { mutableStateOf(if (useImperial) (initialMl * ML_TO_FLOZ).roundToInt().toString() else initialMl.toString()) }
+    val maxNative = if (useImperial) (20000 * ML_TO_FLOZ).roundToInt() else 20000
+    val typed = text.toIntOrNull()?.takeIf { it in 0..maxNative }
+    val ml = typed?.let { if (useImperial) (it / ML_TO_FLOZ).roundToInt() else it }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.hydration_history_edit_title, date.format(dateFmt)), color = OnBackground) },
         text = {
             OutlinedTextField(
-                value = mlText, onValueChange = { mlText = it },
-                label = { Text(stringResource(R.string.hydration_history_edit_label)) },
+                value = text, onValueChange = { text = it },
+                label = { Text(stringResource(if (useImperial) R.string.hydration_history_edit_label_imperial else R.string.hydration_history_edit_label)) },
                 singleLine = true,
-                isError = mlText.isNotBlank() && ml == null,
+                isError = text.isNotBlank() && typed == null,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 colors = scanEatTextFieldColors(),
