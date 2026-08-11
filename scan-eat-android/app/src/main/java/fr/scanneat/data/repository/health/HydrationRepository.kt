@@ -161,7 +161,10 @@ class HydrationRepository @Inject constructor(
      * need active fueling/electrolyte strategy beyond a simple per-minute
      * water bonus, not a linearly larger one.
      */
-    fun goalMl(sex: Sex, activityLevel: ActivityLevel, healthConditions: Set<String> = emptySet(), exerciseMinutesToday: Int = 0): Int {
+    fun goalMl(
+        sex: Sex, activityLevel: ActivityLevel, healthConditions: Set<String> = emptySet(),
+        exerciseMinutesToday: Int = 0, weightKg: Double? = null,
+    ): Int {
         val exerciseBonusMl = (exerciseMinutesToday.coerceAtLeast(0) * 10).coerceAtMost(1500)
         if (sex == Sex.NOT_SPECIFIED) return HYD_DEFAULT_GOAL_ML + exerciseBonusMl
         val biolismSex = when (sex) {
@@ -177,7 +180,10 @@ class HydrationRepository @Inject constructor(
             ActivityLevel.EXTRA_ACTIVE -> "extra"
         }
         val mult = ACTIVITY_LEVELS.find { it.id == activityId }?.mult ?: 1.55
-        val waterNeedL = BiolismEngine.computeWaterNeedL(biolismSex, mult)
+        // User-reported: weight was never part of this formula - see
+        // computeWaterNeedL's own doc comment on the weight-proportional
+        // baseline now used when weightKg is known.
+        val waterNeedL = BiolismEngine.computeWaterNeedL(biolismSex, mult, weightKg)
         // EFSA 2010 AI: +0.3L/day during pregnancy on top of the sex/activity baseline.
         val pregnancyBonusL = if ("pregnancy" in healthConditions) 0.3 else 0.0
         return ((waterNeedL + pregnancyBonusL) * 1000).toInt() + exerciseBonusMl

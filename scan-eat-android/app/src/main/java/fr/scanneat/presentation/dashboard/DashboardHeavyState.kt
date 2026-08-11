@@ -104,7 +104,7 @@ internal suspend fun buildHeavyDashboardState(
     val weeklyFastingAdherencePct = weeklyFastCompletions.takeIf { it.isNotEmpty() }
         ?.let { it.count { c -> c.reached } * 100 / it.size }
     val weeklyHydrationEntries = hydrationRepo.observeAll(profileId).first().filter { (d, _) -> d in weekStart..date }
-    val hydrationGoal = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions)
+    val hydrationGoal = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, weightKg = profile.weightKg)
     val weeklyHydrationAdherencePct = weeklyHydrationEntries.takeIf { it.isNotEmpty() && hydrationGoal > 0 }
         ?.let { entries -> entries.count { (_, ml) -> ml >= hydrationGoal } * 100 / 7 }
     val crossInsight = weeklyCrossTrackerInsight(

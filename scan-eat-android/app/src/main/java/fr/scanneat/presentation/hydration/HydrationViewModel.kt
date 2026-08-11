@@ -81,7 +81,7 @@ class HydrationViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     private val formulaGoal: Flow<Int> = combine(prefs.profile, todayExerciseMinutes) { profile, minutes ->
-        repo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, minutes)
+        repo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, minutes, profile.weightKg)
     }
 
     /** Null when no override is set - screen shows this to offer "reset to formula". */

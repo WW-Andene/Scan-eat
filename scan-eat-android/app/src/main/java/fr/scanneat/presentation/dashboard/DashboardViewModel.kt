@@ -274,17 +274,24 @@ class DashboardViewModel @Inject constructor(
             // input, same as the diary-logging streak above.
             flow { emit(activityRepo.getAllLoggedDates(id)) },
         ) { (inputs, todayActivity), workoutDates ->
+            Triple(inputs, todayActivity, workoutDates)
+        // User-reported: Dashboard's hydration goal always showed the raw formula
+        // value, silently ignoring any custom goal the user had set on the
+        // Hydration tab itself (HydrationViewModel.goal already honors it) - the
+        // two screens could show two different numbers for the same day.
+        }.combine(hydrationRepo.customGoalMl(id)) { (inputs, todayActivity, workoutDates), customGoal ->
             val activeMeds = inputs.meds.filter { it.active }
             val takenIds = inputs.todayLogs.map { it.medicationId }.toSet()
-            OtherTrackersSnapshot(
-                hydrationMl     = inputs.hydrationMl,
+            val formulaGoal = hydrationRepo.goalMl(
+                inputs.profile.sex, inputs.profile.activityLevel, inputs.profile.healthConditions,
                 // Activity tab R&D improvement: today's actually-logged exercise
                 // minutes now bump the hydration goal (ACE fluid-replacement
                 // guidance) - see HydrationRepository.goalMl's own doc comment.
-                hydrationGoalMl = hydrationRepo.goalMl(
-                    inputs.profile.sex, inputs.profile.activityLevel, inputs.profile.healthConditions,
-                    todayActivity.sumOf { it.minutes },
-                ),
+                todayActivity.sumOf { it.minutes }, inputs.profile.weightKg,
+            )
+            OtherTrackersSnapshot(
+                hydrationMl     = inputs.hydrationMl,
+                hydrationGoalMl = customGoal ?: formulaGoal,
                 fastingActive   = inputs.fasting?.takeIf { it.isActive },
                 medsTakenCount  = activeMeds.count { it.id in takenIds },
                 medsActiveCount = activeMeds.size,

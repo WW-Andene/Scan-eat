@@ -114,7 +114,7 @@ class EvolutionViewModel @Inject constructor(
         .map { all -> all.filter { !it.first.isBefore(windowStart) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val hydrationGoalMl: StateFlow<Int> = mainProfile.map { p ->
-        hydrationRepo.goalMl(p.sex, p.activityLevel, p.healthConditions)
+        hydrationRepo.goalMl(p.sex, p.activityLevel, p.healthConditions, weightKg = p.weightKg)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
 
     // ── Macro intake — real per-day history via the Diary, same source Dashboard uses ──
