@@ -131,6 +131,29 @@ class WeightViewModel @Inject constructor(
         viewModelScope.launch { prefs.setUseImperialWeight(v) }
     }
 
+    /**
+     * User-requested: "develop the tool" for Weight - goalWeightKg was only
+     * ever settable from Profile > body section, even though it's read and
+     * displayed prominently on this exact screen (WeightSummaryCard's goal
+     * row, the forecast). A user whose whole workflow is "Journal > Poids"
+     * had to navigate all the way to a different screen just to set or
+     * adjust the one number this screen already builds its progress
+     * indicator around. No dedicated setter existed on UserPreferences for
+     * a single profile field - saveProfile() only re-persists a full Profile,
+     * so this reads the current one and re-saves it with just this field
+     * changed, same shape ProfileViewModel's own save path already uses.
+     * Null clears the goal (same "no goal set" state ProfileScreen's blank
+     * field already produces).
+     */
+    fun setGoalWeightKg(kg: Double?) {
+        viewModelScope.launch {
+            runCatching {
+                val current = prefs.profile.first()
+                prefs.saveProfile(current.copy(goalWeightKg = kg))
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     // log()/restore() previously called repo.log() completely unguarded - unlike
     // every sibling ViewModel's equivalent write (Result/Dashboard/MealPlan/
     // Templates all wrap theirs in runCatching), so a Room write failure here

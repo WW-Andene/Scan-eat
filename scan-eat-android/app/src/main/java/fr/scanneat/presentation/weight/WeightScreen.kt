@@ -27,6 +27,7 @@ import fr.scanneat.presentation.weight.components.AddWeightDialog
 import fr.scanneat.presentation.weight.components.WeeklyAverageCard
 import fr.scanneat.presentation.weight.components.WeightDatePickerDialog
 import fr.scanneat.presentation.weight.components.WeightEntryRow
+import fr.scanneat.presentation.weight.components.WeightGoalEditorDialog
 import fr.scanneat.presentation.weight.components.WeightSummaryCard
 import fr.scanneat.presentation.weight.components.WeightTrendChart
 import fr.scanneat.presentation.weight.components.WeightUnitToggleRow
@@ -92,6 +93,7 @@ fun WeightScreen(
     val useImperial = useImperialState.value
     fun setUseImperial(v: Boolean) = viewModel.setUseImperial(v)
     var deleteTarget by remember { mutableStateOf<String?>(null) }
+    var showGoalEditor by remember { mutableStateOf(false) }
     // Every "open Add" entry point (FAB, top-bar action, empty-state CTA) must reset the
     // dialog fields, not just the save path - otherwise cancelling an Edit and then tapping
     // Add reopens the dialog still prefilled with the edited entry's weight/notes/date, and
@@ -152,6 +154,7 @@ fun WeightScreen(
                         heightCm = heightCm.value,
                         loggingStreakDays = loggingStreakDays.value,
                         dispWeight = ::dispWeight,
+                        onEditGoal = { showGoalEditor = true },
                     )
                 }
             }
@@ -254,6 +257,15 @@ fun WeightScreen(
             entryDate = entryDate,
             onDateSelected = { entryDate = it },
             onDismiss = { showDatePicker = false },
+        )
+    }
+
+    if (showGoalEditor) {
+        WeightGoalEditorDialog(
+            initialGoalKg = goalWeightKg.value,
+            useImperial = useImperial,
+            onDismiss = { showGoalEditor = false },
+            onConfirm = { kg -> viewModel.setGoalWeightKg(kg); showGoalEditor = false },
         )
     }
 

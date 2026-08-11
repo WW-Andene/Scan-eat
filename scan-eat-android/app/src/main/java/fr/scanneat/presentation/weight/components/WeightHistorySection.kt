@@ -5,6 +5,7 @@ import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -59,6 +60,12 @@ internal fun WeightSummaryCard(
     heightCm: Double?,
     loggingStreakDays: Int,
     dispWeight: (Double) -> String,
+    // User-requested: "develop the tool" - goalWeightKg was only ever
+    // settable from Profile, even though this card is where it's actually
+    // read every day. Tapping the goal row (or the new "set a goal" prompt
+    // when none exists) opens WeightGoalEditorDialog directly from here -
+    // see WeightViewModel.setGoalWeightKg's own doc comment.
+    onEditGoal: () -> Unit = {},
 ) {
     val s = summary
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -107,16 +114,23 @@ internal fun WeightSummaryCard(
                 }
             }
         }
-        goalWeightKg?.let { goal ->
-            HorizontalDivider(color = OnSurface.copy(0.08f))
-            val toGoal = s.latestKg - goal
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        HorizontalDivider(color = OnSurface.copy(0.08f))
+        if (goalWeightKg != null) {
+            val toGoal = s.latestKg - goalWeightKg
+            Row(
+                Modifier.fillMaxWidth().clickable(onClick = onEditGoal),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
                 Text(stringResource(R.string.weight_goal_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 Text(
-                    stringResource(R.string.weight_goal_delta, "${if (toGoal > 0) "−" else "+"}${dispWeight(kotlin.math.abs(toGoal))}", dispWeight(goal)),
+                    stringResource(R.string.weight_goal_delta, "${if (toGoal > 0) "−" else "+"}${dispWeight(kotlin.math.abs(toGoal))}", dispWeight(goalWeightKg)),
                     style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
                     color = if (kotlin.math.abs(toGoal) < 0.5) semanticGreen() else AccentCoral,
                 )
+            }
+        } else {
+            Row(Modifier.fillMaxWidth().clickable(onClick = onEditGoal), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(stringResource(R.string.weight_goal_set_cta), style = MaterialTheme.typography.labelSmall, color = AccentCoral, fontWeight = FontWeight.SemiBold)
             }
         }
         if (loggingStreakDays > 0) {

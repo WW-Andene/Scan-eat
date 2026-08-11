@@ -872,6 +872,9 @@
     <string name="weight_field_date">Date</string>
     <string name="weight_goal_label">Objectif</string>
     <string name="weight_goal_delta">%1$s vers %2$s</string>
+    <string name="weight_goal_dialog_title">Objectif de poids</string>
+    <string name="weight_goal_clear">Retirer l\'objectif</string>
+    <string name="weight_goal_set_cta">Définir un objectif</string>
     <string name="weight_trend_caption">Tendance — %1$d dernières pesées</string>
     <string name="weight_bmi_label">IMC</string>
     <string name="weight_bmi_underweight">Maigreur</string>

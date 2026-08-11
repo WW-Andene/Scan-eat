@@ -868,6 +868,9 @@
     <string name="weight_field_date">Date</string>
     <string name="weight_goal_label">Goal</string>
     <string name="weight_goal_delta">%1$s toward %2$s</string>
+    <string name="weight_goal_dialog_title">Goal weight</string>
+    <string name="weight_goal_clear">Remove goal</string>
+    <string name="weight_goal_set_cta">Set a goal</string>
     <string name="weight_trend_caption">Trend — last %1$d weigh-ins</string>
     <string name="weight_bmi_label">BMI</string>
     <string name="weight_bmi_underweight">Underweight</string>
