@@ -20,7 +20,7 @@ import kotlin.math.roundToInt
 // split out of this session, just never mirrored here on the server.
 // ============================================================================
 
-const val ENGINE_VERSION = "2.3.1"
+const val ENGINE_VERSION = "2.3.2"
 
 // ============================================================================
 // SECTION 10: GLOBAL MODIFIERS, VETOES & ORCHESTRATOR

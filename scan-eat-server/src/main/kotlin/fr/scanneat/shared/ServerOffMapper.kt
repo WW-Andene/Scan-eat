@@ -118,8 +118,18 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
 
 private fun parseIngredients(text: String?): List<Ingredient> {
     if (text.isNullOrBlank()) return emptyList()
-    // Split on commas and semicolons that are not inside parentheses
-    return text.split(Regex("""[,;]\s*(?![^(]*\))"""))
+    // Split on commas/semicolons, and on "avec adjonction de"/"with added" -
+    // common OFF mineral-water phrasing ("Eau de Source avec adjonction de
+    // gaz carbonique") has no comma at all, so the whole sentence previously
+    // became ONE ingredient. That single "ingredient" then matched the E290
+    // (gaz carbonique) additive alias, which excluded it from
+    // IngredientIntegrityPillar's recognizability count entirely - the
+    // genuinely whole-food "Eau de Source" was never counted, producing a
+    // bogus "0% recognizable ingredients" deduction on top of the real,
+    // separately-scored E290 additive hit. Splitting these apart lets both
+    // pillars see "Eau de Source" (a whole food) and "gaz carbonique" (an
+    // additive) as the two distinct things they actually are.
+    return text.split(Regex("""[,;]\s*(?![^(]*\))|\s+avec adjonction de\s+|\s+with added\s+"""))
         .mapNotNull { raw ->
             val name = raw.trim().trim('*', ' ')
             if (name.isBlank()) return@mapNotNull null

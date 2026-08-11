@@ -17,6 +17,14 @@ import fr.scanneat.domain.model.*
 // other category are still a real Tier-1 concern.
 private val SULFITE_E_NUMBERS = setOf("E220", "E221", "E222", "E223", "E224", "E225", "E226", "E227", "E228")
 
+// Same category-blindness pattern SULFITE_E_NUMBERS above already fixes for
+// wine/cider: E290 (carbon dioxide) IS the carbonation in any "pétillante"/
+// sparkling water or soda - not an added risk ingredient but the structurally
+// expected reason the product is fizzy at all (its own ADDITIVES_DB entry
+// literally reads "Carbonation gas / packaging gas; no concern"). Scoring it
+// as a Tier-3 risk penalized every sparkling water/soda for being carbonated.
+private val CARBONATED_BEVERAGE_CATEGORIES = setOf(ProductCategory.BEVERAGE_WATER, ProductCategory.BEVERAGE_SOFT)
+
 fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
     val MAX = 15
@@ -30,9 +38,11 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
     val tier3 = mutableListOf<Hit>()
 
     val isAlcoholic = product.category == ProductCategory.ALCOHOLIC_BEVERAGE
+    val isCarbonatedBeverage = product.category in CARBONATED_BEVERAGE_CATEGORIES
     for (ing in product.ingredients) {
         val additive = findAdditive(ing.eNumber, ing.name, ing.category) ?: continue
         if (isAlcoholic && additive.eNumber in SULFITE_E_NUMBERS) continue
+        if (isCarbonatedBeverage && additive.eNumber == "E290") continue
         val hit = Hit(ing.name, additive.eNumber, additive.concern)
         when (additive.tier) {
             AdditiveTier.ONE   -> tier1 += hit
