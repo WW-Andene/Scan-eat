@@ -25,7 +25,11 @@ internal val ADDITIVES_TIER3_NATURAL_COLORANTS: List<AdditiveInfo> = listOf(
         "Widely used mould/yeast inhibitor; EFSA reaffirmed safety.", "EFSA 2015;13(6):4144."),
     AdditiveInfo("E262", listOf("acétate de sodium", "sodium acetate", "diacétate de sodium", "sodium diacetate"), AdditiveTier.THREE, AdditiveCategory.PRESERVATIVE,
         "Acetate preservative/acidity regulator; no concern.", "EU authorisation without ADI."),
-    AdditiveInfo("E290", listOf("dioxyde de carbone", "carbon dioxide", "gaz carbonique"), AdditiveTier.THREE, AdditiveCategory.ACIDITY_REGULATOR,
+    // Miscategorized ACIDITY_REGULATOR before, despite its own description
+    // already reading "packaging gas" - the correct category (matching E938/
+    // E941/E942 below) is what makes it eligible for AdditiveRiskPillar's
+    // blanket PACKAGING_GAS exemption instead of needing its own one-off carve-out.
+    AdditiveInfo("E290", listOf("dioxyde de carbone", "carbon dioxide", "gaz carbonique"), AdditiveTier.THREE, AdditiveCategory.PACKAGING_GAS,
         "Carbonation gas / packaging gas; no concern.", "EU authorisation (quantum satis)."),
     AdditiveInfo("E401", listOf("alginate de sodium", "sodium alginate"), AdditiveTier.THREE, AdditiveCategory.THICKENER,
         "Seaweed-derived thickener; EFSA confirmed no concern.", "EFSA 2017;15(11):5049 (alginate group)."),
