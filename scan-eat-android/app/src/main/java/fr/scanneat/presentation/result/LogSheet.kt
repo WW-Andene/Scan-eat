@@ -2,6 +2,7 @@ package fr.scanneat.presentation.result
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -9,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
@@ -111,7 +113,15 @@ fun LogSheet(
                         // by 100.0), but KeyboardType.Number requests a plain digit-only numeric
                         // keyboard on many IMEs with no decimal-point key at all, making a
                         // fractional gram value (e.g. a small "12,5 g" garnish) unenterable.
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        //
+                        // UX friction pass: this is the single most-repeated dialog in the
+                        // app (every food log passes through it - see this file's own header
+                        // comment) yet had no imeAction/keyboardActions at all, so pressing
+                        // the keyboard's Done/Enter key did nothing - the user always had to
+                        // reach down and tap "Logger" by hand even after finishing typing.
+                        // Same fix already applied to GroceryQuickAddRow's own entry field.
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { portionG?.let { onConfirm(it, selectedSlot) } }),
                         modifier      = Modifier.weight(1f),
                         shape         = RoundedCornerShape(CardRadius.CONTROL),
                         // app-audit §E6: focusedBorderColor was AccentCoral but cursorColor/

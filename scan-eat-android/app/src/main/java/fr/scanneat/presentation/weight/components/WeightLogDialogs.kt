@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DateRange
@@ -13,7 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
@@ -41,6 +45,15 @@ internal fun AddWeightDialog(
     // whichever unit is displayed, matching ActivityScreen's validated-numeric pattern.
     val kgValue = kgText.replace(',', '.').toDoubleOrNull()
     val isValidWeight = kgValue != null && (if (useImperial) kgValue in 44.0..880.0 else kgValue in 20.0..400.0)
+    // UX friction pass: weight logging is a daily action for anyone tracking
+    // it, yet neither field had an imeAction - the keyboard's Next/Done keys
+    // did nothing, so the user always had to manually tap into the notes
+    // field and then reach down to tap "Enregistrer" by hand.
+    val focusManager = LocalFocusManager.current
+    // Same unit conversion the confirmButton below already applies - shared
+    // here so the notes field's onDone (added by this UX friction pass)
+    // can't drift from it.
+    fun confirm() { if (isValidWeight) onSave(if (useImperial) kgValue!! / KG_TO_LB else kgValue!!) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.weight_dialog_title), color = OnBackground) },
@@ -50,13 +63,16 @@ internal fun AddWeightDialog(
                     value = kgText, onValueChange = onKgTextChange,
                     label = { Text(if (useImperial) stringResource(R.string.weight_field_lb) else stringResource(R.string.weight_field_kg)) }, singleLine = true,
                     isError = kgText.isNotBlank() && !isValidWeight,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     colors = scanEatTextFieldColors(),
                 )
                 OutlinedTextField(
                     value = notesText, onValueChange = onNotesTextChange,
                     label = { Text(stringResource(R.string.weight_field_notes)) }, singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { confirm() }),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     colors = scanEatTextFieldColors(),
                 )
@@ -82,10 +98,7 @@ internal fun AddWeightDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = {
-                    val kg = if (useImperial) kgValue!! / KG_TO_LB else kgValue!!
-                    onSave(kg)
-                },
+                onClick = { confirm() },
                 enabled = isValidWeight,
             ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
         },
