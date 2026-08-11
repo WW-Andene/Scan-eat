@@ -44,7 +44,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
             // earlier (?! halal) lookahead let "gélatine halal" - still animal, just
             // halal-slaughtered - silently pass as vegetarian-compliant. Same exception
             // VEGAN uses two definitions below, for the same reason.
-            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|pat[eé]|pâté|foie gras|cro[uû]te de viande|g[eé]lati?ne(?! v[eé]g[eé]tale)|pr[eé]sure animale|collag[eè]ne|pepsine"),
+            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|terrines?|pat[eé]|pâté|foie gras|cro[uû]te de viande|g[eé]lati?ne(?! v[eé]g[eé]tale)|pr[eé]sure animale|collag[eè]ne|pepsine"),
             b("poisson|saumon|thon|cabillaud|sardine|maquereau|anchois|hareng|crustac[eé]|crevette|homard|crabe|hu[iî]tre|moule|calmar|poulpe"),
         ),
         noteFr = "Exclut viande, poisson, crustacés, mollusques, gélatine et présure animale.",
@@ -53,7 +53,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.VEGAN to DietDef(
         forbidden = listOf(
-            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|pat[eé]|pâté|foie gras|g[eé]lati?ne(?! v[eé]g[eé]tale)|pr[eé]sure animale|collag[eè]ne|pepsine|isinglass|colle de poisson"),
+            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|terrines?|pat[eé]|pâté|foie gras|g[eé]lati?ne(?! v[eé]g[eé]tale)|pr[eé]sure animale|collag[eè]ne|pepsine|isinglass|colle de poisson"),
             b("poisson|saumon|thon|cabillaud|sardine|maquereau|anchois|hareng|crustac[eé]|crevette|homard|crabe|hu[iî]tre|moule|calmar|poulpe"),
             b("lait(?! de (coco|soja|amande|avoine|riz))|lactos[eé]rum|petit[- ]lait|cr[eè]me(?! v[eé]g[eé]tale)|beurre(?! de cacahu[eè]te| d'arachide| de coco)|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mascarpone|ricotta|mozzarella|parmesan|emmental"),
             b("oeufs?|œufs?|jaune d'?oeuf|blanc d'?oeuf|ovalbumine|lysozyme|ovomuco[iï]de"),
@@ -93,7 +93,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
             // vegetarian ones - gelatin/rennet/collagen/pepsin are typically bovine or
             // porcine, so without this a product whose only violation is bovine gelatin
             // previously passed as pescatarian-compliant.
-            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|pat[eé]|pâté|foie gras|g[eé]lati?ne(?! v[eé]g[eé]tale)|pr[eé]sure animale|collag[eè]ne|pepsine"),
+            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|terrines?|pat[eé]|pâté|foie gras|g[eé]lati?ne(?! v[eé]g[eé]tale)|pr[eé]sure animale|collag[eè]ne|pepsine"),
         ),
         noteFr = "Végétarien autorisant poisson et fruits de mer.",
         noteEn = "Vegetarian that still allows fish and seafood.",
