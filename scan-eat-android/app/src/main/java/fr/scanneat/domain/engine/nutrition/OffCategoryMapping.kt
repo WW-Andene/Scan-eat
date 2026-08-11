@@ -110,7 +110,17 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
         // literally contains the substring "food" (pet-food, cat-food, dog-food),
         // which would otherwise always disqualify it from ever being flagged here.
         if ("pet-food" in tag || "animal-feed" in tag || "cat-food" in tag || "dog-food" in tag) return "PET_SUPPLY"
-        val looksLikeFood = listOf(
+        // Same substring-match bug already fixed for "non-alcoholic-beverage"
+        // and "meat-alternative": OPF's own "en:non-food-products" tag (1331+
+        // real products - batteries, cigarettes, cleaning products, coffee
+        // filters, confirmed via live OPF data) contains "food" as a raw
+        // substring, so looksLikeFood was true for EVERY one of them and this
+        // whole function returned null before ever reaching the specific
+        // battery/tobacco/cleaning-product matches (or even the "non-food" ->
+        // OTHER fallback below, which was unreachable dead code as a result) -
+        // an explicit "this isn't food" tag from the data source itself was
+        // the one signal this safety net couldn't recognize.
+        val looksLikeFood = "non-food" !in tag && listOf(
             "food", "beverage", "drink", "supplement", "dietary-supplement",
             "medicine", "medication", "meal", "snack", "dairy", "cereal",
         ).any { it in tag }
