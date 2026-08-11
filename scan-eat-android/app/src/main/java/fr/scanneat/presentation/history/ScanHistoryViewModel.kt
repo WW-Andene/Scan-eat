@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.recall.RecallRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
@@ -12,6 +13,8 @@ import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.Collator
@@ -25,6 +28,7 @@ enum class HistorySort { RECENT, OLDEST, NAME_AZ, SCORE_DESC }
 class ScanHistoryViewModel @Inject constructor(
     private val repo: ScanRepository,
     private val prefs: UserPreferences,
+    private val recallRepo: RecallRepository,
 ) : ViewModel() {
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
@@ -74,6 +78,47 @@ class ScanHistoryViewModel @Inject constructor(
     // dedicated filter. observeFavorites queries the DB directly, unbounded.
     private val favoriteScans = activeProfileId.flatMapLatest { id -> repo.observeFavorites(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // User-requested: RecallRepository (RappelConso, the official French
+    // government recall dataset) existed but was only ever checked live
+    // during active camera scanning (ScanViewModel's barcode preview) - a
+    // product recalled AFTER it was already scanned/favorited never
+    // re-surfaced that fact anywhere, the same "computed once, never
+    // refreshed" gap already closed today for category/score staleness, just
+    // safety-relevant this time. Manual (not automatic) and scoped to
+    // Favorites only (a small, curated, "things I actually buy" list) rather
+    // than the full History (bounded at 200+ rows) or run unprompted on every
+    // screen open - checkBarcode() is cheap after the first check (cached,
+    // 7-day negative TTL) but a burst of first-time network calls on every
+    // History open would be a real perf/reliability cost for no benefit on
+    // rows the user may never revisit.
+    private val _recalledDbIds = MutableStateFlow<Set<Long>>(emptySet())
+    val recalledDbIds: StateFlow<Set<Long>> = _recalledDbIds.asStateFlow()
+
+    private val _checkingRecalls = MutableStateFlow(false)
+    val checkingRecalls: StateFlow<Boolean> = _checkingRecalls.asStateFlow()
+
+    fun checkFavoritesForRecalls() {
+        if (_checkingRecalls.value) return
+        viewModelScope.launch {
+            _checkingRecalls.value = true
+            try {
+                val barcodesByDbId = favoriteScans.value
+                    .mapNotNull { scan -> scan.barcode?.let { scan.dbId to it } }
+                // Bounded concurrency (4 at a time) - RappelConso is a small
+                // government API, not built for a burst of dozens of
+                // simultaneous requests even for a "generous" favorites list.
+                val recalled = barcodesByDbId.chunked(4).flatMap { chunk ->
+                    chunk.map { (dbId, barcode) ->
+                        viewModelScope.async { if (recallRepo.checkBarcode(barcode) != null) dbId else null }
+                    }.awaitAll()
+                }.filterNotNull().toSet()
+                _recalledDbIds.value = recalled
+            } finally {
+                _checkingRecalls.value = false
+            }
+        }
+    }
 
     // Grade filter: null = all, else the exact Grade to match. Filters by the
     // same Grade enum every row's badge is derived from (grade.label), rather

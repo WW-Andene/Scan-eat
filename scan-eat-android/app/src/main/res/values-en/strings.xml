@@ -581,6 +581,7 @@
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="favorites_title">Favorites</string>
+    <string name="favorites_check_recalls">Check for product recalls</string>
     <string name="history_search_placeholder">Search…</string>
     <string name="history_favorites_only">Favorites only</string>
     <string name="history_score_category">%1$d/100 · %2$s</string>
@@ -1579,6 +1580,7 @@
     <string name="common_collapsed">collapsed</string>
     <string name="settings_toggle_key_visibility">Show/hide key</string>
     <string name="history_item_summary">%1$s, score %2$s, %3$d out of 100</string>
+    <string name="history_item_recalled">This product has been subject to an official recall</string>
 
     <!-- ── Reminders ──────────────────────────────────────────────────────── -->
     <string name="reminders_channel_name">Reminders</string>

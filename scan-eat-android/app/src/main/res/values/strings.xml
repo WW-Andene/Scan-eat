@@ -582,6 +582,7 @@
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="favorites_title">Favoris</string>
+    <string name="favorites_check_recalls">Vérifier les rappels produits</string>
     <string name="history_search_placeholder">Rechercher…</string>
     <string name="history_favorites_only">Favoris uniquement</string>
     <string name="history_score_category">%1$d/100 · %2$s</string>
@@ -1641,6 +1642,7 @@
     <string name="common_collapsed">réduit</string>
     <string name="settings_toggle_key_visibility">Afficher/masquer la clé</string>
     <string name="history_item_summary">%1$s, score %2$s, %3$d sur 100</string>
+    <string name="history_item_recalled">Ce produit a fait l\'objet d\'un rappel officiel</string>
 
     <!-- ── Reminders ──────────────────────────────────────────────────────── -->
     <string name="reminders_channel_name">Rappels</string>

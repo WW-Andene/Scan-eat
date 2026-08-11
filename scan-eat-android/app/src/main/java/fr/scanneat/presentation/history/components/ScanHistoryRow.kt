@@ -27,15 +27,27 @@ import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Unit, onToggleFavorite: () -> Unit, onDelete: () -> Unit) {
+internal fun ScanHistoryRow(
+    scan: ScanResult,
+    warning: String?,
+    // User-requested: RecallRepository was only ever checked live during
+    // camera scanning - see ScanHistoryViewModel.checkFavoritesForRecalls()'s
+    // own doc comment. false by default so every existing call site (History,
+    // which doesn't run the recall check) is unaffected.
+    recalled: Boolean = false,
+    onOpen: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onDelete: () -> Unit,
+) {
     val gradeColor = gradeColor(scan.audit.grade)
     val haptics = LocalHapticFeedback.current
     // Appended rather than a new formatted string resource — the warning text
     // itself already comes pre-localized out of checkUserAllergens()/checkDiet().
     // Without this, a TalkBack user would never hear about the same allergen/
     // diet conflict a sighted user now sees on this row (visual-only otherwise).
+    val recalledLabel = stringResource(R.string.history_item_recalled)
     val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score) +
-        (warning?.let { ", $it" } ?: "")
+        (if (recalled) ", $recalledLabel" else warning?.let { ", $it" } ?: "")
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         contentPadding = PaddingValues(Spacing.M),
@@ -73,7 +85,16 @@ internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Un
                     // conflict the Result screen flagged the moment this same product was
                     // originally scanned. semanticAmber(), not the brand accent - matches
                     // DiaryEntryCard's identical safety-relevant warning styling.
-                    if (warning != null) {
+                    // Recall takes visual priority over the allergen/diet warning -
+                    // semanticRed(), not semanticAmber() like the warning below,
+                    // since an official government safety recall is a strictly
+                    // more severe signal than a personal diet/allergen conflict.
+                    if (recalled) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticRed(), modifier = Modifier.size(IconSize.Micro))
+                            Text(stringResource(R.string.history_item_recalled), style = MaterialTheme.typography.labelSmall, color = semanticRed(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    } else if (warning != null) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                             Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Micro))
                             Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)

@@ -2,6 +2,7 @@ package fr.scanneat.presentation.history
 
 import compose.icons.tablericons.History
 import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertCircle
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -45,6 +47,8 @@ fun ScanHistoryScreen(
     val canLoadMore = viewModel.canLoadMore.collectAsStateWithLifecycle()
     val gradeFilter = viewModel.gradeFilter.collectAsStateWithLifecycle()
     val categoryFilter = viewModel.categoryFilter.collectAsStateWithLifecycle()
+    val recalledDbIds = viewModel.recalledDbIds.collectAsStateWithLifecycle()
+    val checkingRecalls = viewModel.checkingRecalls.collectAsStateWithLifecycle()
     val topScanned = viewModel.topScanned.collectAsStateWithLifecycle()
     val gradeDistribution = viewModel.gradeDistribution.collectAsStateWithLifecycle()
     val avgScore = viewModel.avgScore.collectAsStateWithLifecycle()
@@ -92,6 +96,22 @@ fun ScanHistoryScreen(
         title = { Text(stringResource(if (startFavoritesOnly) R.string.favorites_title else R.string.history_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
+            // User-requested: manual, favorites-scoped recall check - see
+            // ScanHistoryViewModel.checkFavoritesForRecalls()'s own doc
+            // comment for why this is manual/bounded rather than automatic.
+            // Only shown on the dedicated Favorites screen, where "check all
+            // of these for recalls" is both meaningful (a small, curated
+            // list) and discoverable (not buried behind the favorites-only
+            // filter chip on the full History screen).
+            if (startFavoritesOnly) {
+                IconButton(onClick = { viewModel.checkFavoritesForRecalls() }, enabled = !checkingRecalls.value) {
+                    if (checkingRecalls.value) {
+                        ScanEatLoadingIndicator(size = IconSize.Inline, strokeWidth = 2.dp, color = OnBackground)
+                    } else {
+                        Icon(TablerIcons.AlertCircle, stringResource(R.string.favorites_check_recalls), tint = OnBackground)
+                    }
+                }
+            }
             HistorySortMenu(
                 expanded = sortMenuExpanded,
                 onExpandedChange = { sortMenuExpanded = it },
@@ -162,6 +182,7 @@ fun ScanHistoryScreen(
                     ScanHistoryRow(
                         scan = scan,
                         warning = historyWarnings.value[scan.dbId],
+                        recalled = scan.dbId in recalledDbIds.value,
                         onOpen = { if (scan.dbId > 0) onOpenResult(scan.dbId) },
                         onToggleFavorite = { viewModel.toggleFavorite(scan) },
                         onDelete = { deleteTarget = scan.dbId },
