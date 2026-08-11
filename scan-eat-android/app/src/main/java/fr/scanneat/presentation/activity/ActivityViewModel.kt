@@ -7,8 +7,11 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.ActivityEntry
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.ActivityType
+import fr.scanneat.data.repository.health.MedicationRepository
+import fr.scanneat.domain.engine.health.ActivityRelevantDrugClass
 import fr.scanneat.domain.engine.health.OvertrainingWarning
 import fr.scanneat.domain.engine.health.checkDailyOvertraining
+import fr.scanneat.domain.engine.health.detectActivityRelevantDrugClasses
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,6 +29,7 @@ private data class QuickLogKey(val type: ActivityType, val subType: String?, val
 class ActivityViewModel @Inject constructor(
     private val repo: ActivityRepository,
     private val prefs: UserPreferences,
+    private val medicationRepo: MedicationRepository,
 ) : ViewModel() {
 
     // In-app language (Settings) can differ from the device locale - the weekly
@@ -97,6 +101,18 @@ class ActivityViewModel @Inject constructor(
     val ageYears: StateFlow<Int?> = prefs.profile.map { it.ageYears }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     val healthConditions: StateFlow<Set<String>> = prefs.profile.map { it.healthConditions }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    // User-requested: medications logged in the Medication tab must also feed
+    // this same warning, not just Profile's own age/healthConditions - see
+    // detectActivityRelevantDrugClasses's own doc comment. Reactive (not a
+    // one-shot fetch) so starting/stopping a medication updates the next
+    // preview/warning immediately, without needing to reopen this screen -
+    // same reactivity fix already applied for ActivityRepository -> Dashboard/
+    // Diary's own vitamin D credit.
+    val activeDrugClasses: StateFlow<Set<ActivityRelevantDrugClass>> = activeProfileId
+        .flatMapLatest { id -> medicationRepo.observeAll(id) }
+        .map { meds -> detectActivityRelevantDrugClasses(meds.filter { it.active }.map { it.name }) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     // Both markedDates and pastSubTypes are derived from the same 365-day
@@ -288,7 +304,8 @@ class ActivityViewModel @Inject constructor(
                 // own live preview would have shown, computed here so quickLog()
                 // (which never goes through that dialog at all) still gets it.
                 val total = entries.value.filter { it.type == type }.sumOf { it.minutes } + minutes
-                checkDailyOvertraining(type, total, ageYears.value, healthConditions.value)?.let { _overtrainingWarning.emit(it) }
+                checkDailyOvertraining(type, total, ageYears.value, healthConditions.value, activeDrugClasses.value)
+                    ?.let { _overtrainingWarning.emit(it) }
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

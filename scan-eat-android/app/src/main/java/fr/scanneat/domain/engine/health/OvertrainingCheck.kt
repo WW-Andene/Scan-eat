@@ -74,8 +74,16 @@ enum class ActivityRiskType {
     DEHYDRATION,
     /** Prolonged exercise depletes glycogen and can trigger delayed
      *  hypoglycemia in a user managing diabetes - flagged whenever "diabetes"
-     *  is in the profile's health conditions, regardless of activity type. */
+     *  is in the profile's health conditions, or an antidiabetic medication
+     *  is logged and active (see [ActivityRelevantDrugClass.ANTIDIABETIC]). */
     HYPOGLYCEMIA,
+    /** Beta-blockers blunt the heart-rate response exertion is normally
+     *  judged by - a user on one can be working much harder than their pulse
+     *  suggests (see [ActivityRelevantDrugClass.BETA_BLOCKER]). */
+    MASKED_EXERTION,
+    /** An anticoagulant's bleeding risk compounds with any high-impact or
+     *  fall/contact-prone activity (see [ActivityRelevantDrugClass.ANTICOAGULANT]). */
+    BLEEDING,
 }
 
 data class OvertrainingWarning(
@@ -93,31 +101,46 @@ data class OvertrainingWarning(
  * running's threshold.
  *
  * [ageYears]/[healthConditions] personalize the threshold itself (not just
- * the message): an older user or one with a cardiac-relevant condition has
- * measurably lower tolerance for sustained high-output volume before the same
- * duration becomes a real strain risk, so their threshold is tightened by 25%
- * rather than only relabeling an identical cutoff with a scarier message.
+ * the message): an older user, one with a cardiac-relevant condition, or one
+ * on a beta-blocker (see [drugClasses]) has measurably lower tolerance for
+ * sustained high-output volume before the same duration becomes a real
+ * strain risk, so their threshold is tightened by 25% rather than only
+ * relabeling an identical cutoff with a scarier message.
+ *
+ * [drugClasses] is the set of activity-relevant medication classes currently
+ * active for this profile (see [detectActivityRelevantDrugClasses]) - user-
+ * requested, so a logged Medication (beta-blocker, anticoagulant, diuretic,
+ * antidiabetic) is factored into this same warning, not just Profile's own
+ * age/healthConditions.
  */
 fun checkDailyOvertraining(
     type: ActivityType,
     totalMinutesToday: Int,
     ageYears: Int? = null,
     healthConditions: Set<String> = emptySet(),
+    drugClasses: Set<ActivityRelevantDrugClass> = emptySet(),
 ): OvertrainingWarning? {
     val baseline = DAILY_MODERATE_MINUTES[type] ?: return null
     val isElderly = (ageYears ?: 0) >= ELDERLY_AGE_THRESHOLD
     val hasCardiacRiskCondition = healthConditions.any { it in CARDIAC_RISK_CONDITIONS }
-    val moderate = if (isElderly || hasCardiacRiskCondition) (baseline * 0.75).roundToInt() else baseline
+    val hasBetaBlocker = ActivityRelevantDrugClass.BETA_BLOCKER in drugClasses
+    val moderate = if (isElderly || hasCardiacRiskCondition || hasBetaBlocker) (baseline * 0.75).roundToInt() else baseline
     val severity = when {
         totalMinutesToday >= moderate * 2 -> OvertrainingSeverity.HIGH
         totalMinutesToday >= moderate     -> OvertrainingSeverity.MODERATE
         else -> return null
     }
+    val hasAnticoagulant = ActivityRelevantDrugClass.ANTICOAGULANT in drugClasses
     val riskTypes = buildSet {
         add(ActivityRiskType.OVERUSE_INJURY)
-        if (isElderly || hasCardiacRiskCondition) add(ActivityRiskType.CARDIAC_STRAIN)
-        if (type in HIGH_IMPACT_TYPES || totalMinutesToday >= moderate * 1.5) add(ActivityRiskType.DEHYDRATION)
-        if ("diabetes" in healthConditions) add(ActivityRiskType.HYPOGLYCEMIA)
+        if (isElderly || hasCardiacRiskCondition || hasBetaBlocker) add(ActivityRiskType.CARDIAC_STRAIN)
+        if (hasBetaBlocker) add(ActivityRiskType.MASKED_EXERTION)
+        if (type in HIGH_IMPACT_TYPES || totalMinutesToday >= moderate * 1.5 || ActivityRelevantDrugClass.DIURETIC in drugClasses)
+            add(ActivityRiskType.DEHYDRATION)
+        if ("diabetes" in healthConditions || ActivityRelevantDrugClass.ANTIDIABETIC in drugClasses)
+            add(ActivityRiskType.HYPOGLYCEMIA)
+        if (hasAnticoagulant && (type in HIGH_IMPACT_TYPES || type == ActivityType.STRENGTH))
+            add(ActivityRiskType.BLEEDING)
     }
     return OvertrainingWarning(type, totalMinutesToday, severity, riskTypes)
 }

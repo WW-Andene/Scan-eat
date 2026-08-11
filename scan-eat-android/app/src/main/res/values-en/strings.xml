@@ -1092,6 +1092,8 @@
     <string name="activity_risk_cardiac">increased cardiovascular strain risk</string>
     <string name="activity_risk_dehydration">dehydration / heat exhaustion risk</string>
     <string name="activity_risk_hypoglycemia">hypoglycemia risk (diabetes) from prolonged effort</string>
+    <string name="activity_risk_masked_exertion">your beta-blocker may mask true exertion intensity (blunted heart rate)</string>
+    <string name="activity_risk_bleeding">increased bleeding risk with your anticoagulant medication</string>
     <string name="activity_number_invalid">Enter a valid number (ignored otherwise)</string>
     <string name="activity_quick_log_title">Quick log</string>
     <string name="activity_was_outdoors">Was it outdoors?</string>

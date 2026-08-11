@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.ACTIVITY_SUB_TYPES
 import fr.scanneat.data.repository.health.ActivityType
+import fr.scanneat.domain.engine.health.ActivityRelevantDrugClass
 import fr.scanneat.domain.engine.health.checkDailyOvertraining
 import fr.scanneat.presentation.ui.theme.*
 
@@ -72,6 +73,7 @@ internal fun AddActivityDialog(
     todayMinutesForType: Int = 0,
     ageYears: Int? = null,
     healthConditions: Set<String> = emptySet(),
+    drugClasses: Set<ActivityRelevantDrugClass> = emptySet(),
 ) {
     val (selectedType, selectedSubType, customSubTypeText, setsText, repsText, distanceText, weightUsedText, minutesText) = values
     val onSelectedTypeChange = actions.onSelectedTypeChange
@@ -223,7 +225,7 @@ internal fun AddActivityDialog(
                 }
                 val minutes = minutesText.toIntOrNull()
                 val overtraining = minutes?.let {
-                    checkDailyOvertraining(selectedType, todayMinutesForType + it, ageYears, healthConditions)
+                    checkDailyOvertraining(selectedType, todayMinutesForType + it, ageYears, healthConditions, drugClasses)
                 }
                 val minutesValid = minutes != null && minutes in 1..1440
                 OutlinedTextField(

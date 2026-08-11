@@ -73,6 +73,7 @@ fun ActivityScreen(
     val language         = viewModel.language.collectAsStateWithLifecycle()
     val ageYears         = viewModel.ageYears.collectAsStateWithLifecycle()
     val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
+    val activeDrugClasses = viewModel.activeDrugClasses.collectAsStateWithLifecycle()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by rememberSaveable { mutableStateOf("30") }
     var selectedSubType by rememberSaveable { mutableStateOf<String?>(null) }
@@ -286,6 +287,7 @@ fun ActivityScreen(
                 .sumOf { it.minutes },
             ageYears = ageYears.value,
             healthConditions = healthConditions.value,
+            drugClasses = activeDrugClasses.value,
             onDismiss = { showAdd = false },
             onAdd = {
                 // Clamped to sane ranges, same rationale as Profile/Weight/CustomFood's

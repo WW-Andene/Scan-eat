@@ -40,8 +40,10 @@ private fun headlineRes(warning: OvertrainingWarning): Int =
     else R.string.activity_overtraining_moderate
 
 private fun riskLabelRes(risk: ActivityRiskType): Int = when (risk) {
-    ActivityRiskType.OVERUSE_INJURY -> R.string.activity_risk_overuse_injury
-    ActivityRiskType.CARDIAC_STRAIN -> R.string.activity_risk_cardiac
-    ActivityRiskType.DEHYDRATION    -> R.string.activity_risk_dehydration
-    ActivityRiskType.HYPOGLYCEMIA   -> R.string.activity_risk_hypoglycemia
+    ActivityRiskType.OVERUSE_INJURY  -> R.string.activity_risk_overuse_injury
+    ActivityRiskType.CARDIAC_STRAIN  -> R.string.activity_risk_cardiac
+    ActivityRiskType.DEHYDRATION     -> R.string.activity_risk_dehydration
+    ActivityRiskType.HYPOGLYCEMIA    -> R.string.activity_risk_hypoglycemia
+    ActivityRiskType.MASKED_EXERTION -> R.string.activity_risk_masked_exertion
+    ActivityRiskType.BLEEDING        -> R.string.activity_risk_bleeding
 }

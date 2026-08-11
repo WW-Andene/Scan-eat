@@ -1154,6 +1154,8 @@
     <string name="activity_risk_cardiac">risque de tension cardiovasculaire accrue</string>
     <string name="activity_risk_dehydration">risque de déshydratation / coup de chaleur</string>
     <string name="activity_risk_hypoglycemia">risque d\'hypoglycémie (diabète) lors d\'un effort prolongé</string>
+    <string name="activity_risk_masked_exertion">votre bêta-bloquant peut masquer la vraie intensité de l\'effort (fréquence cardiaque atténuée)</string>
+    <string name="activity_risk_bleeding">risque de saignement accru avec votre traitement anticoagulant</string>
     <string name="activity_number_invalid">Entrez un nombre valide (ignoré sinon)</string>
     <string name="activity_quick_log_title">Relogger rapidement</string>
     <string name="activity_was_outdoors">C\'était en extérieur ?</string>
