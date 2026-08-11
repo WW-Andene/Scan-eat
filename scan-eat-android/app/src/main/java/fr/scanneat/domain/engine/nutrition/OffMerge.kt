@@ -123,10 +123,17 @@ data class SourceConflict(val field: String, val offValue: String, val llmValue:
 
 fun detectSourceConflicts(off: Product, llm: Product): List<SourceConflict> {
     val conflicts = mutableListOf<SourceConflict>()
-    fun check(field: String, o: Double, l: Double) {
+    fun check(field: String, o: Double, l: Double, unit: String = "g") {
         if (o > 0 && l > 0 && kotlin.math.abs(o - l) / maxOf(o, l) > 0.3)
-            conflicts += SourceConflict(field, "${o}g", "${l}g")
+            conflicts += SourceConflict(field, "$o$unit", "$l$unit")
     }
+    // energy_kcal was never checked here despite being the single most
+    // user-visible and most error-prone field (OffMapper.kt even derives it
+    // via a kJ→kcal fallback when OFF's own kcal field is absent) - a >30%
+    // OFF-vs-LLM calorie disagreement previously went completely unflagged
+    // while the same-magnitude mismatch on protein/fat/carbs/sugars already
+    // surfaced a warning.
+    check("energy_kcal", off.nutrition.energyKcal, llm.nutrition.energyKcal, unit = "kcal")
     check("protein_g", off.nutrition.proteinG, llm.nutrition.proteinG)
     check("fat_g",     off.nutrition.fatG,     llm.nutrition.fatG)
     check("carbs_g",   off.nutrition.carbsG,   llm.nutrition.carbsG)

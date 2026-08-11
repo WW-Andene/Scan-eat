@@ -106,8 +106,21 @@ internal class ScanOffLookup(
      * is inherently a one-off, not something to serve stale from an earlier
      * unrelated scan of the same product) and keyed by (barcode, lang) since
      * warnings/category labels are language-specific strings.
+     *
+     * No TTL originally - a barcode that legitimately failed to score (sparse/
+     * not-found, thrown before ever reaching the cache write below) was never
+     * cached, but a *successful* OFF-only result WAS cached forever with no
+     * re-check, for as long as the app process stays alive. A product whose
+     * OFF record gets fixed by a contributor mid-session (ingredients/category/
+     * nutrition corrected - exactly the class of gap this session's isOffSparse/
+     * hasOffNutritionData fixes address) would still show the stale pre-fix
+     * result on every rescan until the app is killed and relaunched. 30 minutes
+     * keeps the same-shopping-session perf win this cache exists for while
+     * bounding how long a fixed-on-OFF product can keep showing stale data.
      */
-    private val resultCache = java.util.concurrent.ConcurrentHashMap<String, ScanResult>()
+    private data class CachedResult(val result: ScanResult, val cachedAtMs: Long)
+    private val resultCache = java.util.concurrent.ConcurrentHashMap<String, CachedResult>()
+    private val resultCacheTtlMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(30)
 
     suspend fun scoreDirectBarcode(
         barcode: String,
@@ -118,7 +131,9 @@ internal class ScanOffLookup(
         missingApiKeyMessage: (String) -> String,
     ): ScanResult {
         if (images.isEmpty()) {
-            resultCache["$barcode|$lang"]?.let { return it }
+            resultCache["$barcode|$lang"]?.let { cached ->
+                if (System.currentTimeMillis() - cached.cachedAtMs < resultCacheTtlMs) return cached.result
+            }
         }
         val offResponse = fetchOffProduct(barcode)
         // Checked before mapOffProduct (which only preserves the coarse
@@ -225,7 +240,7 @@ internal class ScanOffLookup(
         // Cache only the plain OFF-only path - a photo-augmented result (MERGED/LLM
         // source) reflects photos this specific user just took, not a stable
         // barcode-keyed answer safe to hand back for someone else's rescan.
-        if (images.isEmpty() && source == ScanSource.OPEN_FOOD_FACTS) resultCache["$barcode|$lang"] = result
+        if (images.isEmpty() && source == ScanSource.OPEN_FOOD_FACTS) resultCache["$barcode|$lang"] = CachedResult(result, System.currentTimeMillis())
         return result
     }
 
