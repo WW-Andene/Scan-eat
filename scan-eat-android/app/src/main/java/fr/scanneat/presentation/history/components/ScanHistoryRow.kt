@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.*
+import fr.scanneat.presentation.expenses.components.displayLabel
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -78,7 +79,13 @@ internal fun ScanHistoryRow(
                 }
                 Column(Modifier.weight(1f)) {
                     Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                    // §A5-audit finding: was scan.product.category.key.replace('_', ' ') -
+                    // the raw enum key with underscores swapped for spaces (e.g.
+                    // "processed meat"), always English regardless of app language.
+                    // ExpensesSummaryCard.displayLabel() already exists as the proper
+                    // localized mapping (built for this exact bug on the Dépenses
+                    // breakdown row) - reused here instead of a second raw fallback.
+                    Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.displayLabel()), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                     // Same checkUserAllergens()/checkDiet() warning Diary/Recipes/Grocery/
                     // Templates already show live - previously the grade badge here was the
                     // only thing this row ever showed, with no trace of an allergen/diet
