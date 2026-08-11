@@ -9,10 +9,12 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
@@ -21,6 +23,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.ImprovementTip
 import fr.scanneat.domain.engine.scoring.PersonalScoreResult
@@ -56,28 +61,39 @@ internal fun ResultContent(
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     val audit = scan.audit
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
-            .verticalScroll(rememberScrollState())
-            // contentPadding (FloatingScreenScaffold's own PaddingValues: status-bar
-            // inset + FloatingTopBarHeight) is applied INSIDE the scroll and after
-            // ambientGloom, like every other screen's LazyColumn contentPadding —
-            // previously the caller passed it as an outer Modifier.padding(), which
-            // shrank the bounds before the gloom was painted and then added its own
-            // extra Spacing.M on top of the header clearance.
-            .padding(contentPadding)
-            .padding(horizontal = Spacing.L),
-        verticalArrangement = Arrangement.spacedBy(Spacing.M),
-    ) {
-        // User-requested: the whole result body reads as one glass panel over
-        // the ambientGloom wash behind it, same standard fill every other
-        // card/popup in the app uses, instead of individual cards floating
-        // loosely over a flat background - this screen is a full page (not a
-        // dialog), so it never got the "glass over blur" treatment dialogs get
-        // for free from glassPopupSurface's own backdrop.
+    // User-requested: a real optical blur of the background behind the score
+    // panel, not just a translucent fill over a flat wash - same HazeState
+    // source/effect split FloatingTopBar/MainShell's bottom nav already use
+    // (see FrostedGlassStyle's own doc comment) instead of a screen-specific
+    // approximation. The ambientGloom layer below is the blur SOURCE; the
+    // card's own Surface (hazeEffect + Color.Transparent, so the tint/blur
+    // combo drives the look instead of compositing under an opaque fill) is
+    // the blur EFFECT drawn on top of it.
+    val hazeState = remember { HazeState() }
+    Box(modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+                .hazeSource(hazeState),
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                // contentPadding (FloatingScreenScaffold's own PaddingValues: status-bar
+                // inset + FloatingTopBarHeight) is applied INSIDE the scroll, like every
+                // other screen's LazyColumn contentPadding — previously the caller passed
+                // it as an outer Modifier.padding(), which shrank the bounds before the
+                // gloom was painted and then added its own extra Spacing.M on top of the
+                // header clearance.
+                .padding(contentPadding)
+                .padding(horizontal = Spacing.L),
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
+        ) {
         ScanEatCard(
+            modifier = Modifier.hazeEffect(state = hazeState, style = FrostedGlassStyle),
+            color = Color.Transparent,
             emphasis = CardEmphasis.HERO,
             contentPadding = PaddingValues(Spacing.L),
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
@@ -203,6 +219,7 @@ internal fun ResultContent(
         }
 
         Spacer(Modifier.height(Spacing.XXL))
+        }
     }
 }
 
