@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.data.repository.loyalty.LoyaltyCard
 import fr.scanneat.presentation.ui.theme.*
 
 /**
@@ -29,6 +30,13 @@ fun LoyaltyCardsTabContent(viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
     var showAddDialog by remember { mutableStateOf(false) }
     var storeText by rememberSaveable { mutableStateOf("") }
     var codeText by rememberSaveable { mutableStateOf("") }
+    // DeleteConfirmDialog's own doc comment lists Weight/Templates/Recipes/
+    // Activity as its users - Loyalty removed a card on a single tap with no
+    // confirmation at all, the one destructive action in the app skipped by
+    // that shared pattern. A misclick here means retyping the code from the
+    // physical card, a real enough cost to warrant the same one-tap-undo
+    // safety net every other delete action already gets.
+    var deleteTarget by remember { mutableStateOf<LoyaltyCard?>(null) }
 
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.S)) {
@@ -69,7 +77,7 @@ fun LoyaltyCardsTabContent(viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
                                     color = OnBackground.copy(0.85f),
                                 )
                             }
-                            IconButton(onClick = { viewModel.removeCard(card.id) }) {
+                            IconButton(onClick = { deleteTarget = card }) {
                                 Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnBackground.copy(0.6f))
                             }
                         }
@@ -108,6 +116,14 @@ fun LoyaltyCardsTabContent(viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
                 ) { Text(stringResource(R.string.common_add)) }
             },
             dismissButton = { TextButton(onClick = { showAddDialog = false }) { Text(stringResource(R.string.common_cancel)) } },
+        )
+    }
+
+    deleteTarget?.let { target ->
+        DeleteConfirmDialog(
+            itemName = target.storeName,
+            onConfirm = { viewModel.removeCard(target.id); deleteTarget = null },
+            onDismiss = { deleteTarget = null },
         )
     }
 }
