@@ -139,7 +139,7 @@ fun MedicationScreen(
             // the one tracker where a single bad day made the week look identical to
             // one with zero activity at all (both just "streak: 0").
             if (medications.value.any { it.active }) {
-                item { MedicationWeeklyAdherenceChart(weeklyAdherence.value) }
+                item { MedicationWeeklyAdherenceChart(weeklyAdherence.value, language.value) }
             }
 
             if (medications.value.isEmpty()) {

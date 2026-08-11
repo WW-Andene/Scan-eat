@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -143,7 +144,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
 }
 
 @Composable
-internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>) {
+internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>, language: String) {
     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.medication_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
@@ -175,10 +176,19 @@ internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>)
                     }
                 }
             }
+            // §A5-audit finding: dayOfWeek.name is the raw Kotlin enum constant
+            // ("MONDAY", "TUESDAY", ...) - always English regardless of app
+            // language, unlike every other weekly chart's day label (Hydration's
+            // own HydrationWeeklyChart, Dashboard's WeeklyBarsCard) which already
+            // derives its label from Locale via getDisplayName(). A French user
+            // saw "M T W T F S S" here instead of "L M M J V S D". This function
+            // took no language param at all before, so the bug was structural,
+            // not just a wrong call site.
+            val locale = remember(language) { java.util.Locale(language) }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 weeklyAdherence.forEach { day ->
                     Text(
-                        day.date.dayOfWeek.name.take(1),
+                        day.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, locale).replaceFirstChar { it.uppercaseChar() },
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
                         color = OnSurface.copy(if (day.date == LocalDate.now()) 0.8f else 0.4f),
