@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.ACTIVITY_SUB_TYPES
 import fr.scanneat.data.repository.health.ActivityType
-import fr.scanneat.domain.engine.health.OvertrainingSeverity
 import fr.scanneat.domain.engine.health.checkDailyOvertraining
 import fr.scanneat.presentation.ui.theme.*
 
@@ -71,6 +70,8 @@ internal fun AddActivityDialog(
     // being edited, if any) - the dialog adds the in-progress minutes field to
     // it live, so the warning updates as the user types, before they even save.
     todayMinutesForType: Int = 0,
+    ageYears: Int? = null,
+    healthConditions: Set<String> = emptySet(),
 ) {
     val (selectedType, selectedSubType, customSubTypeText, setsText, repsText, distanceText, weightUsedText, minutesText) = values
     val onSelectedTypeChange = actions.onSelectedTypeChange
@@ -221,8 +222,10 @@ internal fun AddActivityDialog(
                     )
                 }
                 val minutes = minutesText.toIntOrNull()
+                val overtraining = minutes?.let {
+                    checkDailyOvertraining(selectedType, todayMinutesForType + it, ageYears, healthConditions)
+                }
                 val minutesValid = minutes != null && minutes in 1..1440
-                val overtraining = minutes?.let { checkDailyOvertraining(selectedType, todayMinutesForType + it) }
                 OutlinedTextField(
                     value = minutesText, onValueChange = onMinutesTextChange,
                     label = { Text(stringResource(R.string.activity_duration_label)) }, singleLine = true,
@@ -235,14 +238,7 @@ internal fun AddActivityDialog(
                             // is worth flagging, not preventing, same as every other
                             // caution in this app (Result's cautions/vetoes never block a
                             // save either).
-                            Text(
-                                stringResource(
-                                    if (overtraining.severity == OvertrainingSeverity.HIGH) R.string.activity_overtraining_high
-                                    else R.string.activity_overtraining_moderate,
-                                    overtraining.totalMinutes,
-                                ),
-                                color = semanticAmber(),
-                            )
+                            Text(overtrainingMessage(overtraining), color = semanticAmber())
                         }
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

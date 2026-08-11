@@ -23,7 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.ActivityType
-import fr.scanneat.domain.engine.health.OvertrainingSeverity
+import fr.scanneat.presentation.activity.components.overtrainingMessage
 import fr.scanneat.presentation.activity.components.ActivityDailyTotalsCard
 import fr.scanneat.presentation.activity.components.ActivityEntryRow
 import fr.scanneat.presentation.activity.components.ActivityQuickLogRow
@@ -71,6 +71,8 @@ fun ActivityScreen(
     val streak           = viewModel.streak.collectAsStateWithLifecycle()
     val quickLogSuggestions = viewModel.quickLogSuggestions.collectAsStateWithLifecycle()
     val language         = viewModel.language.collectAsStateWithLifecycle()
+    val ageYears         = viewModel.ageYears.collectAsStateWithLifecycle()
+    val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by rememberSaveable { mutableStateOf("30") }
     var selectedSubType by rememberSaveable { mutableStateOf<String?>(null) }
@@ -141,12 +143,7 @@ fun ActivityScreen(
     // dialog entirely - still warns the user.
     LaunchedEffect(Unit) {
         viewModel.overtrainingWarning.collect { warning ->
-            val message = context.getString(
-                if (warning.severity == OvertrainingSeverity.HIGH) R.string.activity_overtraining_high
-                else R.string.activity_overtraining_moderate,
-                warning.totalMinutes,
-            )
-            snackbarHostState.showSnackbar(message)
+            snackbarHostState.showSnackbar(overtrainingMessage(warning, context))
         }
     }
 
@@ -287,6 +284,8 @@ fun ActivityScreen(
             todayMinutesForType = entries.value
                 .filter { it.type == selectedType && it.id != editTargetId }
                 .sumOf { it.minutes },
+            ageYears = ageYears.value,
+            healthConditions = healthConditions.value,
             onDismiss = { showAdd = false },
             onAdd = {
                 // Clamped to sane ranges, same rationale as Profile/Weight/CustomFood's

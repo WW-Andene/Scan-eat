@@ -88,6 +88,17 @@ class ActivityViewModel @Inject constructor(
     val weightKg: StateFlow<Double?> = prefs.profile.map { it.weightKg }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // User-requested: does the overtraining check personalize on age/health
+    // conditions, or is it a flat threshold for everyone? Previously the
+    // latter - these feed checkDailyOvertraining's own age/healthConditions
+    // params (see its doc comment) so an older user or one with a
+    // cardiac-relevant condition gets a tightened threshold and a
+    // risk-specific message, not the same generic cutoff as everyone else.
+    val ageYears: StateFlow<Int?> = prefs.profile.map { it.ageYears }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val healthConditions: StateFlow<Set<String>> = prefs.profile.map { it.healthConditions }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
     // Both markedDates and pastSubTypes are derived from the same 365-day
     // range read — computed together so logging a new entry only re-triggers
     // one repo.getRange() call, not two.
@@ -277,7 +288,7 @@ class ActivityViewModel @Inject constructor(
                 // own live preview would have shown, computed here so quickLog()
                 // (which never goes through that dialog at all) still gets it.
                 val total = entries.value.filter { it.type == type }.sumOf { it.minutes } + minutes
-                checkDailyOvertraining(type, total)?.let { _overtrainingWarning.emit(it) }
+                checkDailyOvertraining(type, total, ageYears.value, healthConditions.value)?.let { _overtrainingWarning.emit(it) }
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

@@ -1150,6 +1150,10 @@
     <string name="activity_duration_invalid">Entrez une durée valide</string>
     <string name="activity_overtraining_moderate">Volume élevé aujourd\'hui (%1$d min pour ce type) — pensez à la récupération</string>
     <string name="activity_overtraining_high">Volume très élevé aujourd\'hui (%1$d min pour ce type) — risque de surentraînement</string>
+    <string name="activity_risk_overuse_injury">risque de blessure de surutilisation (tendons/articulations)</string>
+    <string name="activity_risk_cardiac">risque de tension cardiovasculaire accrue</string>
+    <string name="activity_risk_dehydration">risque de déshydratation / coup de chaleur</string>
+    <string name="activity_risk_hypoglycemia">risque d\'hypoglycémie (diabète) lors d\'un effort prolongé</string>
     <string name="activity_number_invalid">Entrez un nombre valide (ignoré sinon)</string>
     <string name="activity_quick_log_title">Relogger rapidement</string>
     <string name="activity_was_outdoors">C\'était en extérieur ?</string>
