@@ -124,6 +124,37 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // or real meat's kcal-from-animal-fat assumptions.
     ProductCategory.PLANT_BASED_ALTERNATIVE to CategoryThresholds(Triple(4.0,8.0,15.0), Triple(1.0,2.0,4.0), Pair(60.0,370.0), false,
         satFatThresholds = Triple(6.0,12.0,20.0)),
+    // Dairy ice cream ~200-320kcal/100g (Häagen-Dazs/premium ~280-320,
+    // standard tubs ~180-250), sorbet ~100-150kcal (little/no fat, higher
+    // sugar) - kcal range wide enough to span both under one category rather
+    // than inventing a fruit-vs-dairy split with no real product-name signal
+    // to tell them apart reliably. Sugar is inherently high (18-25g/100g
+    // dairy ice cream, 25-30g sorbet) - same "high but normal for the
+    // category" reasoning already used for SPREAD_SWEET/BEVERAGE_JUICE, not
+    // flagged as added-sugar-style "critical" the way the default band would.
+    ProductCategory.ICE_CREAM to CategoryThresholds(Triple(1.5,3.0,5.0), Triple(0.0,0.0,1.0), Pair(80.0,340.0), false,
+        satFatThresholds = Triple(6.0,12.0,18.0), sugarThresholds = Quadruple(15.0,22.0,28.0,35.0)),
+    // Dry/uncooked pasta, rice, couscous, quinoa, semoule, boulgour - OFF
+    // packaging near-universally declares nutrition per 100g dry, not
+    // cooked, so these thresholds assume dry weight. A product genuinely
+    // logged/labeled per cooked weight (~1/3 the kcal density) would read as
+    // abnormally low-energy against this band - a real but accepted
+    // limitation, no reliable name-based signal distinguishes the two.
+    // Protein/fiber bands span white (rice ~7g protein/~2g fiber) through
+    // wholegrain/quinoa (~13-14g protein/~6-8g fiber).
+    ProductCategory.GRAIN to CategoryThresholds(Triple(6.0,10.0,14.0), Triple(2.0,4.0,8.0), Pair(280.0,400.0), false),
+    // Fresh, unprocessed fruit and vegetables - deliberately wide bands, the
+    // same category-blindness reasoning already used for SNACK_SALTY (olives
+    // vs. nuts) and OIL_FAT: a category this heterogeneous (lettuce ~15kcal
+    // vs. avocado ~160kcal, cucumber ~2g carbs vs. banana ~20g) would either
+    // need per-item thresholds no name-based classifier can assign, or wide
+    // enough bands that ordinary produce never trips an "abnormal nutrition"
+    // flag just for being lettuce or being avocado. Sugar band widened for
+    // the same intrinsic-fruit-sugar reasoning as BEVERAGE_JUICE/SPREAD_SWEET
+    // (banana ~12g, grapes ~16g) - vegetables' near-zero sugar never
+    // approaches even the default band, so only the fruit side needed room.
+    ProductCategory.FRESH_PRODUCE to CategoryThresholds(Triple(1.0,2.5,5.0), Triple(2.0,3.5,6.0), Pair(10.0,200.0), true,
+        sugarThresholds = Quadruple(8.0,14.0,20.0,30.0)),
     ProductCategory.OTHER            to DEFAULT_THRESHOLDS,
 )
 
@@ -172,6 +203,12 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // correctly falls through to SNACK_SWEET regardless of this reorder).
     Regex("""c[eé]r[eé]ales?\b|\bcereal\b|\bmuesli\b|\bgranola\b|porridge|flocons d['']avoine|\boats\b|cornflakes|chocapic|special k|fitness""", RegexOption.IGNORE_CASE) to ProductCategory.BREAKFAST_CEREAL,
     Regex("""chocolats?\b|\bchocolate\b|\bbonbon|\bcandy\b|biscuits?\b(?!\s*(sal[eé]s?|ap[eé]ritif))|cookies?\b|g[aâ]teaux?\b|\bcakes?\b|\btartes?\b|\btarts?\b|brownie|\bdonut\b|beignet|barre chocolat[eé]e|kinder|nutella|m&m|haribo|m[aâ]rs|snickers|twix|bounty|gauffres?\b|cr[eê]pes?\b|p[aâ]te [aà] tartiner""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SWEET,
+    // §-audit finding: ice cream/sorbet had no category at all - see
+    // CategoryThresholds' own ICE_CREAM entry above for the nutrition
+    // reasoning. Checked before FISH below so "esquimau"/"cornet" etc. never
+    // collide with anything meat/fish-related (none of the words overlap,
+    // this ordering is just defensive).
+    Regex("""\bglaces?\b|ice[-\s]?cream|\bsorbets?\b|cornet glac[eé]|esquimau|cr[eè]me glac[eé]e|popsicle""", RegexOption.IGNORE_CASE) to ProductCategory.ICE_CREAM,
     // \bpoisson\b (generic "fish"/"fish fillet") added - a very common frozen
     // product name ("Poisson pané", "Filet de poisson") previously only
     // matched if it named a specific species. Also added a few common species/
@@ -201,6 +238,13 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bpoulet\b|\bb[oœ]uf\b|\bporc\b|\bagneau\b|\bdinde\b|\bcanard\b|\bveau\b|\blapin\b|viande hach[eé]e|\bsteaks?\b|escalope|magret""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_MEAT,
     Regex("""\bpain\b|\bbread\b|baguette|brioche|focaccia|ciabatta|\btoasts?\b|\bpita\b|tortilla|\bcracotte""", RegexOption.IGNORE_CASE) to ProductCategory.BREAD,
     Regex("""plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
+    // §-audit finding: dry pasta/rice/grains had no category at all - see
+    // CategoryThresholds' own GRAIN entry above for the dry-vs-cooked-weight
+    // caveat. Checked after READY_MEAL above (first-match-wins), so a real
+    // prepared dish name like "Risotto aux champignons" or "Paella" still
+    // routes to READY_MEAL first - only a plain "Riz basmati"/"Pâtes
+    // penne"-style bag name (no ready-meal keyword) falls through to here.
+    Regex("""\bp[aâ]tes\b|spaghettis?\b|macaronis?\b|pennes?\b|fusillis?\b|tagliatelles?\b|coquillettes?\b|nouilles?\b|vermicelles?\b|\briz\b|couscous|semoule|quinoa|boulgour""", RegexOption.IGNORE_CASE) to ProductCategory.GRAIN,
     Regex("""\bsoupe?s?\b|velout[eé]s?(?![\w\p{L}])|\bpotages?\b|\bbouillons?\b|\bbroths?\b|consomm[eé]s?(?![\w\p{L}])|minestrone|gaspacho|gazpacho""", RegexOption.IGNORE_CASE) to ProductCategory.SOUP,
     // Own category, checked before CONDIMENT below - honey/jam/marmalade's
     // sugar is intrinsic fruit/nectar fructose (~55-80g/100g), nutritionally
@@ -214,6 +258,13 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bvinaigres?\b|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
     Regex("""huile d['']olive|huile de colza|huile de tournesol|huile v[eé]g[eé]tale|\bolive oil\b|sunflower oil|canola oil|margarine|\bbeurre\b|\bbutter\b|saindoux""", RegexOption.IGNORE_CASE) to ProductCategory.OIL_FAT,
     Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|\bpopcorn\b|\bpretzels?\b|cacahu[eè]tes?\b|noix de cajou|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
+    // §-audit finding: fresh fruit/vegetables had no category at all - see
+    // CategoryThresholds' own FRESH_PRODUCE entry above for the wide-band
+    // reasoning. Deliberately LAST in this list (first-match-wins) so every
+    // more specific category above (soup, snack, juice, jam, ready meal,
+    // bread...) gets first claim - a raw "pomme"/"tomate"/"salade" only
+    // falls through to here once nothing more specific already matched it.
+    Regex("""\bfruits?\b|\bl[eé]gumes?\b|\bpommes?\b|\bpoires?\b|\bbananes?\b|\boranges?\b|\bfraises?\b|\bframboises?\b|\braisins?\b|\bp[eê]ches?\b|\babricots?\b|\bkiwis?\b|\bmangues?\b|\bananas\b|\bcitrons?\b|\bpast[eè]ques?\b|\bmelons?\b|\bavocats?\b|\btomates?\b|\bcarottes?\b|\bcourgettes?\b|\baubergines?\b|\bpoivrons?\b|\boignons?\b|\bail\b|\bsalade\b|\blaitue\b|\b[eé]pinards?\b|\bbrocolis?\b|\bchoux?\b|\bharicots? verts?\b|\bpetits? pois\b|\bpoireaux?\b|\bconcombres?\b|\bradis\b|\bc[eé]leri\b|\bchampignons?\b|pommes? de terre|\bpatates?\b""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_PRODUCE,
 )
 
 fun inferCategoryFromName(name: String): ProductCategory {

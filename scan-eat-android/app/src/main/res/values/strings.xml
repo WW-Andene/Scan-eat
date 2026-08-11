@@ -936,6 +936,9 @@
     <string name="category_spread_sweet">Miel &amp; confitures</string>
     <string name="category_oil_fat">Huiles &amp; matières grasses</string>
     <string name="category_plant_based_alternative">Substituts végétaux</string>
+    <string name="category_ice_cream">Glaces</string>
+    <string name="category_grain">Féculents secs</string>
+    <string name="category_fresh_produce">Fruits et légumes frais</string>
     <string name="category_other">Autres</string>
     <string name="expenses_no_budget_hint">Définissez un objectif hebdomadaire pour suivre votre budget</string>
     <string name="expenses_no_budget_hint_day">Définissez un objectif journalier pour suivre votre budget</string>

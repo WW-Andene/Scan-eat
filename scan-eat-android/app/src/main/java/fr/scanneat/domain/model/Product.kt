@@ -63,6 +63,16 @@ enum class ProductCategory(val key: String) {
     // textured-protein products (moderate protein, no expectation of the high
     // sat-fat real cheese/meat structurally carry).
     PLANT_BASED_ALTERNATIVE("plant_based_alternative"),
+    // §-audit finding: ice cream/sorbet, dry pasta/rice/grains, and fresh
+    // fruit/vegetables had no category of their own at all - every scan of
+    // one silently fell to OTHER's generic thresholds, not just a missing
+    // keyword. See CategoryThresholds.kt's own comments on each for the
+    // real-world nutrition ranges these were calibrated against, and the
+    // known limitations (e.g. GRAIN's dry-vs-cooked-weight assumption,
+    // FRESH_PRODUCE's inherent fruit-vs-vegetable kcal spread).
+    ICE_CREAM("ice_cream"),
+    GRAIN("grain"),
+    FRESH_PRODUCE("fresh_produce"),
     OTHER("other");
 
     companion object {
