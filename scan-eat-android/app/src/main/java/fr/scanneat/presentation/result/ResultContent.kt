@@ -45,6 +45,7 @@ internal fun ResultContent(
     language: String = "fr",
     scoreDelta: Int? = null,
     scoreHistory: List<Int> = emptyList(),
+    recall: fr.scanneat.data.repository.recall.RecallEntry? = null,
     priceEntries: List<fr.scanneat.data.repository.expense.PriceEntry> = emptyList(),
     currencySymbol: String = "€",
     improvementTips: List<ImprovementTip> = emptyList(),
@@ -96,6 +97,13 @@ internal fun ResultContent(
             Text(stringResource(scan.source.labelRes()),
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
         }
+
+        // User-requested: see RecallBanner's own doc comment - the live-scan
+        // recall check (ScanScreen's camera overlay) never carried over to
+        // this screen before. Placed ahead of every other banner - a
+        // confirmed government safety recall outranks every other signal
+        // on this page.
+        recall?.let { RecallBanner(it) }
 
         // User-requested: mapCategory() fell back to OTHER's generic,
         // unverified thresholds for this product - see UncertainCategoryBanner's

@@ -1545,6 +1545,7 @@
     <string name="result_allergens_unverified">The ingredients list could not be read from the label — your allergens and diet could not be verified for this product</string>
     <string name="result_category_uncertain">This product\'s category could not be determined with confidence — the score uses generic nutrition thresholds rather than ones tuned to this type of product</string>
     <string name="result_rescored">Score recalculated since your last visit: %1$d → %2$d</string>
+    <string name="result_recall_title">Official recall (RappelConso)</string>
     <string name="result_personalization_prompt">Complete your profile (health, diet, allergies) to unlock a personal score</string>
     <string name="result_adjustments_title">Personal Adjustments</string>
     <string name="result_classic_score_label">Classic Score</string>

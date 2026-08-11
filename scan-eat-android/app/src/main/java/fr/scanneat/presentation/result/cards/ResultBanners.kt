@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
+import fr.scanneat.data.repository.recall.RecallEntry
 import fr.scanneat.data.repository.scan.ComparisonResult
 import fr.scanneat.domain.engine.scoring.AllergenHit
 import fr.scanneat.domain.model.ScanResult
@@ -113,6 +114,34 @@ internal fun PersonalizationPromptCard(onOpenProfile: () -> Unit) {
             Text(stringResource(R.string.result_personalization_prompt), style = MaterialTheme.typography.bodySmall,
                 color = OnBackground, modifier = Modifier.weight(1f))
         }
+    }
+}
+
+@Composable
+// User-requested: RecallRepository's live RappelConso check already existed
+// on ScanScreen's camera-preview overlay (a dismissible banner keyed to
+// whatever barcode is currently in frame) but never carried over to this
+// screen - the actual page a user reads product details on, whether reached
+// straight after that live scan or later from History/Favorites/Dashboard,
+// none of which ever ran this check at all. Icons.Rounded.Block + semanticRed,
+// same as DietVetoBanner below - a confirmed government recall is at least as
+// severe a signal as this app's own diet veto.
+@Composable
+internal fun RecallBanner(recall: RecallEntry) {
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(alpha = 0.15f),
+        contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Icon(Icons.Rounded.Block, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Inline))
+            Text(stringResource(R.string.result_recall_title), style = MaterialTheme.typography.labelMedium,
+                color = semanticRed(), fontWeight = FontWeight.Bold)
+        }
+        // RappelConso is a French-only government dataset - always shown in
+        // French even in English mode, same "don't fabricate a translation
+        // of an official safety notice" discipline RecallEntry's own doc
+        // comment already establishes for the live-scan version of this banner.
+        recall.reasonFr?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = OnBackground) }
     }
 }
 

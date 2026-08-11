@@ -1607,6 +1607,7 @@
     <string name="result_allergens_unverified">La liste des ingrédients n\'a pas pu être lue sur l\'étiquette — vos allergènes et votre régime n\'ont pas pu être vérifiés pour ce produit</string>
     <string name="result_category_uncertain">La catégorie de ce produit n\'a pas pu être déterminée avec certitude — le score utilise des seuils nutritionnels génériques plutôt qu\'adaptés à ce type de produit</string>
     <string name="result_rescored">Score recalculé depuis votre dernière visite : %1$d → %2$d</string>
+    <string name="result_recall_title">Rappel officiel (RappelConso)</string>
     <string name="result_personalization_prompt">Complétez votre profil (santé, régime, allergies) pour activer un score personnalisé</string>
     <string name="result_adjustments_title">Ajustements personnels</string>
     <string name="result_classic_score_label">Score classique</string>

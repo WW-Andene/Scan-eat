@@ -15,6 +15,8 @@ import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.RecipeRepository
+import fr.scanneat.data.repository.recall.RecallEntry
+import fr.scanneat.data.repository.recall.RecallRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
@@ -47,6 +49,8 @@ data class ResultUiState(
      * indistinguishable and a missing scan just spun forever.
      */
     val notFound: Boolean = false,
+    // See ResultScanLoader.ScanLoad.Loaded.recall's own doc comment.
+    val recall: RecallEntry? = null,
 )
 
 sealed class LogState {
@@ -77,6 +81,7 @@ class ResultViewModel @Inject constructor(
     internal val recipeRepo: RecipeRepository,
     internal val manualGroceryRepo: ManualGroceryRepository,
     private val priceRepo: PriceRepository,
+    private val recallRepo: RecallRepository,
     savedStateHandle: SavedStateHandle,
 ) : ActionFailureViewModel() {
 
@@ -117,7 +122,7 @@ class ResultViewModel @Inject constructor(
 
     // Builds each scan's ScanLoad — holds its own comparisonResolved/cachedComparison
     // re-entrancy state (see ResultScanLoader.kt, same package).
-    private val scanLoader = ResultScanLoader(scanId, isFreshScan, scanRepo, comparisonRepo)
+    private val scanLoader = ResultScanLoader(scanId, isFreshScan, scanRepo, comparisonRepo, recallRepo)
 
     // Fix 2: Use a typed sealed class instead of Pair<Triple<...>> — clean and null-safe
     private val scanLoad: Flow<ScanLoad> = combine(prefs.profile, prefs.language, biolismRepo.profile, prefs.isPremium) { profile, lang, bioProfile, isPremium -> Quadruple(profile, lang, bioProfile, isPremium) }.flatMapLatest { (profile, lang, bioProfile, isPremium) ->
@@ -140,6 +145,7 @@ class ResultViewModel @Inject constructor(
                 logState          = logState,
                 scoreDelta        = load.scoreDelta,
                 scoreHistory      = load.scoreHistory,
+                recall            = load.recall,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ResultUiState())

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.result
 
+import fr.scanneat.data.repository.recall.RecallEntry
+import fr.scanneat.data.repository.recall.RecallRepository
 import fr.scanneat.data.repository.scan.ComparisonRepository
 import fr.scanneat.data.repository.scan.ComparisonResult
 import fr.scanneat.data.repository.scan.ScanRepository
@@ -36,6 +38,18 @@ internal sealed class ScanLoad {
         val alternative: ScanResult?,
         val scoreDelta: Int?,
         val scoreHistory: List<Int>,
+        // User-requested: RecallRepository's live check already existed on
+        // ScanScreen's camera-preview overlay (dismissible banner keyed to
+        // whatever barcode is currently in frame) but was never carried over
+        // to the full Result screen - the actual page a user reads details
+        // on, reached either straight after that live scan or later from
+        // History/Favorites/Dashboard, none of which ever ran this check at
+        // all. checkBarcode() is cheap here (cached, see its own doc
+        // comment), so this runs unconditionally rather than only for fresh
+        // scans - reopening an old scan of a since-recalled product should
+        // surface it too, the same reasoning the Favorites recall check
+        // added today already established.
+        val recall: RecallEntry?,
     ) : ScanLoad()
 }
 
@@ -52,6 +66,7 @@ internal class ResultScanLoader(
     private val isFreshScan: Boolean,
     private val scanRepo: ScanRepository,
     private val comparisonRepo: ComparisonRepository,
+    private val recallRepo: RecallRepository,
 ) {
     // arm()/compare() disarm shared comparison state as a side effect, so they must run
     // at most once per scan — WhileSubscribed(5000) can cancel and restart this flow
@@ -117,7 +132,8 @@ internal class ResultScanLoader(
         val priorScores  = scanRepo.priorScores(scan.barcode, scan.product.name, beforeMillis = scan.scannedAt, profileId = profile.id)
         val scoreDelta   = priorScores.firstOrNull()?.let { scan.audit.score - it }
         val scoreHistory = priorScores.take(5).reversed()  // oldest → newest for the timeline
+        val recall       = scan.barcode?.let { recallRepo.checkBarcode(it) }
 
-        emit(ScanLoad.Loaded(scan, personal, cachedComparison, pairs, alternative, scoreDelta, scoreHistory))
+        emit(ScanLoad.Loaded(scan, personal, cachedComparison, pairs, alternative, scoreDelta, scoreHistory, recall))
     }
 }

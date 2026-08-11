@@ -188,6 +188,7 @@ fun ResultScreen(
                 language          = language.value,
                 scoreDelta        = s.scoreDelta,
                 scoreHistory      = s.scoreHistory,
+                recall            = s.recall,
                 priceEntries      = priceEntries.value,
                 currencySymbol    = currencySymbol.value,
                 // Nutritionist-delivery audit: the ranked "what's costing the
