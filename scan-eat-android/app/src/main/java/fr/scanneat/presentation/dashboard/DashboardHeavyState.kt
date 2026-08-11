@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.dashboard
 
+import fr.scanneat.data.repository.health.ActivityEntry
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
@@ -34,7 +35,7 @@ internal suspend fun buildHeavyDashboardState(
     activityRepo: ActivityRepository,
     fastingRepo: FastingRepository,
     hydrationRepo: HydrationRepository,
-    hadOutdoorActivity: Boolean,
+    todayActivity: List<ActivityEntry>,
     profileId: String = "default",
 ): DashboardUiState {
     // WeeklyBarsCard/gap engines below all read targets.kcal directly, but
@@ -64,15 +65,17 @@ internal suspend fun buildHeavyDashboardState(
         weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
     else WeightForecast.InsufficientData
     // User-requested: an outdoor activity is a real (if rough) vitamin D source
-    // via sun exposure - see VITD_OUTDOOR_UG's own doc comment. [hadOutdoorActivity]
+    // via sun exposure - see VITD_OUTDOOR_UG's own doc comment. [todayActivity]
     // now comes in as a param, computed by the caller from a reactive
     // ActivityRepository Flow rather than fetched here as a one-shot read - this
     // suspend function's own inputs (todayData, allEntries, profile, bioProfile)
     // were already the combine()'s recompute triggers, but activityRepo wasn't
     // one of them, so logging a new outdoor activity never actually re-ran this
     // function; the credit only appeared next time some other input happened to
-    // change (e.g. logging food).
-    val totalsWithOutdoorVitD = todayData.totals.withOutdoorVitD(hadOutdoorActivity)
+    // change (e.g. logging food). Also doubles as the source for exerciseKcal/
+    // extraExerciseKcal below, replacing a second, separate activityRepo
+    // subscription DashboardViewModel previously needed just for that.
+    val totalsWithOutdoorVitD = todayData.totals.withOutdoorVitD(todayActivity.any { it.wasOutdoors })
     val gaps = if (targets != null && todayData.entries.isNotEmpty())
         closeTheGap(totalsWithOutdoorVitD, targets, foodDb)
     else emptyList()
@@ -114,12 +117,23 @@ internal suspend fun buildHeavyDashboardState(
         weeklyHydrationAdherencePct = weeklyHydrationAdherencePct,
     )
 
+    // User-requested: are logged activities connected to metabolism? Previously
+    // no - exerciseKcal was purely informational (see CalorieBalance's own
+    // prior doc comment on why: double-counting risk against the declared PAL
+    // already baked into tdee). extraExerciseKcal() closes that gap the way
+    // the user asked - only the excess beyond what the declared activity
+    // level already implies for a typical day is added to today's budget, see
+    // its own doc comment for the full rationale.
+    val exerciseKcalToday = todayActivity.sumOf { it.kcalBurned }
+    val extraKcal = extraExerciseKcal(profile.activityLevel, exerciseKcalToday)
     val calorieBalance = targets?.kcal?.let {
         CalorieBalance(
             kcalIn          = todayData.totals.energyKcal,
             tdee            = it,
             tdeeFromBiolism = bioTdeePreview != null,
-            net             = todayData.totals.energyKcal - it,
+            net             = todayData.totals.energyKcal - it - extraKcal,
+            exerciseKcal    = exerciseKcalToday,
+            extraExerciseKcal = extraKcal,
         )
     }
 

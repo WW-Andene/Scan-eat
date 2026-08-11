@@ -121,8 +121,13 @@ class DashboardViewModel @Inject constructor(
             // credit (see VITD_OUTDOOR_UG) only appeared next time some other
             // input happened to change. Chained here (already at the 5-flow
             // combine()'s typed-overload limit above) the same way customFoods was.
-            .combine(activityRepo.observeByDate(date, id)) { pair, activity -> pair to activity.any { it.wasOutdoors } }
-            .flatMapLatest { (pair, hadOutdoorActivity) ->
+            // Threaded through as the full list (not reduced to a wasOutdoors
+            // boolean) so buildHeavyDashboardState can also derive
+            // exerciseKcal/extraExerciseKcal from it - previously a second,
+            // separate activityRepo.observeByDate subscription down in `state`
+            // existed purely for that, now redundant and removed.
+            .combine(activityRepo.observeByDate(date, id)) { pair, activity -> pair to activity }
+            .flatMapLatest { (pair, todayActivity) ->
                 val (quad, customFoods) = pair
                 val (todayData, allEntries, profile, bioProfile) = quad
                 val foodDb = FOOD_DB + customFoods
@@ -148,7 +153,7 @@ class DashboardViewModel @Inject constructor(
                             activityRepo = activityRepo,
                             fastingRepo = fastingRepo,
                             hydrationRepo = hydrationRepo,
-                            hadOutdoorActivity = hadOutdoorActivity,
+                            todayActivity = todayActivity,
                             profileId = id,
                         )
                     )
@@ -159,8 +164,8 @@ class DashboardViewModel @Inject constructor(
 
     val state: StateFlow<DashboardUiState> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
         combine(
-            heavyState, scanRepo.observeHistory(limit = 20, profileId = id), activityRepo.observeByDate(date, id),
-        ) { s, scans, activity ->
+            heavyState, scanRepo.observeHistory(limit = 20, profileId = id),
+        ) { s, scans ->
             // In-memory only, both lists already loaded for other purposes above - no
             // new DB query. Matched by the same "barcode when present, else lowercased
             // name" identity ScanRepository.matchKeyFor uses internally for its own
@@ -172,11 +177,11 @@ class DashboardViewModel @Inject constructor(
                 Instant.ofEpochMilli(scan.scannedAt).atZone(ZoneId.systemDefault()).toLocalDate() == date &&
                     scan.matchKey() !in loggedToday
             }
-            s.copy(
-                recentScans      = scans,
-                neverLoggedScans = neverLogged,
-                calorieBalance   = s.calorieBalance?.copy(exerciseKcal = activity.sumOf { it.kcalBurned }),
-            )
+            // calorieBalance.exerciseKcal/extraExerciseKcal now come straight from
+            // heavyState itself (see DashboardHeavyState's own doc comment) - this
+            // combine previously re-subscribed to activityRepo.observeByDate a
+            // second time purely to patch exerciseKcal on afterward.
+            s.copy(recentScans = scans, neverLoggedScans = neverLogged)
         }
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())

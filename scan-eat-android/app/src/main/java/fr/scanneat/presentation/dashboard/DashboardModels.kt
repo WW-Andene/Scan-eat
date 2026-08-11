@@ -18,14 +18,18 @@ data class CalorieBalance(
     val tdee: Double,
     val tdeeFromBiolism: Boolean,
     val net: Double,
-    // Logged Activité kcal for today — previously computed and stored
-    // (ActivityRepository.dailyBurned) but never read anywhere near the
-    // Dashboard, so a logged workout had zero visible effect on the day's
-    // calorie readout. Kept informational rather than folded into tdee/net:
-    // Biolism's TDEE is already computed off a general PAL/activity-level
-    // input, so silently adding logged-workout kcal on top risks double-
-    // counting the same activity twice rather than showing something new.
+    // Logged Activité kcal for today — informational total shown regardless
+    // of whether any of it was credited to [net] (see [extraExerciseKcal]).
     val exerciseKcal: Int = 0,
+    // User-requested: connect logged activity to the actual calorie budget,
+    // not just show it informationally - the declared activityLevel's PAL
+    // already assumes some regular exercise, so naively adding all of
+    // exerciseKcal on top would double-count it. Only the excess beyond what
+    // that PAL tier already implies for a typical day (see
+    // domain/engine/dashboard/ActivityMetabolismLink.kt's extraExerciseKcal())
+    // is folded into [net] - a normal training day for a "very active" user
+    // contributes nothing extra, but an exceptional one still does.
+    val extraExerciseKcal: Int = 0,
 )
 
 /**

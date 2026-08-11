@@ -151,7 +151,13 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 )
                 Text(stringResource(statusRes), style = MaterialTheme.typography.labelSmall, color = balColor, fontWeight = FontWeight.SemiBold)
 
-                val pct = (balance.kcalIn / balance.tdee).toFloat().coerceIn(0f, 1.2f)
+                // Budget for both the bar and the "in/out" text below must match what
+                // balance.net (driving isSurplus/isDeficit/balColor above) actually used -
+                // net already includes extraExerciseKcal, so a plain balance.tdee
+                // denominator here could show the bar over 100% while the headline
+                // status/color says "deficit", the exact inconsistency this avoids.
+                val effectiveTdee = balance.tdee + balance.extraExerciseKcal
+                val pct = (balance.kcalIn / effectiveTdee).toFloat().coerceIn(0f, 1.2f)
                 LinearProgressIndicator(
                     progress   = { pct.coerceIn(0f, 1f) },
                     modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
@@ -159,7 +165,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                     trackColor = SurfaceVariant.copy(alpha = 0.3f),
                 )
                 Text(
-                    stringResource(R.string.dashboard_calorie_in_out, balance.kcalIn.roundToInt(), balance.tdee.roundToInt()),
+                    stringResource(R.string.dashboard_calorie_in_out, balance.kcalIn.roundToInt(), effectiveTdee.roundToInt()),
                     style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
                 )
                 // longestLogStreak() (the all-time record) was computed but never shown
@@ -178,6 +184,16 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                     Text(
                         stringResource(R.string.dashboard_calorie_exercise, balance.exerciseKcal),
                         style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f),
+                    )
+                }
+                // User-requested: is logged activity actually connected to the calorie
+                // budget, or just shown as an info line? Now the former (see
+                // extraExerciseKcal's own doc comment) - surfaced explicitly so the
+                // budget increase this drives isn't a silent, unexplained number change.
+                if (balance.extraExerciseKcal > 0) {
+                    Text(
+                        stringResource(R.string.dashboard_calorie_extra_budget, balance.extraExerciseKcal),
+                        style = MaterialTheme.typography.labelSmall, color = semanticAmber(),
                     )
                 }
                 }
