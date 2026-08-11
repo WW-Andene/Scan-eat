@@ -139,7 +139,13 @@ fun AppNavGraph(
                 pendingTab = backStackEntry.savedStateHandle.get<String>("diary_selected_tab"),
                 onPendingTabConsumed = { backStackEntry.savedStateHandle.remove<String>("diary_selected_tab") },
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
+                onScanReceipt = { navController.navigate(AppRoutes.RECEIPT_SCAN) },
             )
+        }
+        // User-requested: photograph a receipt straight from Dépenses instead of
+        // typing each line by hand - see ReceiptScanScreen's own doc comment.
+        composable(AppRoutes.RECEIPT_SCAN) {
+            fr.scanneat.presentation.expenses.ReceiptScanScreen(onBack = { navController.popBackStack() })
         }
 
         composable(TopTab.Dashboard.route) {

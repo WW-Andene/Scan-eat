@@ -47,6 +47,10 @@ fun ExpensesScreen(
     embeddedBottomPadding: Dp = 0.dp,
     embeddedTopPadding: Dp = 0.dp,
     onOpenCalendar: () -> Unit = {},
+    // User-requested: photograph a receipt and pull out its (name, price)
+    // lines instead of typing each one by hand - see ReceiptScanScreen's own
+    // doc comment.
+    onScanReceipt: () -> Unit = {},
 ) {
     val entries = viewModel.entries.collectAsStateWithLifecycle()
     val lowStockItems = viewModel.lowStockItems.collectAsStateWithLifecycle()
@@ -160,6 +164,9 @@ fun ExpensesScreen(
                         // see SettingsViewModel.preparePricesCsvExport) - a user
                         // reviewing their spending here is the one most likely to
                         // want to export it on the spot.
+                        IconButton(onClick = onScanReceipt) {
+                            Icon(TablerIcons.FileInvoice, stringResource(R.string.receipt_scan_cd), tint = AccentCoral)
+                        }
                         IconButton(onClick = { viewModel.prepareCsvExport() }, enabled = entries.value.isNotEmpty()) {
                             Icon(Icons.Rounded.Download, stringResource(R.string.expenses_export_csv), tint = OnSurface.copy(0.5f))
                         }

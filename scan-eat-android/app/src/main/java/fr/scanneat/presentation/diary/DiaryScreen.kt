@@ -65,6 +65,9 @@ fun DiaryScreen(
     // dialog, with no way to see the product's Result screen. See
     // MealsTab/DiaryEntryCard's own doc comments for the resolution logic.
     onOpenResult: (Long) -> Unit = {},
+    // User-requested: photograph a receipt from Dépenses - see
+    // AppRoutes.RECEIPT_SCAN's own comment.
+    onScanReceipt: () -> Unit = {},
 ) {
     var activeTab by rememberSaveable(stateSaver = DiaryTabSaver) { mutableStateOf(DiaryTab.MEALS) }
     var showAddEntry by remember { mutableStateOf(false) }
@@ -144,7 +147,7 @@ fun DiaryScreen(
                 DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                DiaryTab.EXPENSES -> ExpensesScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.EXPENSES -> ExpensesScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar, onScanReceipt = onScanReceipt)
             }
         }
 

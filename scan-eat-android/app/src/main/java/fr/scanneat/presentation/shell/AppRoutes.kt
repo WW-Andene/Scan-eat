@@ -30,6 +30,7 @@ object AppRoutes {
     // ever pushed from GROCERY (see AppNavGraph's own comment on that route),
     // not reachable standalone.
     const val SCAN_FOR_GROCERY = "scan_for_grocery"
+    const val RECEIPT_SCAN = "receipt_scan"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }
