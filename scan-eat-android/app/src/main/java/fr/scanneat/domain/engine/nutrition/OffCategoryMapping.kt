@@ -24,7 +24,14 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
     return when {
         "yogurt" in tag || "yaourt" in tag || "skyr" in tag -> ProductCategory.YOGURT
         "sandwich" in tag || "burger" in tag -> ProductCategory.SANDWICH
-        "cheese" in tag || "fromage" in tag -> ProductCategory.CHEESE
+        // Same substring-match bug as meat/fish-alternatives below: OFF tags
+        // vegan cheese as "en:cheese-substitutes" (confirmed via live OFF
+        // data alongside "en:dairy-substitutes"/"en:vegan-products", e.g.
+        // "Vegan feta cheese"), which contains "cheese" as a raw substring -
+        // scored against real dairy cheese's protein (15-25g/100g) and
+        // sat-fat (12-30g/100g) thresholds, tuned for actual cheese, not a
+        // cashew/coconut-oil-based substitute with a very different profile.
+        ("cheese" in tag || "fromage" in tag) && "cheese-substitute" !in tag -> ProductCategory.CHEESE
         "cereal" in tag || "cereale" in tag || "granola" in tag -> ProductCategory.BREAKFAST_CEREAL
         "bread" in tag || "pain" in tag -> ProductCategory.BREAD
         "processed-meat" in tag || "charcuterie" in tag || "saucisson" in tag -> ProductCategory.PROCESSED_MEAT
