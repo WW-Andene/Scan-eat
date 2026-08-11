@@ -23,6 +23,12 @@ class WeightViewModel @Inject constructor(
     private val repo: WeightRepository,
     private val prefs: UserPreferences,
 ) : ViewModel() {
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real. Declared before init below so the
+    // Health Connect sync call can read its value.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
     init {
         // Sync was previously write-only (log() mirrors into Health Connect, but
         // nothing ever read external data back) — a smart scale writing its own
@@ -35,13 +41,16 @@ class WeightViewModel @Inject constructor(
         // DataStore write in this ViewModel layer. Background best-effort sync
         // with nothing for the user to retry, so failures are swallowed rather
         // than surfaced as an error snackbar.
-        viewModelScope.launch { runCatching { repo.syncFromHealthConnect() }.onFailure { e -> if (e is CancellationException) throw e } }
+        //
+        // Previously called with no profileId, silently defaulting to
+        // syncFromHealthConnect's profileId = "default" - the 4th instance this
+        // session of the same bug pattern found in Biolism/TodayWidget/
+        // ActivityViewModel: every Health Connect weigh-in got permanently
+        // misfiled to the "default" profile regardless of which was active.
+        // HydrationViewModel/ActivityViewModel's identical init calls already
+        // thread activeProfileId.value through correctly - mirrored here.
+        viewModelScope.launch { runCatching { repo.syncFromHealthConnect(profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e } }
     }
-
-    // R&D audit finding, phase 2: profileId was dead scaffolding until
-    // multi-profile support made it real.
-    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
 
     val entries: StateFlow<List<WeightEntry>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
