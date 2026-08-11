@@ -1604,6 +1604,7 @@
     <string name="hint_section_risks">Points de vigilance</string>
     <string name="hint_section_condition_risks">Risque lié à votre profil</string>
     <string name="hint_section_medication_risks">Risque lié à vos médicaments</string>
+    <string name="dashboard_safety_center_title">Centre de vigilance (%1$d)</string>
     <string name="hint_section_pair_well">S\'associe bien avec</string>
     <string name="hint_section_avoid_pairing">À éviter en association</string>
     <string name="hint_section_facts">Le saviez-vous ?</string>

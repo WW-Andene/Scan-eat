@@ -45,24 +45,30 @@ internal fun MedicationStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
     }
 }
 
+/** Extracted so other surfaces (e.g. Dashboard's safety center) can build the
+ *  same label without duplicating the when-branch or re-implementing the
+ *  whole banner. */
+@Composable
+internal fun interactionWarningLabel(warning: InteractionWarning): String = when (warning) {
+    is InteractionWarning.GroupDuplicate -> {
+        val groupLabel = when (warning.group) {
+            DrugGroup.ANTICOAGULANTS -> stringResource(R.string.medication_group_anticoagulants)
+            DrugGroup.ANTIPLATELETS  -> stringResource(R.string.medication_group_antiplatelets)
+            DrugGroup.NSAIDS         -> stringResource(R.string.medication_group_nsaids)
+            DrugGroup.SSRI_SNRI      -> stringResource(R.string.medication_group_ssri_snri)
+            DrugGroup.MAOI           -> stringResource(R.string.medication_group_maoi)
+        }
+        stringResource(R.string.medication_interaction_group_dup, groupLabel)
+    }
+    is InteractionWarning.AnticoagNsaid -> stringResource(R.string.medication_interaction_anticoag_nsaid)
+    is InteractionWarning.SsriMaoi      -> stringResource(R.string.medication_interaction_ssri_maoi)
+    is InteractionWarning.AnticoagAntiplatelet -> stringResource(R.string.medication_interaction_anticoag_antiplatelet)
+    is InteractionWarning.NsaidAntiplatelet -> stringResource(R.string.medication_interaction_nsaid_antiplatelet)
+}
+
 @Composable
 internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
-    val message = when (warning) {
-        is InteractionWarning.GroupDuplicate -> {
-            val groupLabel = when (warning.group) {
-                DrugGroup.ANTICOAGULANTS -> stringResource(R.string.medication_group_anticoagulants)
-                DrugGroup.ANTIPLATELETS  -> stringResource(R.string.medication_group_antiplatelets)
-                DrugGroup.NSAIDS         -> stringResource(R.string.medication_group_nsaids)
-                DrugGroup.SSRI_SNRI      -> stringResource(R.string.medication_group_ssri_snri)
-                DrugGroup.MAOI           -> stringResource(R.string.medication_group_maoi)
-            }
-            stringResource(R.string.medication_interaction_group_dup, groupLabel)
-        }
-        is InteractionWarning.AnticoagNsaid -> stringResource(R.string.medication_interaction_anticoag_nsaid)
-        is InteractionWarning.SsriMaoi      -> stringResource(R.string.medication_interaction_ssri_maoi)
-        is InteractionWarning.AnticoagAntiplatelet -> stringResource(R.string.medication_interaction_anticoag_antiplatelet)
-        is InteractionWarning.NsaidAntiplatelet -> stringResource(R.string.medication_interaction_nsaid_antiplatelet)
-    }
+    val message = interactionWarningLabel(warning)
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f),
         modifier = Modifier.fillMaxWidth()

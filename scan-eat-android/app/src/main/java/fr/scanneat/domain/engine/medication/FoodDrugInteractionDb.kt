@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.medication
 
 import fr.scanneat.domain.engine.scoring.normalizeForMatching
+import fr.scanneat.domain.model.Ingredient
 import fr.scanneat.domain.model.Product
 
 /**
@@ -70,16 +71,25 @@ private val FOOD_CAUTIONS: List<FoodCaution> = listOf(
     ),
 ).map { it.copy(foodKeywords = it.foodKeywords.map(::normalizeForMatching)) }
 
-fun checkFoodDrugInteractions(product: Product, activeMedicationNames: Set<String>, lang: String): List<String> {
+/**
+ * Name+ingredients rather than a full [Product] - lets a call site that only
+ * has a lighter-weight shape (e.g. a logged DiaryEntry, or a Pantry row) run
+ * this check without constructing a throwaway Product just to satisfy the
+ * signature. [Product]'s own convenience overload below delegates here.
+ */
+fun checkFoodDrugInteractions(name: String, ingredients: List<Ingredient>, activeMedicationNames: Set<String>, lang: String): List<String> {
     if (activeMedicationNames.isEmpty()) return emptyList()
     val normalizedMedNames = activeMedicationNames.map(::normalizeForMatching)
     val activeDrugClasses = DRUG_KEYWORD_GROUPS
-        .filter { group -> normalizedMedNames.any { name -> group.keywords.any { name.contains(it) } } }
+        .filter { group -> normalizedMedNames.any { medName -> group.keywords.any { medName.contains(it) } } }
         .map { it.drugClass }
         .toSet()
     if (activeDrugClasses.isEmpty()) return emptyList()
-    val haystack = normalizeForMatching(product.name + " " + product.ingredients.joinToString(" ") { it.name })
+    val haystack = normalizeForMatching(name + " " + ingredients.joinToString(" ") { it.name })
     return FOOD_CAUTIONS
         .filter { it.drugClass in activeDrugClasses && it.foodKeywords.any { kw -> haystack.contains(kw) } }
         .map { if (lang == "en") it.cautionEn else it.cautionFr }
 }
+
+fun checkFoodDrugInteractions(product: Product, activeMedicationNames: Set<String>, lang: String): List<String> =
+    checkFoodDrugInteractions(product.name, product.ingredients, activeMedicationNames, lang)

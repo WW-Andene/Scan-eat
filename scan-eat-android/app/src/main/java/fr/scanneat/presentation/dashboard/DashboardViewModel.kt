@@ -223,6 +223,49 @@ class DashboardViewModel @Inject constructor(
         }.toMap()
     } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    /** Intermediate holder for [safetyWarnings]' first 5-way combine - same
+     *  "Kotlin's typed combine() tops out at 5" constraint [OtherTrackersInputs]
+     *  below works around, one more flow (language) is chained afterward. */
+    private data class SafetyInputs(
+        val todayActivity: List<fr.scanneat.data.repository.health.ActivityEntry>,
+        val hydrationMl: Int,
+        val meds: List<fr.scanneat.data.repository.health.Medication>,
+        val dailySummary: fr.scanneat.domain.model.DailySummary,
+        val profile: fr.scanneat.domain.model.Profile,
+    )
+
+    // User-requested "centre de vigilance": the activity-overtraining,
+    // hydration-overconsumption, medication drug-drug, and medication-food
+    // caution systems built this session each only ever surfaced on their own
+    // tab or scan sheet - see DashboardSafetyCenter.kt's own doc comment.
+    val safetyWarnings: StateFlow<List<DashboardSafetyWarning>> =
+        combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
+            combine(
+                activityRepo.observeByDate(date, id),
+                hydrationRepo.observe(date, id),
+                medicationRepo.observeAll(id),
+                consumptionRepo.observeDay(date, id),
+                prefs.profile,
+            ) { todayActivity, hydrationMl, meds, dailySummary, profile ->
+                SafetyInputs(todayActivity, hydrationMl, meds, dailySummary, profile)
+            }.combine(language) { inputs, lang -> inputs to lang }
+        }.map { (inputs, lang) ->
+            val activeMedNames = inputs.meds.filter { it.active }.map { it.name }
+            val hydrationGoal = hydrationRepo.goalMl(
+                inputs.profile.sex, inputs.profile.activityLevel, inputs.profile.healthConditions,
+                inputs.todayActivity.sumOf { it.minutes }, inputs.profile.weightKg,
+            )
+            buildDashboardSafetyWarnings(
+                todayActivity = inputs.todayActivity,
+                profile = inputs.profile,
+                activeMedicationNames = activeMedNames,
+                hydrationMl = inputs.hydrationMl,
+                hydrationGoalMl = hydrationGoal,
+                todayDiaryEntries = inputs.dailySummary.entries,
+                lang = lang,
+            )
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     /**
      * Average nutrition-quality score across the last 7 days of scans - see
      * [WeeklyScoreSummary]'s own doc comment for why this didn't exist before.

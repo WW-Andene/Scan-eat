@@ -86,6 +86,7 @@ fun DashboardScreen(
     val gapLoggedName = viewModel.gapLoggedName.collectAsStateWithLifecycle()
     val weeklyValueScoreCounts = viewModel.weeklyValueScoreCounts.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val safetyWarnings = viewModel.safetyWarnings.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var loggingScan by remember { mutableStateOf<ScanResult?>(null) }
     // User-reported: tapping a GapCloser/ChronicGap suggestion chip logged it to the
@@ -132,6 +133,13 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
+
+            // ---- User-requested "centre de vigilance" - every safety caution built
+            // this session, consolidated - see SafetyCenterCard's own doc comment on
+            // why this sits ahead of even the calorie hero card: top priority. ----
+            if (safetyWarnings.value.isNotEmpty()) {
+                item { SafetyCenterCard(safetyWarnings.value) }
+            }
 
             // ---- Caloric balance — the hero card, streak badge overlapping its corner ----
             s.calorieBalance?.let { item { CalorieBalanceCard(it, streak = s.streak, longestStreak = s.longestStreak) } }

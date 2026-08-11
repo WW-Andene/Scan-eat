@@ -1542,6 +1542,7 @@
     <string name="hint_section_risks">Points of caution</string>
     <string name="hint_section_condition_risks">Risk linked to your profile</string>
     <string name="hint_section_medication_risks">Risk linked to your medications</string>
+    <string name="dashboard_safety_center_title">Safety center (%1$d)</string>
     <string name="hint_section_pair_well">Pairs well with</string>
     <string name="hint_section_avoid_pairing">Avoid pairing with</string>
     <string name="hint_section_facts">Did you know?</string>
