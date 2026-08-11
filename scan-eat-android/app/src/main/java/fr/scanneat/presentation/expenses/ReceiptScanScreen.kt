@@ -160,31 +160,52 @@ private fun ReceiptReviewList(lines: List<ReceiptReviewLine>, onBack: () -> Unit
         }
         LazyColumn(modifier = Modifier.weight(1f).padding(horizontal = Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             items(lines, key = { it.id }) { line ->
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(checked = line.included, onCheckedChange = { viewModel.toggleIncluded(line.id) }, colors = CheckboxDefaults.colors(checkedColor = AccentCoral))
-                    Column(Modifier.weight(1f)) {
+                Column(Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = line.included, onCheckedChange = { viewModel.toggleIncluded(line.id) }, colors = CheckboxDefaults.colors(checkedColor = AccentCoral))
+                        Column(Modifier.weight(1f)) {
+                            OutlinedTextField(
+                                value = line.name,
+                                onValueChange = { viewModel.updateLine(line.id, it, line.priceEuros) },
+                                singleLine = true,
+                                textStyle = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            if (line.matched) {
+                                Text(stringResource(R.string.receipt_scan_matched), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                            }
+                        }
+                        Spacer(Modifier.width(Spacing.S))
                         OutlinedTextField(
-                            value = line.name,
-                            onValueChange = { viewModel.updateLine(line.id, it, line.priceEuros) },
+                            value = "%.2f".format(line.priceEuros),
+                            onValueChange = { it.replace(',', '.').toDoubleOrNull()?.let { p -> viewModel.updateLine(line.id, line.name, p) } },
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.width(84.dp),
                         )
-                        if (line.matched) {
-                            Text(stringResource(R.string.receipt_scan_matched), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                    }
+                    // User-requested: when a line doesn't exactly match a known
+                    // product, offer suppositions from price history to pick
+                    // from instead of leaving the OCR'd spelling as-is - see
+                    // ReceiptScanViewModel.suggestionsFor's own doc comment.
+                    // Never applied automatically, and offset past the
+                    // checkbox column so it visually belongs to the name field.
+                    if (line.suggestions.isNotEmpty()) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(start = 48.dp, top = Spacing.XS),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                        ) {
+                            line.suggestions.forEach { suggestion ->
+                                AssistChip(
+                                    onClick = { viewModel.applySuggestion(line.id, suggestion) },
+                                    label = { Text(suggestion, style = MaterialTheme.typography.labelSmall) },
+                                )
+                            }
                         }
                     }
-                    Spacer(Modifier.width(Spacing.S))
-                    OutlinedTextField(
-                        value = "%.2f".format(line.priceEuros),
-                        onValueChange = { it.replace(',', '.').toDoubleOrNull()?.let { p -> viewModel.updateLine(line.id, line.name, p) } },
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.width(84.dp),
-                    )
                 }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }

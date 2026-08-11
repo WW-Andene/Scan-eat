@@ -35,8 +35,45 @@ data class ReceiptReviewLine(
     // small badge in the review UI) - matching or not, the line still logs
     // under its own OCR'd name either way.
     val matched: Boolean,
+    // User-requested: when [matched] is false, up to 3 product names from
+    // this profile's own price history that could plausibly be the same
+    // product under a different spelling (whole-word overlap either
+    // direction, see suggestionsFor()) - a supposition offered to pick from,
+    // never applied automatically. Empty when matched (nothing to suggest)
+    // or when nothing plausible was found.
+    val suggestions: List<String> = emptyList(),
     val included: Boolean = true,
 )
+
+/** Whole-word containment on normalizeKey()'d strings - same guard GroceryViewModel's
+ *  containsWholeWord uses so "riz" doesn't match inside "chorizo". */
+private fun containsWholeWord(haystack: String, needle: String): Boolean {
+    if (needle.isBlank()) return false
+    return Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(haystack)
+}
+
+/**
+ * Up to 3 known product names that share at least one whole word with
+ * [ocrName] (either direction - a receipt line "PETIT NAVIRE THON" should
+ * surface a logged "Thon albacore Petit Navire", and vice versa), ranked by
+ * the length of the longest shared word (a longer overlap is a stronger
+ * signal than a short common word like "lait" alone). This is a supposition
+ * shown for the user to confirm or dismiss - never applied automatically.
+ */
+private fun suggestionsFor(ocrName: String, knownNames: List<String>): List<String> {
+    val ocrKey = normalizeKey(ocrName)
+    val ocrWords = ocrKey.split(Regex("[^a-z0-9]+")).filter { it.length >= 3 }
+    if (ocrWords.isEmpty()) return emptyList()
+    return knownNames
+        .mapNotNull { known ->
+            val knownKey = normalizeKey(known)
+            val bestSharedWordLen = ocrWords.filter { containsWholeWord(knownKey, it) }.maxOfOrNull { it.length } ?: 0
+            if (bestSharedWordLen == 0) null else known to bestSharedWordLen
+        }
+        .sortedByDescending { it.second }
+        .map { it.first }
+        .take(3)
+}
 
 sealed interface ReceiptScanState {
     data object Idle : ReceiptScanState
@@ -75,14 +112,19 @@ class ReceiptScanViewModel @Inject constructor(
                         .addOnFailureListener { cont.resumeWithException(it) }
                 }
                 val parsed = parseReceiptLines(visionText)
-                val knownKeys = priceRepo.observeAll(activeProfileId.value).first()
-                    .map { normalizeKey(it.productName) }.toSet()
+                // Distinct raw names (not just keys) - suggestions need the original
+                // display spelling to show/apply, the normalized key is only used to compare.
+                val knownNames = priceRepo.observeAll(activeProfileId.value).first()
+                    .map { it.productName }.distinctBy { normalizeKey(it) }
+                val knownKeys = knownNames.map { normalizeKey(it) }.toSet()
                 parsed.map { line ->
+                    val exactMatch = normalizeKey(line.rawName) in knownKeys
                     ReceiptReviewLine(
                         id = UUID.randomUUID().toString(),
                         name = line.rawName,
                         priceEuros = line.priceEuros,
-                        matched = normalizeKey(line.rawName) in knownKeys,
+                        matched = exactMatch,
+                        suggestions = if (exactMatch) emptyList() else suggestionsFor(line.rawName, knownNames),
                     )
                 }
             }.onSuccess { lines ->
@@ -92,6 +134,13 @@ class ReceiptScanViewModel @Inject constructor(
                 _state.value = ReceiptScanState.Error
             }
         }
+    }
+
+    fun applySuggestion(id: String, suggestion: String) {
+        val current = _state.value as? ReceiptScanState.Review ?: return
+        _state.value = current.copy(lines = current.lines.map {
+            if (it.id == id) it.copy(name = suggestion, matched = true, suggestions = emptyList()) else it
+        })
     }
 
     fun updateLine(id: String, name: String, priceEuros: Double) {
