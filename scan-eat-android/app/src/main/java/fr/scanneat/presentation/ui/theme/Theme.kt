@@ -163,25 +163,41 @@ private val LowContrastColors = darkColorScheme(
 // keeps OLED's background pure black even with an accent selected, but still
 // applies the accent's own richer surface/surfaceVariant (cards, chrome) -
 // every other base theme gets the accent's background too.
+// [outline] added alongside the original 6 fields — every accent previously
+// left `outline` (card/divider/outlined-field borders) on the base theme's
+// own neutral warm-gray value (Dark's 0xFF4E4A56, OLED's 0xFF2E2A30), the
+// one visible surface this system never re-tinted. Selecting Matcha/Lavande/
+// Sunflower/Lazulite colored the fills but every border in the app stayed
+// the same flat gray regardless of accent - the one seam that gave the
+// whole treatment away as "background + buttons recolored" rather than a
+// genuinely cohesive palette. Each value below is a mid-tone step between
+// that accent's own surface and surfaceVariant, hue-matched to primary
+// rather than desaturated, at roughly the same luminance as Dark's own
+// outline so contrast against text/borders doesn't regress.
 private data class ColorAccent(
     val primary: Color, val secondary: Color, val tertiary: Color,
     val background: Color, val surface: Color, val surfaceVariant: Color,
+    val outline: Color,
 )
 private val MatchaAccent = ColorAccent(
     primary = Color(0xFF9BC53D), secondary = Color(0xFFD8CB7A), tertiary = Color(0xFF4E7A51),
     background = Color(0xFF10130E), surface = Color(0xFF1C2117), surfaceVariant = Color(0xFF313A2A),
+    outline = Color(0xFF4C5A3E),
 )
 private val LavandeAccent = ColorAccent(
     primary = Color(0xFFB39DDB), secondary = Color(0xFFCE93D8), tertiary = Color(0xFF7986CB),
     background = Color(0xFF120F16), surface = Color(0xFF201B26), surfaceVariant = Color(0xFF362E40),
+    outline = Color(0xFF4E4560),
 )
 private val SunflowerAccent = ColorAccent(
     primary = Color(0xFFFFC940), secondary = Color(0xFFFF9E40), tertiary = Color(0xFFE0A800),
     background = Color(0xFF141008), surface = Color(0xFF231C10), surfaceVariant = Color(0xFF423420),
+    outline = Color(0xFF5C4A2E),
 )
 private val LazuliteAccent = ColorAccent(
     primary = Color(0xFF4C82E0), secondary = Color(0xFF6FA8DC), tertiary = Color(0xFFC9A84C),
     background = Color(0xFF0A0F16), surface = Color(0xFF161F2B), surfaceVariant = Color(0xFF283246),
+    outline = Color(0xFF3C4A60),
 )
 
 // ── Gold accent override ──────────────────────────────────────────────────────
@@ -322,7 +338,7 @@ fun ScanEatTheme(
         if (resolvedTheme == "oled") {
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
-                surface = accent.surface, surfaceVariant = accent.surfaceVariant,
+                surface = accent.surface, surfaceVariant = accent.surfaceVariant, outline = accent.outline,
             )
         } else if (resolvedTheme == "light" || resolvedTheme == "low_contrast") {
             baseColorScheme.copy(
@@ -332,6 +348,7 @@ fun ScanEatTheme(
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
                 background = accent.background, surface = accent.surface, surfaceVariant = accent.surfaceVariant,
+                outline = accent.outline,
             )
         }
     } else baseColorScheme
