@@ -150,7 +150,13 @@ fun getThresholds(cat: ProductCategory): CategoryThresholds =
 // ============================================================================
 
 private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
-    Regex("""eau\b|water\b|spring water|eau de source|eau min[eé]rale|eau gaz[eé]use""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_WATER,
+    // §A5-audit finding: plain "eau\b" matched inside "eau de vie" (a fruit
+    // brandy, ~40% ABV, ~250kcal/100ml) via first-match-wins, since this
+    // pattern runs before ALCOHOLIC_BEVERAGE further down - misclassifying a
+    // real spirit as water and scoring it against near-zero-kcal thresholds.
+    // Excluded via negative lookahead rather than reordering the whole list,
+    // since "eau" alone is otherwise a safe, common water-product signal.
+    Regex("""eau\b(?!\s*de\s*vie)|water\b|spring water|eau de source|eau min[eé]rale|eau gaz[eé]use""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_WATER,
     Regex("""\bjus\b|\bjuice\b|\bnectar\b|smoothie|fruit drink""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_JUICE,
     Regex("""\bbi[eè]res?\b|\bbeers?\b|\bvins?\b|\bwines?\b|\bcidres?\b|\bciders?\b|champagne|\bwhisky\b|\bwhiskey\b|\bvodka\b|\bgin\b|\brhum\b|\brum\b|\bcognac\b|\barmagnac\b|\bcalvados\b|\bporto\b|\bliqueurs?\b|spiritueux|\bp[aâ]stis\b|\btequila\b|\bmojito\b|hard seltzer""", RegexOption.IGNORE_CASE) to ProductCategory.ALCOHOLIC_BEVERAGE,
     Regex("""\bsoda\b|\bcola\b|boisson gaz[eé]use|soft drink|\btonic\b|limonade|ice[-\s]?tea|th[eé] glac[eé]|energy drink|red bull|monster""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_SOFT,

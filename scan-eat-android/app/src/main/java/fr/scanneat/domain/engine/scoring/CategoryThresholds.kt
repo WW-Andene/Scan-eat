@@ -170,7 +170,13 @@ fun getThresholds(cat: ProductCategory): CategoryThresholds =
 // ============================================================================
 
 private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
-    Regex("""eau\b|water\b|spring water|eau de source|eau min[eé]rale|eau gaz[eé]use""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_WATER,
+    // §A5-audit finding: plain "eau\b" matched inside "eau de vie" (a fruit
+    // brandy, ~40% ABV, ~250kcal/100ml) via first-match-wins, since this
+    // pattern runs before ALCOHOLIC_BEVERAGE further down - misclassifying a
+    // real spirit as water and scoring it against near-zero-kcal thresholds.
+    // Excluded via negative lookahead rather than reordering the whole list,
+    // since "eau" alone is otherwise a safe, common water-product signal.
+    Regex("""eau\b(?!\s*de\s*vie)|water\b|spring water|eau de source|eau min[eé]rale|eau gaz[eé]use""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_WATER,
     Regex("""\bjus\b|\bjuice\b|\bnectar\b|smoothie|fruit drink""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_JUICE,
     // Checked before BEVERAGE_SOFT below, same reason ALCOHOLIC_BEVERAGE exists
     // at all - a "bière"/"beer"/"vin"/"whisky" name previously fell through to
