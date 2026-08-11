@@ -71,6 +71,17 @@ internal fun ResultContent(
             .padding(horizontal = Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
+        // User-requested: the whole result body reads as one glass panel over
+        // the ambientGloom wash behind it, same standard fill every other
+        // card/popup in the app uses, instead of individual cards floating
+        // loosely over a flat background - this screen is a full page (not a
+        // dialog), so it never got the "glass over blur" treatment dialogs get
+        // for free from glassPopupSurface's own backdrop.
+        ScanEatCard(
+            emphasis = CardEmphasis.HERO,
+            contentPadding = PaddingValues(Spacing.L),
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
+        ) {
         // Product name + source
         Text(audit.productName, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
@@ -188,6 +199,7 @@ internal fun ResultContent(
         val allWarnings = (audit.warnings + scan.warnings).distinct()
         if (allWarnings.isNotEmpty()) {
             WarningsSection(warnings = allWarnings)
+        }
         }
 
         Spacer(Modifier.height(Spacing.XXL))
