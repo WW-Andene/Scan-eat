@@ -90,9 +90,12 @@ class ScanRepository @Inject constructor(
     // ScanHistoryQueries (ScanRepositoryHistory.kt) - each public method
     // below is an unchanged-signature one-line delegate to it, so this
     // class's own public API (and anything mocking it) is unaffected.
-    private val historyQueries = ScanHistoryQueries(dao, scoreHistoryDao, opfApi, offLookup) { entity ->
-        mapScanHistoryEntity(entity, productAdapter, auditAdapter, warningsAdapter)
-    }
+    private val historyQueries = ScanHistoryQueries(
+        dao, scoreHistoryDao, opfApi, offLookup,
+        toDomain = { entity -> mapScanHistoryEntity(entity, productAdapter, auditAdapter, warningsAdapter) },
+        serializeProduct = { productAdapter.toJson(it) },
+        serializeAudit = { auditAdapter.toJson(it) },
+    )
 
     fun observeHistory(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
         historyQueries.observeHistory(limit, profileId)

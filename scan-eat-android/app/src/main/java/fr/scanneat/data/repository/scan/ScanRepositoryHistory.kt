@@ -47,6 +47,9 @@ internal class ScanHistoryQueries(
     private val offLookup: ScanOffLookup,
     /** Delegates back to ScanRepository's own productAdapter/auditAdapter/warningsAdapter - see mapScanHistoryEntity(). */
     private val toDomain: (ScanHistoryEntity) -> ScanResult?,
+    /** Same adapters as [toDomain], serializing the other direction - used to persist a stale rescore, see rescoreStale(). */
+    private val serializeProduct: (fr.scanneat.domain.model.Product) -> String,
+    private val serializeAudit: (fr.scanneat.domain.engine.scoring.ScoreAudit) -> String,
 ) {
     fun observeHistory(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeRecent(profileId = profileId, limit = limit).map { entities ->
@@ -106,12 +109,35 @@ internal class ScanHistoryQueries(
             if (cached.audit.engineVersion != ENGINE_VERSION) cached.copy(audit = scoreProduct(cached.product, lang)) else cached
         }
 
-    /** Used by getById() - see its own doc comment. */
+    /**
+     * Used by getById() - see its own doc comment. Persists the rescored
+     * row back via dao.updateRescored() (own doc comment on that query) so
+     * this only re-hits OFF/rescores once per row per engine bump, not once
+     * per view - a write failure (disk full, etc.) is swallowed rather than
+     * surfaced, since the caller already has a perfectly valid, correctly-
+     * rescored ScanResult in hand either way; only the "don't repeat this
+     * next time" optimization is lost, not the fix itself.
+     */
     private suspend fun rescoreStale(cached: ScanResult, lang: String): ScanResult {
         val refreshedCategory = cached.barcode?.let { offLookup.refreshCategory(it) }
         val product = if (refreshedCategory != null && refreshedCategory != cached.product.category)
             cached.product.copy(category = refreshedCategory) else cached.product
-        return cached.copy(product = product, audit = scoreProduct(product, lang))
+        val rescored = cached.copy(product = product, audit = scoreProduct(product, lang))
+        if (rescored.dbId != 0L) {
+            try {
+                dao.updateRescored(
+                    id          = rescored.dbId,
+                    score       = rescored.audit.score,
+                    grade       = rescored.audit.grade.label,
+                    category    = product.category.key,
+                    productJson = serializeProduct(product),
+                    auditJson   = serializeAudit(rescored.audit),
+                )
+            } catch (e: Exception) {
+                // Best-effort - see this function's own doc comment.
+            }
+        }
+        return rescored
     }
 
     /**

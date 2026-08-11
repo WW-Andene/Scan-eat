@@ -34,6 +34,21 @@ interface ScanHistoryDao {
     @Query("SELECT * FROM scan_history WHERE barcode = :barcode AND profileId = :profileId ORDER BY scannedAt DESC LIMIT 1")
     suspend fun findByBarcode(barcode: String, profileId: String = "default"): ScanHistoryEntity?
 
+    // User-requested follow-up to the ENGINE_VERSION staleness rescore
+    // (ScanRepositoryHistory.getById): without this, a re-derived category/
+    // rescored audit only ever lived in the ScanResult handed back to that
+    // one caller - the underlying row's own engineVersion (embedded in
+    // auditJson) never changed, so every future getById() on the same row
+    // re-ran the same network category refresh and rescore from scratch.
+    // Writing the corrected fields back means the staleness check no longer
+    // matches on the next read, so this only costs a network round-trip once
+    // per row per engine bump, not once per view. score/grade/category are
+    // kept in sync with productJson/auditJson (not just left to drift) since
+    // findBetterInCategory and other queries filter on the plain columns,
+    // not by deserializing productJson.
+    @Query("UPDATE scan_history SET score = :score, grade = :grade, category = :category, productJson = :productJson, auditJson = :auditJson WHERE id = :id")
+    suspend fun updateRescored(id: Long, score: Int, grade: String, category: String, productJson: String, auditJson: String)
+
     // Previously unbounded (no LIMIT) unlike observeRecent above — a heavy user
     // who favorites hundreds of products over years re-ran a full, unpaginated
     // query on every single insert/favorite toggle, holding the whole result set
