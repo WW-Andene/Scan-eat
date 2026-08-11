@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.result
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -9,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -53,12 +55,36 @@ fun defaultMealForHour(hour: Int): MealSlot = when (hour) {
     else      -> MealSlot.SNACK
 }
 
+/**
+ * User-reported: "Logger" always counted a scanned product as eaten today
+ * (consumptionRepo.log()), with no way to just record a price or stock the
+ * pantry from a product not actually consumed yet (e.g. right after a
+ * shopping trip). REPAS is this dialog's original, sole behavior; DEPENSES/
+ * GARDE_MANGER let the same confirm action also (or only) log a price
+ * (PriceEntryCard's own fields, previously reachable only via its separate
+ * "+" button) and/or stock the pantry (previously reachable only via the
+ * bookmark/"Save to..." popup's own Garde-manger checkbox) without implying
+ * the product was eaten.
+ */
+enum class LogDestination { REPAS, DEPENSES, GARDE_MANGER }
+
 @Composable
 fun LogSheet(
     product: Product,
     isLoading: Boolean = false,
     onConfirm: (portionG: Double, mealSlot: MealSlot) -> Unit,
     onDismiss: () -> Unit,
+    // Optional multi-destination extension - only ResultScreen (the one
+    // screen where price-logging and pantry-stocking already exist as
+    // separate actions worth decoupling from "eaten today") opts in. Every
+    // other LogSheet call site (FoodSearch/Diary/Dashboard) is unaffected -
+    // showDestinationPicker defaults false, so onConfirm(portionG, mealSlot)
+    // above still fires exactly as before, always implicitly "log to Repas".
+    showDestinationPicker: Boolean = false,
+    onConfirmWithDestinations: ((
+        portionG: Double, mealSlot: MealSlot, destinations: Set<LogDestination>,
+        priceEuros: Double?, weightG: Double?,
+    ) -> Unit)? = null,
 ) {
     val now = LocalTime.now()
     var portionText by remember {
@@ -66,11 +92,24 @@ fun LogSheet(
         mutableStateOf(default.toString())
     }
     var selectedSlot by remember { mutableStateOf(defaultMealForHour(now.hour)) }
+    var destinations by remember { mutableStateOf(setOf(LogDestination.REPAS)) }
+    var priceText by remember { mutableStateOf("") }
+    var weightText by remember {
+        val default = product.weightG?.takeIf { it in 1.0..2000.0 }
+        mutableStateOf(default?.toInt()?.toString() ?: "")
+    }
 
     val portionG = portionText.replace(',', '.').toDoubleOrNull()?.coerceIn(1.0, 2000.0)
     val kcalPreview = portionG?.let {
         (product.nutrition.energyKcal * it / 100.0).roundToInt()
     }
+    val priceEuros = priceText.replace(',', '.').toDoubleOrNull()
+    val weightG = weightText.replace(',', '.').toDoubleOrNull()
+    // At least one destination checked, and each checked destination's own
+    // required field(s) filled in - REPAS needs nothing beyond the portion
+    // already required below; DEPENSES needs a valid price.
+    val destinationsValid = destinations.isNotEmpty() &&
+        (LogDestination.DEPENSES !in destinations || (priceEuros != null && priceEuros > 0))
 
     val shape = RoundedCornerShape(CardRadius.PROMINENT)
     AlertDialog(
@@ -121,7 +160,13 @@ fun LogSheet(
                         // reach down and tap "Logger" by hand even after finishing typing.
                         // Same fix already applied to GroceryQuickAddRow's own entry field.
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { portionG?.let { onConfirm(it, selectedSlot) } }),
+                        keyboardActions = KeyboardActions(onDone = {
+                            portionG?.let { g ->
+                                if (showDestinationPicker && onConfirmWithDestinations != null) {
+                                    if (destinationsValid) onConfirmWithDestinations(g, selectedSlot, destinations, priceEuros, weightG)
+                                } else onConfirm(g, selectedSlot)
+                            }
+                        }),
                         modifier      = Modifier.weight(1f),
                         shape         = RoundedCornerShape(CardRadius.CONTROL),
                         // app-audit §E6: focusedBorderColor was AccentCoral but cursorColor/
@@ -182,20 +227,55 @@ fun LogSheet(
                     }
                 }
 
-                // Meal slot selector
-                Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f))
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    MealSlot.entries.forEach { slot ->
-                        FilterChip(
-                            selected  = selectedSlot == slot,
-                            onClick   = { selectedSlot = slot },
-                            label     = { Text(slot.label(), style = MaterialTheme.typography.labelSmall) },
-                            colors    = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentCoral.copy(0.2f),
-                                selectedLabelColor     = AccentCoral,
-                                labelColor             = OnSurface.copy(0.7f),
-                            ),
-                        )
+                // User-requested: decouple "eaten today" from "log a price" /
+                // "stock the pantry" - see LogDestination's own doc comment.
+                if (showDestinationPicker) {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                        Text(stringResource(R.string.logsheet_destinations_label), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f))
+                        DestinationCheckboxRow(LogDestination.REPAS, stringResource(R.string.logsheet_destination_repas), destinations) { destinations = it }
+                        DestinationCheckboxRow(LogDestination.DEPENSES, stringResource(R.string.logsheet_destination_depenses), destinations) { destinations = it }
+                        DestinationCheckboxRow(LogDestination.GARDE_MANGER, stringResource(R.string.logsheet_destination_garde_manger), destinations) { destinations = it }
+                    }
+                    if (LogDestination.DEPENSES in destinations) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                            OutlinedTextField(
+                                value = priceText, onValueChange = { priceText = it },
+                                label = { Text(stringResource(R.string.result_price_field_euros)) }, singleLine = true,
+                                isError = priceText.isNotBlank() && (priceEuros == null || priceEuros <= 0),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                shape = RoundedCornerShape(CardRadius.CONTROL),
+                                colors = scanEatTextFieldColors(),
+                                modifier = Modifier.weight(1f),
+                            )
+                            OutlinedTextField(
+                                value = weightText, onValueChange = { weightText = it },
+                                label = { Text(stringResource(R.string.result_price_field_weight)) }, singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                shape = RoundedCornerShape(CardRadius.CONTROL),
+                                colors = scanEatTextFieldColors(),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+
+                // Meal slot selector - meaningless (and hidden) when Repas isn't
+                // even one of the checked destinations.
+                if (!showDestinationPicker || LogDestination.REPAS in destinations) {
+                    Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f))
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        MealSlot.entries.forEach { slot ->
+                            FilterChip(
+                                selected  = selectedSlot == slot,
+                                onClick   = { selectedSlot = slot },
+                                label     = { Text(slot.label(), style = MaterialTheme.typography.labelSmall) },
+                                colors    = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentCoral.copy(0.2f),
+                                    selectedLabelColor     = AccentCoral,
+                                    labelColor             = OnSurface.copy(0.7f),
+                                ),
+                            )
+                        }
                     }
                 }
             }
@@ -213,8 +293,14 @@ fun LogSheet(
             // prevented a double-write, but gave no visible feedback that the tap
             // had registered).
             TextButton(
-                onClick  = { portionG?.let { onConfirm(it, selectedSlot) } },
-                enabled  = portionG != null && !isLoading,
+                onClick  = {
+                    portionG?.let { g ->
+                        if (showDestinationPicker && onConfirmWithDestinations != null) {
+                            if (destinationsValid) onConfirmWithDestinations(g, selectedSlot, destinations, priceEuros, weightG)
+                        } else onConfirm(g, selectedSlot)
+                    }
+                },
+                enabled  = portionG != null && !isLoading && (!showDestinationPicker || destinationsValid),
             ) {
                 if (isLoading) {
                     ScanEatLoadingIndicator(color = LocalContentColor.current)
@@ -227,4 +313,26 @@ fun LogSheet(
             }
         },
     )
+}
+
+@Composable
+private fun DestinationCheckboxRow(
+    destination: LogDestination,
+    label: String,
+    selected: Set<LogDestination>,
+    onChange: (Set<LogDestination>) -> Unit,
+) {
+    val checked = destination in selected
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(
+                value = checked, role = Role.Checkbox,
+                onValueChange = { onChange(if (checked) selected - destination else selected + destination) },
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = AccentCoral))
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = OnSurface)
+    }
 }

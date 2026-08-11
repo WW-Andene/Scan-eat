@@ -224,6 +224,29 @@ fun ResultScreen(
                 isLoading  = state.value.logState is LogState.Loading,
                 onConfirm  = { g, slot -> viewModel.log(g, slot) },
                 onDismiss  = { showSheet = false },
+                // User-requested: "Logger" always implied the product was
+                // eaten today - these let it just log a price and/or stock
+                // the pantry instead, without touching the diary at all, when
+                // Repas isn't one of the checked destinations. Repas alone
+                // (the default, and every other LogSheet call site's only
+                // behavior) still goes through the exact same viewModel.log()
+                // path above, LogState.Loading/Done/Error included.
+                showDestinationPicker = true,
+                onConfirmWithDestinations = { g, slot, destinations, priceEuros, weightG ->
+                    if (fr.scanneat.presentation.result.LogDestination.REPAS in destinations) {
+                        viewModel.log(g, slot)
+                    }
+                    if (fr.scanneat.presentation.result.LogDestination.DEPENSES in destinations && priceEuros != null) {
+                        viewModel.savePrice(priceEuros, weightG)
+                    }
+                    if (fr.scanneat.presentation.result.LogDestination.GARDE_MANGER in destinations) {
+                        viewModel.saveToDestinations(setOf(SaveDestination.GARDE_MANGER))
+                    }
+                    // REPAS's own LogState.Done effect (above) closes the sheet when
+                    // present - only close it here ourselves when REPAS wasn't
+                    // checked, since nothing else drives showSheet back to false.
+                    if (fr.scanneat.presentation.result.LogDestination.REPAS !in destinations) showSheet = false
+                },
             )
         }
 

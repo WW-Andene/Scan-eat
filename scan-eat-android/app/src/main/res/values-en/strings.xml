@@ -772,6 +772,10 @@
     <string name="logsheet_preset_grams">%1$d g</string>
     <string name="logsheet_preset_package">%1$d g (typical portion)</string>
     <string name="logsheet_meal_label">Meal</string>
+    <string name="logsheet_destinations_label">Where to log</string>
+    <string name="logsheet_destination_repas">Meal (counted as eaten today)</string>
+    <string name="logsheet_destination_depenses">Expenses (log a price)</string>
+    <string name="logsheet_destination_garde_manger">Pantry (add to stock)</string>
     <string name="logsheet_confirm_plain">Confirm</string>
     <string name="logsheet_confirm_with_kcal">Confirm · %1$d kcal</string>
 
