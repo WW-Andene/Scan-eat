@@ -117,7 +117,6 @@ internal fun PersonalizationPromptCard(onOpenProfile: () -> Unit) {
     }
 }
 
-@Composable
 // User-requested: RecallRepository's live RappelConso check already existed
 // on ScanScreen's camera-preview overlay (a dismissible banner keyed to
 // whatever barcode is currently in frame) but never carried over to this
