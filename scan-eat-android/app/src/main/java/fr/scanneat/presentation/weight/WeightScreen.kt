@@ -96,7 +96,21 @@ fun WeightScreen(
     // dialog fields, not just the save path - otherwise cancelling an Edit and then tapping
     // Add reopens the dialog still prefilled with the edited entry's weight/notes/date, and
     // saving silently overwrites that entry's date again instead of logging today.
-    fun openAddDialog() { kgText = ""; notesText = ""; entryDate = LocalDate.now(); showAdd = true }
+    //
+    // UX friction fix: log() upserts by date, so tapping "+" again after already
+    // weighing in today was harmless data-wise but still opened a blank form -
+    // fixing a typo in today's already-logged value meant either retyping the
+    // whole number from memory or hunting for that row in the list below and
+    // tapping its own Edit icon instead of the FAB, the most visible affordance.
+    // Prefilling from today's existing entry (when there is one) makes "+" behave
+    // exactly like tapping that row already does.
+    fun openAddDialog() {
+        val todayEntry = entries.value.find { it.date == LocalDate.now() }
+        kgText = todayEntry?.let { if (useImperial) (it.weightKg * KG_TO_LB).formatDecimal(1) else it.weightKg.formatDecimal(1) } ?: ""
+        notesText = todayEntry?.notes ?: ""
+        entryDate = LocalDate.now()
+        showAdd = true
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.weight_deleted_message)
