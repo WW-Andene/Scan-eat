@@ -120,7 +120,12 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     Regex("""\bbi[eè]res?\b|\bbeers?\b|\bvins?\b|\bwines?\b|\bcidres?\b|\bciders?\b|champagne|\bwhisky\b|\bwhiskey\b|\bvodka\b|\bgin\b|\brhum\b|\brum\b|\bcognac\b|\barmagnac\b|\bcalvados\b|\bporto\b|\bliqueurs?\b|spiritueux|\bp[aâ]stis\b|\btequila\b|\bmojito\b|hard seltzer""", RegexOption.IGNORE_CASE) to ProductCategory.ALCOHOLIC_BEVERAGE,
     Regex("""\bsoda\b|\bcola\b|boisson gaz[eé]use|soft drink|\btonic\b|limonade|ice[-\s]?tea|th[eé] glac[eé]|energy drink|red bull|monster""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_SOFT,
     Regex("""\byaourts?\b|yoghurt|yogurt|\bskyr\b|fromage[-\s]?blanc|faisselle|\bquark\b|petit[-\s]suisse""", RegexOption.IGNORE_CASE) to ProductCategory.YOGURT,
-    Regex("""\bfromages?\b|\bcheese\b|\bbrie\b|camembert|cheddar|gruy[eè]re|\bgouda\b|mozzarella|parmesan|\bfeta\b|roquefort|emmental|comt[eé]|reblochon|munster|\bch[eè]vre\b|ricotta|mascarpone|halloumi""", RegexOption.IGNORE_CASE) to ProductCategory.CHEESE,
+    // Standalone regional cheese names that don't necessarily contain the word
+    // "fromage" itself in the product name (e.g. a plain "Cantal AOP" or
+    // "Boursin ail & fines herbes") - "bleu"/"raclette" deliberately left out,
+    // too collision-prone ("cordon bleu" is chicken, "kit raclette" mixes
+    // cheese with charcuterie/potatoes as one weighed product).
+    Regex("""\bfromages?\b|\bcheese\b|\bbrie\b|camembert|cheddar|gruy[eè]re|\bgouda\b|mozzarella|parmesan|\bfeta\b|roquefort|emmental|comt[eé]|reblochon|munster|\bch[eè]vre\b|ricotta|mascarpone|halloumi|\bcantal\b|beaufort|morbier|\btomme\b|boursin|babybel|saint-nectaire""", RegexOption.IGNORE_CASE) to ProductCategory.CHEESE,
     Regex("""\bsandwich\b|\bburger\b|\bwrap\b|panini|\bkebab\b|\bcroque\b""", RegexOption.IGNORE_CASE) to ProductCategory.SANDWICH,
     // biscuits?\b excludes a trailing "salé(s)/apéritif" qualifier - this
     // pattern sits earlier in the list than SNACK_SALTY's own "biscuits
@@ -135,7 +140,12 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // (see Scoring Drift Check).
     Regex("""c[eé]r[eé]ales?\b|\bcereal\b|\bmuesli\b|\bgranola\b|porridge|flocons d['']avoine|\boats\b|cornflakes|chocapic|special k|fitness""", RegexOption.IGNORE_CASE) to ProductCategory.BREAKFAST_CEREAL,
     Regex("""chocolats?\b|\bchocolate\b|\bbonbon|\bcandy\b|biscuits?\b(?!\s*(sal[eé]s?|ap[eé]ritif))|cookies?\b|g[aâ]teaux?\b|\bcakes?\b|\btartes?\b|\btarts?\b|brownie|\bdonut\b|beignet|barre chocolat[eé]e|kinder|nutella|m&m|haribo|m[aâ]rs|snickers|twix|bounty|gauffres?\b|cr[eê]pes?\b|p[aâ]te [aà] tartiner""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SWEET,
-    Regex("""\bsaumon\b|\bthon\b|sardine|maquereau|\bhareng\b|cabillaud|\bmerlu\b|\bcolin\b|\btruite\b|crevette|\bcrabe\b|\bmoules\b|hu[iî]tres|(?:filet|darne|pav[eé]) de bar\b|\bdorade\b""", RegexOption.IGNORE_CASE) to ProductCategory.FISH,
+    // \bpoisson\b (generic "fish"/"fish fillet") added - a very common frozen
+    // product name ("Poisson pané", "Filet de poisson") previously only
+    // matched if it named a specific species. Also added a few common species/
+    // preparations missing entirely: lieu, haddock/églefin, sole, turbot, surimi,
+    // calamars/poulpe.
+    Regex("""\bpoissons?\b|\bsaumon\b|\bthon\b|sardine|maquereau|\bhareng\b|cabillaud|\bmerlu\b|\bcolin\b|\btruite\b|\blieu\b|haddock|[eé]glefin|\bsole\b|\bturbot\b|surimi|calamars?|\bpoulpe\b|crevette|\bcrabe\b|\bmoules\b|hu[iî]tres|(?:filet|darne|pav[eé]) de bar\b|\bdorade\b""", RegexOption.IGNORE_CASE) to ProductCategory.FISH,
     // Trailing \b right after an accented letter never matches in Java regex
     // (\b is defined via ASCII \w, so "e"/"é" is a non-word char to it - a
     // name ending exactly at "pâté" with no ASCII letter after the accent
@@ -165,7 +175,10 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // savory sauces CONDIMENT otherwise matches. Mirrors the identical fix
     // on the Android side (see Scoring Drift Check).
     Regex("""confiture|marmelade|marmalade|\bmiel\b|\bhoney\b|gel[eé]e de fruits|\bjam\b""", RegexOption.IGNORE_CASE) to ProductCategory.SPREAD_SWEET,
-    Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
+    // vinaigre (plain vinegar) added - a common pantry item previously
+    // uncategorized (vinaigrette, the salad-dressing product, was already
+    // covered; the vinegar itself wasn't).
+    Regex("""\bsauces?\b|mayonnaise|\bketchup\b|moutarde|mustard|vinaigrette|\bvinaigres?\b|\bpesto\b|tahin[ei]|harissa|sambal|sriracha|wasabi|chutney|aioli|\btapenade\b""", RegexOption.IGNORE_CASE) to ProductCategory.CONDIMENT,
     Regex("""huile d['']olive|huile de colza|huile de tournesol|huile v[eé]g[eé]tale|\bolive oil\b|sunflower oil|canola oil|margarine|\bbeurre\b|\bbutter\b|saindoux""", RegexOption.IGNORE_CASE) to ProductCategory.OIL_FAT,
     Regex("""\bchips\b|\bcrisps?\b|crackers?\b|biscuits? sal[eé]s?|\bpopcorn\b|\bpretzels?\b|cacahu[eè]tes?\b|noix de cajou|amande grill[eé]e|pistaches?\b|olives?\b""", RegexOption.IGNORE_CASE) to ProductCategory.SNACK_SALTY,
 )
