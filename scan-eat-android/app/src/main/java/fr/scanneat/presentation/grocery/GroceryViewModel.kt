@@ -175,7 +175,23 @@ class GroceryViewModel @Inject constructor(
     // toggling scopeToPlanned on/off never discards check-off state for an
     // ingredient that's just temporarily out of view, only for one that's truly
     // gone (recipe/template deleted/edited).
-    private val allRecipeItems: StateFlow<List<GroceryItem>> = combine(recipes, templates, activeProfileId.flatMapLatest { id -> manualGroceryRepo.asRecipeInputs(id) }) { recipeList, templateList, manual ->
+    //
+    // Bug found in this file's own §-audit: manualGroceryRepo.asRecipeInputs(id)
+    // defaults to DEFAULT_LIST only (see its own signature) - using it here meant
+    // this "unscoped, every list" superset was silently missing every manual item
+    // on a named list other than the default one. Since init{} below prunes
+    // checkedRepo against exactly this superset, checking off an item on e.g. a
+    // "BBQ" list and then editing any recipe elsewhere (recomputing this flow)
+    // would wipe that item's checked state the moment it fell outside this
+    // artificially DEFAULT_LIST-only view. Fixed by reading every manual item
+    // across every list directly (manualGroceryRepo.items(id), the true unscoped
+    // overload) instead of asRecipeInputs(id)'s single-list default.
+    private val allRecipeItems: StateFlow<List<GroceryItem>> = combine(
+        recipes, templates,
+        activeProfileId.flatMapLatest { id ->
+            manualGroceryRepo.items(id).map { list -> list.map { GroceryRecipeInput(name = it.name, components = listOf(GroceryComponent(it.name, it.grams))) } }
+        },
+    ) { recipeList, templateList, manual ->
         aggregateGroceryList(recipeList.map { it.toGroceryInput() } + templateList.map { it.toGroceryInput() } + manual)
     }
         .flowOn(Dispatchers.Default)

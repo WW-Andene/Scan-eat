@@ -73,6 +73,12 @@ fun GroceryScreen(
     val availableLists = viewModel.availableLists.collectAsStateWithLifecycle()
     var showNewListDialog by remember { mutableStateOf(false) }
     var newListText by rememberSaveable { mutableStateOf("") }
+    // §-audit finding: the list-delete "×" chip called viewModel.deleteList()
+    // directly with zero confirmation - every other destructive action in this
+    // screen (Clear checked) confirms first, and deleting a list silently
+    // discards every item on it with no undo, unlike deleteManualContribution's
+    // single-item delete (which does offer Undo).
+    var listPendingDelete by remember { mutableStateOf<String?>(null) }
     // User-requested: checking an item off offers to log its price right away,
     // so a real purchase feeds PriceRepository (Journal/Expenses/budgetEstimate)
     // instead of Courses staying a dead end for price data. Optional - "Passer"
@@ -206,7 +212,7 @@ fun GroceryScreen(
                             label = { Text(list) },
                             trailingIcon = if (list != DEFAULT_LIST) {
                                 {
-                                    IconButton(onClick = { viewModel.deleteList(list) }, modifier = Modifier.size(16.dp)) {
+                                    IconButton(onClick = { listPendingDelete = list }, modifier = Modifier.size(16.dp)) {
                                         Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.6f))
                                     }
                                 }
@@ -397,6 +403,16 @@ fun GroceryScreen(
                 ) { Text(stringResource(R.string.common_add)) }
             },
             dismissButton = { TextButton(onClick = { showNewListDialog = false }) { Text(stringResource(R.string.common_cancel)) } },
+        )
+    }
+
+    listPendingDelete?.let { list ->
+        ConfirmDialog(
+            title = stringResource(R.string.common_delete_confirm_title),
+            body = stringResource(R.string.common_delete_confirm_body_named, list),
+            confirmLabel = stringResource(R.string.common_delete),
+            onConfirm = { viewModel.deleteList(list); listPendingDelete = null },
+            onDismiss = { listPendingDelete = null },
         )
     }
 
