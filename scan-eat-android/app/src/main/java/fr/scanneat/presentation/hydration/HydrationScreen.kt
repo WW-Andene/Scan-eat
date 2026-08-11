@@ -23,6 +23,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.health.HYD_GLASS_ML
 import fr.scanneat.presentation.hydration.components.HydrationGoalEditorDialog
 import fr.scanneat.presentation.hydration.components.HydrationHistorySection
+import fr.scanneat.presentation.hydration.components.HydrationQuickAddRow
 import fr.scanneat.presentation.hydration.components.HydrationRingAndControls
 import fr.scanneat.presentation.hydration.components.HydrationStreakRow
 import fr.scanneat.presentation.hydration.components.HydrationSuggestedGoalBanner
@@ -140,6 +141,11 @@ fun HydrationScreen(
                 onAddGlass = { viewModel.addGlass() },
             )
         }
+
+        // User-requested: real container sizes (bottle/cup), not just the
+        // ring's fixed 250 mL glass steps - see HydrationViewModel.addAmount's
+        // own doc comment.
+        item { HydrationQuickAddRow(useImperial = useImperial.value, onAdd = { viewModel.addAmount(it) }) }
 
         // Activity tab R&D improvement: today's goal now includes an exercise
         // bonus (see HydrationRepository.goalMl's own doc comment) - shown so

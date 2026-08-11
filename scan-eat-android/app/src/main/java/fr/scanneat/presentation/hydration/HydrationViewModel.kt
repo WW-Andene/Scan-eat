@@ -152,6 +152,21 @@ class HydrationViewModel @Inject constructor(
     fun removeGlass() = viewModelScope.launch { runCatching { repo.removeGlass(profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
 
     /**
+     * User-requested: "develop the tool" for Hydration - the ring's +/- controls
+     * only ever move in fixed HYD_GLASS_ML (250 mL) steps, so logging an actual
+     * container (a 500 mL bottle, a 1 L bottle, a small 150 mL cup) meant
+     * multiple taps that don't even land on the real amount drunk. repo.add()
+     * already accepts an arbitrary mL delta (used internally by addGlass/
+     * removeGlass) - this just exposes it directly for [HydrationQuickAddRow]'s
+     * container-size chips and custom-amount entry, today's date only (same
+     * "only today mirrors to Health Connect" rule repo.add() already documents).
+     */
+    fun addAmount(ml: Int) {
+        if (ml <= 0) return
+        viewModelScope.launch { runCatching { repo.add(LocalDate.now(), ml, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    }
+
+    /**
      * Per-day log history - hydration is stored as one running total per day
      * (HydrationRepository.observe/set, not individual timestamped entries like
      * Weight/Medication/Activity), so "history" here means the last 90 days that
