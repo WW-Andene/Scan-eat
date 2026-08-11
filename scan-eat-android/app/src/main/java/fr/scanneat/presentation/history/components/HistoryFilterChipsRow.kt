@@ -18,8 +18,8 @@ import fr.scanneat.presentation.ui.theme.*
 /**
  * Popup menu behind a "Filtres : <current>" button (see CollapsibleFilterBar's
  * own doc comment for why this is a popup, not an inline expandable list).
- * Two independent filter dimensions here (favorites-only + grade), so the
- * summary label combines both when active.
+ * Three independent filter dimensions here (favorites-only + grade +
+ * category), so the summary label combines all active ones.
  */
 @Composable
 internal fun HistoryFilterChipsRow(
@@ -30,6 +30,12 @@ internal fun HistoryFilterChipsRow(
     gradeFilterOptions: List<Pair<Grade?, String>>,
     gradeFilter: Grade?,
     onGradeFilterChange: (Grade?) -> Unit,
+    // User-requested: a category filter dimension, same pattern as the grade
+    // one above - History previously had no way to narrow the list down to
+    // e.g. just PLANT_BASED_ALTERNATIVE scans.
+    categoryFilterOptions: List<Pair<ProductCategory?, String>>,
+    categoryFilter: ProductCategory?,
+    onCategoryFilterChange: (ProductCategory?) -> Unit,
     // False when this screen instance was opened as the dedicated Favorites tile
     // (startFavoritesOnly) - showing an interactive chip there let users toggle
     // off the very filter the "Favoris" app-bar title promises, with no way back
@@ -37,8 +43,14 @@ internal fun HistoryFilterChipsRow(
     showFavoritesChip: Boolean = true,
 ) {
     val gradeLabel = gradeFilterOptions.first { it.first == gradeFilter }.second
+    val categoryLabel = categoryFilterOptions.first { it.first == categoryFilter }.second
     val favoritesLabel = stringResource(R.string.history_favorites_only)
-    val summary = if (favoritesOnly && showFavoritesChip) "$favoritesLabel · $gradeLabel" else gradeLabel
+    val summaryParts = listOfNotNull(
+        if (favoritesOnly && showFavoritesChip) favoritesLabel else null,
+        gradeLabel,
+        if (categoryFilter != null) categoryLabel else null,
+    )
+    val summary = summaryParts.joinToString(" · ")
 
     CollapsibleFilterBar(
         expanded = expanded, onToggle = onToggle,
@@ -59,6 +71,15 @@ internal fun HistoryFilterChipsRow(
                 text = { Text(label) },
                 trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact)) },
                 onClick = { onGradeFilterChange(if (isSelected) null else grade); onToggle() },
+            )
+        }
+        HorizontalDivider(color = OnSurface.copy(0.08f))
+        categoryFilterOptions.forEach { (category, label) ->
+            val isSelected = categoryFilter == category
+            DropdownMenuItem(
+                text = { Text(label) },
+                trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact)) },
+                onClick = { onCategoryFilterChange(if (isSelected) null else category); onToggle() },
             )
         }
     }

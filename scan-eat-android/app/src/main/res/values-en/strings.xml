@@ -595,6 +595,7 @@
     <string name="history_sort_name">Name (A-Z)</string>
     <string name="history_sort_score">Best score</string>
     <string name="history_score_range_all">All scores</string>
+    <string name="history_category_all">All categories</string>
     <string name="history_avg_score">Avg score: %1$d</string>
     <string name="history_top_scanned_title">Frequently scanned</string>
     <string name="history_grade_distribution_title">Score distribution</string>

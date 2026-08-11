@@ -8,6 +8,7 @@ import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.Grade
+import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -85,6 +86,12 @@ class ScanHistoryViewModel @Inject constructor(
     private val _gradeFilter = MutableStateFlow<Grade?>(null)
     val gradeFilter: StateFlow<Grade?> = _gradeFilter.asStateFlow()
 
+    // User-requested: History had no category filter dimension at all, only
+    // favorites + grade - filtered client-side over the already-loaded list,
+    // same pattern as _gradeFilter above, so this needed no DAO/SQL changes.
+    private val _categoryFilter = MutableStateFlow<ProductCategory?>(null)
+    val categoryFilter: StateFlow<ProductCategory?> = _categoryFilter.asStateFlow()
+
     // kotlinx.coroutines' typed combine() overloads stop at 5 flows, so _sort
     // and nameCollator are paired up-front to keep this at 5 arguments.
     private val sortAndCollator: Flow<Pair<HistorySort, Collator>> = combine(_sort, nameCollator) { sort, collator -> sort to collator }
@@ -113,6 +120,9 @@ class ScanHistoryViewModel @Inject constructor(
     }.combine(_gradeFilter) { list, grade ->
         if (grade == null) list
         else list.filter { it.audit.grade == grade }
+    }.combine(_categoryFilter) { list, category ->
+        if (category == null) list
+        else list.filter { it.product.category == category }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Top 3 most-scanned products: name, count, and latest dbId for tap-to-open.
@@ -177,6 +187,8 @@ class ScanHistoryViewModel @Inject constructor(
     fun setFavoritesOnly(value: Boolean) { _favoritesOnly.value = value }
     fun setSort(value: HistorySort) { _sort.value = value }
     fun setGradeFilter(grade: Grade?) { _gradeFilter.value = grade }
+
+    fun setCategoryFilter(category: ProductCategory?) { _categoryFilter.value = category }
 
     // toggleFavorite()/delete() previously called repo's Room writes completely
     // unguarded - unlike every sibling tracker ViewModel (Weight/Activity/Dashboard/

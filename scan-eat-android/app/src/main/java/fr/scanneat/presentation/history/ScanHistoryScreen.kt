@@ -18,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.model.*
+import fr.scanneat.presentation.expenses.components.displayLabel
 import fr.scanneat.presentation.history.components.HistoryAvgScoreBanner
 import fr.scanneat.presentation.history.components.HistoryFilterChipsRow
 import fr.scanneat.presentation.history.components.HistoryGradeDistributionSection
@@ -43,6 +44,7 @@ fun ScanHistoryScreen(
     val sort = viewModel.sort.collectAsStateWithLifecycle()
     val canLoadMore = viewModel.canLoadMore.collectAsStateWithLifecycle()
     val gradeFilter = viewModel.gradeFilter.collectAsStateWithLifecycle()
+    val categoryFilter = viewModel.categoryFilter.collectAsStateWithLifecycle()
     val topScanned = viewModel.topScanned.collectAsStateWithLifecycle()
     val gradeDistribution = viewModel.gradeDistribution.collectAsStateWithLifecycle()
     val avgScore = viewModel.avgScore.collectAsStateWithLifecycle()
@@ -72,6 +74,12 @@ fun ScanHistoryScreen(
     // that had drifted out of sync with scoreToGrade's real breakpoints.
     val gradeFilterOptions = listOf(null to stringResource(R.string.history_score_range_all)) +
         Grade.entries.map { grade -> grade to grade.label }
+
+    // Same reasoning as gradeFilterOptions above, reusing the same localized
+    // label ExpensesSummaryCard.kt's ProductCategory.displayLabel() already
+    // maintains rather than a second hand-written string table drifting from it.
+    val categoryFilterOptions = listOf(null to stringResource(R.string.history_category_all)) +
+        ProductCategory.entries.map { cat -> cat to cat.displayLabel() }
 
     // Dashboard's "Favoris" shortcut opens History pre-filtered, rather than
     // needing a second favorites-only screen with its own list/delete/sort logic.
@@ -112,6 +120,9 @@ fun ScanHistoryScreen(
                 gradeFilterOptions = gradeFilterOptions,
                 gradeFilter = gradeFilter.value,
                 onGradeFilterChange = { viewModel.setGradeFilter(it) },
+                categoryFilterOptions = categoryFilterOptions,
+                categoryFilter = categoryFilter.value,
+                onCategoryFilterChange = { viewModel.setCategoryFilter(it) },
                 showFavoritesChip = !startFavoritesOnly,
             )
 
