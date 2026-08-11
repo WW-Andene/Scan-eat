@@ -17,12 +17,14 @@ import javax.inject.Singleton
 
 // ============================================================================
 // LOYALTY CARD REPOSITORY — user-requested: keep store loyalty cards (e.g.
-// Carrefour) on hand so the physical card isn't needed at checkout. [code] is
-// captured either by scanning the card's own barcode (reusing the app's
-// existing MLKit barcode reader, same as a product scan) or typed manually
-// when a card has no scannable barcode - no OCR/card-recognition model of any
-// kind, this only stores and re-displays whatever code the barcode reader (or
-// the user) already read.
+// Carrefour) on hand so the physical card isn't needed at checkout. Manual
+// entry only (store name + the card's own printed number) - a camera-based
+// scan was tried and deliberately dropped: reading the barcode is easy, but
+// it only ever yields the raw account-identifier code, never the store name,
+// points balance, or offers (those live behind each retailer's own private,
+// authenticated system - see the "reconnaissance carte fidélité" discussion
+// this feature came out of), so the scan added a camera flow without
+// actually saving the user a manual step worth keeping.
 // ============================================================================
 
 @JsonClass(generateAdapter = true)

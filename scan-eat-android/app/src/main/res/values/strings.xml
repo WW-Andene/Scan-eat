@@ -637,13 +637,6 @@
     <string name="loyalty_store_placeholder">Enseigne (ex. Carrefour)</string>
     <string name="loyalty_code_placeholder">Numéro de carte</string>
     <string name="grocery_tab_list">Liste</string>
-    <string name="loyalty_scan">Scanner une carte</string>
-    <string name="loyalty_scan_hint">Visez le code-barres de la carte</string>
-    <string name="loyalty_scan_confirm_title">Code lu — pour quelle enseigne ?</string>
-    <string name="loyalty_scan_retry">Rescanner</string>
-    <string name="loyalty_scan_no_camera_body">Caméra indisponible. Ajoutez la carte manuellement depuis l\'onglet Fidélité.</string>
-    <string name="loyalty_scan_permission_body">L\'accès à la caméra est nécessaire pour lire le code-barres de la carte.</string>
-    <string name="loyalty_scan_grant_permission">Autoriser la caméra</string>
     <string name="grocery_group_by_aisle">Grouper par rayon</string>
     <string name="grocery_category_produce">Fruits &amp; légumes</string>
     <string name="grocery_category_dairy">Produits laitiers</string>

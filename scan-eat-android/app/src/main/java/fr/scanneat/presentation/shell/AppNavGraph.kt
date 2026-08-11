@@ -257,7 +257,6 @@ fun AppNavGraph(
                 onBack = { navController.popBackStack() },
                 onNavigateToPlanning = { navController.navigateToPlanning(it) },
                 onScanToAdd = { navController.navigate(AppRoutes.SCAN_FOR_GROCERY) },
-                onOpenLoyaltyCardScan = { navController.navigate(AppRoutes.LOYALTY_CARD_SCAN) },
             )
         }
         // See AppRoutes.SCAN_FOR_GROCERY's own comment - only ever pushed from
@@ -273,20 +272,6 @@ fun AppNavGraph(
                 androidx.hilt.navigation.compose.hiltViewModel(groceryBackStackEntry)
             ScanScreen(
                 onResultReady = { id -> groceryViewModel.addScannedProduct(id); navController.popBackStack() },
-            )
-        }
-        // User-requested: scan a loyalty card's barcode the same way Scan reads
-        // a product's - see LoyaltyCardScanScreen's own doc comment. Only ever
-        // pushed from the GROCERY entry above (Fidélité tab), same
-        // shared-ViewModel reasoning as SCAN_FOR_GROCERY above so a card saved
-        // here shows up immediately in that tab on the way back.
-        composable(AppRoutes.LOYALTY_CARD_SCAN) { thisEntry ->
-            val groceryBackStackEntry = remember(thisEntry) { navController.getBackStackEntry(AppRoutes.GROCERY) }
-            val loyaltyViewModel: fr.scanneat.presentation.loyalty.LoyaltyCardsViewModel =
-                androidx.hilt.navigation.compose.hiltViewModel(groceryBackStackEntry)
-            fr.scanneat.presentation.loyalty.LoyaltyCardScanScreen(
-                onBack = { navController.popBackStack() },
-                viewModel = loyaltyViewModel,
             )
         }
         composable(AppRoutes.CUSTOM_FOODS) {

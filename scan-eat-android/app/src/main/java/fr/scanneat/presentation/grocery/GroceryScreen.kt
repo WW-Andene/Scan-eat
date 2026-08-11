@@ -50,10 +50,6 @@ fun GroceryScreen(
     // list - see AppRoutes.SCAN_FOR_GROCERY's own comment. Defaults to a
     // no-op so this remains source-compatible with any other call site.
     onScanToAdd: () -> Unit = {},
-    // User-requested: a "Fidélité" tab (see GroceryTab below) with its own
-    // camera scan button, reading a loyalty card's barcode the same way Scan
-    // reads a product's - pushes AppRoutes.LOYALTY_CARD_SCAN.
-    onOpenLoyaltyCardScan: () -> Unit = {},
 ) {
     var groceryTab by rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver()) { mutableStateOf(GroceryTab.LIST) }
     var quickAddText by rememberSaveable { mutableStateOf("") }
@@ -173,7 +169,7 @@ fun GroceryScreen(
                 )
             }
             if (groceryTab == GroceryTab.LOYALTY) {
-                fr.scanneat.presentation.loyalty.LoyaltyCardsTabContent(onScanCard = onOpenLoyaltyCardScan)
+                fr.scanneat.presentation.loyalty.LoyaltyCardsTabContent()
                 return@Column
             }
             Row(

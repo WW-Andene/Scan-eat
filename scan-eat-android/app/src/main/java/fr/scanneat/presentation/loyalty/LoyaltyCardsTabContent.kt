@@ -19,26 +19,19 @@ import fr.scanneat.presentation.ui.theme.*
 
 /**
  * Embedded content for Courses' "Fidélité" tab - see GroceryScreen.kt's own
- * GroceryTab. [onScanCard] pushes AppRoutes.LOYALTY_CARD_SCAN (the camera
- * capture flow, LoyaltyCardScanScreen.kt); manual entry (store name + typed
- * code) stays available as a fallback for a card the camera can't read.
+ * GroceryTab. Manual entry only (store name + typed code) - see
+ * LoyaltyCardRepository's own doc comment on why camera-based card
+ * recognition isn't offered here.
  */
 @Composable
-fun LoyaltyCardsTabContent(onScanCard: () -> Unit, viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
+fun LoyaltyCardsTabContent(viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
     val cards = viewModel.cards.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
     var storeText by rememberSaveable { mutableStateOf("") }
     var codeText by rememberSaveable { mutableStateOf("") }
 
     Column(Modifier.fillMaxSize()) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.S),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
-        ) {
-            Button(onClick = onScanCard, colors = ButtonDefaults.buttonColors(containerColor = AccentCoral)) {
-                Icon(Icons.Rounded.QrCodeScanner, null, modifier = Modifier.padding(end = Spacing.XS))
-                Text(stringResource(R.string.loyalty_scan))
-            }
+        Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.S)) {
             OutlinedButton(onClick = { storeText = ""; codeText = ""; showAddDialog = true }) {
                 Text(stringResource(R.string.loyalty_add))
             }
@@ -47,8 +40,8 @@ fun LoyaltyCardsTabContent(onScanCard: () -> Unit, viewModel: LoyaltyCardsViewMo
             EmptyListState(
                 icon = Icons.Rounded.CreditCard,
                 message = stringResource(R.string.loyalty_empty_body),
-                ctaLabel = stringResource(R.string.loyalty_scan),
-                onCta = onScanCard,
+                ctaLabel = stringResource(R.string.loyalty_add),
+                onCta = { storeText = ""; codeText = ""; showAddDialog = true },
             )
         } else {
             LazyColumn(
