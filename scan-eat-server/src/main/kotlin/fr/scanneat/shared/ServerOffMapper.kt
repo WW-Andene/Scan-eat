@@ -306,7 +306,21 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         if (isEmpty(offVal)) llmVal else offVal
 
     val emptyStr: (String) -> Boolean = { it.isBlank() }
-    val emptyNum: (Double) -> Boolean = { it == 0.0 }
+    // A macro field literally equal to 0.0 is ambiguous on its own - "OFF has
+    // no value for this" and "OFF correctly reports zero" (e.g. sugarsG=0 for
+    // a genuinely unsweetened product, or every macro on a bottle of water)
+    // look identical as a bare Double. Merge can trigger for a reason entirely
+    // unrelated to nutrition (isOffSparse is also true when ingredients or
+    // category are missing - see ScanOffLookup's own 3rd-round fix for exactly
+    // this), so treating every OFF zero as "empty" meant a perfectly real,
+    // trustworthy zero silently lost to the LLM's photo-read guess whenever
+    // merge fired for an unrelated field. When OFF's overall nutrition profile
+    // already passes hasOffNutritionData() (real macros, or the corroborated
+    // all-zero-water case), a 0.0 on an individual field is real declared
+    // data, not a gap - only an untrustworthy OFF nutrition block (no real
+    // macros anywhere) still treats its own zeros as worth overriding.
+    val offNutritionTrusted = hasOffNutritionData(off)
+    val emptyNum: (Double) -> Boolean = { it == 0.0 && !offNutritionTrusted }
 
     fun mergeNutrition(o: NutritionPer100g, l: NutritionPer100g) = NutritionPer100g(
         energyKcal    = prefer(o.energyKcal,    l.energyKcal,    emptyNum),
