@@ -124,7 +124,15 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: St
     val completed = history
     val successCount = completed.count { it.reached }
     val avgHours = completed.map { it.achievedHours }.average()
-    val longestH = completed.maxOf { it.achievedHours }
+    // §A5-audit finding: maxOf() throws NoSuchElementException on an empty
+    // list - only guarded today because FastingScreen's own call site checks
+    // history.isNotEmpty() first, but this composable is `internal` (callable
+    // from anywhere in the module) with nothing enforcing that precondition
+    // at its own boundary. maxOfOrNull()'s null case can't actually occur
+    // given completed.size is used unconditionally just above, but this
+    // avoids the crash entirely rather than relying on every future call
+    // site remembering the same guard.
+    val longestH = completed.maxOfOrNull { it.achievedHours } ?: 0.0
     Text(stringResource(R.string.fasting_history_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(Spacing.S))
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
