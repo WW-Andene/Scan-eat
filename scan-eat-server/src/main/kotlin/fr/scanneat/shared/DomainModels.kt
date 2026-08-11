@@ -41,6 +41,15 @@ enum class ProductCategory(val key: String) {
     // sauces, not honey/jam's ~55-80g/100g intrinsic sugar.
     SPREAD_SWEET("spread_sweet"),
     OIL_FAT("oil_fat"),
+    // Plant-based meat/fish/cheese substitutes (tofu, textured pea protein,
+    // vegan cheese) were previously misclassified as FRESH_MEAT/FISH/CHEESE
+    // via OFF's own "en:meat-alternatives"/"en:fish-alternatives"/
+    // "en:cheese-substitutes" tags containing "meat"/"fish"/"cheese" as a raw
+    // substring - scored against real-animal-product protein/fat norms
+    // instead of a plant-protein profile. Thresholds tuned for legumes/
+    // textured-protein products (moderate protein, no expectation of the high
+    // sat-fat real cheese/meat structurally carry).
+    PLANT_BASED_ALTERNATIVE("plant_based_alternative"),
     OTHER("other");
 
     companion object {

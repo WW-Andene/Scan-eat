@@ -95,6 +95,15 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
         sugarThresholds = Quadruple(40.0,55.0,70.0,85.0), saltThresholds = Triple(0.5,1.0,1.5)),
     ProductCategory.OIL_FAT          to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(700.0,900.0), false,
         satFatThresholds = Triple(20.0,35.0,50.0)),
+    // Plant-based meat/fish/cheese substitutes span a wide real-world range
+    // (tofu ~8g protein/~76kcal, textured pea protein ~18-50g/100g,
+    // tempeh ~190kcal, seitan ~370kcal, coconut-oil-based vegan cheese
+    // ~250-320kcal with elevated sat fat) - protein/fiber/kcal bands are
+    // wide enough to span the category without inheriting real dairy
+    // cheese's much higher protein/sat-fat expectations (12-30g sat fat)
+    // or real meat's kcal-from-animal-fat assumptions.
+    ProductCategory.PLANT_BASED_ALTERNATIVE to CategoryThresholds(Triple(4.0,8.0,15.0), Triple(1.0,2.0,4.0), Pair(60.0,370.0), false,
+        satFatThresholds = Triple(6.0,12.0,20.0)),
     ProductCategory.OTHER            to DEFAULT_THRESHOLDS,
 )
 

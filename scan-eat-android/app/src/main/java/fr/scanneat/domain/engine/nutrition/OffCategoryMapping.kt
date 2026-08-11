@@ -24,14 +24,17 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
     return when {
         "yogurt" in tag || "yaourt" in tag || "skyr" in tag -> ProductCategory.YOGURT
         "sandwich" in tag || "burger" in tag -> ProductCategory.SANDWICH
-        // Same substring-match bug as meat/fish-alternatives below: OFF tags
-        // vegan cheese as "en:cheese-substitutes" (confirmed via live OFF
-        // data alongside "en:dairy-substitutes"/"en:vegan-products", e.g.
-        // "Vegan feta cheese"), which contains "cheese" as a raw substring -
-        // scored against real dairy cheese's protein (15-25g/100g) and
-        // sat-fat (12-30g/100g) thresholds, tuned for actual cheese, not a
-        // cashew/coconut-oil-based substitute with a very different profile.
-        ("cheese" in tag || "fromage" in tag) && "cheese-substitute" !in tag -> ProductCategory.CHEESE
+        // Same substring-match bug as meat/fish-alternatives below, and now
+        // routed to its own PLANT_BASED_ALTERNATIVE category (own thresholds,
+        // see CategoryThresholds.kt) instead of just excluded into OTHER's
+        // generic bands: OFF tags vegan cheese as "en:cheese-substitutes"
+        // (confirmed via live OFF data alongside "en:dairy-substitutes"/
+        // "en:vegan-products", e.g. "Vegan feta cheese"), which contains
+        // "cheese" as a raw substring - scored against real dairy cheese's
+        // protein (15-25g/100g) and sat-fat (12-30g/100g) thresholds, tuned
+        // for actual cheese, not a cashew/coconut-oil-based substitute.
+        "cheese-substitute" in tag -> ProductCategory.PLANT_BASED_ALTERNATIVE
+        "cheese" in tag || "fromage" in tag -> ProductCategory.CHEESE
         "cereal" in tag || "cereale" in tag || "granola" in tag -> ProductCategory.BREAKFAST_CEREAL
         "bread" in tag || "pain" in tag -> ProductCategory.BREAD
         "processed-meat" in tag || "charcuterie" in tag || "saucisson" in tag -> ProductCategory.PROCESSED_MEAT
@@ -42,9 +45,10 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         // data - e.g. tofu, textured-pea-protein products), all of which
         // contain "meat"/"fish" as a raw substring - a soy-based product was
         // silently scored against FRESH_MEAT's protein/kcal norms instead of
-        // falling through to a category that doesn't assume real meat/fish.
-        ("meat" in tag || "viande" in tag) && "meat-alternative" !in tag && "meat-analogue" !in tag -> ProductCategory.FRESH_MEAT
-        ("fish" in tag || "seafood" in tag || "poisson" in tag) && "fish-alternative" !in tag && "fish-analogue" !in tag -> ProductCategory.FISH
+        // routing to its own PLANT_BASED_ALTERNATIVE category.
+        "meat-alternative" in tag || "meat-analogue" in tag || "fish-alternative" in tag || "fish-analogue" in tag -> ProductCategory.PLANT_BASED_ALTERNATIVE
+        "meat" in tag || "viande" in tag -> ProductCategory.FRESH_MEAT
+        "fish" in tag || "seafood" in tag || "poisson" in tag -> ProductCategory.FISH
         "biscuit" in tag || "cookie" in tag || "chocolate" in tag || "snack" in tag && ("sweet" in tag || "sucre" in tag) -> ProductCategory.SNACK_SWEET
         "chips" in tag || "crisp" in tag || "snack" in tag -> ProductCategory.SNACK_SALTY
         // Checked before the generic "beverage" branches below - OFF tags beer/
