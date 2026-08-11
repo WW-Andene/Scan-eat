@@ -252,7 +252,25 @@ fun AppNavGraph(
             MealPlanScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
         }
         composable(AppRoutes.GROCERY) {
-            GroceryScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
+            GroceryScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToPlanning = { navController.navigateToPlanning(it) },
+                onScanToAdd = { navController.navigate(AppRoutes.SCAN_FOR_GROCERY) },
+            )
+        }
+        // See AppRoutes.SCAN_FOR_GROCERY's own comment - only ever pushed from
+        // the GROCERY entry above, so getBackStackEntry(AppRoutes.GROCERY)
+        // below is always resolvable. Reuses that same GroceryViewModel
+        // instance (not a fresh one) so the added item appears in the exact
+        // list state the user was looking at, and addScannedProduct() can
+        // write straight into it without a second round-trip through
+        // observeAll/DataStore before this screen even sees the result.
+        composable(AppRoutes.SCAN_FOR_GROCERY) {
+            val groceryViewModel: fr.scanneat.presentation.grocery.GroceryViewModel =
+                androidx.hilt.navigation.compose.hiltViewModel(navController.getBackStackEntry(AppRoutes.GROCERY))
+            ScanScreen(
+                onResultReady = { id -> groceryViewModel.addScannedProduct(id); navController.popBackStack() },
+            )
         }
         composable(AppRoutes.CUSTOM_FOODS) {
             CustomFoodScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })

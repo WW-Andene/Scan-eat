@@ -2,6 +2,7 @@ package fr.scanneat.presentation.grocery.components
 
 import compose.icons.tablericons.Share
 import compose.icons.TablerIcons
+import compose.icons.tablericons.Barcode
 import compose.icons.tablericons.Copy
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
@@ -32,8 +33,16 @@ internal fun GroceryTopBarActions(
     onCopyMenuExpandedChange: (Boolean) -> Unit,
     onCopyPlain: () -> Unit,
     onCopyChecklist: () -> Unit,
+    // User-requested: scan a product straight from Courses - see
+    // AppRoutes.SCAN_FOR_GROCERY's own comment. Always shown (not gated on
+    // hasItems like the actions below) since scanning is how a user with an
+    // empty list would start filling it.
+    onScanToAdd: () -> Unit,
 ) {
     PlanningSwitcherMenu(current = PlanningDestination.GROCERY, onNavigate = onNavigateToPlanning)
+    IconButton(onClick = onScanToAdd) {
+        Icon(TablerIcons.Barcode, stringResource(R.string.grocery_scan_to_add), tint = AccentCoral)
+    }
     if (hasCheckedItems) {
         IconButton(onClick = onShowClearConfirm) {
             Icon(Icons.Rounded.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))

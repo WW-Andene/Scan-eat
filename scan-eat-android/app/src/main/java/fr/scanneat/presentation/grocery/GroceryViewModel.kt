@@ -63,6 +63,7 @@ class GroceryViewModel @Inject constructor(
     private val manualGroceryRepo: ManualGroceryRepository,
     private val prefs: UserPreferences,
     private val priceRepo: PriceRepository,
+    private val scanRepo: fr.scanneat.data.repository.scan.ScanRepository,
 ) : ViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real. GroceryCheckedRepository/
@@ -360,6 +361,25 @@ class GroceryViewModel @Inject constructor(
     fun quickAdd(name: String) {
         if (name.isBlank()) return
         viewModelScope.launch { runCatching { manualGroceryRepo.add(name.trim(), 0.0, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    }
+
+    /**
+     * User-requested: scan a product straight from Courses (AppRoutes.
+     * SCAN_FOR_GROCERY, pushed on top of this screen and popped back to it
+     * once a scan completes - see AppNavGraph's own comment on that route)
+     * and add it to the list in one step, instead of scanning normally, then
+     * navigating to Result, then separately remembering to "Save to
+     * grocery." [scanId] is the dbId ScanScreen.onResultReady already hands
+     * back for any completed scan. weightG defaults to 0 (same as quickAdd -
+     * no forced quantity) when the scanned product declared none.
+     */
+    fun addScannedProduct(scanId: Long) {
+        viewModelScope.launch {
+            runCatching {
+                val scan = scanRepo.getById(scanId, prefs.language.first()) ?: return@runCatching
+                manualGroceryRepo.add(scan.product.name, scan.product.weightG ?: 0.0, activeProfileId.value)
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     // Same undo-delete pattern as Diary/Weight/ScanHistory/Medication - snapshots

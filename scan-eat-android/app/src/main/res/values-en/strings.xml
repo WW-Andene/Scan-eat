@@ -621,6 +621,7 @@
     <string name="grocery_copy_plain">Copy (plain text)</string>
     <string name="grocery_copy_checklist">Copy (Markdown checklist)</string>
     <string name="grocery_cd_share">Share list</string>
+    <string name="grocery_scan_to_add">Scan to add to list</string>
     <string name="grocery_group_by_aisle">Group by aisle</string>
     <string name="grocery_category_produce">Produce</string>
     <string name="grocery_category_dairy">Dairy</string>

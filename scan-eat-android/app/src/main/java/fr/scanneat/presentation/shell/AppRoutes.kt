@@ -25,6 +25,11 @@ object AppRoutes {
     const val REMINDERS     = "reminders"
     const val FOOD_SEARCH   = "food_search"
     const val SEASONAL_PRODUCE = "seasonal_produce"
+    // User-requested: scan a product directly from Courses to add it to the
+    // list, without leaving for the main Scan tab and losing context. Only
+    // ever pushed from GROCERY (see AppNavGraph's own comment on that route),
+    // not reachable standalone.
+    const val SCAN_FOR_GROCERY = "scan_for_grocery"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }

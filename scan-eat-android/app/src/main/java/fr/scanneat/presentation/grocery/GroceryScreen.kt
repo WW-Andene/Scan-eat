@@ -41,6 +41,10 @@ fun GroceryScreen(
     viewModel: GroceryViewModel = hiltViewModel(),
     onBack: () -> Unit,
     onNavigateToPlanning: (PlanningDestination) -> Unit = {},
+    // User-requested: scan a product straight from Courses to add it to the
+    // list - see AppRoutes.SCAN_FOR_GROCERY's own comment. Defaults to a
+    // no-op so this remains source-compatible with any other call site.
+    onScanToAdd: () -> Unit = {},
 ) {
     var quickAddText by rememberSaveable { mutableStateOf("") }
     // Grocery had no search at all, unlike every other list-heavy screen (Recipes,
@@ -113,6 +117,7 @@ fun GroceryScreen(
                     clipboard.setText(AnnotatedString(formatGroceryList(items.value, markdown = true)))
                     scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
                 },
+                onScanToAdd = onScanToAdd,
             )
         },
     ) { padding ->

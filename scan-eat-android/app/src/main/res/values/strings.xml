@@ -625,6 +625,7 @@
     <string name="grocery_copy_plain">Copier (texte)</string>
     <string name="grocery_copy_checklist">Copier (liste à cocher Markdown)</string>
     <string name="grocery_cd_share">Partager la liste</string>
+    <string name="grocery_scan_to_add">Scanner pour ajouter à la liste</string>
     <string name="grocery_group_by_aisle">Grouper par rayon</string>
     <string name="grocery_category_produce">Fruits &amp; légumes</string>
     <string name="grocery_category_dairy">Produits laitiers</string>
