@@ -122,6 +122,30 @@ internal class ScanOffLookup(
     private val resultCache = java.util.concurrent.ConcurrentHashMap<String, CachedResult>()
     private val resultCacheTtlMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(30)
 
+    /**
+     * User-requested: the ENGINE_VERSION staleness rescore (see
+     * ScanRepositoryHistory.getById/getCachedByBarcode) only reruns scoring
+     * MATH over the Product already stored on the row - Product.category was
+     * resolved once at original scan time and frozen in, so a mapCategory()
+     * fix (like today's alcoholic-beverage/meat-alternative ones) never
+     * reached an already-scanned product without a brand new manual rescan.
+     * Best-effort, category-only re-fetch: a single OFF request for just
+     * "categories_tags", re-run through the current mapCategory(), so the
+     * staleness path can also correct the category, not just the math built
+     * on top of it. Returns null on ANY failure (offline, timeout, OFF error,
+     * no product/tags) - this must never turn a normal history/result-screen
+     * load into a hard failure or a multi-second stall for something that was
+     * already showing a perfectly renderable (if possibly stale) score.
+     */
+    suspend fun refreshCategory(barcode: String): fr.scanneat.domain.model.ProductCategory? =
+        try {
+            kotlinx.coroutines.withTimeoutOrNull(3000L) {
+                offApi.getProduct(barcode, fields = "categories_tags").product?.categoriesTags
+            }?.let { tags -> fr.scanneat.domain.engine.nutrition.mapCategory(tags) }
+        } catch (e: Exception) {
+            null
+        }
+
     suspend fun scoreDirectBarcode(
         barcode: String,
         images: List<ImagePayload>,

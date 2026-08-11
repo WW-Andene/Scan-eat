@@ -68,10 +68,20 @@ internal class ScanHistoryQueries(
      * rescore locally instead. Rescoring is a pure function over the stored
      * product, so this never touches the network or the stored row itself -
      * only the ScanResult handed back to the caller reflects the current engine.
+     *
+     * User-requested follow-up: rescoring alone reruns the scoring MATH over
+     * the stored Product, but Product.category was resolved once at original
+     * scan time and frozen in - a mapCategory() fix never reached an
+     * already-scanned product's category itself, only whatever math sits on
+     * top of it. On the same staleness branch, also attempt
+     * offLookup.refreshCategory() (a single best-effort, 3s-bounded OFF
+     * request - see its own doc comment for why this can never hard-fail or
+     * stall this read path) and rescore against the corrected category when
+     * it returns one.
      */
     suspend fun getById(id: Long, lang: String = "en"): ScanResult? =
         dao.findById(id)?.let { toDomain(it) }?.let { cached ->
-            if (cached.audit.engineVersion != ENGINE_VERSION) cached.copy(audit = scoreProduct(cached.product, lang)) else cached
+            if (cached.audit.engineVersion != ENGINE_VERSION) rescoreStale(cached, lang) else cached
         }
 
     /**
@@ -82,11 +92,27 @@ internal class ScanHistoryQueries(
      * per-barcode AR panel) kept showing a product's pre-engine-bump grade
      * until the user actually re-scanned it, even though scoreBarcode() itself
      * would have shown the corrected score all along.
+     *
+     * Deliberately math-only here, unlike getById()'s network-backed category
+     * refresh above: this path also backs the live "already scanned this"
+     * preview during active shelf-scanning (ScanViewModel.cachedPreview and
+     * the per-barcode AR panel) - see resultCache's own doc comment on that
+     * mode being explicitly tuned for speed. A bounded network call is fine
+     * for a one-off "user tapped to view a result" navigation, not for a
+     * per-frame/per-barcode hot path scanning through a dozen shelf items.
      */
     suspend fun getCachedByBarcode(barcode: String, profileId: String = "default", lang: String = "en"): ScanResult? =
         dao.findByBarcode(barcode, profileId)?.let { toDomain(it) }?.let { cached ->
             if (cached.audit.engineVersion != ENGINE_VERSION) cached.copy(audit = scoreProduct(cached.product, lang)) else cached
         }
+
+    /** Used by getById() - see its own doc comment. */
+    private suspend fun rescoreStale(cached: ScanResult, lang: String): ScanResult {
+        val refreshedCategory = cached.barcode?.let { offLookup.refreshCategory(it) }
+        val product = if (refreshedCategory != null && refreshedCategory != cached.product.category)
+            cached.product.copy(category = refreshedCategory) else cached.product
+        return cached.copy(product = product, audit = scoreProduct(product, lang))
+    }
 
     /**
      * Live Open Products Facts lookup — a fallback for barcodes the bundled
