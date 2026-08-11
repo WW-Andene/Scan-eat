@@ -292,7 +292,21 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // "Blanquette de veau" didn't).
     Regex("""\bpoulet\b|\bb[oœ]uf\b|\bporc\b|\bagneau\b|\bdinde\b|\bcanard\b|\bveau\b|\blapin\b|viande hach[eé]e|\bsteaks?\b|escalope|magret""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_MEAT,
     Regex("""\bpain\b|\bbread\b|baguette|brioche|focaccia|ciabatta|\btoasts?\b|\bpita\b|tortilla|\bcracotte""", RegexOption.IGNORE_CASE) to ProductCategory.BREAD,
-    Regex("""plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
+    // User-reported: "Céleri moutarde" is a real deli barquette dish (grated
+    // celeriac in a mustard-mayonnaise dressing, "céleri rémoulade" - sold
+    // ready-to-eat in the fresh-prepared-foods aisle), not a condiment - the
+    // literal word "moutarde" in its name previously fell through every
+    // earlier pattern and matched CONDIMENT's own \bmoutarde\b keyword
+    // further down this list (first-match-wins), scoring a mayo-dressed
+    // vegetable dish against a near-zero-sugar sauce's thresholds. Checked
+    // here, ahead of CONDIMENT, the same way croissant/pain au chocolat are
+    // checked ahead of OIL_FAT/SNACK_SWEET above for an identical shadowing-
+    // keyword reason. "rémoulade"/"salade composée"/"crudités" cover the
+    // same class of prepared deli-salad barquette (carottes râpées, céleri
+    // rémoulade, etc.), all mayo/vinaigrette-dressed prepared vegetable
+    // dishes closer to READY_MEAL's kcal/fiber band than any raw-produce or
+    // condiment category.
+    Regex("""r[eé]moulade|salade compos[eé]e|c[eé]leri.{0,20}moutarde|crudit[eé]s\b|plat pr[eé]par[eé]|plat cuisin[eé]|ready meal|micro[-\s]?ondes|[aà] r[eé]chauffer|lasagne|gratin|paella|risotto|\bcurry\b|chili con carne|hachis parmentier|tartiflette|moussaka""", RegexOption.IGNORE_CASE) to ProductCategory.READY_MEAL,
     // §-audit finding: dry pasta/rice/grains had no category at all - see
     // CategoryThresholds' own GRAIN entry above for the dry-vs-cooked-weight
     // caveat. Checked after READY_MEAL above (first-match-wins), so a real

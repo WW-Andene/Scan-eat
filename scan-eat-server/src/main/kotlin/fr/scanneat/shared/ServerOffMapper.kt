@@ -91,6 +91,32 @@ private fun mapCategory(tags: List<String>?): ProductCategory {
     }
 }
 
+// The category group whose thresholds are most skewed by a wrong
+// assignment - all four assume near-zero solid-food kcal. Mirrors
+// OffCategoryMapping.kt's BEVERAGE_CATEGORIES on the Android project - kept
+// in sync manually.
+private val BEVERAGE_CATEGORIES = setOf(
+    ProductCategory.BEVERAGE_SOFT, ProductCategory.BEVERAGE_JUICE,
+    ProductCategory.BEVERAGE_WATER, ProductCategory.ALCOHOLIC_BEVERAGE,
+)
+
+// User-reported: a mustard/celery condiment scanned via barcode came back
+// tagged into a beverage category on Open Food Facts (crowd-sourced,
+// error-prone upstream data) and was scored entirely against soda-shaped
+// 0-50kcal/100g thresholds. mapCategory()'s tag-based result previously had
+// zero cross-check against the product's own name unless it landed in OTHER
+// outright. Mirrors OffCategoryMapping.kt's resolveCategory() on the
+// Android project - kept in sync manually, see that copy's own doc comment
+// for the full rationale on why this is narrowly scoped to beverage
+// mismatches rather than a general "name always wins" override.
+private fun resolveCategory(tags: List<String>?, name: String): ProductCategory {
+    val offCategory = mapCategory(tags)
+    if (offCategory == ProductCategory.OTHER) return inferCategoryFromName(name)
+    if (offCategory !in BEVERAGE_CATEGORIES) return offCategory
+    val nameCategory = inferCategoryFromName(name)
+    return if (nameCategory != ProductCategory.OTHER && nameCategory !in BEVERAGE_CATEGORIES) nameCategory else offCategory
+}
+
 // Mirrors OffMapper.kt's classifyNonFood on the Android project — kept in sync
 // manually, same as mapCategory above. See that copy's own doc comment for
 // the full rationale, including why [productName]/[brand] exist as a
@@ -216,9 +242,7 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
     val parsedIngredients = parseIngredients(raw.ingredientsTextFr ?: raw.ingredientsText)
     val ingredients = parsedIngredients + additiveTagsToIngredients(raw.additivesTags, parsedIngredients)
     val organic = raw.labelsTags?.any { "organic" in it || "bio" in it } == true
-    val category = mapCategory(raw.categoriesTags).let {
-        if (it == ProductCategory.OTHER) inferCategoryFromName(name) else it
-    }
+    val category = resolveCategory(raw.categoriesTags, name)
 
     val nutrition = NutritionPer100g(
         // OFF's energy_100g fallback is in kJ, not kcal — convert
