@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavBackStackEntry
@@ -266,8 +267,9 @@ fun AppNavGraph(
         // write straight into it without a second round-trip through
         // observeAll/DataStore before this screen even sees the result.
         composable(AppRoutes.SCAN_FOR_GROCERY) {
+            val groceryBackStackEntry = remember(navController) { navController.getBackStackEntry(AppRoutes.GROCERY) }
             val groceryViewModel: fr.scanneat.presentation.grocery.GroceryViewModel =
-                androidx.hilt.navigation.compose.hiltViewModel(navController.getBackStackEntry(AppRoutes.GROCERY))
+                androidx.hilt.navigation.compose.hiltViewModel(groceryBackStackEntry)
             ScanScreen(
                 onResultReady = { id -> groceryViewModel.addScannedProduct(id); navController.popBackStack() },
             )
