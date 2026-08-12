@@ -34,6 +34,7 @@
     <string name="scan_medication_found_body">%1$s reconnu depuis la base publique des médicaments (ANSM). L\'ajouter à votre Traitement ?</string>
     <string name="scan_medication_found_add">Ajouter au Traitement</string>
     <string name="scan_nonconsumable_found_title">Produit non alimentaire</string>
+    <string name="scan_voice_announce_format">Score %1$d sur 100, note %2$s</string>
     <string name="scan_nonconsumable_found_body">%1$s (%2$s) — ce produit n\'est pas destiné à la consommation.</string>
     <string name="scan_nonconsumable_safety_line">Ne pas ingérer. En cas d\'ingestion ou d\'exposition, contactez immédiatement les urgences (15 ou 112 en Europe) ou un centre antipoison.</string>
     <string name="nonconsumable_transparency_title">Transparence de la formule</string>
@@ -1391,6 +1392,8 @@
     <string name="settings_animated_background_hint">Motif de pluie sur flaque d\'eau généré en fond d\'écran, au lieu d\'un dégradé fixe</string>
     <string name="settings_dyslexic_font">Police adaptée dyslexie</string>
     <string name="settings_dyslexic_font_hint">Interlettrage et espacement des lignes augmentés pour une lecture plus facile</string>
+    <string name="settings_voice_score_announce">Lecture vocale du score</string>
+    <string name="settings_voice_score_announce_hint">Annonce le score et la note à voix haute après chaque scan</string>
     <string name="settings_colorblind_mode">Mode daltonien</string>
     <string name="settings_colorblind_none">Aucun</string>
     <string name="settings_colorblind_deuteranopia">Deutéranopie</string>

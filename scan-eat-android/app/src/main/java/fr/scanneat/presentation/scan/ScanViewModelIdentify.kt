@@ -73,7 +73,7 @@ internal fun ScanViewModel.identifyFromPhotos() {
                         // surfacing as an Error state.
                         else -> runCatching { scanRepo.persist(scanResult, activeProfileId.value) }
                             .fold(
-                                onSuccess = { id -> _state.value = ScanUiState.Success(scanResult, id) },
+                                onSuccess = { id -> _state.value = ScanUiState.Success(scanResult, id); announceScoreIfEnabled(scanResult) },
                                 onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },
                             )
                     }

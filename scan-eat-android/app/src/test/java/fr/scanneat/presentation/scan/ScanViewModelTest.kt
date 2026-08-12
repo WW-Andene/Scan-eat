@@ -10,6 +10,7 @@ import fr.scanneat.data.repository.nonfood.NonFoodScanRepository
 import fr.scanneat.data.repository.recall.RecallRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.Profile
+import fr.scanneat.util.ScoreSpeechAnnouncer
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -45,6 +46,7 @@ class ScanViewModelTest {
     private val priceRepo = mockk<PriceRepository>(relaxed = true)
     private val nonFoodScanRepo = mockk<NonFoodScanRepository>(relaxed = true)
     private val recallRepo = mockk<RecallRepository>(relaxed = true)
+    private val speechAnnouncer = mockk<ScoreSpeechAnnouncer>(relaxed = true)
     private val appContext = mockk<Context>(relaxed = true)
 
     private lateinit var viewModel: ScanViewModel
@@ -54,11 +56,12 @@ class ScanViewModelTest {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         every { prefs.language } returns flowOf("fr")
         every { prefs.profile } returns flowOf(Profile())
+        every { prefs.voiceScoreAnnounce } returns flowOf(false)
         every { scanRepo.observeTodayScanCount() } returns flowOf(0)
         coEvery { scanRepo.getCachedByBarcode(any(), any()) } returns null
         coEvery { recallRepo.checkBarcode(any()) } returns null
 
-        viewModel = ScanViewModel(scanRepo, prefs, connectivityManager, medicationRepo, priceRepo, nonFoodScanRepo, recallRepo, appContext)
+        viewModel = ScanViewModel(scanRepo, prefs, connectivityManager, medicationRepo, priceRepo, nonFoodScanRepo, recallRepo, speechAnnouncer, appContext)
     }
 
     @After

@@ -22,6 +22,7 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun AccessibilitySection(
     dyslexicFont: Boolean, onDyslexicFontChange: (Boolean) -> Unit,
     colorblindMode: String, onColorblindModeChange: (String) -> Unit,
+    voiceScoreAnnounce: Boolean, onVoiceScoreAnnounceChange: (Boolean) -> Unit,
 ) {
     SettingsSection(stringResource(R.string.settings_section_accessibility), icon = Icons.Default.Accessibility) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -32,6 +33,18 @@ internal fun AccessibilitySection(
             Switch(
                 checked = dyslexicFont,
                 onCheckedChange = onDyslexicFontChange,
+                colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
+            )
+        }
+        Spacer(Modifier.height(Spacing.XS))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_voice_score_announce), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                Text(stringResource(R.string.settings_voice_score_announce_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            }
+            Switch(
+                checked = voiceScoreAnnounce,
+                onCheckedChange = onVoiceScoreAnnounceChange,
                 colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
             )
         }

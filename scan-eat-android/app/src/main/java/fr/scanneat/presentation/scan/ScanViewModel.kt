@@ -26,7 +26,9 @@ import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.medication.InteractionWarning
 import fr.scanneat.presentation.medication.detectInteractions
+import fr.scanneat.util.ScoreSpeechAnnouncer
 import fr.scanneat.util.extractPriceFromText
+import fr.scanneat.util.localizedString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,6 +58,7 @@ class ScanViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
     private val nonFoodScanRepo: fr.scanneat.data.repository.nonfood.NonFoodScanRepository,
     private val recallRepo: RecallRepository,
+    private val speechAnnouncer: ScoreSpeechAnnouncer,
     @ApplicationContext internal val appContext: Context,
 ) : ViewModel() {
 
@@ -98,6 +101,20 @@ class ScanViewModel @Inject constructor(
                 }
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // User-requested: read the score aloud on a fresh scan result - see
+    // ScoreSpeechAnnouncer's own doc comment. Opt-in (UserPreferences.
+    // voiceScoreAnnounce, off by default), checked fresh on every call rather
+    // than cached, so a mid-session Settings toggle takes effect on the very
+    // next scan instead of only after restarting the screen.
+    internal fun announceScoreIfEnabled(scanResult: ScanResult) {
+        viewModelScope.launch {
+            if (!prefs.voiceScoreAnnounce.first()) return@launch
+            val lang = prefs.language.first()
+            val text = localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_announce_format, scanResult.audit.score, scanResult.audit.grade.label)
+            speechAnnouncer.speak(text, lang)
+        }
+    }
 
     internal val _images = MutableStateFlow<List<ImagePayload>>(emptyList())
     val images: StateFlow<List<ImagePayload>> = _images.asStateFlow()
@@ -452,6 +469,7 @@ class ScanViewModel @Inject constructor(
                 result.fold(
                     onSuccess = { (scanResult, id) ->
                         _state.value = ScanUiState.Success(scanResult, id)
+                        announceScoreIfEnabled(scanResult)
                         if (barcode != null) {
                             _recentBarcodes.value = (_recentBarcodes.value - barcode + barcode)
                                 .distinct().takeLast(5)

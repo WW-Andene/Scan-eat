@@ -34,6 +34,7 @@
     <string name="scan_medication_found_body">%1$s recognized from the public medication database (ANSM). Add it to your Treatment list?</string>
     <string name="scan_medication_found_add">Add to Treatment</string>
     <string name="scan_nonconsumable_found_title">Non-food product</string>
+    <string name="scan_voice_announce_format">Score %1$d out of 100, grade %2$s</string>
     <string name="scan_nonconsumable_found_body">%1$s (%2$s) — this product is not intended for consumption.</string>
     <string name="scan_nonconsumable_safety_line">Do not ingest. In case of ingestion or exposure, contact emergency services immediately (112 in Europe, 911 in the US) or a poison control center.</string>
     <string name="nonconsumable_transparency_title">Formula transparency</string>
@@ -1329,6 +1330,8 @@
     <string name="settings_animated_background_hint">A generated rain-on-a-puddle ripple pattern behind the screen, instead of a fixed gradient</string>
     <string name="settings_dyslexic_font">Dyslexia-friendly font</string>
     <string name="settings_dyslexic_font_hint">Wider letter and line spacing for easier reading</string>
+    <string name="settings_voice_score_announce">Voice score announcement</string>
+    <string name="settings_voice_score_announce_hint">Reads the score and grade aloud after every scan</string>
     <string name="settings_colorblind_mode">Colorblind mode</string>
     <string name="settings_colorblind_none">None</string>
     <string name="settings_colorblind_deuteranopia">Deuteranopia</string>

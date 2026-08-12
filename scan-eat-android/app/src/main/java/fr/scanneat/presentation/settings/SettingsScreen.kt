@@ -64,6 +64,7 @@ fun SettingsScreen(
     val colorAccent = viewModel.colorAccent.collectAsStateWithLifecycle()
     val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
+    val voiceScoreAnnounce = viewModel.voiceScoreAnnounce.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
@@ -255,6 +256,7 @@ fun SettingsScreen(
                 AccessibilitySection(
                     dyslexicFont = dyslexicFont.value, onDyslexicFontChange = viewModel::setDyslexicFont,
                     colorblindMode = colorblindMode.value, onColorblindModeChange = viewModel::setColorblindMode,
+                    voiceScoreAnnounce = voiceScoreAnnounce.value, onVoiceScoreAnnounceChange = viewModel::setVoiceScoreAnnounce,
                 )
             }
 

@@ -68,6 +68,10 @@ class UserPreferences @Inject constructor(
         val KEY_CURRENCY_SYMBOL      = stringPreferencesKey("currency_symbol")
         val KEY_BIOLISM_ADVANCED     = booleanPreferencesKey("biolism_advanced_view")
         val KEY_ANIMATED_BACKGROUND  = booleanPreferencesKey("animated_background")
+        // User-requested: read the score aloud on a fresh scan result -
+        // hands-busy (driving, cooking) or low-vision use, alongside (not
+        // replacing) TalkBack's own generic content-description reading.
+        val KEY_VOICE_SCORE_ANNOUNCE = booleanPreferencesKey("voice_score_announce")
         // User-reported: instant scan mode reset to off every time the Scan tab
         // was left and reopened - it was a plain in-ViewModel MutableStateFlow
         // with no backing store, unlike every other toggle in the app.
@@ -196,6 +200,7 @@ class UserPreferences @Inject constructor(
      * for as long as it stays enabled - opt-in rather than on-by-default.
      */
     val animatedBackground: Flow<Boolean> = storeData.map { it[KEY_ANIMATED_BACKGROUND] ?: false }.distinctUntilChanged()
+    val voiceScoreAnnounce: Flow<Boolean> = storeData.map { it[KEY_VOICE_SCORE_ANNOUNCE] ?: false }.distinctUntilChanged()
 
     /** Custom drag-and-drop order for Journal's always-visible header tabs — see [KEY_DIARY_PRIMARY_TABS]. */
     val diaryPrimaryTabsOrder: Flow<String> = storeData.map { it[KEY_DIARY_PRIMARY_TABS] ?: "" }.distinctUntilChanged()
@@ -247,6 +252,7 @@ class UserPreferences @Inject constructor(
     suspend fun setCurrencySymbol(v: String)      = store.edit { it[KEY_CURRENCY_SYMBOL] = v.ifBlank { "€" } }
     suspend fun setBiolismAdvancedView(v: Boolean) = store.edit { it[KEY_BIOLISM_ADVANCED] = v }
     suspend fun setAnimatedBackground(v: Boolean)  = store.edit { it[KEY_ANIMATED_BACKGROUND] = v }
+    suspend fun setVoiceScoreAnnounce(v: Boolean)  = store.edit { it[KEY_VOICE_SCORE_ANNOUNCE] = v }
 
     /**
      * Freemium gate: Biolism (metabolism tracking) and AI-powered photo/label

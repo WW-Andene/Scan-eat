@@ -69,6 +69,7 @@ class SettingsViewModel @Inject constructor(
     val colorAccent = prefs.colorAccent.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
     val dyslexicFont   = prefs.dyslexicFont.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val colorblindMode = prefs.colorblindMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
+    val voiceScoreAnnounce = prefs.voiceScoreAnnounce.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     // Was only reachable from Profile despite being an app-wide preference also
     // consumed by the Weight tab and Biolism's body-measurement fields — a user
     // expecting a units setting under Réglages (where every other display
@@ -118,6 +119,7 @@ class SettingsViewModel @Inject constructor(
     fun setColorAccent(a: String)  = guardedLaunch { prefs.setColorAccent(a) }
     fun setDyslexicFont(v: Boolean)     = guardedLaunch { prefs.setDyslexicFont(v) }
     fun setColorblindMode(mode: String) = guardedLaunch { prefs.setColorblindMode(mode) }
+    fun setVoiceScoreAnnounce(v: Boolean) = guardedLaunch { prefs.setVoiceScoreAnnounce(v) }
     fun setUseImperialWeight(v: Boolean) = guardedLaunch { prefs.setUseImperialWeight(v) }
     fun setCurrencySymbol(v: String) = guardedLaunch { prefs.setCurrencySymbol(v) }
 
