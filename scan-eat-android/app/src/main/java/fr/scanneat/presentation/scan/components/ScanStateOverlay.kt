@@ -251,7 +251,7 @@ internal fun BoxScope.ScanStateOverlay(
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Text(stringResource(R.string.scan_nonconsumable_found_body, s.entry.name, s.entry.brand), color = OnBackground.copy(0.8f))
                         Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
-                        CosmeticTransparencySection(transparency, prohibited, restricted, showRetinolNote = cosmeticActives?.retinoid == true)
+                        CosmeticTransparencySection(transparency, prohibited, restricted, showRetinolNote = cosmeticActives?.hasRetinoid == true)
                         if (shampooQuality != null) ShampooQualitySection(shampooQuality)
                         if (showerGelQuality != null) ShowerGelQualitySection(showerGelQuality)
                         if (toothpasteQuality != null) ToothpasteQualitySection(toothpasteQuality)
