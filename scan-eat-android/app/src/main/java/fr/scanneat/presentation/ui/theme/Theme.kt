@@ -200,6 +200,41 @@ private val LazuliteAccent = ColorAccent(
     outline = Color(0xFF3C4A60),
 )
 
+// ── Colorblind-safe decorative/brand accent override ──────────────────────────
+// User-reported: colorblind mode adjusted every meaning-bearing signal
+// (semanticGreen/Red/Amber/Blue, gradeColor, MaterialTheme.colorScheme.error)
+// but left the decorative brand hue itself untouched - the base theme's
+// primary/secondary/tertiary (Gold/AccentCoral/Teal) and every colorAccent
+// preset (Matcha/Lavande/Sunflower/Lazulite) kept their own literal hues
+// regardless of the setting, so a colorblind user picking e.g. Matcha still
+// saw its green-leaning primary exactly as before.
+//
+// Doesn't invent new per-accent hues (there are only 7 non-black Okabe-Ito
+// colors and the 4 semantic accessors already claim up to 8 of them between
+// their protan/deutan and tritanopia branches - see semanticGreen/Red/Amber/
+// Blue's own doc comments) - instead every base theme AND every colorAccent
+// collapses to ONE shared, mode-appropriate hue (3 shades of it, for
+// primary/secondary/tertiary) that's deliberately picked to NOT match any
+// currently-active semantic hue for that same mode, so the decorative accent
+// can never be misread as a status signal (a real risk the other direction:
+// reusing a semantic hue for decoration would make THAT hue meaningless the
+// next time it legitimately signals success/danger/warning).
+private data class ColorblindAccent(val primary: Color, val secondary: Color, val tertiary: Color)
+
+// Okabe-Ito "blue" (#0072B2) - unclaimed by semanticGreen/Red/Amber under
+// protanopia/deuteranopia (semanticBlue itself keeps its own separate,
+// unshifted blue for hydration under this mode - see its own doc comment on
+// why blue needs no adjustment there), so this is genuinely free to use.
+private val ColorblindAccentProtanDeutan = ColorblindAccent(
+    primary = Color(0xFF0072B2), secondary = Color(0xFF4C9FE0), tertiary = Color(0xFF00497A),
+)
+// Okabe-Ito "vermilion" (#D55E00) - unclaimed under tritanopia (semanticRed's
+// tritanopia branch is the reddish-purple #CC79A7 instead, semanticAmber's is
+// orange #E69F00, distinct enough from vermilion to not collide).
+private val ColorblindAccentTritanopia = ColorblindAccent(
+    primary = Color(0xFFD55E00), secondary = Color(0xFFE8894D), tertiary = Color(0xFFA84400),
+)
+
 // ── Gold accent override ──────────────────────────────────────────────────────
 // Biolism screens need a darker gold in light theme for legible contrast on a
 // light background; every other theme uses the raw Gold token as-is.
@@ -352,7 +387,24 @@ fun ScanEatTheme(
             )
         }
     } else baseColorScheme
-    val goldAccent = if (resolvedTheme == "light") LightGoldAccent else Gold
+    // High Contrast is excluded the same way the `error` override below
+    // excludes it - its own primary/secondary/tertiary are deliberately
+    // hand-picked maximal-contrast values for that theme's own accessibility
+    // purpose (see HighContrastColors' own doc comment), which a colorblind
+    // hue swap would undercut rather than complement.
+    val colorblindAccent = if (resolvedTheme != "high_contrast") when (colorblindMode) {
+        "protanopia", "deuteranopia" -> ColorblindAccentProtanDeutan
+        "tritanopia"                 -> ColorblindAccentTritanopia
+        else                         -> null
+    } else null
+    val finalColorScheme = colorblindAccent?.let {
+        colorScheme.copy(primary = it.primary, secondary = it.secondary, tertiary = it.tertiary)
+    } ?: colorScheme
+    val goldAccent = when {
+        colorblindAccent != null  -> colorblindAccent.primary
+        resolvedTheme == "light"  -> LightGoldAccent
+        else                      -> Gold
+    }
     val typography = if (dyslexicFont) ScanEatTypography.withDyslexicSpacing() else ScanEatTypography
     CompositionLocalProvider(
         LocalGoldAccent provides goldAccent,
@@ -373,8 +425,8 @@ fun ScanEatTheme(
         // here too silently replaced High Contrast's own considered choice whenever both
         // accessibility features were enabled together, undercutting whichever one the
         // user actually needed more.
-        val effectiveColorScheme = if (colorblindMode == "none" || theme == "high_contrast") colorScheme
-            else colorScheme.copy(error = semanticRed(), onErrorContainer = semanticRed())
+        val effectiveColorScheme = if (colorblindMode == "none" || theme == "high_contrast") finalColorScheme
+            else finalColorScheme.copy(error = semanticRed(), onErrorContainer = semanticRed())
         MaterialTheme(
             colorScheme = effectiveColorScheme,
             typography  = typography,
