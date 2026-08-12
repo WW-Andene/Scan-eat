@@ -251,7 +251,7 @@ internal fun BoxScope.ScanStateOverlay(
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Text(stringResource(R.string.scan_nonconsumable_found_body, s.entry.name, s.entry.brand), color = OnBackground.copy(0.8f))
                         Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
-                        CosmeticTransparencySection(transparency, prohibited, restricted)
+                        CosmeticTransparencySection(transparency, prohibited, restricted, showRetinolNote = cosmeticActives?.retinoid == true)
                         if (shampooQuality != null) ShampooQualitySection(shampooQuality)
                         if (showerGelQuality != null) ShowerGelQualitySection(showerGelQuality)
                         if (toothpasteQuality != null) ToothpasteQualitySection(toothpasteQuality)
@@ -300,7 +300,19 @@ internal fun BoxScope.ScanStateOverlay(
  * like Retinol, not a hazard flag, unlike Annex II (genuinely prohibited).
  */
 @Composable
-private fun CosmeticTransparencySection(result: CosmeticTransparencyResult?, prohibited: List<CosingMatch>, restricted: List<CosingMatch>) {
+private fun CosmeticTransparencySection(
+    result: CosmeticTransparencyResult?, prohibited: List<CosingMatch>, restricted: List<CosingMatch>,
+    // True when CosmeticActivesScore.kt also flagged this same product's retinol/
+    // retinyl esters as a RETINOID (pregnancy-precaution) caution - shown alongside
+    // this section's own Annex III restricted-substance line for the exact same
+    // ingredient (ref 376 in cosing_annex_iii_restricted.csv, added by Regulation
+    // 2024/996's population vitamin-A-overexposure concentration cap). Both facts
+    // are real and independently sourced, not a duplicate of one signal, but
+    // without this note a user sees "restricted substance" and "pregnancy
+    // caution" for the same ingredient with no indication they're two distinct
+    // regulatory concerns rather than one alarm shown twice.
+    showRetinolNote: Boolean = false,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
         Text(
             stringResource(R.string.nonconsumable_transparency_title),
@@ -337,6 +349,12 @@ private fun CosmeticTransparencySection(result: CosmeticTransparencyResult?, pro
                 stringResource(R.string.nonconsumable_restricted_detected, restricted.size, restricted.joinToString(", ") { it.name }),
                 style = MaterialTheme.typography.bodySmall, color = semanticAmber(),
             )
+            if (showRetinolNote && restricted.any { it.referenceNumber == "376" }) {
+                Text(
+                    stringResource(R.string.nonconsumable_retinol_annex_iii_note),
+                    style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+                )
+            }
         }
         Text(stringResource(R.string.nonconsumable_transparency_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
     }

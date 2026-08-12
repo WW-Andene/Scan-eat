@@ -55,6 +55,7 @@
     <string name="nonconsumable_transparency_disclaimer">Composition signal only, not a safety or toxicology verdict — ingredient count and EU-mandated fragrance-allergen disclosure, not a per-substance hazard assessment.</string>
     <string name="nonconsumable_prohibited_detected">⚠ %1$d declared ingredient(s) match the EU\'s Annex II list of substances PROHIBITED in cosmetic products: %2$s. This may indicate a labeling/data error — verify against the physical product before drawing conclusions.</string>
     <string name="nonconsumable_restricted_detected">%1$d declared ingredient(s) are on the EU\'s Annex III list of regulated-with-conditions substances (legal to use within a set limit, not a hazard flag): %2$s</string>
+    <string name="nonconsumable_retinol_annex_iii_note">The EU\'s retinol/retinyl restriction (Regulation 2024/996, applicable from 01/11/2025) caps concentration (0.05% retinol equivalent in body care, 0.3% elsewhere) to limit cumulative vitamin A overexposure from all sources combined — a distinct concern from the pregnancy precaution shown below.</string>
     <string name="shampoo_quality_title">Shampoo profile</string>
     <string name="cleansing_base_label">Cleansing base: %1$s</string>
     <string name="cleansing_base_gentle">gentle (sulfate-free surfactants)</string>
