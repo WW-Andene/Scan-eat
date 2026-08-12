@@ -27,7 +27,12 @@ import fr.scanneat.domain.model.Ingredient
 // Without this, a raw .contains() let short synonyms match inside unrelated words -
 // e.g. "mate" (yerba mate, a caffeine source) matched inside "tomate", firing a
 // false EFSA caffeine-claim benefit on any product listing tomatoes as an ingredient.
-private fun wordBoundaryMatch(haystack: String, needle: String): Boolean {
+// internal (not private): app-audit §K2 found the same raw-.contains() gap in
+// FoodDrugInteractionDb.checkFoodDrugInteractions and MedicationViewModel.
+// detectInteractions (the anticoagulant/NSAID/SSRI/MAOI cross-interaction
+// engine) - both call this directly now instead of re-deriving a subtly
+// different, unprotected version of the same rule.
+internal fun wordBoundaryMatch(haystack: String, needle: String): Boolean {
     if (needle.isEmpty()) return false
     return Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(haystack)
 }

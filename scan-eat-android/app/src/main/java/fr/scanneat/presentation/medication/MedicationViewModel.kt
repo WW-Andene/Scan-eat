@@ -13,6 +13,7 @@ import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.domain.engine.medication.MedicationDbEntry
 import fr.scanneat.domain.engine.medication.findMedicationByBarcode
 import fr.scanneat.domain.engine.medication.findMedicationByName
+import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -104,25 +105,33 @@ private val INTERACTION_GROUPS = mapOf(
 internal fun detectInteractions(activeMedicationNames: List<String>): List<InteractionWarning> {
     val activeNames = activeMedicationNames.map { fr.scanneat.domain.engine.scoring.normalizeForMatching(it) }
     val warnings = mutableListOf<InteractionWarning>()
+    // app-audit §K2: word-boundary matching, not raw .contains() - this is
+    // the anticoagulant/NSAID/SSRI/MAOI cross-interaction engine, the
+    // highest-stakes matching function in the app, and activeMedicationNames
+    // is free-typed user text, not a controlled vocabulary. Raw .contains()
+    // is exactly the false-positive/negative risk IngredientMatcher.kt's own
+    // doc comment documents and fixed for ingredient matching - never
+    // applied here. wordBoundaryMatch(haystack, needle) takes the full name
+    // first, keyword second (matching its own signature/doc comment).
     // Same-group duplicates (e.g., two anticoagulants)
     for ((group, keywords) in INTERACTION_GROUPS) {
-        val matches = activeNames.count { name -> keywords.any { name.contains(it) } }
+        val matches = activeNames.count { name -> keywords.any { wordBoundaryMatch(name, it) } }
         if (matches >= 2) warnings += InteractionWarning.GroupDuplicate(group)
     }
     // Anticoagulant + NSAID cross-group risk
-    val hasAnticoag = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.ANTICOAGULANTS]!!.any { name.contains(it) } }
-    val hasAin      = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.NSAIDS]!!.any { name.contains(it) } }
+    val hasAnticoag = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.ANTICOAGULANTS]!!.any { wordBoundaryMatch(name, it) } }
+    val hasAin      = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.NSAIDS]!!.any { wordBoundaryMatch(name, it) } }
     if (hasAnticoag && hasAin) warnings += InteractionWarning.AnticoagNsaid
     // Anticoagulant + antiplatelet cross-group bleeding risk (e.g. warfarin + aspirin) -
     // see InteractionWarning.AnticoagAntiplatelet's own doc comment.
-    val hasAntiplatelet = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.ANTIPLATELETS]!!.any { name.contains(it) } }
+    val hasAntiplatelet = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.ANTIPLATELETS]!!.any { wordBoundaryMatch(name, it) } }
     if (hasAnticoag && hasAntiplatelet) warnings += InteractionWarning.AnticoagAntiplatelet
     // NSAID + antiplatelet cross-group bleeding risk (e.g. ibuprofen + aspirin) -
     // see InteractionWarning.NsaidAntiplatelet's own doc comment.
     if (hasAin && hasAntiplatelet) warnings += InteractionWarning.NsaidAntiplatelet
     // SSRI/SNRI + MAOI serotonin syndrome risk
-    val hasSsri = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.SSRI_SNRI]!!.any { name.contains(it) } }
-    val hasMaoi = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.MAOI]!!.any { name.contains(it) } }
+    val hasSsri = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.SSRI_SNRI]!!.any { wordBoundaryMatch(name, it) } }
+    val hasMaoi = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.MAOI]!!.any { wordBoundaryMatch(name, it) } }
     if (hasSsri && hasMaoi) warnings += InteractionWarning.SsriMaoi
     return warnings
 }

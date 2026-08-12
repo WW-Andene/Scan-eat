@@ -130,6 +130,16 @@ class SettingsViewModel @Inject constructor(
      * shows the new symbol next to a not-yet-converted number.
      */
     fun setCurrencySymbolWithConversion(v: String, factor: Double) = guardedLaunch {
+        // app-audit §K1: idempotency guard - CurrencyConversionDialog's onConvert
+        // dismisses itself on the same click that calls this, so a double-tap
+        // before recomposition removes the button could invoke this twice.
+        // scaleAllPrices() is a raw in-place multiplicative UPDATE with no
+        // "already converted" marker, so a second run would silently scale
+        // every price_log row a second time. Guarding here (not just in the UI)
+        // means the conversion itself can never double-apply regardless of how
+        // many times a caller invokes it - if the symbol has already moved to
+        // [v], the conversion this call would perform has already happened.
+        if (prefs.currencySymbol.first() == v) return@guardedLaunch
         // Currency is a global app setting, not per-profile - converting only the
         // active profile's price history would silently leave every other
         // profile's already-logged prices in the old currency's numbers while

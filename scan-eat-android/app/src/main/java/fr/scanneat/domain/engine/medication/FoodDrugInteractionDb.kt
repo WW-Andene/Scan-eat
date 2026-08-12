@@ -1,5 +1,6 @@
 package fr.scanneat.domain.engine.medication
 
+import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
 import fr.scanneat.domain.engine.scoring.normalizeForMatching
 import fr.scanneat.domain.model.Ingredient
 import fr.scanneat.domain.model.Product
@@ -79,15 +80,21 @@ private val FOOD_CAUTIONS: List<FoodCaution> = listOf(
  */
 fun checkFoodDrugInteractions(name: String, ingredients: List<Ingredient>, activeMedicationNames: Set<String>, lang: String): List<String> {
     if (activeMedicationNames.isEmpty()) return emptyList()
+    // app-audit §K2: word-boundary matching, not raw .contains() - the same
+    // false-positive/negative risk IngredientMatcher.kt's own doc comment
+    // documents ("mate" matching inside "tomate"), just never applied here.
+    // A user-typed medication name or ingredient list is free text, not a
+    // controlled vocabulary, so a short keyword could otherwise match inside
+    // an unrelated word.
     val normalizedMedNames = activeMedicationNames.map(::normalizeForMatching)
     val activeDrugClasses = DRUG_KEYWORD_GROUPS
-        .filter { group -> normalizedMedNames.any { medName -> group.keywords.any { medName.contains(it) } } }
+        .filter { group -> normalizedMedNames.any { medName -> group.keywords.any { wordBoundaryMatch(medName, it) } } }
         .map { it.drugClass }
         .toSet()
     if (activeDrugClasses.isEmpty()) return emptyList()
     val haystack = normalizeForMatching(name + " " + ingredients.joinToString(" ") { it.name })
     return FOOD_CAUTIONS
-        .filter { it.drugClass in activeDrugClasses && it.foodKeywords.any { kw -> haystack.contains(kw) } }
+        .filter { it.drugClass in activeDrugClasses && it.foodKeywords.any { kw -> wordBoundaryMatch(haystack, kw) } }
         .map { if (lang == "en") it.cautionEn else it.cautionFr }
 }
 
