@@ -232,7 +232,7 @@ internal fun ResultContent(
 
         // Price / value-score tracking — manual entry only (no OCR price-tag
         // detection), see PriceEntryCard's own doc comment.
-        PriceEntryCard(entries = priceEntries, currencySymbol = currencySymbol, onSave = onSavePrice, onDelete = onDeletePrice)
+        PriceEntryCard(entries = priceEntries, currencySymbol = currencySymbol, grade = scan.audit.grade, onSave = onSavePrice, onDelete = onDeletePrice)
 
         // Nutrition table
         NutritionTable(nutrition = scan.product.nutrition)

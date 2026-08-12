@@ -1788,6 +1788,7 @@
     <string name="result_price_value_good">Good value</string>
     <string name="result_price_value_average">Average price</string>
     <string name="result_price_value_poor">Expensive</string>
+    <string name="result_price_poor_grade_warning">⚠ You\'re paying a premium for a poorly rated product</string>
     <string name="result_macro_kcal">Energy</string>
     <string name="result_macro_protein">Protein</string>
     <string name="result_macro_carbs">Carbs</string>

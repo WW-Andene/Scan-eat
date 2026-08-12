@@ -37,6 +37,7 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import fr.scanneat.R
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.domain.engine.expense.ValueScore
+import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.util.extractPriceFromText
 import fr.scanneat.util.formatDecimal
@@ -52,10 +53,18 @@ import fr.scanneat.util.formatDecimal
  * this same idea (a price detected automatically alongside the barcode
  * itself, not just this manual entry) shares the same extraction function.
  */
+private val POOR_GRADES = setOf(Grade.D, Grade.E, Grade.F)
+
 @Composable
 internal fun PriceEntryCard(
     entries: List<PriceEntry>,
     currencySymbol: String,
+    // User-requested: "alerte prix élevé pour un produit mal noté" - a POOR
+    // value-score (expensive vs. the category's typical price/kg) on a
+    // product that also grades D/E/F is a real actionable signal ("you're
+    // paying a premium for something that scores badly") that the price/
+    // value-score badge alone doesn't call out.
+    grade: Grade,
     onSave: (priceEuros: Double, weightG: Double?) -> Unit,
     onDelete: (String) -> Unit,
 ) {
@@ -74,18 +83,26 @@ internal fun PriceEntryCard(
             Text(stringResource(R.string.result_price_empty), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
         } else {
             entries.take(3).forEach { entry ->
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Column {
-                        Text(dispCurrency(entry.priceEuros, currencySymbol), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
-                        entry.pricePerKg?.let { perKg ->
-                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
-                                Text("${dispCurrency(perKg, currencySymbol)}/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                                entry.valueScore?.let { ValueScoreBadge(it) }
+                Column {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Column {
+                            Text(dispCurrency(entry.priceEuros, currencySymbol), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                            entry.pricePerKg?.let { perKg ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
+                                    Text("${dispCurrency(perKg, currencySymbol)}/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                    entry.valueScore?.let { ValueScoreBadge(it) }
+                                }
                             }
                         }
+                        IconButton(onClick = { onDelete(entry.id) }) {
+                            Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f))
+                        }
                     }
-                    IconButton(onClick = { onDelete(entry.id) }) {
-                        Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f))
+                    if (entry.valueScore == ValueScore.POOR && grade in POOR_GRADES) {
+                        Text(
+                            stringResource(R.string.result_price_poor_grade_warning),
+                            style = MaterialTheme.typography.labelSmall, color = semanticRed(),
+                        )
                     }
                 }
             }

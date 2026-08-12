@@ -1850,6 +1850,7 @@
     <string name="result_price_value_good">Bon prix</string>
     <string name="result_price_value_average">Prix moyen</string>
     <string name="result_price_value_poor">Prix élevé</string>
+    <string name="result_price_poor_grade_warning">⚠ Vous payez cher pour un produit mal noté</string>
     <string name="result_macro_kcal">Énergie</string>
     <string name="result_macro_protein">Protéines</string>
     <string name="result_macro_carbs">Glucides</string>
