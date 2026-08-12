@@ -114,5 +114,15 @@ fun computeToothpasteQuality(ingredientsText: String?): ToothpasteQualityResult?
             null -> {}
         }
     }
+    // Deliberately NO all-zero/all-false null guard here, unlike the other
+    // five per-category scores - considered during the 13/08/2026 audit that
+    // added those guards, then rejected for this file specifically:
+    // hasFluoride=false, even with every other field at 0, is itself real,
+    // useful information ("this ingredient list was successfully read and
+    // contains no recognized fluoride compound") the way an all-zero/
+    // UNKNOWN cleansingBase in Shampoo/ShowerGel is NOT (that state conveys
+    // nothing). Suppressing this result would hide a legitimate finding, not
+    // just an empty one - see ToothpasteQualitySection's own unconditional
+    // "no fluoride detected" line for the same reasoning on the display side.
     return ToothpasteQualityResult(fluoride, higherAbrasive, lowerAbrasive, irritant, sensitivityCare)
 }

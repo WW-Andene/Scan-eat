@@ -130,5 +130,12 @@ fun computeCosmeticActives(ingredientsText: String?): CosmeticActivesResult? {
             null -> {}
         }
     }
+    // Consistency fix 13/08/2026 - see ShampooQualityScore.computeShampooQuality's
+    // matching comment. Unlike ToothpasteQualityResult's hasFluoride,
+    // nothing here has an unconditional "not found" display line
+    // (CosmeticActivesSection only renders a line per field when true/>0),
+    // so an all-false result would show nothing but the title and
+    // disclaimer - the same "no real signal" case as Shampoo/ShowerGel.
+    if (!niacinamide && !vitaminC && !retinoid && humectant == 0 && mineralUv == 0 && chemicalUvCaution == 0) return null
     return CosmeticActivesResult(niacinamide, vitaminC, retinoid, humectant, mineralUv, chemicalUvCaution)
 }

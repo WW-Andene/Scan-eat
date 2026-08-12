@@ -133,5 +133,15 @@ fun computeShampooQuality(ingredientsText: String?): ShampooQualityResult? {
             null -> {}
         }
     }
+    // Consistency fix 13/08/2026 (caught auditing all 6 per-category
+    // scores together): none of this curated list's ingredients were found
+    // in the product's actual ingredient list - same "no real signal, don't
+    // show an all-zero/UNKNOWN section" null already returned above for
+    // blank/unparseable text, now applied here too. MakeupQualityScore/
+    // IntimateHygieneScore already had this guard; Shampoo/ShowerGel/
+    // Toothpaste/CosmeticActives did not - null and "found nothing" were the
+    // same real-world state everywhere, only some of the six treated them
+    // differently.
+    if (harsh == 0 && mild == 0 && silicone == 0 && volatileSilicone == 0 && gentle == 0) return null
     return ShampooQualityResult(harsh, mild, silicone, volatileSilicone, gentle)
 }

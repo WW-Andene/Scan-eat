@@ -134,5 +134,9 @@ fun computeShowerGelQuality(ingredientsText: String?): ShowerGelQualityResult? {
             null -> {}
         }
     }
+    // Consistency fix 13/08/2026 - see ShampooQualityScore.computeShampooQuality's
+    // matching comment: none of this curated list's ingredients were found,
+    // treated the same as "no data" rather than an all-zero result.
+    if (harsh == 0 && mild == 0 && soap == 0 && provenEmollient == 0 && marketingEmollient == 0) return null
     return ShowerGelQualityResult(harsh, mild, soap, provenEmollient, marketingEmollient)
 }
