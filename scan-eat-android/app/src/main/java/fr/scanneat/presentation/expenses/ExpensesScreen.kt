@@ -29,6 +29,7 @@ import fr.scanneat.presentation.expenses.components.ExpenseEntryRow
 import fr.scanneat.presentation.expenses.components.ExpensesSummaryMode
 import fr.scanneat.presentation.expenses.components.ExpensesWeekCard
 import fr.scanneat.presentation.expenses.components.LowStockCard
+import fr.scanneat.presentation.expenses.components.PoorlyRatedSpendCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -67,6 +68,7 @@ fun ExpensesScreen(
     val spendByCategoryDay = viewModel.spendByCategoryDay.collectAsStateWithLifecycle()
     val spendByCategory = viewModel.spendByCategory.collectAsStateWithLifecycle()
     val spendByCategoryMonth = viewModel.spendByCategoryMonth.collectAsStateWithLifecycle()
+    val poorlyRatedSpendMonth = viewModel.poorlyRatedSpendMonth.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var showBudgetEdit by remember { mutableStateOf(false) }
     var showAddEntry by remember { mutableStateOf(false) }
@@ -153,6 +155,12 @@ fun ExpensesScreen(
 
             if (monthTotal.value > 0) {
                 item { fr.scanneat.presentation.expenses.components.AnnualSpendCard(annualProjection.value, currencySymbol.value) }
+            }
+
+            poorlyRatedSpendMonth.value?.let { amount ->
+                if (amount > 0) {
+                    item { PoorlyRatedSpendCard(amount, currencySymbol.value) }
+                }
             }
 
             item {

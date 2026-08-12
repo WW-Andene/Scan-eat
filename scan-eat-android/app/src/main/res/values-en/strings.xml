@@ -1722,6 +1722,9 @@
     <string name="expenses_annual_projection_title">Annual financial footprint</string>
     <string name="expenses_annual_projection_amount">Estimate: %1$s / year at the current rate</string>
     <string name="expenses_annual_projection_budget">Declared annual budget: %1$s</string>
+    <string name="expenses_poorly_rated_title">Poorly rated products</string>
+    <string name="expenses_poorly_rated_amount">%1$s spent this month on products graded D, E or F</string>
+    <string name="expenses_poorly_rated_hint">Based on purchases linked to a scan with a known score</string>
     <string name="profile_section_pregnancy">Pregnancy</string>
     <string name="profile_pregnancy_disclaimer">General figures (IOM/EFSA), not a personalized plan — talk to your midwife or doctor for tailored prenatal nutrition guidance.</string>
     <string name="profile_pregnancy_no_date">Start date not set</string>

@@ -8,9 +8,11 @@ import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
+import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.inferCategoryFromName
+import fr.scanneat.domain.model.Grade
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,6 +29,7 @@ class ExpensesViewModel @Inject constructor(
     private val csvExportRepository: CsvExportRepository,
     private val groceryRepo: ManualGroceryRepository,
     private val customFoodRepo: CustomFoodRepository,
+    private val scanRepo: ScanRepository,
 ) : ActionFailureViewModel() {
 
     // R&D audit finding, phase 2: profileId was dead scaffolding until
@@ -187,6 +190,41 @@ class ExpensesViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     val spendByCategoryMonth: StateFlow<List<Pair<ProductCategory, Double>>> = monthStats.map { it.byCategory }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // User-requested: "tu dépenses X€/mois sur des produits mal notés" - the
+    // score a scanned product gets (ScanRepository, barcode-keyed) and how
+    // much was actually spent on it (PriceEntry, also barcode-keyed when
+    // logged from a scan) previously never crossed paths anywhere in the app.
+    // Manually-added expenses (no barcode) can't be graded and are simply
+    // excluded, same as they already are from spendByCategory's per-category
+    // attribution.
+    private val monthEntries: StateFlow<List<PriceEntry>> = combine(entries, today) { list, todayDate ->
+        val start = todayDate.withDayOfMonth(1)
+        list.filter { !it.date.isBefore(start) && !it.date.isAfter(todayDate) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Grade lookup is a suspend DB read per barcode (ScanRepository.getCachedByBarcode) -
+    // batched once per distinct barcode in the current month's entries rather than
+    // once per PriceEntry row, since the same product is often bought more than once.
+    private val monthBarcodeGrades: StateFlow<Map<String, Grade>> = combine(monthEntries, activeProfileId) { list, profileId -> list to profileId }
+        .flatMapLatest { (list, profileId) ->
+            flow {
+                emit(
+                    list.mapNotNull { it.barcode }.distinct().mapNotNull { barcode ->
+                        scanRepo.getCachedByBarcode(barcode, profileId)?.audit?.grade?.let { barcode to it }
+                    }.toMap(),
+                )
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Total spent this calendar month on products whose most recent scan
+     *  graded D/E/F - null (not 0.0) when nothing gradeable was bought yet,
+     *  so the card can distinguish "nothing to report" from "€0 well spent". */
+    val poorlyRatedSpendMonth: StateFlow<Double?> = combine(monthEntries, monthBarcodeGrades) { list, grades ->
+        val gradeable = list.filter { it.barcode != null && grades.containsKey(it.barcode) }
+        if (gradeable.isEmpty()) null
+        else gradeable.filter { grades[it.barcode] in setOf(Grade.D, Grade.E, Grade.F) }.sumOf { it.priceEuros }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // User-requested: "empreinte financière annuelle" - project the current
     // month's real spend rate into a full year and compare it to the

@@ -1784,6 +1784,9 @@
     <string name="expenses_annual_projection_title">Empreinte financière annuelle</string>
     <string name="expenses_annual_projection_amount">Estimation : %1$s / an au rythme actuel</string>
     <string name="expenses_annual_projection_budget">Budget annuel déclaré : %1$s</string>
+    <string name="expenses_poorly_rated_title">Produits mal notés</string>
+    <string name="expenses_poorly_rated_amount">%1$s dépensés ce mois-ci sur des produits notés D, E ou F</string>
+    <string name="expenses_poorly_rated_hint">Basé sur les achats liés à un scan avec un score connu</string>
     <string name="profile_section_pregnancy">Grossesse</string>
     <string name="profile_pregnancy_disclaimer">Valeurs générales (IOM/EFSA), pas un plan personnalisé — consultez votre sage-femme ou médecin pour un suivi nutritionnel adapté.</string>
     <string name="profile_pregnancy_no_date">Date de début non renseignée</string>
