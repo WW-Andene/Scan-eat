@@ -6,6 +6,7 @@ import compose.icons.tablericons.Pill
 import compose.icons.tablericons.FileInvoice
 import compose.icons.tablericons.Clock
 import compose.icons.tablericons.Moon
+import compose.icons.tablericons.Heart
 import compose.icons.TablerIcons
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -22,6 +23,7 @@ internal enum class DiaryTab(val labelRes: Int, val icon: androidx.compose.ui.gr
     TREATMENT(R.string.diary_tab_treatment, TablerIcons.Pill),
     EXPENSES(R.string.diary_tab_expenses, TablerIcons.FileInvoice),
     SLEEP(R.string.diary_tab_sleep, TablerIcons.Moon),
+    MOOD(R.string.diary_tab_mood, TablerIcons.Heart),
 }
 
 internal val DEFAULT_PRIMARY_DIARY_TABS = listOf(DiaryTab.MEALS, DiaryTab.WEIGHT, DiaryTab.WATER)

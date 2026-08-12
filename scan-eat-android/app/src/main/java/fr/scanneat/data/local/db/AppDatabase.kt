@@ -25,6 +25,8 @@ import fr.scanneat.data.local.db.recall.RecallDao
 import fr.scanneat.data.local.db.recall.RecallEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.recipe.RecipeEntity
+import fr.scanneat.data.local.db.mood.MoodDao
+import fr.scanneat.data.local.db.mood.MoodEntity
 import fr.scanneat.data.local.db.sleep.SleepDao
 import fr.scanneat.data.local.db.sleep.SleepEntity
 import fr.scanneat.data.local.db.scan.OnlineSearchCacheDao
@@ -59,8 +61,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         SymptomEntity::class,
         NonFoodScanEntity::class,
         SleepEntity::class,
+        MoodEntity::class,
     ],
-    version = 37,
+    version = 38,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -81,6 +84,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun symptomDao(): SymptomDao
     abstract fun nonFoodScanDao(): NonFoodScanDao
     abstract fun sleepDao(): SleepDao
+    abstract fun moodDao(): MoodDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -634,5 +638,22 @@ val MIGRATION_36_37 = object : Migration(36, 37) {
                 "PRIMARY KEY(`id`))"
         )
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_sleep_log_date_profileId` ON `sleep_log` (`date`, `profileId`)")
+    }
+}
+val MIGRATION_37_38 = object : Migration(37, 38) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v37 → v38: new `mood_log` table - see MoodEntity's own doc comment.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `mood_log` (" +
+                "`id` TEXT NOT NULL, " +
+                "`date` TEXT NOT NULL, " +
+                "`mood` INTEGER NOT NULL, " +
+                "`stress` INTEGER NOT NULL, " +
+                "`notes` TEXT NOT NULL, " +
+                "`loggedAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, " +
+                "PRIMARY KEY(`id`))"
+        )
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_mood_log_date_profileId` ON `mood_log` (`date`, `profileId`)")
     }
 }
