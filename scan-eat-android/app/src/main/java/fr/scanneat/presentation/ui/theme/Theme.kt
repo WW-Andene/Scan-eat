@@ -221,12 +221,17 @@ private val LazuliteAccent = ColorAccent(
 // next time it legitimately signals success/danger/warning).
 private data class ColorblindAccent(val primary: Color, val secondary: Color, val tertiary: Color)
 
-// Okabe-Ito "blue" (#0072B2) - unclaimed by semanticGreen/Red/Amber under
-// protanopia/deuteranopia (semanticBlue itself keeps its own separate,
-// unshifted blue for hydration under this mode - see its own doc comment on
-// why blue needs no adjustment there), so this is genuinely free to use.
+// User-reported: with the old #0072B2 blue accent, everything read as "just
+// blue" under protanopia/deuteranopia mode - semanticGreen's own substitute
+// hue in this mode is sky blue (#56B4E9, Colors.kt), and semanticBlue stays
+// on its normal unshifted blue too (see its own doc comment), so a blue
+// decorative accent sat on top of two other already-blue signals instead of
+// giving the eye a third distinct hue. Okabe-Ito "reddish purple" (#CC79A7)
+// is the one hue left unclaimed by semanticGreen/Red/Amber/Blue under this
+// mode (semanticGreen=sky blue, semanticRed=vermilion, semanticAmber=yellow,
+// semanticBlue=unshifted blue) - genuinely free to use here.
 private val ColorblindAccentProtanDeutan = ColorblindAccent(
-    primary = Color(0xFF0072B2), secondary = Color(0xFF4C9FE0), tertiary = Color(0xFF00497A),
+    primary = Color(0xFFCC79A7), secondary = Color(0xFFE0A8C8), tertiary = Color(0xFF95507A),
 )
 // Okabe-Ito "vermilion" (#D55E00) - unclaimed under tritanopia (semanticRed's
 // tritanopia branch is the reddish-purple #CC79A7 instead, semanticAmber's is
