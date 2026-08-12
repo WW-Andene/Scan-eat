@@ -1760,6 +1760,11 @@
         <item quantity="one">%1$d item to watch (expiring soon or expired)</item>
         <item quantity="other">%1$d items to watch (expiring soon or expired)</item>
     </plurals>
+    <string name="pantry_health_conflict_warning">Conflicts with your health profile (condition or allergen)</string>
+    <plurals name="pantry_health_conflict_count">
+        <item quantity="one">%1$d item in your pantry conflicts with your health profile</item>
+        <item quantity="other">%1$d items in your pantry conflict with your health profile</item>
+    </plurals>
     <string name="hint_section_pair_well">Pairs well with</string>
     <string name="hint_section_avoid_pairing">Avoid pairing with</string>
     <string name="hint_section_facts">Did you know?</string>

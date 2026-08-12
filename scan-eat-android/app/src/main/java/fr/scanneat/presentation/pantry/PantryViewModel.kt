@@ -6,6 +6,8 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.pantry.PantryItem
 import fr.scanneat.data.repository.pantry.PantryRepository
 import fr.scanneat.data.repository.pantry.PantryUnit
+import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.domain.engine.scoring.computePersonalScore
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
@@ -44,6 +47,7 @@ fun PantryItem.expiryUrgency(today: LocalDate = LocalDate.now()): PantryExpiryUr
 class PantryViewModel @Inject constructor(
     private val repo: PantryRepository,
     private val recallRepo: fr.scanneat.data.repository.recall.RecallRepository,
+    private val scanRepo: ScanRepository,
     private val prefs: UserPreferences,
 ) : ActionFailureViewModel() {
 
@@ -80,6 +84,33 @@ class PantryViewModel @Inject constructor(
     // comment on why this is cache-only (never a fresh network check per row).
     val recalledBarcodes: StateFlow<Set<String>> = recallRepo.observeRecalledBarcodes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    // User-requested: "alerte proactive si un produit du Frigo entre en
+    // conflit avec une condition de santé" - a pantry item is only ever
+    // checked against health conditions once, at scan time (the audit baked
+    // into scan_history); adding a condition afterward (Profile screen) never
+    // retroactively re-checked anything already sitting in the pantry. Same
+    // "flag barcodes" pattern as recalledBarcodes above - recomputed fresh
+    // from the current profile on every emission (not the stored audit), via
+    // the same computePersonalScore() the Result screen itself uses, so a
+    // condition added yesterday is reflected the next time this recomposes,
+    // not just on the item's next rescan. veto (a hard contraindication, e.g.
+    // pregnancy+alcohol) or a declared-allergen hit both count as a real
+    // conflict; a merely lower personal score does not - that's just "less
+    // ideal", not something worth an alert.
+    val healthConflictBarcodes: StateFlow<Set<String>> = combine(allItems, prefs.profile, language) { list, profile, lang ->
+        Triple(list, profile, lang)
+    }.flatMapLatest { (list, profile, lang) ->
+        flow {
+            val barcodes = list.mapNotNull { it.barcode }.distinct()
+            val conflicts = barcodes.mapNotNull { barcode ->
+                val cached = scanRepo.getCachedByBarcode(barcode, profile.id, lang) ?: return@mapNotNull null
+                val personal = computePersonalScore(cached.audit, cached.product, profile, lang)
+                if (personal.veto || personal.allergenHits.isNotEmpty()) barcode else null
+            }
+            emit(conflicts.toSet())
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     fun add(name: String, barcode: String?, category: ProductCategory, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?) {
         guardedLaunch { repo.addOrUpdate(name.trim(), barcode, category, quantity, unit, expiryDate, activeProfileId.value) }

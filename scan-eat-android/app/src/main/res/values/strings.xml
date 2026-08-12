@@ -1822,6 +1822,11 @@
         <item quantity="one">%1$d article à surveiller (bientôt périmé ou périmé)</item>
         <item quantity="other">%1$d articles à surveiller (bientôt périmés ou périmés)</item>
     </plurals>
+    <string name="pantry_health_conflict_warning">En conflit avec votre profil santé (condition ou allergène)</string>
+    <plurals name="pantry_health_conflict_count">
+        <item quantity="one">%1$d article de votre garde-manger entre en conflit avec votre profil santé</item>
+        <item quantity="other">%1$d articles de votre garde-manger entrent en conflit avec votre profil santé</item>
+    </plurals>
     <string name="hint_section_pair_well">S\'associe bien avec</string>
     <string name="hint_section_avoid_pairing">À éviter en association</string>
     <string name="hint_section_facts">Le saviez-vous ?</string>
