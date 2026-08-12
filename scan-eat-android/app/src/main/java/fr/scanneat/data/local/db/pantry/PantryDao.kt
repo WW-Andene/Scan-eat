@@ -35,4 +35,20 @@ interface PantryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<PantryEntity>)
+
+    // Targeted lookups for addOrUpdate/deductStock - both used to scan the
+    // whole table (getAllForBackup, meant for bulk export) on every single
+    // write, which meant every meal log or re-scan paid an O(pantry size)
+    // cost just to find one matching row.
+    @Query("SELECT * FROM pantry WHERE profileId = :profileId AND barcode = :barcode LIMIT 1")
+    suspend fun findByBarcode(barcode: String, profileId: String = "default"): PantryEntity?
+
+    @Query("SELECT * FROM pantry WHERE profileId = :profileId AND name = :name COLLATE NOCASE LIMIT 1")
+    suspend fun findByName(name: String, profileId: String = "default"): PantryEntity?
+
+    // Barcode-less rows only - used as the name-fallback when the incoming
+    // item DOES have a barcode, so a barcoded row that just happens to share
+    // a name never wins over an exact barcode match (see addOrUpdate).
+    @Query("SELECT * FROM pantry WHERE profileId = :profileId AND barcode IS NULL AND name = :name COLLATE NOCASE LIMIT 1")
+    suspend fun findByNameNoBarcode(name: String, profileId: String = "default"): PantryEntity?
 }

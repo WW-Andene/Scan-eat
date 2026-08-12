@@ -85,10 +85,8 @@ class PantryRepository @Inject constructor(
         expiryDate: LocalDate?,
         profileId: String = "default",
     ) {
-        val current = dao.getAllForBackup(profileId).firstOrNull { entry ->
-            if (barcode != null && entry.barcode != null) entry.barcode == barcode
-            else entry.name.equals(name, ignoreCase = true)
-        }
+        val current = if (barcode != null) dao.findByBarcode(barcode, profileId) ?: dao.findByNameNoBarcode(name, profileId)
+        else dao.findByName(name, profileId)
         if (current != null) {
             dao.updateQuantity(current.id, current.quantity + quantity)
         } else {
@@ -116,10 +114,8 @@ class PantryRepository @Inject constructor(
      */
     suspend fun deductStock(barcode: String?, name: String, portionG: Double, profileId: String = "default") {
         if (portionG <= 0.0) return
-        val match = dao.getAllForBackup(profileId).firstOrNull { entry ->
-            if (barcode != null && entry.barcode != null) entry.barcode == barcode
-            else entry.name.equals(name, ignoreCase = true)
-        } ?: return
+        val match = (if (barcode != null) dao.findByBarcode(barcode, profileId) ?: dao.findByNameNoBarcode(name, profileId)
+        else dao.findByName(name, profileId)) ?: return
         if (match.unit != PantryUnit.GRAMS.key) return
         dao.updateQuantity(match.id, (match.quantity - portionG).coerceAtLeast(0.0))
     }

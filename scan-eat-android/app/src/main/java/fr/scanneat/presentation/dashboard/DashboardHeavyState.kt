@@ -14,9 +14,20 @@ import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import kotlin.math.roundToInt
+
+/** Bundles the 5 mutually-independent suspend reads awaited in parallel below. */
+private data class HeavyStateReads(
+    val priorMonthEntries: List<DiaryEntry>,
+    val weightSummary: fr.scanneat.data.repository.health.WeightSummary?,
+    val weeklyActiveMinutesEntries: List<ActivityEntry>,
+    val weeklyFastCompletionsRaw: List<fr.scanneat.data.repository.health.FastCompletion>,
+    val weeklyHydrationEntriesRaw: List<Pair<LocalDate, Int>>,
+)
 
 /**
  * The full per-tick computation behind [DashboardViewModel.heavyState] - split out of the
@@ -59,9 +70,19 @@ internal suspend fun buildHeavyDashboardState(
     // 31-60 ago, not widening the primary reactive window every other
     // computation in this block reads from.
     val priorMonthEnd = date.minusDays(31)
-    val priorMonthEntries = consumptionRepo.observeRange(priorMonthEnd.minusDays(29), priorMonthEnd, profileId).first()
+    val weekStart = date.minusDays(6)
+    // These five suspend reads are otherwise independent of each other -
+    // previously awaited one at a time, so every heavy-state recompute paid
+    // for 5 sequential round-trips instead of the slowest of the 5 in parallel.
+    val (priorMonthEntries, wSummary, weeklyActiveMinutesEntries, weeklyFastCompletionsRaw, weeklyHydrationEntriesRaw) = coroutineScope {
+        val priorMonthEntriesD = async { consumptionRepo.observeRange(priorMonthEnd.minusDays(29), priorMonthEnd, profileId).first() }
+        val wSummaryD = async { weightRepo.summarize(30, profileId) }
+        val activeMinutesD = async { activityRepo.getRange(date.minusDays(6), date, profileId) }
+        val fastingD = async { fastingRepo.history(profileId).first() }
+        val hydrationD = async { hydrationRepo.observeAll(profileId).first() }
+        HeavyStateReads(priorMonthEntriesD.await(), wSummaryD.await(), activeMinutesD.await(), fastingD.await(), hydrationD.await())
+    }
     val monthDelta = monthOverMonthDelta(thisMonth, monthlyRollup(priorMonthEntries, priorMonthEnd))
-    val wSummary  = weightRepo.summarize(30, profileId)
     val forecast  = if (wSummary != null && profile.goalWeightKg != null)
         weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
     else WeightForecast.InsufficientData
@@ -90,8 +111,7 @@ internal suspend fun buildHeavyDashboardState(
     // Weekly active minutes for the cross-tracker insight below - a
     // fresh range query (not the single-day observeByDate used elsewhere
     // on Dashboard) since no 7-day activity window was already loaded here.
-    val weeklyActiveMinutes = activityRepo.getRange(date.minusDays(6), date, profileId).sumOf { it.minutes }
-    val weekStart = date.minusDays(6)
+    val weeklyActiveMinutes = weeklyActiveMinutesEntries.sumOf { it.minutes }
     // "five trackers... never cross-reference each other" (see
     // weeklyCrossTrackerInsight's own doc comment) - fasting/hydration
     // were tracked but excluded from this insight entirely. Fasting
@@ -99,7 +119,7 @@ internal suspend fun buildHeavyDashboardState(
     // convention (% of *attempted* fasts that hit target, not % of the
     // week, since fasting is often deliberately not a daily practice) -
     // hydration is expected daily, so it divides by the fixed 7-day week.
-    val weeklyFastCompletions = fastingRepo.history(profileId).first().filter { c ->
+    val weeklyFastCompletions = weeklyFastCompletionsRaw.filter { c ->
         runCatching { LocalDate.parse(c.date) }.getOrNull()?.let { it in weekStart..date } == true
     }
     // Rounded, not truncated - plain integer division previously biased both
@@ -108,7 +128,7 @@ internal suspend fun buildHeavyDashboardState(
     // (see weeklyCrossTrackerInsight's own thresholds).
     val weeklyFastingAdherencePct = weeklyFastCompletions.takeIf { it.isNotEmpty() }
         ?.let { (it.count { c -> c.reached } * 100.0 / it.size).roundToInt() }
-    val weeklyHydrationEntries = hydrationRepo.observeAll(profileId).first().filter { (d, _) -> d in weekStart..date }
+    val weeklyHydrationEntries = weeklyHydrationEntriesRaw.filter { (d, _) -> d in weekStart..date }
     val hydrationGoal = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, weightKg = profile.weightKg)
     val weeklyHydrationAdherencePct = weeklyHydrationEntries.takeIf { it.isNotEmpty() && hydrationGoal > 0 }
         ?.let { entries -> (entries.count { (_, ml) -> ml >= hydrationGoal } * 100.0 / 7).roundToInt() }
