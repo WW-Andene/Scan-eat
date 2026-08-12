@@ -48,36 +48,48 @@ import fr.scanneat.domain.engine.scoring.normalizeForMatching
 //     tampons - no clinical evidence organic tampons are safer for health
 //     outcomes; the difference is compositional/environmental (no rayon
 //     blend, no chlorine bleach, no pesticide residue), not a demonstrated
-//     clinical benefit. EPA considers glyphosate residue levels in
-//     conventional cotton products unlikely to be harmful.
+//     clinical benefit. EPA's stated position on glyphosate is that residue
+//     levels are generally unlikely to pose a health risk - this is a
+//     general EPA position on glyphosate residue, corrected 13/08/2026 after
+//     independent verification: an earlier draft of this comment
+//     represented it as an EPA finding specific to cotton products, but no
+//     EPA document addressing cotton/tampons specifically was found; the
+//     claim here is now stated at its real, more general scope.
 //   - UNRESOLVED / ACTIVE RESEARCH (explicitly flagged as such, not
 //     presented as either "safe" or "dangerous"): a 2024 Columbia
-//     University study (Environment International) detected trace metals
-//     across tampon brands but did not establish release or absorption in
-//     the body; FDA's own December 2024 literature review found "no clear
-//     evidence of health risks" but flagged research gaps and is running
-//     its own lab study (FDA, "Contaminants in Vaginal Tampons: A
-//     Systematic Literature Review").
+//     Mailman/UC Berkeley collaboration study (Environment International)
+//     detected trace metals across tampon brands but did not establish
+//     release or absorption in the body (corrected 13/08/2026: an earlier
+//     draft credited this to "Columbia University" alone, omitting the
+//     Berkeley co-authorship); FDA's own December 2024 literature review
+//     found "no clear evidence of health risks" but flagged research gaps
+//     and is running its own lab study (FDA, "Contaminants in Vaginal
+//     Tampons: A Systematic Literature Review").
 //   - WELL-ESTABLISHED: normal vaginal pH is ~3.8-4.5 (standard
 //     obstetric/gynecologic physiology - e.g. Cleveland Clinic patient
 //     education material, consistent with the clinical literature).
-//   - MODERATE EVIDENCE (mechanism-level, best documented for douching
-//     specifically, thinner but corroborating for wipes/washes): products
-//     that alter vaginal pH or have direct antibacterial action (fragrance,
-//     harsh surfactants, alcohol, douching) can disrupt the Lactobacillus-
-//     dominated vaginal flora and raise pH, a known pathway toward
-//     bacterial vaginosis risk - "Effects of feminine hygiene products on
-//     the vaginal mucosal biome" (PMC3758931); "The INTIMATE Study"
-//     (PMC12538639).
+//   - MODERATE EVIDENCE FOR DOUCHING, WEAKER/EXTRAPOLATED FOR WIPES
+//     (corrected 13/08/2026 after independent verification): "Effects of
+//     feminine hygiene products on the vaginal mucosal biome" (PMC3758931,
+//     Fashemi et al. 2013) found that OTC intimate moisturizer, lubricant,
+//     and douche products (with spermicide as a positive control) can harm
+//     the Lactobacillus-dominated vaginal flora and mucosal immune barrier -
+//     an earlier draft of this comment described the tested products as
+//     "fragrance/harsh surfactants/alcohol", which overstated what this
+//     specific paper tested. The FRAGRANCE/ALCOHOL flags below for wipes are
+//     therefore an EXTRAPOLATION from the douching/moisturizer evidence
+//     above (same mucosal-flora-disruption mechanism, different product
+//     type), not a direct finding for wet wipes specifically - presented to
+//     the user as a caution-level flag, not a proven-harm claim.
 // ============================================================================
 
 enum class IntimateWipeIngredientRole { FRAGRANCE, ALCOHOL, PH_BUFFERING }
 
 private val INTIMATE_WIPE_INGREDIENT_ROLES: Map<String, IntimateWipeIngredientRole> = mapOf(
-    // FRAGRANCE - moderate-evidence mucosal-irritation/flora-disruption concern (see header)
+    // FRAGRANCE - extrapolated mucosal-irritation/flora-disruption caution, not a direct wipe-specific finding (see header)
     "parfum" to IntimateWipeIngredientRole.FRAGRANCE,
     "fragrance" to IntimateWipeIngredientRole.FRAGRANCE,
-    // ALCOHOL - can dry/irritate mucosal tissue and disrupt flora (see header)
+    // ALCOHOL - can dry/irritate mucosal tissue; flora-disruption caution extrapolated the same way as FRAGRANCE above (see header)
     "alcohol denat" to IntimateWipeIngredientRole.ALCOHOL,
     "alcohol" to IntimateWipeIngredientRole.ALCOHOL,
     "ethanol" to IntimateWipeIngredientRole.ALCOHOL,
