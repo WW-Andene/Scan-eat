@@ -63,6 +63,14 @@
     <string name="toothpaste_oral_irritant">Contains %1$d ingredient(s) with limited-evidence association to increased mouth ulcer risk (e.g. sodium lauryl sulfate).</string>
     <string name="toothpaste_sensitivity_care">Contains %1$d sensitivity-relief ingredient(s) (weak to mixed clinical evidence).</string>
     <string name="toothpaste_quality_disclaimer">Presence-only profile (no ppm/RDA concentration data available), based on a small, growing list — not exhaustive, not a hazard verdict.</string>
+    <string name="cosmetic_actives_title">Detected cosmetic actives</string>
+    <string name="cosmetic_has_niacinamide">Contains niacinamide — regulates sebum, strengthens the skin barrier, fades dark spots.</string>
+    <string name="cosmetic_has_vitamin_c">Contains vitamin C — antioxidant, efficacy depends on formula stability (not verifiable from the label).</string>
+    <string name="cosmetic_has_retinoid_caution">Contains a retinoid (retinol) — a recognized precaution during pregnancy; typically used at night with sun protection the next day.</string>
+    <string name="cosmetic_has_humectant">Contains %1$d humectant(s) (e.g. hyaluronic acid, glycerin).</string>
+    <string name="cosmetic_has_mineral_uv_filter">Contains %1$d mineral UV filter(s) (e.g. zinc oxide, titanium dioxide).</string>
+    <string name="cosmetic_has_chemical_uv_filter_caution">Contains %1$d chemical UV filter(s) worth watching (e.g. octocrylene — can degrade over time).</string>
+    <string name="cosmetic_actives_disclaimer">Presence-only profile, based on a small, growing list — not exhaustive, not a hazard verdict or an efficacy guarantee.</string>
     <string name="nonfood_history_title">Non-food products</string>
     <string name="nonfood_history_empty">No non-food products scanned yet.</string>
     <string name="nonfood_history_empty_favorites">No favorite non-food products yet.</string>

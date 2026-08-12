@@ -63,6 +63,14 @@
     <string name="toothpaste_oral_irritant">Contient %1$d ingrédient(s) associé(s), avec un niveau de preuve limité, à un risque accru d\'aphtes (ex. sulfate de sodium).</string>
     <string name="toothpaste_sensitivity_care">Contient %1$d ingrédient(s) pour dents sensibles (preuves cliniques faibles à mitigées).</string>
     <string name="toothpaste_quality_disclaimer">Profil basé sur la présence d\'ingrédients uniquement (pas de concentration ppm/RDA disponible), sur une liste restreinte et évolutive — non exhaustif, pas un verdict de danger.</string>
+    <string name="cosmetic_actives_title">Actifs cosmétiques détectés</string>
+    <string name="cosmetic_has_niacinamide">Contient de la niacinamide — régule le sébum, renforce la barrière cutanée, atténue les taches.</string>
+    <string name="cosmetic_has_vitamin_c">Contient de la vitamine C — antioxydant, efficacité dépendante de la stabilité de la formule (non vérifiable sur l\'étiquette).</string>
+    <string name="cosmetic_has_retinoid_caution">Contient un rétinoïde (rétinol) — précaution reconnue en cas de grossesse, à utiliser en soirée avec protection solaire le lendemain.</string>
+    <string name="cosmetic_has_humectant">Contient %1$d agent(s) humectant(s) (ex. acide hyaluronique, glycérine).</string>
+    <string name="cosmetic_has_mineral_uv_filter">Contient %1$d filtre(s) UV minéral(aux) (ex. oxyde de zinc, dioxyde de titane).</string>
+    <string name="cosmetic_has_chemical_uv_filter_caution">Contient %1$d filtre(s) UV chimique(s) à surveiller (ex. octocrylène — peut se dégrader avec le temps).</string>
+    <string name="cosmetic_actives_disclaimer">Profil basé sur la présence d\'ingrédients uniquement, sur une liste restreinte et évolutive — non exhaustif, pas un verdict de danger ni une garantie d\'efficacité.</string>
     <string name="nonfood_history_title">Produits non-alimentaires</string>
     <string name="nonfood_history_empty">Aucun produit non-alimentaire scanné pour le moment.</string>
     <string name="nonfood_history_empty_favorites">Aucun produit non-alimentaire favori pour le moment.</string>

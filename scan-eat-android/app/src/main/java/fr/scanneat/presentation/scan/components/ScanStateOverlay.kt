@@ -40,9 +40,11 @@ import fr.scanneat.domain.engine.nonconsumable.CleansingBase
 import fr.scanneat.domain.engine.nonconsumable.CosingMatch
 import fr.scanneat.domain.engine.nonconsumable.FormulaComplexity
 import fr.scanneat.domain.engine.nonconsumable.ShampooQualityResult
+import fr.scanneat.domain.engine.nonconsumable.CosmeticActivesResult
 import fr.scanneat.domain.engine.nonconsumable.ShowerGelCleansingBase
 import fr.scanneat.domain.engine.nonconsumable.ShowerGelQualityResult
 import fr.scanneat.domain.engine.nonconsumable.ToothpasteQualityResult
+import fr.scanneat.domain.engine.nonconsumable.computeCosmeticActives
 import fr.scanneat.domain.engine.nonconsumable.computeCosmeticTransparency
 import fr.scanneat.domain.engine.nonconsumable.computeShampooQuality
 import fr.scanneat.domain.engine.nonconsumable.computeShowerGelQuality
@@ -50,6 +52,7 @@ import fr.scanneat.domain.engine.nonconsumable.computeToothpasteQuality
 import fr.scanneat.domain.engine.nonconsumable.findProhibitedSubstances
 import fr.scanneat.domain.engine.nonconsumable.findRestrictedSubstances
 import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
+import fr.scanneat.domain.engine.nonconsumable.isLikelyGeneralCosmetic
 import fr.scanneat.domain.engine.nonconsumable.isLikelyShampoo
 import fr.scanneat.domain.engine.nonconsumable.isLikelyShowerGel
 import fr.scanneat.domain.engine.nonconsumable.isLikelyToothpaste
@@ -191,6 +194,15 @@ internal fun BoxScope.ScanStateOverlay(
             val toothpasteQuality = remember(s.entry) {
                 if (isLikelyToothpaste(s.entry.name)) computeToothpasteQuality(s.entry.ingredientsText) else null
             }
+            // app-audit: étape 3d (per-category functional score, cosmétique
+            // général fourth) - see CosmeticActivesScore.kt's own header for
+            // the data source. Only checked when the more specific
+            // shampoo/gel-douche/dentifrice gates above didn't already match.
+            val cosmeticActives = remember(s.entry) {
+                if (shampooQuality == null && showerGelQuality == null && toothpasteQuality == null && isLikelyGeneralCosmetic(s.entry.name)) {
+                    computeCosmeticActives(s.entry.ingredientsText)
+                } else null
+            }
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -205,6 +217,7 @@ internal fun BoxScope.ScanStateOverlay(
                         if (shampooQuality != null) ShampooQualitySection(shampooQuality)
                         if (showerGelQuality != null) ShowerGelQualitySection(showerGelQuality)
                         if (toothpasteQuality != null) ToothpasteQualitySection(toothpasteQuality)
+                        if (cosmeticActives != null) CosmeticActivesSection(cosmeticActives)
                         FactsCautionsColumn(hints.facts, hints.cautions)
                     }
                 },
@@ -366,5 +379,41 @@ private fun ToothpasteQualitySection(result: ToothpasteQualityResult) {
             Text(stringResource(R.string.toothpaste_sensitivity_care, result.sensitivityCareCount), style = MaterialTheme.typography.bodySmall, color = semanticGreen())
         }
         Text(stringResource(R.string.toothpaste_quality_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
+    }
+}
+
+/**
+ * User-requested: a real functional profile for general cosmetics/skincare
+ * (creams, lotions, serums - fourth of the planned series) - see
+ * CosmeticActivesScore.kt's own header for the sourcing. Presence-only
+ * signal, not an efficacy guarantee (see header on vitamin C formulation
+ * stability specifically).
+ */
+@Composable
+private fun CosmeticActivesSection(result: CosmeticActivesResult) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+        Text(
+            stringResource(R.string.cosmetic_actives_title),
+            style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
+        )
+        if (result.hasNiacinamide) {
+            Text(stringResource(R.string.cosmetic_has_niacinamide), style = MaterialTheme.typography.bodySmall, color = semanticGreen())
+        }
+        if (result.hasVitaminC) {
+            Text(stringResource(R.string.cosmetic_has_vitamin_c), style = MaterialTheme.typography.bodySmall, color = semanticGreen())
+        }
+        if (result.hasRetinoid) {
+            Text(stringResource(R.string.cosmetic_has_retinoid_caution), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+        }
+        if (result.humectantCount > 0) {
+            Text(stringResource(R.string.cosmetic_has_humectant, result.humectantCount), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+        }
+        if (result.mineralUvFilterCount > 0) {
+            Text(stringResource(R.string.cosmetic_has_mineral_uv_filter, result.mineralUvFilterCount), style = MaterialTheme.typography.bodySmall, color = semanticGreen())
+        }
+        if (result.chemicalUvFilterCautionCount > 0) {
+            Text(stringResource(R.string.cosmetic_has_chemical_uv_filter_caution, result.chemicalUvFilterCautionCount), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+        }
+        Text(stringResource(R.string.cosmetic_actives_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
     }
 }
