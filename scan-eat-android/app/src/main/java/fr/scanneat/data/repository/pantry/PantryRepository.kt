@@ -136,7 +136,7 @@ class PantryRepository @Inject constructor(
     suspend fun exportAll(profileId: String = "default"): List<PantryEntity> = dao.getAllForBackup(profileId)
     suspend fun importAll(entities: List<PantryEntity>) {
         if (entities.isEmpty()) return
-        dao.insertAll(entities)
+        dao.insertAll(entities.map { it.copy(quantity = it.quantity.coerceAtLeast(0.0)) })
     }
 }
 

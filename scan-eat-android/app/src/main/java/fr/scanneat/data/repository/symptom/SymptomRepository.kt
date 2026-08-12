@@ -66,7 +66,7 @@ class SymptomRepository @Inject constructor(
     suspend fun exportAll(profileId: String = "default"): List<SymptomEntity> = dao.getAllForBackup(profileId)
     suspend fun importAll(entities: List<SymptomEntity>) {
         if (entities.isEmpty()) return
-        dao.insertAll(entities)
+        dao.insertAll(entities.map { it.copy(severity = it.severity.coerceIn(1, 5)) })
     }
 }
 
