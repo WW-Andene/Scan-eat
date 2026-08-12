@@ -49,7 +49,9 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // inherent to cheese - a flat 1.5g bar flagged literally every soy sauce
     // and prosciutto regardless of whether it was unusually salty even for
     // its own category. See CategoryThresholds.kt's saltThresholds doc comment.
-    val salt = if (n.saltG > 0.0) n.saltG else (n.sodiumMg?.let { it / 1000.0 * 2.5 } ?: 0.0)
+    // Shares SODIUM_TO_SALT_FACTOR with ServerOffMapper.kt's own fallback so the
+    // two independent guard sites can't drift apart.
+    val salt = if (n.saltG > 0.0) n.saltG else (n.sodiumMg?.let { it / 1000.0 * SODIUM_TO_SALT_FACTOR } ?: 0.0)
     val (saltMinor, saltMod, saltMaj) = thresholds.saltThresholds
     val saltLabel = if (en) "Salt" else "Sel"
     when {

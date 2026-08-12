@@ -144,6 +144,16 @@ private object VetoCap {
     const val MINOR = 54
 }
 
+// Single source of truth for "sugar-sweetened beverage" — checkVeto's SSB veto
+// and PersonalScoreEngine's BMI/health-condition adjustments both need to agree
+// on this definition. Previously hand-retyped independently, risking a silent
+// desync. Mirrors the identical extraction on the Android side (see Scoring
+// Drift Check).
+internal fun isSugarSweetenedBeverage(category: ProductCategory, n: NutritionPer100g): Boolean =
+    category == ProductCategory.BEVERAGE_SOFT &&
+        (n.addedSugarsG ?: n.sugarsG) > 5.0 &&
+        n.proteinG < 1.0 && n.fiberG < 1.0
+
 private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     val en = lang == "en"
     val n = product.nutrition
@@ -232,9 +242,10 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
         // the Android side (see Scoring Drift Check).
         candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate preservatives (E249/E250), linked by IARC to processed-meat consumption at a population level" else "Contient des conservateurs nitrités (E249/E250), associés par le CIRC à la consommation de viande transformée au niveau populationnel", VetoCap.MILD)
 
-    val sugars = n.addedSugarsG ?: n.sugarsG
-    if (product.category == ProductCategory.BEVERAGE_SOFT && sugars > 5 && n.proteinG < 1 && n.fiberG < 1)
+    if (isSugarSweetenedBeverage(product.category, n))
         candidates += VetoCondition(true, if (en) "Sugar-sweetened beverage with no nutritional contribution" else "Boisson sucrée sans apport nutritionnel", VetoCap.SEVERE)
+
+    val sugars = n.addedSugarsG ?: n.sugarsG
 
     // CONDIMENT excluded too, alongside SNACK_SWEET — CategoryThresholds.kt
     // deliberately gives it a wider sugar band (30g is only its own "major"
