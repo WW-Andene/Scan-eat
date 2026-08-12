@@ -66,6 +66,7 @@ data class DiaryEntry(
             vitCMg        = (nutrition.vitCMg       ?: 0.0) * factor,
             vitAUg        = (nutrition.vitAUg       ?: 0.0) * factor,
             b9Ug          = (nutrition.b9Ug         ?: 0.0) * factor,
+            caffeineMg    = (nutrition.caffeineMg   ?: 0.0) * factor,
         )
     }
     /**
@@ -109,6 +110,13 @@ data class ConsumedNutrition(
     // above already fixed for their four nutrients.
     val vitAUg: Double = 0.0,
     val b9Ug: Double = 0.0,
+    // User-requested: "lien entre le score des produits scannés (caféine,
+    // sucre...) et les entrées sommeil/humeur du même jour" - caffeine is
+    // mapped per-product (OffMapper.caffeineMg) but this daily accumulator
+    // never tracked the consumed side of it, the same "computed but nothing
+    // to compare against" gap magnesiumMg/potassiumMg/zincMg/vitCMg's own
+    // comment above already fixed for their four nutrients.
+    val caffeineMg: Double = 0.0,
 ) {
     operator fun plus(other: ConsumedNutrition) = ConsumedNutrition(
         energyKcal    = energyKcal    + other.energyKcal,
@@ -129,6 +137,7 @@ data class ConsumedNutrition(
         vitCMg        = vitCMg        + other.vitCMg,
         vitAUg        = vitAUg        + other.vitAUg,
         b9Ug          = b9Ug          + other.b9Ug,
+        caffeineMg    = caffeineMg    + other.caffeineMg,
     )
 
     companion object {

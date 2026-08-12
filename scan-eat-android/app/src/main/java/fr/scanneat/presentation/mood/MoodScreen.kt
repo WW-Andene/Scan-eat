@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.mood.MoodEntry
+import fr.scanneat.domain.engine.dashboard.IntakeSleepMoodLink
 import fr.scanneat.domain.engine.dashboard.SleepMoodCorrelation
 import fr.scanneat.presentation.mood.components.AddMoodEntryDialog
 import fr.scanneat.presentation.mood.components.MoodWeeklyChart
@@ -49,6 +50,7 @@ fun MoodScreen(
     val avgMood = viewModel.avgMood.collectAsStateWithLifecycle()
     val avgStress = viewModel.avgStress.collectAsStateWithLifecycle()
     val sleepMoodCorrelation = viewModel.sleepMoodCorrelation.collectAsStateWithLifecycle()
+    val intakeSleepMoodLink = viewModel.intakeSleepMoodLink.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
 
     var showAdd by remember { mutableStateOf(false) }
@@ -110,6 +112,10 @@ fun MoodScreen(
 
             sleepMoodCorrelation.value?.let { correlation ->
                 item { SleepMoodCorrelationCard(correlation) }
+            }
+
+            intakeSleepMoodLink.value?.let { link ->
+                item { IntakeSleepMoodLinkCard(link) }
             }
 
             item {
@@ -195,6 +201,41 @@ private fun SleepMoodCorrelationCard(correlation: SleepMoodCorrelation) {
             ),
             style = MaterialTheme.typography.bodyMedium, color = OnSurface.copy(0.85f),
         )
+    }
+}
+
+/**
+ * User-requested: "lien entre le score des produits scannés (caféine,
+ * sucre...) et les entrées sommeil/humeur du même jour" - see
+ * computeIntakeSleepMoodLink's own doc comment. Each half (caffeine/sleep,
+ * sugar/mood) is shown independently and only when the ViewModel found
+ * enough paired days on both sides for that specific half - a month with
+ * only the caffeine half usable still shows that one alone.
+ */
+@Composable
+private fun IntakeSleepMoodLinkCard(link: IntakeSleepMoodLink) {
+    ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        Text(stringResource(R.string.mood_intake_link_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+        if (link.highCaffeineDays > 0) {
+            Text(
+                stringResource(
+                    R.string.mood_intake_link_caffeine_sleep,
+                    link.highCaffeineAvgSleepQuality, link.highCaffeineDays,
+                    link.normalCaffeineAvgSleepQuality, link.normalCaffeineDays,
+                ),
+                style = MaterialTheme.typography.bodyMedium, color = OnSurface.copy(0.85f),
+            )
+        }
+        if (link.highSugarDays > 0) {
+            Text(
+                stringResource(
+                    R.string.mood_intake_link_sugar_mood,
+                    link.highSugarAvgMood, link.highSugarDays,
+                    link.normalSugarAvgMood, link.normalSugarDays,
+                ),
+                style = MaterialTheme.typography.bodyMedium, color = OnSurface.copy(0.85f),
+            )
+        }
     }
 }
 

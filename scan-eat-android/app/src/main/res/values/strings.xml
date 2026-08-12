@@ -1008,6 +1008,9 @@
     <string name="mood_record_label">Record</string>
     <string name="mood_sleep_correlation_title">Sommeil &amp; Humeur</string>
     <string name="mood_sleep_correlation_body">Les nuits où vous dormez bien, votre humeur moyenne est de %1$.1f/5 (%2$d nuits). Les nuits où vous dormez mal, elle tombe à %3$.1f/5 (%4$d nuits).</string>
+    <string name="mood_intake_link_title">Alimentation, sommeil &amp; humeur</string>
+    <string name="mood_intake_link_caffeine_sleep">Les jours à forte caféine, votre sommeil est noté %1$.1f/5 (%2$d jours), contre %3$.1f/5 les autres jours (%4$d jours).</string>
+    <string name="mood_intake_link_sugar_mood">Les jours à forte consommation de sucre, votre humeur moyenne est de %1$.1f/5 (%2$d jours), contre %3$.1f/5 les autres jours (%4$d jours).</string>
     <string name="mood_empty">Aucune entrée pour le moment</string>
     <string name="mood_add_dialog_title">Comment vous sentez-vous ?</string>
     <string name="mood_mood_label">Humeur : %1$d/5</string>

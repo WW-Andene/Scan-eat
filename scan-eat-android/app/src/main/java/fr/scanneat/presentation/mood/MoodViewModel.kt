@@ -5,8 +5,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.mood.MoodEntry
 import fr.scanneat.data.repository.mood.MoodRepository
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.sleep.SleepRepository
+import fr.scanneat.domain.engine.dashboard.IntakeSleepMoodLink
 import fr.scanneat.domain.engine.dashboard.SleepMoodCorrelation
+import fr.scanneat.domain.engine.dashboard.computeIntakeSleepMoodLink
 import fr.scanneat.domain.engine.dashboard.computeSleepMoodCorrelation
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,6 +33,7 @@ import javax.inject.Inject
 class MoodViewModel @Inject constructor(
     private val repo: MoodRepository,
     private val sleepRepo: SleepRepository,
+    private val consumptionRepo: ConsumptionRepository,
     private val prefs: UserPreferences,
 ) : ActionFailureViewModel() {
 
@@ -84,6 +88,16 @@ class MoodViewModel @Inject constructor(
         combine(entries, activeProfileId.flatMapLatest { id -> sleepRepo.observeAll(id) }) { moods, sleeps ->
             computeSleepMoodCorrelation(sleeps, moods)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // User-requested: "lien entre le score des produits scannés (caféine,
+    // sucre...) et les entrées sommeil/humeur du même jour" - see
+    // computeIntakeSleepMoodLink's own doc comment.
+    val intakeSleepMoodLink: StateFlow<IntakeSleepMoodLink?> = combine(
+        activeProfileId.flatMapLatest { id -> consumptionRepo.observeRange(LocalDate.now().minusDays(29), LocalDate.now(), id) },
+        activeProfileId.flatMapLatest { id -> sleepRepo.observeAll(id) },
+        entries,
+    ) { diary, sleeps, moods -> computeIntakeSleepMoodLink(diary, sleeps, moods) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun log(mood: Int, stress: Int, notes: String = "", date: LocalDate? = null) = guardedLaunch {
         repo.log(mood, stress, notes, date, activeProfileId.value)

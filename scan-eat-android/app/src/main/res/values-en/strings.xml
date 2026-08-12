@@ -1004,6 +1004,9 @@
     <string name="mood_record_label">Record</string>
     <string name="mood_sleep_correlation_title">Sleep &amp; Mood</string>
     <string name="mood_sleep_correlation_body">On nights you sleep well, your average mood is %1$.1f/5 (%2$d nights). On nights you sleep poorly, it drops to %3$.1f/5 (%4$d nights).</string>
+    <string name="mood_intake_link_title">Diet, Sleep &amp; Mood</string>
+    <string name="mood_intake_link_caffeine_sleep">On high-caffeine days, your sleep rates %1$.1f/5 (%2$d days), vs. %3$.1f/5 on other days (%4$d days).</string>
+    <string name="mood_intake_link_sugar_mood">On high-sugar days, your average mood is %1$.1f/5 (%2$d days), vs. %3$.1f/5 on other days (%4$d days).</string>
     <string name="mood_empty">No entries yet</string>
     <string name="mood_add_dialog_title">How are you feeling?</string>
     <string name="mood_mood_label">Mood: %1$d/5</string>
