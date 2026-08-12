@@ -171,7 +171,10 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "shower-gel" in tag || "gel-douche" in tag || "body-wash" in tag || "bath-and-shower" in tag -> "PERSONAL_CARE"
             "toothpaste" in tag || "dentifrice" in tag || "oral-hygiene" in tag || "oral-care" in tag -> "PERSONAL_CARE"
             "make-up" in tag || "makeup" in tag || "maquillage" in tag || "cosmetics" in tag -> "PERSONAL_CARE"
-            "skin-care" in tag || "creme" in tag || "moisturi" in tag -> "PERSONAL_CARE"
+            // "creme" removed 13/08/2026 - see the Android copy's doc comment
+            // (real bug: OPF food tags like "en:cremes-dessert" contain
+            // "creme" as a raw substring, misclassifying real food).
+            "skin-care" in tag || "moisturi" in tag -> "PERSONAL_CARE"
             "cosmetic" in tag || "beauty" in tag || "personal-care" in tag || "hygiene" in tag -> "PERSONAL_CARE"
             "non-food" in tag -> "OTHER"
             else -> null
@@ -192,9 +195,10 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "fond de teint" in nameAndBrand || "eyeliner" in nameAndBrand ||
             "lipstick" in nameAndBrand || "fard a paupieres" in nameAndBrand || "eyeshadow" in nameAndBrand ||
             "foundation" in nameAndBrand || "concealer" in nameAndBrand || "anti-cernes" in nameAndBrand -> "PERSONAL_CARE"
-        // Mirrors the Android copy's 13/08/2026 additions - see its doc comments.
-        "creme" in nameAndBrand || "cream" in nameAndBrand || "lotion" in nameAndBrand ||
-            "serum" in nameAndBrand || "sérum" in nameAndBrand -> "PERSONAL_CARE"
+        // Mirrors the Android copy's 13/08/2026 additions/correction - see its
+        // doc comments ("creme"/"cream" deliberately excluded, real-food
+        // false-positive risk).
+        "lotion" in nameAndBrand || "serum" in nameAndBrand || "sérum" in nameAndBrand -> "PERSONAL_CARE"
         "tampon" in nameAndBrand || "serviette hygienique" in nameAndBrand || "serviette hygiénique" in nameAndBrand ||
             "protege-slip" in nameAndBrand -> "HYGIENE_PRODUCT"
         // See the Android copy's correctness-fix comment (menstrual cups

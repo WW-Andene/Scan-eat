@@ -231,7 +231,15 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "shower-gel" in tag || "gel-douche" in tag || "body-wash" in tag || "bath-and-shower" in tag -> "PERSONAL_CARE"
             "toothpaste" in tag || "dentifrice" in tag || "oral-hygiene" in tag || "oral-care" in tag -> "PERSONAL_CARE"
             "make-up" in tag || "makeup" in tag || "maquillage" in tag || "cosmetics" in tag -> "PERSONAL_CARE"
-            "skin-care" in tag || "creme" in tag || "moisturi" in tag -> "PERSONAL_CARE"
+            // "creme" removed 13/08/2026 - real bug found on app-wide review:
+            // OPF tags a genuine food product like "en:cremes-dessert" or
+            // "fr:cremes-fraiches" (crème dessert, crème fraîche) contain
+            // "creme" as a raw substring with no "dairy"/"food" token for the
+            // looksLikeFood guard above to catch, so real food was silently
+            // routed to PERSONAL_CARE and thrown as a NonFoodProductException.
+            // "skin-care"/"moisturi" are safe (no food-product tag legitimately
+            // contains either).
+            "skin-care" in tag || "moisturi" in tag -> "PERSONAL_CARE"
             "cosmetic" in tag || "beauty" in tag || "personal-care" in tag || "hygiene" in tag -> "PERSONAL_CARE"
             "non-food" in tag -> "OTHER"
             else -> null
@@ -261,10 +269,16 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "fond de teint" in nameAndBrand || "eyeliner" in nameAndBrand ||
             "lipstick" in nameAndBrand || "fard a paupieres" in nameAndBrand || "eyeshadow" in nameAndBrand ||
             "foundation" in nameAndBrand || "concealer" in nameAndBrand || "anti-cernes" in nameAndBrand -> "PERSONAL_CARE"
-        // Added 13/08/2026 - general cosmetics/skincare (crème/lotion/sérum,
-        // the CosmeticActivesScore category) had no name-fallback either.
-        "creme" in nameAndBrand || "cream" in nameAndBrand || "lotion" in nameAndBrand ||
-            "serum" in nameAndBrand || "sérum" in nameAndBrand -> "PERSONAL_CARE"
+        // Added 13/08/2026 - general cosmetics/skincare (lotion/sérum, the
+        // CosmeticActivesScore category) had no name-fallback either.
+        // "creme"/"cream" deliberately excluded (see the tag-based match
+        // above for why - the same real-food false-positive risk, and this
+        // name fallback runs even more often since it's the last resort when
+        // OPF tags are sparse or absent, e.g. "Crème fraîche 30%", "Ice
+        // cream", "Cream cheese" would all have matched here). Skincare-only
+        // brand names (SKINCARE_ONLY_BRANDS in isLikelyGeneralCosmetic) are
+        // the intended, unambiguous signal for "crème" products instead.
+        "lotion" in nameAndBrand || "serum" in nameAndBrand || "sérum" in nameAndBrand -> "PERSONAL_CARE"
         // Added 13/08/2026 - tampons/pads (IntimateHygieneScore's other half)
         // had no name fallback, only sparse OPF tags above. Kept in sync
         // with isLikelyAbsorbentHygieneProduct's own keyword list. Genuinely
