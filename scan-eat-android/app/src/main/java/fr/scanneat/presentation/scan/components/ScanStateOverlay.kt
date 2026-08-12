@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -35,8 +36,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.medication.generateMedicationHints
+import fr.scanneat.domain.engine.nonconsumable.CosingMatch
 import fr.scanneat.domain.engine.nonconsumable.FormulaComplexity
 import fr.scanneat.domain.engine.nonconsumable.computeCosmeticTransparency
+import fr.scanneat.domain.engine.nonconsumable.findProhibitedSubstances
+import fr.scanneat.domain.engine.nonconsumable.findRestrictedSubstances
 import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
 import fr.scanneat.presentation.medication.InteractionWarning
 import fr.scanneat.presentation.medication.components.MedicationInteractionWarningBanner
@@ -154,6 +158,13 @@ internal fun BoxScope.ScanStateOverlay(
         is ScanUiState.NonConsumableFound -> {
             val hints = remember(s.entry, language) { generateNonConsumableHints(s.entry.category, language) }
             val transparency = remember(s.entry) { computeCosmeticTransparency(s.entry.ingredientsText) }
+            val appContext = LocalContext.current.applicationContext
+            // app-audit: étape 2 - real EU Annex II/III regulatory-status check,
+            // see CosingRegulatoryDb.kt's own header for the data source.
+            // ScanViewModel's init already warms CosingStore's cache off Main,
+            // so this lookup only ever pays a cheap in-memory map read here.
+            val prohibited = remember(s.entry) { findProhibitedSubstances(appContext, s.entry.ingredientsText) }
+            val restricted = remember(s.entry) { findRestrictedSubstances(appContext, s.entry.ingredientsText) }
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -164,7 +175,7 @@ internal fun BoxScope.ScanStateOverlay(
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Text(stringResource(R.string.scan_nonconsumable_found_body, s.entry.name, s.entry.brand), color = OnBackground.copy(0.8f))
                         Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
-                        CosmeticTransparencySection(transparency)
+                        CosmeticTransparencySection(transparency, prohibited, restricted)
                         FactsCautionsColumn(hints.facts, hints.cautions)
                     }
                 },
@@ -183,9 +194,13 @@ internal fun BoxScope.ScanStateOverlay(
  * own header for why this is a composition/transparency signal, not a
  * toxicology verdict. null [result] means no ingredient data was available
  * (most non-food barcodes) - shown honestly as such rather than hidden.
+ * [prohibited]/[restricted] are real EU Annex II/III regulatory matches (see
+ * CosingRegulatoryDb.kt) - kept visually and textually distinct since Annex
+ * III (restricted-with-conditions) covers ordinary, legally-used ingredients
+ * like Retinol, not a hazard flag, unlike Annex II (genuinely prohibited).
  */
 @Composable
-private fun CosmeticTransparencySection(result: CosmeticTransparencyResult?) {
+private fun CosmeticTransparencySection(result: CosmeticTransparencyResult?, prohibited: List<CosingMatch>, restricted: List<CosingMatch>) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
         Text(
             stringResource(R.string.nonconsumable_transparency_title),
@@ -208,6 +223,18 @@ private fun CosmeticTransparencySection(result: CosmeticTransparencyResult?) {
         if (result.detectedAllergens.isNotEmpty()) {
             Text(
                 stringResource(R.string.nonconsumable_allergens_detected, result.detectedAllergens.size),
+                style = MaterialTheme.typography.bodySmall, color = semanticAmber(),
+            )
+        }
+        if (prohibited.isNotEmpty()) {
+            Text(
+                stringResource(R.string.nonconsumable_prohibited_detected, prohibited.size, prohibited.joinToString(", ") { it.name }),
+                style = MaterialTheme.typography.bodySmall, color = semanticRed(), fontWeight = FontWeight.SemiBold,
+            )
+        }
+        if (restricted.isNotEmpty()) {
+            Text(
+                stringResource(R.string.nonconsumable_restricted_detected, restricted.size, restricted.joinToString(", ") { it.name }),
                 style = MaterialTheme.typography.bodySmall, color = semanticAmber(),
             )
         }

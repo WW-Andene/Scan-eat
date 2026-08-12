@@ -118,6 +118,17 @@ class ScanViewModel @Inject constructor(
         // returns) so a corrupt/unreadable cache file can never crash the app on
         // launch, only silently lose the recovery opportunity.
         restorePhotoQueue()
+        // app-audit: warms CosingRegulatoryDb's ~2,400-row asset parse off the
+        // main thread ahead of time - without this, the first cosmetic/hygiene
+        // product scan would pay that parse cost synchronously inside
+        // ScanStateOverlay's remember{} block (Compose has no dispatcher of its
+        // own to push it to), a real first-scan jank risk the existing
+        // NonConsumableLookupDb/MedicationLookupDb asset reads never have
+        // because every one of their call sites is already inside a
+        // withContext(Dispatchers.IO) block, unlike this Compose-side lookup.
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { fr.scanneat.domain.engine.nonconsumable.warmCosingCache(appContext) }
+        }
     }
 
     internal val _scannedBarcode = MutableStateFlow<String?>(null)

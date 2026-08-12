@@ -40,6 +40,8 @@
     <string name="nonconsumable_complexity_complex">complex</string>
     <string name="nonconsumable_allergens_detected">Contains %1$d of the 26 EU-regulated fragrance allergens (must be declared, not necessarily unsafe for you).</string>
     <string name="nonconsumable_transparency_disclaimer">Composition signal only, not a safety or toxicology verdict — ingredient count and EU-mandated fragrance-allergen disclosure, not a per-substance hazard assessment.</string>
+    <string name="nonconsumable_prohibited_detected">⚠ %1$d declared ingredient(s) match the EU\'s Annex II list of substances PROHIBITED in cosmetic products: %2$s. This may indicate a labeling/data error — verify against the physical product before drawing conclusions.</string>
+    <string name="nonconsumable_restricted_detected">%1$d declared ingredient(s) are on the EU\'s Annex III list of regulated-with-conditions substances (legal to use within a set limit, not a hazard flag): %2$s</string>
     <string name="scan_cd_scan">Scan</string>
     <string name="scan_no_camera_title">No camera detected</string>
     <string name="scan_no_camera_body">This device has no camera. Enter the barcode manually instead.</string>

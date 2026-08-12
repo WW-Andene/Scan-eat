@@ -35,10 +35,11 @@ import fr.scanneat.domain.engine.scoring.normalizeForMatching
 //      limitation is stated explicitly in the UI, not silently implied to
 //      be exhaustive.
 //
-// A genuine Annex II (prohibited) / Annex III (restricted-with-conditions)
-// per-substance regulatory-status check needs CosIng's live/bulk data, which
-// this session could not fetch and will not fabricate - deferred to a
-// follow-up once a verified data source is available.
+// Étape 2: per-substance Annex II (prohibited)/III (restricted-with-conditions)
+// regulatory-status checking now lives in CosingRegulatoryDb.kt - it needed
+// CosIng's own official bulk export (Annex II/III text files, provided
+// directly by the user 12/08/2026 after ec.europa.eu proved unreachable
+// from this environment) rather than anything fabricated here.
 // ============================================================================
 
 enum class FormulaComplexity { SIMPLE, MODERATE, COMPLEX, UNKNOWN }
@@ -79,7 +80,7 @@ val EU_FRAGRANCE_ALLERGENS_26: List<String> = listOf(
  * need to handle nested parentheses correctly, which the sparse OPF data
  * this feeds from doesn't reliably format anyway.
  */
-private fun parseIngredientsText(text: String): List<String> {
+internal fun parseIngredientsText(text: String): List<String> {
     var depth = 0
     val parts = mutableListOf<StringBuilder>(StringBuilder())
     for (c in text) {
