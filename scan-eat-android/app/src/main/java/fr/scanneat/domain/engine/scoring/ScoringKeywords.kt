@@ -35,7 +35,15 @@ internal val WHOLE_FOOD_KEYWORDS = listOf(
     // "crevette" in a shrimp product) never earned the first-3-ingredients
     // whole-food bonus despite genuinely being one.
     "mûre","mure","clémentine","clementine","asperge","champignon","radis",
-    "céleri","celeri","artichaut","patate","maïs","mais","crevette","moules",
+    // Pass-3 audit finding: bare "mais" (unaccented) removed - unlike the
+    // other accent-robustness pairs on this line ("celeri"/"cacahuete" etc.,
+    // none of which are standalone French dictionary words), "mais" without
+    // its diaeresis IS the common French conjunction ("but"), so it risked
+    // matching inside any free-text ingredient entry containing that word
+    // (e.g. a qualifier like "...mais peut contenir..."). "maïs" (accented)
+    // is kept - structured ingredient databases (OFF/CIQUAL) reliably accent
+    // it, unlike the informal spelling variants the other pairs guard against.
+    "céleri","celeri","artichaut","patate","maïs","crevette","moules",
     "cabillaud","tofu","edamame","cacahuète","cacahuete",
     // Confirmed via OpenFoodFacts (barcode 3254380008430, Cristaline Eau De
     // Source Pétillante): carbonation gas is the product's literal 2nd

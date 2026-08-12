@@ -56,8 +56,12 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // raised from 300 to 390 - brioche (explicitly matched into BREAD) is
     // egg/butter-enriched and runs ~370-390kcal/100g. Mirrors the identical
     // fix on the Android side (see Scoring Drift Check).
+    // satFatThresholds added - mirrors the identical fix on the Android
+    // side (see Scoring Drift Check): brioche/croissant run 8.5-17g sat
+    // fat/100g (ANSES-CIQUAL) and were structurally tripping the generic
+    // default's MAJOR/CRITICAL tiers.
     ProductCategory.BREAD            to CategoryThresholds(Triple(6.0,9.0,12.0),  Triple(3.0,6.0,9.0),  Pair(220.0,390.0), false,
-        saltThresholds = Triple(1.3,1.6,2.0)),
+        saltThresholds = Triple(1.3,1.6,2.0), satFatThresholds = Triple(9.0,14.0,20.0)),
     ProductCategory.BREAKFAST_CEREAL to CategoryThresholds(Triple(6.0,10.0,14.0), Triple(5.0,8.0,12.0), Pair(320.0,420.0), true),
     // Mirrors the identical fix on the Android side (see Scoring Drift
     // Check) - fiber low tier raised from 0.0 (plain yogurt has ~0g fiber,

@@ -34,7 +34,10 @@ internal val WHOLE_FOOD_KEYWORDS = listOf(
     // "crevette" in a shrimp product) never earned the first-3-ingredients
     // whole-food bonus despite genuinely being one.
     "mûre","mure","clémentine","clementine","asperge","champignon","radis",
-    "céleri","celeri","artichaut","patate","maïs","mais","crevette","moules",
+    // Bare "mais" (unaccented) removed - mirrors the identical fix on the
+    // Android side (see Scoring Drift Check): it's also the French
+    // conjunction "but", unlike this line's other informal-spelling pairs.
+    "céleri","celeri","artichaut","patate","maïs","crevette","moules",
     "cabillaud","tofu","edamame","cacahuète","cacahuete",
     // Mirrors the identical fix on the Android client (see Scoring Drift
     // Check) - carbonation gas is sparkling water's literal 2nd ingredient

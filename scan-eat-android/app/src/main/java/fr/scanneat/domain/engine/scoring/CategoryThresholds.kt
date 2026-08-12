@@ -56,8 +56,20 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // is egg/butter-enriched and runs ~370-390kcal/100g, well above lean
     // bread's 220-300 range, tripping an energy anomaly for being a normal
     // brioche.
+    // Pass-3 context/logic audit finding: satFatThresholds was left unset
+    // (inheriting the plain-bread-tuned 5/10/15 default) despite this
+    // category's own salt/kcal overrides existing specifically to
+    // accommodate butter-laminated viennoiserie (croissant/pain au
+    // chocolat/chausson - see the name-pattern collision comment below).
+    // Real croissant au beurre runs ~16.9g sat fat/100g and brioche ~8.5g
+    // (ANSES-CIQUAL), vs. plain baguette's ~0.2-0.3g - every real croissant
+    // was structurally tripping the CRITICAL sat-fat tier, and brioche the
+    // MAJOR tier, purely for being a normal example of the category the
+    // code already special-cased for kcal/salt. Same "process-makes-it-
+    // inherently-X" gap already fixed for BREAD's own salt tier, just
+    // missed for sat fat.
     ProductCategory.BREAD            to CategoryThresholds(Triple(6.0,9.0,12.0),  Triple(3.0,6.0,9.0),  Pair(220.0,390.0), false,
-        saltThresholds = Triple(1.3,1.6,2.0)),
+        saltThresholds = Triple(1.3,1.6,2.0), satFatThresholds = Triple(9.0,14.0,20.0)),
     ProductCategory.BREAKFAST_CEREAL to CategoryThresholds(Triple(6.0,10.0,14.0), Triple(5.0,8.0,12.0), Pair(320.0,420.0), true),
     // Fiber low tier raised from 0.0 - user-reported context/logic audit
     // finding: plain yogurt has confirmed ~0g dietary fiber (USDA FoodData
