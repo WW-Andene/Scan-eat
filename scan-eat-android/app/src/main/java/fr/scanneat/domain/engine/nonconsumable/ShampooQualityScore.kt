@@ -29,17 +29,36 @@ import fr.scanneat.domain.engine.scoring.normalizeForMatching
 // shampoo it is (gentle vs high-foaming cleanser, silicone-smoothed vs
 // silicone-free), the same "descriptive, not a verdict" stance
 // CosmeticTransparencyScore already takes.
+//
+// Refined with two peer-reviewed sources (12/08/2026 web search, both freely
+// accessible):
+//   - SLS vs SLES/glucoside/isethionate irritation ranking: SLS has
+//     consistently higher measured irritation potential (TEWL increase,
+//     squamometry) than SLES (ethoxylated, milder) and than glucoside/
+//     isethionate/sarcosinate surfactants in controlled comparisons -
+//     Marrakchi & Maibach, "Sodium lauryl sulfate induced irritant contact
+//     dermatitis..." (PubMed 8917825); Löffler & Effendy, SLS vs SLES open
+//     assay comparison (PubMed 11278060).
+//   - Silicone buildup is NOT a property of "silicones" as a class - it
+//     specifically concerns water-INSOLUBLE, high-viscosity fractions
+//     (dimethicone, dimethiconol); volatile/cyclic silicones like
+//     cyclopentasiloxane evaporate rather than accumulate. "With or without
+//     Silicones? A Comprehensive Review of Their Role in Hair Care", Skin
+//     Appendage Disorders (Karger) - this is why VOLATILE_SILICONE is its
+//     own role below, not lumped into the buildup-prone SILICONE role the
+//     way this file's first version (shipped, then corrected in the same
+//     session once these sources were checked) had it.
 // ============================================================================
 
-enum class ShampooIngredientRole { HARSH_SURFACTANT, MILD_SURFACTANT, SILICONE, GENTLE_CONDITIONER }
+enum class ShampooIngredientRole { HARSH_SURFACTANT, MILD_SURFACTANT, SILICONE, VOLATILE_SILICONE, GENTLE_CONDITIONER }
 
 private val SHAMPOO_INGREDIENT_ROLES: Map<String, ShampooIngredientRole> = mapOf(
-    // SURFACTANT - CLEANSING (high-foaming, can be drying with frequent use)
+    // SURFACTANT - CLEANSING (high-foaming; higher measured irritation potential - see header)
     "sodium lauryl sulfate" to ShampooIngredientRole.HARSH_SURFACTANT,
     "sodium laureth sulfate" to ShampooIngredientRole.HARSH_SURFACTANT,
     "ammonium lauryl sulfate" to ShampooIngredientRole.HARSH_SURFACTANT,
     "ammonium laureth sulfate" to ShampooIngredientRole.HARSH_SURFACTANT,
-    // SURFACTANT - CLEANSING (milder, lower-irritation cleansing base)
+    // SURFACTANT - CLEANSING (milder, lower measured irritation potential - see header)
     "cocamidopropyl betaine" to ShampooIngredientRole.MILD_SURFACTANT,
     "decyl glucoside" to ShampooIngredientRole.MILD_SURFACTANT,
     "coco-glucoside" to ShampooIngredientRole.MILD_SURFACTANT,
@@ -47,11 +66,12 @@ private val SHAMPOO_INGREDIENT_ROLES: Map<String, ShampooIngredientRole> = mapOf
     "sodium cocoyl isethionate" to ShampooIngredientRole.MILD_SURFACTANT,
     "disodium laureth sulfosuccinate" to ShampooIngredientRole.MILD_SURFACTANT,
     "sodium lauroyl sarcosinate" to ShampooIngredientRole.MILD_SURFACTANT,
-    // HAIR CONDITIONING - OCCLUSIVE (silicones - smoothing, but can build up with repeated use)
+    // HAIR CONDITIONING - OCCLUSIVE: water-insoluble, higher-viscosity silicones - can build up with repeated use (see header)
     "dimethicone" to ShampooIngredientRole.SILICONE,
     "amodimethicone" to ShampooIngredientRole.SILICONE,
-    "cyclopentasiloxane" to ShampooIngredientRole.SILICONE,
     "dimethiconol" to ShampooIngredientRole.SILICONE,
+    // HAIR CONDITIONING - OCCLUSIVE: volatile/cyclic silicone - evaporates, not the same buildup profile (see header)
+    "cyclopentasiloxane" to ShampooIngredientRole.VOLATILE_SILICONE,
     // HAIR CONDITIONING / HUMECTANT (non-silicone conditioning/moisture)
     "glycerin" to ShampooIngredientRole.GENTLE_CONDITIONER,
     "panthenol" to ShampooIngredientRole.GENTLE_CONDITIONER,
@@ -67,6 +87,7 @@ data class ShampooQualityResult(
     val harshSurfactantCount: Int,
     val mildSurfactantCount: Int,
     val siliconeCount: Int,
+    val volatileSiliconeCount: Int,
     val gentleConditionerCount: Int,
 ) {
     val cleansingBase: CleansingBase get() = when {
@@ -93,15 +114,16 @@ fun computeShampooQuality(ingredientsText: String?): ShampooQualityResult? {
     if (ingredientsText.isNullOrBlank()) return null
     val ingredients = parseIngredientsText(ingredientsText)
     if (ingredients.isEmpty()) return null
-    var harsh = 0; var mild = 0; var silicone = 0; var gentle = 0
+    var harsh = 0; var mild = 0; var silicone = 0; var volatileSilicone = 0; var gentle = 0
     for (ingredient in ingredients) {
         when (SHAMPOO_INGREDIENT_ROLES[normalizeForMatching(ingredient)]) {
             ShampooIngredientRole.HARSH_SURFACTANT -> harsh++
             ShampooIngredientRole.MILD_SURFACTANT  -> mild++
             ShampooIngredientRole.SILICONE         -> silicone++
+            ShampooIngredientRole.VOLATILE_SILICONE -> volatileSilicone++
             ShampooIngredientRole.GENTLE_CONDITIONER -> gentle++
             null -> {}
         }
     }
-    return ShampooQualityResult(harsh, mild, silicone, gentle)
+    return ShampooQualityResult(harsh, mild, silicone, volatileSilicone, gentle)
 }
