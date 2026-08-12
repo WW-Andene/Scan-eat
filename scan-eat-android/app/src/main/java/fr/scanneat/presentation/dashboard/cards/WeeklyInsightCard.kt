@@ -107,5 +107,13 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useI
                 style = MaterialTheme.typography.labelSmall, color = semanticAmber().copy(0.8f),
             )
         }
+        // Same reasoning as the hydration caveat above, for fasting - see
+        // WeightVsIntake.fastingReliabilityCaveat's own doc comment.
+        if (insight.fastingReliabilityCaveat) {
+            Text(
+                stringResource(R.string.dashboard_insight_fasting_caveat),
+                style = MaterialTheme.typography.labelSmall, color = semanticAmber().copy(0.8f),
+            )
+        }
     }
 }

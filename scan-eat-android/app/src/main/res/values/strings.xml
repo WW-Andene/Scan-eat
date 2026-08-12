@@ -1470,6 +1470,7 @@
     <string name="dashboard_insight_fasting_adherence">Jeûne : %1$d %% des jeûnes réussis cette semaine</string>
     <string name="dashboard_insight_hydration_adherence">Hydratation : objectif atteint %1$d %% de la semaine</string>
     <string name="dashboard_insight_hydration_caveat">Hydratation irrégulière cette semaine — la tendance de poids peut être moins fiable (rétention d\'eau)</string>
+    <string name="dashboard_insight_fasting_caveat">Jeûne peu respecté cette semaine — la moyenne calorique reflète surtout vos jours sans jeûne</string>
     <string name="dashboard_other_trackers_hydration_value">%1$d %%</string>
     <string name="dashboard_other_trackers_hydration_label">Eau</string>
     <string name="dashboard_other_trackers_fasting_active_value">%1$dh</string>

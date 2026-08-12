@@ -52,6 +52,16 @@ sealed class CrossTrackerInsight {
         // True only when there's real hydration data to judge by (percent
         // not null) and it's low enough to matter.
         val hydrationReliabilityCaveat: Boolean = false,
+        // Same "sample reliability, not a guessed verdict" reasoning as
+        // [hydrationReliabilityCaveat], for fasting: a user who set up an
+        // active fasting target but adhered to it poorly this week logged
+        // days that skew toward their non-fasting days (a fasted day, by
+        // definition, has fewer/no diary entries during the fasting window) -
+        // so [avgDailyDeficitKcal] reflects mostly the days they didn't
+        // actually fast, not the eating pattern they intended to be
+        // measuring. True only when there's real fasting-adherence data to
+        // judge by (percent not null) and it's low enough to matter.
+        val fastingReliabilityCaveat: Boolean = false,
     ) : CrossTrackerInsight()
 }
 
@@ -64,6 +74,10 @@ private const val WEIGHT_TREND_NOISE_FLOOR_KG = 0.05
 // enough that a chunk of the week's scale-weight movement plausibly reflects
 // hydration variance rather than the intake-vs-target story alone.
 private const val LOW_HYDRATION_ADHERENCE_PCT = 50
+// Below this weekly fasting-target adherence, too few of this week's logged
+// days were actually fasted days - see [fastingReliabilityCaveat]'s own doc
+// comment on why that skews the average away from the intended pattern.
+private const val LOW_FASTING_ADHERENCE_PCT = 50
 
 fun weeklyCrossTrackerInsight(
     weeklyAvgKcal: Double,
@@ -86,8 +100,9 @@ fun weeklyCrossTrackerInsight(
         else -> InsightAgreement.MISMATCH
     }
     val hydrationCaveat = weeklyHydrationAdherencePct != null && weeklyHydrationAdherencePct < LOW_HYDRATION_ADHERENCE_PCT
+    val fastingCaveat = weeklyFastingAdherencePct != null && weeklyFastingAdherencePct < LOW_FASTING_ADHERENCE_PCT
     return CrossTrackerInsight.WeightVsIntake(
         avgDeficit, weightTrendKgPerWeek, weeklyActiveMinutes, agreement,
-        weeklyFastingAdherencePct, weeklyHydrationAdherencePct, hydrationCaveat,
+        weeklyFastingAdherencePct, weeklyHydrationAdherencePct, hydrationCaveat, fastingCaveat,
     )
 }
