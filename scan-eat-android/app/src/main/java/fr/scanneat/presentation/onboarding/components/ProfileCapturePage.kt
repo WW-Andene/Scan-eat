@@ -23,6 +23,7 @@ import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Sex
 import fr.scanneat.presentation.profile.components.ActivitySelector
+import fr.scanneat.presentation.profile.components.ConditionsSelector
 import fr.scanneat.presentation.profile.components.GoalSelector
 import fr.scanneat.presentation.profile.components.OutlinedInput
 import fr.scanneat.presentation.profile.components.SexSelector
@@ -37,8 +38,15 @@ internal fun ColumnScope.ProfileCapturePage(
     weightText: String, onWeightTextChange: (String) -> Unit,
     activity: ActivityLevel, onActivityChange: (ActivityLevel) -> Unit,
     goal: Goal, onGoalChange: (Goal) -> Unit,
-    onSaveAndContinue: suspend (Sex, Int?, Double?, Double?, ActivityLevel, Goal) -> Unit,
-    onSaveAndGoToProfile: suspend (Sex, Int?, Double?, Double?, ActivityLevel, Goal) -> Unit,
+    // User-requested: health conditions (diabetes/hypertension/pregnancy/...)
+    // previously only lived in the separate, easy-to-never-visit Profile
+    // screen, even though PersonalScoreEngine/DailyTargets already read them
+    // on every single score/target computation from the very first scan -
+    // captured here, same ConditionsSelector ProfileScreen itself uses,
+    // still fully skippable like every other field on this page.
+    conditions: Set<String>, onConditionsChange: (Set<String>) -> Unit,
+    onSaveAndContinue: suspend (Sex, Int?, Double?, Double?, ActivityLevel, Goal, Set<String>) -> Unit,
+    onSaveAndGoToProfile: suspend (Sex, Int?, Double?, Double?, ActivityLevel, Goal, Set<String>) -> Unit,
     onGoToProfileWithoutSaving: () -> Unit,
     onSkip: () -> Unit,
 ) {
@@ -64,6 +72,7 @@ internal fun ColumnScope.ProfileCapturePage(
         }
         ActivitySelector(activity, onActivityChange)
         GoalSelector(goal, onGoalChange)
+        ConditionsSelector(conditions, onConditionsChange)
     }
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM), modifier = Modifier.fillMaxWidth()) {
         val scope = rememberCoroutineScope()
@@ -71,7 +80,7 @@ internal fun ColumnScope.ProfileCapturePage(
         ScanEatPrimaryButton(
             onClick = {
                 scope.launch {
-                    onSaveAndContinue(sex, ageText.toIntOrNull()?.coerceIn(1, 120), heightText.toDoubleOrNull()?.coerceIn(50.0, 250.0), weightText.toDoubleOrNull()?.coerceIn(20.0, 400.0), activity, goal)
+                    onSaveAndContinue(sex, ageText.toIntOrNull()?.coerceIn(1, 120), heightText.toDoubleOrNull()?.coerceIn(50.0, 250.0), weightText.toDoubleOrNull()?.coerceIn(20.0, 400.0), activity, goal, conditions)
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -79,12 +88,13 @@ internal fun ColumnScope.ProfileCapturePage(
         ) { Text(stringResource(R.string.onboarding_continue_button), style = MaterialTheme.typography.titleMedium) }
         TextButton(
             // "More options" still routes to the full Profile screen (diet,
-            // allergens, health conditions, goal weight aren't captured here) -
-            // whatever was already filled in above is saved first so it isn't
-            // silently discarded by following this link instead of "Continue".
+            // allergens, goal weight aren't captured here) - whatever was
+            // already filled in above (health conditions included) is saved
+            // first so it isn't silently discarded by following this link
+            // instead of "Continue".
             onClick = {
                 scope.launch {
-                    if (canSave) onSaveAndGoToProfile(sex, ageText.toIntOrNull()?.coerceIn(1, 120), heightText.toDoubleOrNull()?.coerceIn(50.0, 250.0), weightText.toDoubleOrNull()?.coerceIn(20.0, 400.0), activity, goal)
+                    if (canSave) onSaveAndGoToProfile(sex, ageText.toIntOrNull()?.coerceIn(1, 120), heightText.toDoubleOrNull()?.coerceIn(50.0, 250.0), weightText.toDoubleOrNull()?.coerceIn(20.0, 400.0), activity, goal, conditions)
                     else onGoToProfileWithoutSaving()
                 }
             },

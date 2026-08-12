@@ -58,9 +58,9 @@ class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences
     // Returns whether the save actually succeeded - callers now only advance
     // (finish()) when true, instead of unconditionally continuing even after a
     // silently-swallowed write failure.
-    suspend fun saveMinimalProfile(sex: Sex, ageYears: Int?, heightCm: Double?, weightKg: Double?, activityLevel: ActivityLevel, goal: Goal): Boolean =
+    suspend fun saveMinimalProfile(sex: Sex, ageYears: Int?, heightCm: Double?, weightKg: Double?, activityLevel: ActivityLevel, goal: Goal, healthConditions: Set<String> = emptySet()): Boolean =
         guardedSuspend {
-            prefs.saveProfile(Profile(sex = sex, ageYears = ageYears, heightCm = heightCm, weightKg = weightKg, activityLevel = activityLevel, goal = goal))
+            prefs.saveProfile(Profile(sex = sex, ageYears = ageYears, heightCm = heightCm, weightKg = weightKg, activityLevel = activityLevel, goal = goal, healthConditions = healthConditions))
         }
 
     fun finish(goToProfile: Boolean = false) {

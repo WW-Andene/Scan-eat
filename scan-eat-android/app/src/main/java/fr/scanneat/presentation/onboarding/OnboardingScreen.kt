@@ -42,6 +42,13 @@ internal inline fun <reified T : Enum<T>> enumSaverNullable() = Saver<T?, String
     restore = { if (it.isEmpty()) null else enumValueOf<T>(it) },
 )
 
+/** Bundle doesn't natively round-trip a raw Set<String> - same gap ProfileScreen's own
+ *  identical stringSetSaver fixes, via an ArrayList<String> (Bundle-safe) instead. */
+private val stringSetSaver = Saver<Set<String>, ArrayList<String>>(
+    save = { ArrayList(it) },
+    restore = { it.toSet() },
+)
+
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
@@ -85,6 +92,7 @@ fun OnboardingScreen(
     var weightText by rememberSaveable { mutableStateOf("") }
     var activity by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(ActivityLevel.MODERATELY_ACTIVE) }
     var goal by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(Goal.MAINTAIN) }
+    var conditions by rememberSaveable(stateSaver = stringSetSaver) { mutableStateOf(emptySet<String>()) }
 
     Scaffold(containerColor = Background, snackbarHost = { ScanEatSnackbarHost(snackbarHostState) }) { padding ->
         Column(
@@ -151,8 +159,9 @@ fun OnboardingScreen(
                     weightText = weightText, onWeightTextChange = { weightText = it },
                     activity = activity, onActivityChange = { activity = it },
                     goal = goal, onGoalChange = { goal = it },
-                    onSaveAndContinue = { s, age, h, w, act, g -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g)) viewModel.finish() },
-                    onSaveAndGoToProfile = { s, age, h, w, act, g -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g)) viewModel.finish(goToProfile = true) },
+                    conditions = conditions, onConditionsChange = { conditions = it },
+                    onSaveAndContinue = { s, age, h, w, act, g, cond -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g, cond)) viewModel.finish() },
+                    onSaveAndGoToProfile = { s, age, h, w, act, g, cond -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g, cond)) viewModel.finish(goToProfile = true) },
                     onGoToProfileWithoutSaving = { viewModel.finish(goToProfile = true) },
                     onSkip = { viewModel.finish() },
                 )
