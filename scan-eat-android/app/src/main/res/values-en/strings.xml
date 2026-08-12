@@ -862,6 +862,7 @@
     <string name="calendar_cd_prev_month">Previous month</string>
     <string name="calendar_today">Today</string>
     <string name="calendar_cd_next_month">Next month</string>
+    <string name="calendar_cd_marked_suffix">, has an entry</string>
     <string name="calendar_cd_week_summary">Week %1$d summary</string>
     <string name="weight_calendar_day_summary">%1$s: %2$s</string>
     <string name="weight_calendar_day_empty">%1$s: no entry</string>

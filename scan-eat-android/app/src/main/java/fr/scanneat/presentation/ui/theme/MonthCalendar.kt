@@ -16,6 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -89,12 +94,23 @@ fun MonthCalendar(
                             val isSelected = date == selected
                             val isToday = date == LocalDate.now()
                             val isMarked = date in markedDates
+                            // app-audit §G1/§G2: this cell previously had no
+                            // contentDescription/role - TalkBack read only the bare
+                            // day number ("12") with no month/year/selected/marked
+                            // context, and no "double-tap to activate" role hint.
+                            val dayLabel = date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", locale)) +
+                                (if (isToday) " · " + stringResource(R.string.calendar_today) else "") +
+                                (if (isMarked) stringResource(R.string.calendar_cd_marked_suffix) else "")
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize().padding(Spacing.T2)
                                     .clip(CircleShape)
                                     .background(if (isSelected) accent.copy(0.2f) else androidx.compose.ui.graphics.Color.Transparent)
-                                    .clickable { onDayClick(date) },
+                                    .clickable(role = Role.Button, onClickLabel = dayLabel) { onDayClick(date) }
+                                    .semantics(mergeDescendants = true) {
+                                        contentDescription = dayLabel
+                                        selected = isSelected
+                                    },
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
