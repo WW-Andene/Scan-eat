@@ -82,7 +82,17 @@ private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<De
     val bonuses = mutableListOf<Deduction>()
     if (product.organic) bonuses += Deduction("global_bonus", if (en) "Organic certification" else "Certification biologique", 2.0, Severity.INFO)
     if (product.wholeGrainPrimary) bonuses += Deduction("global_bonus", if (en) "Whole grain as primary grain" else "Céréale complète en ingrédient principal", 3.0, Severity.INFO)
-    if (product.fermented) bonuses += Deduction("global_bonus", if (en) "Contains fermented / probiotic content" else "Contient des éléments fermentés / probiotiques", 2.0, Severity.INFO)
+    // ALCOHOLIC_BEVERAGE excluded - "fermented" is judged from OFF data/LLM
+    // inference with no exclusion of the literal alcoholic-fermentation
+    // process (OcrPrompts.kt's own instruction just says "judge from what's
+    // visible," no alcohol carve-out), so beer/wine/cider previously earned
+    // this "probiotic/gut health" framing for the exact same fermentation
+    // that produced their alcohol content - conflating live-culture
+    // fermentation (yogurt, kimchi, kombucha) with alcoholic fermentation,
+    // which doesn't carry the same gut-health connotation and is already
+    // comprehensively penalized/vetoed elsewhere in this engine.
+    if (product.fermented && product.category != ProductCategory.ALCOHOLIC_BEVERAGE)
+        bonuses += Deduction("global_bonus", if (en) "Contains fermented / probiotic content" else "Contient des éléments fermentés / probiotiques", 2.0, Severity.INFO)
     // Omega-3 bonus lives solely in NutritionalDensityPillar.scoreNutritionalDensity()
     // (+3, using the same ingredient regex plus a nutrition-value check) - it was
     // duplicated here too, double-counting the same signal for +5 total on any
@@ -229,7 +239,17 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // nitrite-cured product (ham ~1.6-2g, bacon ~2.5g, salami ~3-4g) combined with
     // any refined-starch filler tripped this veto even when its own category-aware
     // salt scoring would call the same salt level merely "typical."
-    val highSalt = n.saltG > getThresholds(ProductCategory.PROCESSED_MEAT).saltThresholds.second
+    // Same sodium-to-salt fallback NegativeNutrientsPillar.kt already applies
+    // (SODIUM_TO_SALT_FACTOR, shared to keep the two guard sites from
+    // drifting apart) - this veto previously read n.saltG raw with no
+    // fallback, so a cured-meat entry whose OFF data only populated
+    // sodiumMg (a real, common OFF data-entry pattern) silently read as
+    // salt-free, missed the true highSalt condition, and fell through to
+    // the weaker standalone-nitrite MILD veto below instead of this
+    // MODERATE combo veto - with no warning surfaced about the missing
+    // salt data to explain why.
+    val salt = if (n.saltG > 0.0) n.saltG else (n.sodiumMg?.let { it / 1000.0 * SODIUM_TO_SALT_FACTOR } ?: 0.0)
+    val highSalt = salt > getThresholds(ProductCategory.PROCESSED_MEAT).saltThresholds.second
     val refined = product.ingredients.any { Regex("""farine de blé|farine raffinée|amidon|dextrose""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasNitrites && highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT)
         candidates += VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", VetoCap.MODERATE)
@@ -284,8 +304,18 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // SPREAD_SWEET (honey/jam) exempted for the same eaten-by-the-tablespoon
     // reasoning, now with its own thresholds tuned to intrinsic fruit sugar
     // (40/55/70/85) instead of sharing CONDIMENT's savory-sauce band.
+    // BEVERAGE_JUICE and ICE_CREAM exempted too, for the exact same
+    // category-blindness reason - both already have their own sugarThresholds
+    // override in CategoryThresholds.kt tuned to intrinsic natural fruit/
+    // dairy sugar rather than an added-sugar manufacturing choice (juice's
+    // own "critical" tier is 25g, ice cream's is 35g - both above this flat
+    // 30g line, so a normally-sweet 100% juice or a normal ice cream could
+    // trip this veto for being unremarkable within its own category, the
+    // same false-positive risk already fixed for confectionery/condiments/
+    // spreads).
     if (product.category != ProductCategory.SNACK_SWEET && product.category != ProductCategory.CONDIMENT &&
-        product.category != ProductCategory.SPREAD_SWEET && sugars > 30)
+        product.category != ProductCategory.SPREAD_SWEET && product.category != ProductCategory.BEVERAGE_JUICE &&
+        product.category != ProductCategory.ICE_CREAM && sugars > 30)
         candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", VetoCap.MODERATE)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }

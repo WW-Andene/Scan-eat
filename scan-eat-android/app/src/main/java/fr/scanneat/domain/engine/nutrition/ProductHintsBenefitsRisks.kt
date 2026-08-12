@@ -27,7 +27,11 @@ internal fun appendGeneralBenefits(product: Product, lang: String, benefits: Mut
     if (n.saltG <= 0.3) benefits += if (en) "Low salt (${n.saltG} g/100 g)" else "Faible en sel (${n.saltG} g/100 g)"
     if (n.sugarsG <= 5.0) benefits += if (en) "Low sugar (${n.sugarsG} g/100 g)" else "Faible en sucres (${n.sugarsG} g/100 g)"
     if (product.organic) benefits += if (en) "Certified organic" else "Certifié biologique"
-    if (product.fermented) benefits += if (en) "Fermented — may support gut health" else "Fermenté — peut favoriser la santé intestinale"
+    // ALCOHOLIC_BEVERAGE excluded - same fix as ScoringEngine.kt's fermented
+    // bonus: alcoholic fermentation (beer/wine/cider) isn't the live-culture
+    // gut-health fermentation (yogurt/kimchi/kombucha) this line implies.
+    if (product.fermented && product.category != fr.scanneat.domain.model.ProductCategory.ALCOHOLIC_BEVERAGE)
+        benefits += if (en) "Fermented — may support gut health" else "Fermenté — peut favoriser la santé intestinale"
     if (product.wholeGrainPrimary) {
         benefits += if (en) "Whole grain is the primary ingredient — associated with lower cardiometabolic risk in cohort studies"
                     else "Céréale complète en ingrédient principal — associé à un moindre risque cardiométabolique dans les études de cohorte"
