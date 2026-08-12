@@ -135,7 +135,7 @@ private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Uni
                     // order ScanStateOverlay checks its six isLikelyX gates
                     // in, first match wins - one compact line, not a full
                     // section, to fit this row's existing shape.
-                    val functionalBadge = functionalBadgeFor(item.name, item.ingredientsText)
+                    val functionalBadge = functionalBadgeFor(item.name, item.brand, item.ingredientsText)
                     if (functionalBadge != null) {
                         Text(functionalBadge.first, style = MaterialTheme.typography.labelSmall, color = functionalBadge.second)
                     } else if (item.complexity != null) {
@@ -172,7 +172,7 @@ private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Uni
  * "consistency fix" doc comment on why that's null, not an empty result).
  */
 @Composable
-private fun functionalBadgeFor(name: String, ingredientsText: String?): Pair<String, androidx.compose.ui.graphics.Color>? {
+private fun functionalBadgeFor(name: String, brand: String, ingredientsText: String?): Pair<String, androidx.compose.ui.graphics.Color>? {
     if (ingredientsText.isNullOrBlank()) return null
     if (isLikelyShampoo(name)) {
         computeShampooQuality(ingredientsText)?.let {
@@ -216,7 +216,7 @@ private fun functionalBadgeFor(name: String, ingredientsText: String?): Pair<Str
             if (it.hasPhBuffering) return stringResource(R.string.intimate_wipe_has_ph_buffering) to semanticGreen()
         }
     }
-    if (isLikelyGeneralCosmetic(name)) {
+    if (isLikelyGeneralCosmetic(name, brand)) {
         computeCosmeticActives(ingredientsText)?.let {
             if (it.hasNiacinamide) return stringResource(R.string.cosmetic_has_niacinamide) to semanticGreen()
             if (it.hasVitaminC) return stringResource(R.string.cosmetic_has_vitamin_c) to semanticGreen()

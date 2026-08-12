@@ -210,7 +210,7 @@ internal fun BoxScope.ScanStateOverlay(
             // the data source. Only checked when the more specific
             // shampoo/gel-douche/dentifrice gates above didn't already match.
             val cosmeticActives = remember(s.entry) {
-                if (shampooQuality == null && showerGelQuality == null && toothpasteQuality == null && isLikelyGeneralCosmetic(s.entry.name)) {
+                if (shampooQuality == null && showerGelQuality == null && toothpasteQuality == null && isLikelyGeneralCosmetic(s.entry.name, s.entry.brand)) {
                     computeCosmeticActives(s.entry.ingredientsText)
                 } else null
             }

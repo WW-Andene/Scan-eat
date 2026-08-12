@@ -98,14 +98,37 @@ data class CosmeticActivesResult(
     val chemicalUvFilterCautionCount: Int,
 )
 
-/** Product-name keyword gate for "is this a general cosmetic/skincare
+// Skincare-only brands - added 13/08/2026, real gap caught in review: a
+// product like "Nivea Q10 Power Anti-Rides" or "Vichy Minéral 89" often has
+// NO type-word ("crème"/"lotion"/"sérum") anywhere in its actual OPF
+// product-name field, only in the brand, so isLikelyGeneralCosmetic's
+// name-only check silently missed it even after classifyNonFood correctly
+// recognized the product as non-food via its OPF category tags. Same
+// "unambiguous in any context" bar the name/brand fallbacks in
+// classifyNonFood already hold to - every brand below makes ONLY
+// skincare/cosmetics, never food, so matching on brand alone can't
+// misclassify a real food product the way a generic brand (e.g. one that
+// also sells snacks) could.
+private val SKINCARE_ONLY_BRANDS = listOf(
+    "nivea", "vichy", "la roche-posay", "la roche posay", "bioderma", "avene",
+    "eucerin", "cerave", "nuxe", "caudalie", "uriage", "a-derma", "avibon",
+    "embryolisse", "filorga", "lierac", "svr",
+)
+
+/** Product-name/brand keyword gate for "is this a general cosmetic/skincare
  *  product" - same convention as ShampooQualityScore.isLikelyShampoo. Only
  *  applied when the more specific shampoo/shower-gel/toothpaste gates
  *  already returned false, so a mislabeled "crème lavante" isn't double-
- *  scored (see ScanStateOverlay's ordering of these checks). */
-fun isLikelyGeneralCosmetic(productName: String): Boolean {
+ *  scored (see ScanStateOverlay's ordering of these checks). [brand]
+ *  defaults to "" so existing name-only callers keep compiling; pass the
+ *  real brand whenever it's available (see the SKINCARE_ONLY_BRANDS doc
+ *  comment above for why this catches real products the name-only check
+ *  alone missed). */
+fun isLikelyGeneralCosmetic(productName: String, brand: String = ""): Boolean {
     val n = normalizeForMatching(productName)
-    return listOf("creme", "cream", "serum", "lotion", "soin visage", "moisturizer", "moisturiser").any { it in n }
+    if (listOf("creme", "cream", "serum", "lotion", "soin visage", "moisturizer", "moisturiser").any { it in n }) return true
+    val b = normalizeForMatching(brand)
+    return SKINCARE_ONLY_BRANDS.any { it in b }
 }
 
 /**
