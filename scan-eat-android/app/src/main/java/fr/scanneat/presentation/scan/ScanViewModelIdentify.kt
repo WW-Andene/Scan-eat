@@ -54,10 +54,17 @@ internal fun ScanViewModel.identifyFromPhotos() {
                     when {
                         medication != null -> _state.value = ScanUiState.MedicationFound(medication)
                         nonConsumable != null -> _state.value = ScanUiState.NonConsumableFound(nonConsumable)
-                        else -> {
-                            val id = scanRepo.persist(scanResult, activeProfileId.value)
-                            _state.value = ScanUiState.Success(scanResult, id)
-                        }
+                        // app-audit §N/§I3: scanRepo.persist() (a Room write) was
+                        // previously unguarded here, unlike the identical
+                        // identify->persist sequence in identifyShelfBox() (which
+                        // wraps it in mapCatching) - a Room write failure would
+                        // propagate out of this coroutine uncaught instead of
+                        // surfacing as an Error state.
+                        else -> runCatching { scanRepo.persist(scanResult, activeProfileId.value) }
+                            .fold(
+                                onSuccess = { id -> _state.value = ScanUiState.Success(scanResult, id) },
+                                onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },
+                            )
                     }
                 },
                 onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },
@@ -108,10 +115,17 @@ internal fun ScanViewModel.identifyMultiFromPhotos() {
                         }.map { it.product.name }.toSet()
                     }
                     val edibleResults = results.filterNot { it.product.name in nonEdibleNames }
+                    // app-audit §N/§I3: same unguarded scanRepo.persist() gap as
+                    // identifyFromPhotos() above - a Room write failure on any one
+                    // item previously propagated out of this coroutine uncaught.
                     _state.value = if (edibleResults.isEmpty()) {
                         ScanUiState.Error(noFoodsDetectedMessage(lang))
                     } else {
-                        ScanUiState.MultiFoodFound(items = edibleResults.map { it to scanRepo.persist(it, activeProfileId.value) })
+                        runCatching { edibleResults.map { it to scanRepo.persist(it, activeProfileId.value) } }
+                            .fold(
+                                onSuccess = { items -> ScanUiState.MultiFoodFound(items = items) },
+                                onFailure = { e -> ScanUiState.Error(httpFriendlyMessage(e, lang)) },
+                            )
                     }
                 },
                 onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },

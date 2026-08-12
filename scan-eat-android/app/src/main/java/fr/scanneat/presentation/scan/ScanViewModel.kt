@@ -256,9 +256,14 @@ class ScanViewModel @Inject constructor(
     val instantMode: StateFlow<Boolean> = prefs.scanInstantMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    // app-audit §N/§I3: was a bare DataStore write with no failure guard at
+    // all - every other UserPreferences writer in this file/app wraps its
+    // write in runCatching (SplashViewModel's own comment documents why: a
+    // corrupt/IO-failing prefs file is a real, observed risk, not a
+    // hypothetical).
     fun toggleInstantMode() {
         if (!isPremium.value) return
-        viewModelScope.launch { prefs.setScanInstantMode(!instantMode.value) }
+        viewModelScope.launch { runCatching { prefs.setScanInstantMode(!instantMode.value) }.onFailure { e -> if (e is CancellationException) throw e } }
     }
 
     fun onBarcodeDetected(barcode: String) {
