@@ -67,6 +67,7 @@ fun ResultScreen(
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val pantryStock = viewModel.pantryStock.collectAsStateWithLifecycle()
+    val avgLoggedPortionG = viewModel.avgLoggedPortionG.collectAsStateWithLifecycle()
     // rememberSaveable, not remember - a process death while either dialog was open
     // (backgrounding the app is enough on a low-memory device) previously reset both
     // flags to false on restoration, silently closing the LogSheet/SaveDestinationsPopup
@@ -192,6 +193,7 @@ fun ResultScreen(
                 scoreHistory      = s.scoreHistory,
                 recall            = s.recall,
                 pantryStock       = pantryStock.value,
+                avgLoggedPortionG = avgLoggedPortionG.value,
                 priceEntries      = priceEntries.value,
                 currencySymbol    = currencySymbol.value,
                 // Nutritionist-delivery audit: the ranked "what's costing the

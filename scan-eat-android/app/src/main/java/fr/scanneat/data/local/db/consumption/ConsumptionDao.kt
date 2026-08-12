@@ -7,10 +7,20 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
+/** Row shape for [ConsumptionDao.avgPortionForProduct] - see that query's own doc comment. */
+data class AvgPortionRow(val avg: Double, val cnt: Int)
+
 @Dao
 interface ConsumptionDao {
     @Query("SELECT * FROM consumption_log WHERE date = :date AND profileId = :profileId ORDER BY loggedAt ASC")
     fun observeByDate(date: String, profileId: String = "default"): Flow<List<ConsumptionEntity>>
+
+    /** Average logged portion for a given product name - "portion réelle vs
+     *  recommandée" (ResultViewModel.avgLoggedPortion) reads this to compare
+     *  what the user actually eats against the product's own reference
+     *  portion, instead of only ever showing the reference in isolation. */
+    @Query("SELECT AVG(portionG) as avg, COUNT(*) as cnt FROM consumption_log WHERE profileId = :profileId AND productName = :productName")
+    suspend fun avgPortionForProduct(productName: String, profileId: String = "default"): AvgPortionRow
 
     @Query("SELECT * FROM consumption_log WHERE date BETWEEN :from AND :to AND profileId = :profileId ORDER BY date ASC, loggedAt ASC")
     fun observeRange(from: String, to: String, profileId: String = "default"): Flow<List<ConsumptionEntity>>

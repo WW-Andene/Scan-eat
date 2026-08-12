@@ -49,6 +49,7 @@ internal fun ResultContent(
     scoreHistory: List<Int> = emptyList(),
     recall: fr.scanneat.data.repository.recall.RecallEntry? = null,
     pantryStock: fr.scanneat.data.repository.pantry.PantryItem? = null,
+    avgLoggedPortionG: Double? = null,
     priceEntries: List<fr.scanneat.data.repository.expense.PriceEntry> = emptyList(),
     currencySymbol: String = "€",
     improvementTips: List<ImprovementTip> = emptyList(),
@@ -116,6 +117,17 @@ internal fun ResultContent(
             Text(
                 stringResource(R.string.result_pantry_stock, stock.quantity.formatDecimal(), stock.unit.key),
                 style = MaterialTheme.typography.labelMedium, color = AccentCoral,
+            )
+        }
+        // User-requested: "portion réelle vs recommandée" - see
+        // ResultViewModel.avgLoggedPortionG's own doc comment.
+        avgLoggedPortionG?.let { avg ->
+            val reference = scan.product.weightG?.takeIf { it in 10.0..2000.0 } ?: 100.0
+            val deltaPct = ((avg - reference) / reference * 100).roundToInt()
+            Text(
+                stringResource(R.string.result_avg_portion, avg.roundToInt(), reference.roundToInt()) +
+                    if (deltaPct != 0) " (${if (deltaPct > 0) "+" else ""}$deltaPct%)" else "",
+                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
             )
         }
 

@@ -40,6 +40,7 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
     val items = viewModel.items.collectAsStateWithLifecycle()
     val expiringItems = viewModel.expiringItems.collectAsStateWithLifecycle()
     val query = viewModel.query.collectAsStateWithLifecycle()
+    val recalledBarcodes = viewModel.recalledBarcodes.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var editTarget by remember { mutableStateOf<PantryItem?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -96,7 +97,7 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
                 // add before this pass defaulted there) would otherwise show one
                 // header for the whole list, adding noise with no new information.
                 if (byCategory.size <= 1) {
-                    items(items.value, key = { it.id }) { pantryItem -> PantryRowWithActions(pantryItem, viewModel, editTargetSetter = { editTarget = it }, snackbarHostState, scope, deletedMessage, undoLabel) }
+                    items(items.value, key = { it.id }) { pantryItem -> PantryRowWithActions(pantryItem, viewModel, editTargetSetter = { editTarget = it }, snackbarHostState, scope, deletedMessage, undoLabel, recalledBarcodes.value) }
                 } else {
                     ProductCategory.entries.forEach { category ->
                         val categoryItems = byCategory[category].orEmpty()
@@ -175,10 +176,12 @@ private fun PantryRowWithActions(
     scope: kotlinx.coroutines.CoroutineScope,
     deletedMessage: String,
     undoLabel: String,
+    recalledBarcodes: Set<String>,
 ) {
     val step = if (pantryItem.unit == fr.scanneat.data.repository.pantry.PantryUnit.UNITS) 1.0 else 10.0
     PantryItemRow(
         item = pantryItem,
+        recalled = pantryItem.barcode != null && pantryItem.barcode in recalledBarcodes,
         onIncrement = { viewModel.updateQuantity(pantryItem.id, pantryItem.quantity + step) },
         onDecrement = { viewModel.updateQuantity(pantryItem.id, (pantryItem.quantity - step).coerceAtLeast(0.0)) },
         onEdit = { editTargetSetter(pantryItem) },
@@ -193,7 +196,7 @@ private fun PantryRowWithActions(
 }
 
 @Composable
-private fun PantryItemRow(item: PantryItem, onIncrement: () -> Unit, onDecrement: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+private fun PantryItemRow(item: PantryItem, recalled: Boolean = false, onIncrement: () -> Unit, onDecrement: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     val urgency = item.expiryUrgency()
     val urgencyColor = when (urgency) {
         PantryExpiryUrgency.EXPIRED -> semanticRed()
@@ -202,9 +205,10 @@ private fun PantryItemRow(item: PantryItem, onIncrement: () -> Unit, onDecrement
     }
     Surface(
         shape = androidx.compose.foundation.shape.RoundedCornerShape(CardRadius.CONTROL),
-        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (recalled) semanticRed().copy(alpha = 0.08f) else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
         onClick = onEdit,
+        border = if (recalled) androidx.compose.foundation.BorderStroke(1.dp, semanticRed().copy(alpha = 0.4f)) else null,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(Spacing.M),
@@ -218,6 +222,15 @@ private fun PantryItemRow(item: PantryItem, onIncrement: () -> Unit, onDecrement
                         (item.expiryDate?.let { " · " + it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) } ?: ""),
                     style = MaterialTheme.typography.labelSmall, color = urgencyColor,
                 )
+                // User-requested: flag a stocked item that's since turned out
+                // to be recalled - see RecallRepository.observeRecalledBarcodes'
+                // own doc comment.
+                if (recalled) {
+                    Text(
+                        stringResource(R.string.pantry_recalled_warning),
+                        style = MaterialTheme.typography.labelSmall, color = semanticRed(), fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onDecrement) { Text("−", style = MaterialTheme.typography.titleMedium, color = OnBackground.copy(0.7f)) }

@@ -1584,7 +1584,9 @@
     <string name="pantry_search_placeholder">Search pantry</string>
     <string name="pantry_search_empty">No item matches this search</string>
     <string name="pantry_field_category">Category</string>
+    <string name="pantry_recalled_warning">Recalled product</string>
     <string name="result_pantry_stock">%1$s %2$s already in stock in your pantry</string>
+    <string name="result_avg_portion">You usually log %1$d g (reference: %2$d g)</string>
     <string name="pantry_category_header">%1$s (%2$d)</string>
     <string name="pantry_add_dialog_title">Add to pantry</string>
     <string name="pantry_field_name">Name</string>

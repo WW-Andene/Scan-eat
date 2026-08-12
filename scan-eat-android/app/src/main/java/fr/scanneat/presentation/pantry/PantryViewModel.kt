@@ -45,6 +45,7 @@ fun PantryItem.expiryUrgency(today: LocalDate = LocalDate.now()): PantryExpiryUr
 @HiltViewModel
 class PantryViewModel @Inject constructor(
     private val repo: PantryRepository,
+    private val recallRepo: fr.scanneat.data.repository.recall.RecallRepository,
     private val prefs: UserPreferences,
 ) : ViewModel() {
 
@@ -75,6 +76,12 @@ class PantryViewModel @Inject constructor(
     val expiringItems: StateFlow<List<PantryItem>> = allItems
         .map { list -> list.filter { it.expiryUrgency() in setOf(PantryExpiryUrgency.SOON, PantryExpiryUrgency.EXPIRED) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // User-requested: flag a stocked item that's since turned out to be
+    // recalled - see RecallRepository.observeRecalledBarcodes' own doc
+    // comment on why this is cache-only (never a fresh network check per row).
+    val recalledBarcodes: StateFlow<Set<String>> = recallRepo.observeRecalledBarcodes()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     private val _actionFailed = MutableStateFlow(false)
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()

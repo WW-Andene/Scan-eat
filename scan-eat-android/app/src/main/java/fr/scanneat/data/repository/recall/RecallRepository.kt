@@ -5,6 +5,8 @@ import fr.scanneat.data.local.db.recall.RecallEntity
 import fr.scanneat.data.remote.api.RappelConsoApi
 import fr.scanneat.data.remote.api.rappelConsoGtinWhereClause
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,6 +51,13 @@ class RecallRepository @Inject constructor(
     private val api: RappelConsoApi,
     private val dao: RecallDao,
 ) {
+    /** See RecallDao.observeRecalledBarcodes' own doc comment on why this is
+     *  cache-only. Used by Pantry to flag an already-stocked item that's
+     *  since turned out to be recalled, without querying RappelConso once
+     *  per pantry row on every list render. */
+    fun observeRecalledBarcodes(): Flow<Set<String>> =
+        dao.observeRecalledBarcodes().map { it.toSet() }
+
     suspend fun checkBarcode(barcode: String): RecallEntry? {
         // GTINs are purely numeric (8/12/13/14 digits) - guards against
         // building a malformed ODSQL where-clause from a non-GTIN barcode

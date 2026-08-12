@@ -41,6 +41,14 @@ class ConsumptionRepository @Inject constructor(
         com.squareup.moshi.Types.newParameterizedType(List::class.java, Ingredient::class.java)
     )
 
+    /** Average logged portion for [productName], only meaningful with at
+     *  least 2 prior logs - null otherwise (a single data point isn't a
+     *  "usual portion" yet). */
+    suspend fun avgPortionFor(productName: String, profileId: String = "default"): Double? {
+        val row = dao.avgPortionForProduct(productName, profileId)
+        return row.avg.takeIf { row.cnt >= 2 }
+    }
+
     fun observeDay(date: LocalDate, profileId: String = "default"): Flow<DailySummary> =
         dao.observeByDate(date.toString(), profileId).map { entities ->
             val entries = entities.mapNotNull { it.toDomain() }

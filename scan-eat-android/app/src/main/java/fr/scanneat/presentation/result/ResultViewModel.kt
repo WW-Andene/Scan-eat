@@ -180,6 +180,18 @@ class ResultViewModel @Inject constructor(
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // User-requested: "portion réelle vs recommandée" - what the user
+    // actually, habitually logs for this product vs its own reference
+    // portion (LogSheet's own default: package weight if known, else 100g).
+    // Null until there are at least 2 prior logs for this exact product name
+    // (see ConsumptionRepository.avgPortionFor's own doc comment).
+    val avgLoggedPortionG: StateFlow<Double?> = state
+        .flatMapLatest { s ->
+            val scan = s.scanResult
+            if (scan == null) flowOf(null)
+            else flow { emit(consumptionRepo.avgPortionFor(scan.product.name, prefs.activeProfileId.first())) }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     fun log(portionG: Double, mealSlot: MealSlot) {
         if (_logState.value is LogState.Loading) return   // guard against double-tap double-logging
         val scan = state.value.scanResult ?: return
