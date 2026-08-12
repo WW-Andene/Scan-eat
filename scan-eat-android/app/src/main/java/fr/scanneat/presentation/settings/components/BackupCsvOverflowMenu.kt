@@ -53,6 +53,8 @@ internal fun BackupCsvOverflowMenu(
     onPrepareRecipesCsvExport: () -> Unit,
     onPrepareScanHistoryCsvExport: () -> Unit,
     onPrepareMedicationsCsvExport: () -> Unit,
+    onPrepareSymptomCsvExport: () -> Unit,
+    onPreparePantryCsvExport: () -> Unit,
 ) {
     var moreCsvExpanded by remember { mutableStateOf(false) }
     Box {
@@ -90,6 +92,12 @@ internal fun BackupCsvOverflowMenu(
                 onClick = { moreCsvExpanded = false; onPrepareScanHistoryCsvExport() })
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_medications_csv_export_button)) },
                 onClick = { moreCsvExpanded = false; onPrepareMedicationsCsvExport() })
+            // app-audit §X: Symptom/Pantry were the last two domains with JSON
+            // backup but no CSV equivalent - same reasoning as the batches above.
+            DropdownMenuItem(text = { Text(stringResource(R.string.settings_symptom_csv_export_button)) },
+                onClick = { moreCsvExpanded = false; onPrepareSymptomCsvExport() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.settings_pantry_csv_export_button)) },
+                onClick = { moreCsvExpanded = false; onPreparePantryCsvExport() })
         }
     }
 }

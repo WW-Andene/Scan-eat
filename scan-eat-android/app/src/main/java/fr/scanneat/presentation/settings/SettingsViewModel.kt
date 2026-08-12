@@ -272,6 +272,10 @@ class SettingsViewModel @Inject constructor(
     fun prepareRecipesCsvExport() = launchCsvExport(filenamePrefix = "recettes") { csvExportRepository.exportRecipesCsv() }
     fun prepareScanHistoryCsvExport() = launchCsvExport(filenamePrefix = "historique_scans") { csvExportRepository.exportScanHistoryCsv() }
     fun prepareMedicationsCsvExport() = launchCsvExport(filenamePrefix = "medicaments") { csvExportRepository.exportMedicationsCsv() }
+    // app-audit §X: Symptom/Pantry were the last two trackers missing a CSV
+    // export - see CsvExportRepository.exportSymptomCsv's own doc comment.
+    fun prepareSymptomCsvExport() = launchCsvExport(filenamePrefix = "symptomes") { csvExportRepository.exportSymptomCsv() }
+    fun preparePantryCsvExport() = launchCsvExport(filenamePrefix = "garde_manger") { csvExportRepository.exportPantryCsv() }
 
     /** Shared guarded launch for every prepare*CsvExport() above - see their own comment.
      *  [filenamePrefix] null keeps CsvExportReady's own default ("journal"), matching

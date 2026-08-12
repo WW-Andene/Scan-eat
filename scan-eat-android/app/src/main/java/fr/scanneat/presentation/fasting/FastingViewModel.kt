@@ -6,10 +6,12 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.FastCompletion
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.FastingState
+import fr.scanneat.domain.engine.dashboard.longestLogStreak
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import java.time.LocalDate
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -35,6 +37,15 @@ class FastingViewModel @Inject constructor(
     /** Longest achieved fast in hours — used to surface a personal-record alert. */
     val personalRecord: StateFlow<Double> = history.map { list -> list.maxOfOrNull { it.achievedHours } ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    // app-audit §X: [personalRecord] above tracks the longest single fast's
+    // hours, but nothing tracked the longest run of consecutive fasting days -
+    // the same "record" concept longestLogStreak() already provides the diary,
+    // simply never called here. Only counts days that reached their target,
+    // same bar [streak] already applies.
+    val longestStreak: StateFlow<Int> = history.map { list ->
+        longestLogStreak(list.filter { it.reached }.mapTo(mutableSetOf()) { LocalDate.parse(it.date) })
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     /**
      * User-requested: "develop the tool" for Fasting - StartFastForm's target-

@@ -8,6 +8,7 @@ import fr.scanneat.data.repository.health.WeightEntry
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.health.WeightSummary
 import fr.scanneat.domain.engine.dashboard.WeightForecast
+import fr.scanneat.domain.engine.dashboard.longestLogStreak
 import fr.scanneat.domain.engine.dashboard.weightForecast
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -113,6 +114,15 @@ class WeightViewModel @Inject constructor(
         while (dates.contains(day)) { streak++; day = day.minusDays(1) }
         streak
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    // app-audit §X: longestLogStreak() was already generic (built for the
+    // diary, works on any Set<LocalDate>) but never called from any sibling
+    // tracker - this is the "record" counterpart to loggingStreakDays above,
+    // same relationship DashboardHeavyState's longestStreak already has to
+    // its own current-streak.
+    val longestStreak: StateFlow<Int> = entries
+        .map { all -> longestLogStreak(all.mapTo(mutableSetOf()) { it.date }) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // New: weekly average comparison (this week vs. last week) — individual weigh-ins
     // have a lot of noise; averaging by week shows the real trend more clearly.

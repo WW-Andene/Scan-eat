@@ -7,6 +7,7 @@ import fr.scanneat.data.repository.backup.CsvExportRepository
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
 import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.domain.engine.dashboard.longestLogStreak
 import fr.scanneat.domain.engine.health.OverhydrationWarning
 import fr.scanneat.domain.engine.health.checkOverhydration
 import fr.scanneat.domain.model.ActivityLevel
@@ -119,6 +120,14 @@ class HydrationViewModel @Inject constructor(
         count
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    // app-audit §X: longestLogStreak() (the "record" counterpart to a
+    // current streak) was already generic and used by the diary/dashboard,
+    // but never called from Hydration - distinct from [streak] above, which
+    // is goal-adherence, not just "was anything logged that day."
+    val longestStreak: StateFlow<Int> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
+        .map { all -> longestLogStreak(all.filter { (_, ml) -> ml > 0 }.mapTo(mutableSetOf()) { (date, _) -> date }) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     // New: smart goal suggestion — base goal + weight-scaled bonus (10 mL per kg
     // above 70 kg) + extra 300 mL for very-active/extra-active profile, shown as a
     // non-binding nudge when it differs from the current goal by ≥ 200 mL.
@@ -141,6 +150,20 @@ class HydrationViewModel @Inject constructor(
             d to (all[d] ?: 0)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** app-audit §X: week-over-week trend, mirroring ActivityViewModel.weekTrendPct -
+     *  Activity/Weight already have a trend read on their weekly series, Hydration had
+     *  weeklyIntake/weeklyGoalMetDays but nothing comparing this week's total to last week's. */
+    val weekTrendPct: StateFlow<Int?> = combine(intake, activeProfileId) { _, id -> id }.map { id ->
+        val all = repo.observeAll(id).first().toMap()
+        val today = LocalDate.now()
+        val thisMonday = today.minusDays(today.dayOfWeek.value.toLong() - 1)
+        val lastMonday = thisMonday.minusDays(7)
+        val lastSunday = thisMonday.minusDays(1)
+        val thisMl = (0..(today.toEpochDay() - thisMonday.toEpochDay())).sumOf { all[thisMonday.plusDays(it)] ?: 0 }
+        val lastMl = (0..6L).sumOf { all[lastMonday.plusDays(it)] ?: 0 }
+        if (lastMl == 0) null else ((thisMl - lastMl).toDouble() / lastMl * 100).toInt()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /** Number of days in the last 7 (including today) where intake met or exceeded the goal. */
     val weeklyGoalMetDays: StateFlow<Int> = combine(weeklyIntake, goal) { week, goalMl ->

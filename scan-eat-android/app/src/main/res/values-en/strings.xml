@@ -1277,6 +1277,8 @@
     <string name="settings_recipes_csv_export_button">Recipes (CSV)</string>
     <string name="settings_scanhistory_csv_export_button">Scan history (CSV)</string>
     <string name="settings_medications_csv_export_button">Medications (CSV)</string>
+    <string name="settings_symptom_csv_export_button">Symptoms (CSV)</string>
+    <string name="settings_pantry_csv_export_button">Pantry (CSV)</string>
     <string name="settings_section_reset">Reset</string>
     <string name="settings_reset_hint">Selectively clear some of the app\'s data.</string>
     <string name="settings_reset_button">Reset options</string>
@@ -1587,6 +1589,7 @@
     <string name="symptom_filter_all">All</string>
     <string name="symptom_correlation_filter_label">Filter correlations by symptom</string>
     <string name="symptom_correlation_title">Possible correlations</string>
+    <string name="symptom_medication_correlation_title">Possible medication correlations</string>
     <string name="symptom_correlation_disclaimer">A simple statistical observation, not medical proof — worth discussing with a professional if it persists.</string>
     <string name="symptom_correlation_row">%1$s — present on %2$d/%3$d symptom days</string>
     <string name="dashboard_tile_pantry">Pantry</string>

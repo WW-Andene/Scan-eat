@@ -244,6 +244,14 @@ class ActivityViewModel @Inject constructor(
         count
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    // app-audit §X: exposes the persisted record itself (not just the one-shot
+    // celebration below) as a StateFlow, so the UI can show a persistent
+    // "Record: N days" badge the same way CalorieBalanceCard already does for
+    // the diary's longestLogStreak() - previously only reachable via a
+    // one-time snackbar collection, with no ongoing display.
+    val longestStreak: StateFlow<Int> = prefs.activityBestStreak
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     // One-time celebration the moment the current streak sets a new all-time
     // record - Fasting already has this exact acknowledgment for personalRecord
     // (a distinct moment, not just ActivityStreakRow's persistent badge), Activité

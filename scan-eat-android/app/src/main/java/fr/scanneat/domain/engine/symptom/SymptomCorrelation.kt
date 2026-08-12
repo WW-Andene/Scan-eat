@@ -62,3 +62,45 @@ fun symptomFoodCorrelations(
         FoodCorrelation(displayName, diff, symptomDaysWithFood, symptomDates.size)
     }.sortedByDescending { it.differencePct }
 }
+
+// ============================================================================
+// symptomMedicationCorrelations — app-audit §X: Medication has repeatedly been
+// cross-referenced against other trackers (MedicationViewModel already
+// compares it to Weight and Hydration, ActivityMedicationRisk.kt already
+// compares it to Activity) but never against Symptom, despite symptom
+// journaling (nausea, fatigue, headache, skin) being one of the most common
+// real-world reasons someone would check "is this from a new medication?".
+// Same day-level co-occurrence heuristic as symptomFoodCorrelations above -
+// purely descriptive, not a causal claim, same framing.
+// ============================================================================
+
+data class MedicationCorrelation(
+    val medicationName: String,
+    val differencePct: Int,
+    val symptomDaysWithMedication: Int,
+    val totalSymptomDays: Int,
+)
+
+fun symptomMedicationCorrelations(
+    symptomDates: Set<LocalDate>,
+    medicationDoseDates: List<Pair<LocalDate, String>>, // (date, medicationName)
+): List<MedicationCorrelation> {
+    if (symptomDates.isEmpty()) return emptyList()
+    val allDates = medicationDoseDates.mapTo(mutableSetOf()) { it.first }
+    val nonSymptomDates = allDates - symptomDates
+    if (nonSymptomDates.isEmpty()) return emptyList()
+
+    val byMedication = medicationDoseDates.groupBy { it.second.trim().lowercase() }
+    return byMedication.mapNotNull { (_, doses) ->
+        val displayName = doses.first().second
+        val datesWithMedication = doses.mapTo(mutableSetOf()) { it.first }
+        val symptomDaysWithMedication = (datesWithMedication intersect symptomDates).size
+        if (symptomDaysWithMedication < MIN_SYMPTOM_DAY_OCCURRENCES) return@mapNotNull null
+        val nonSymptomDaysWithMedication = (datesWithMedication intersect nonSymptomDates).size
+        val symptomPct = (symptomDaysWithMedication * 100.0 / symptomDates.size).roundToInt()
+        val nonSymptomPct = (nonSymptomDaysWithMedication * 100.0 / nonSymptomDates.size).roundToInt()
+        val diff = symptomPct - nonSymptomPct
+        if (diff < MIN_DIFFERENCE_PCT) return@mapNotNull null
+        MedicationCorrelation(displayName, diff, symptomDaysWithMedication, symptomDates.size)
+    }.sortedByDescending { it.differencePct }
+}

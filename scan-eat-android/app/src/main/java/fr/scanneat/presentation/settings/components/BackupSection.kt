@@ -72,6 +72,8 @@ internal fun BackupSection(
     onPrepareRecipesCsvExport: () -> Unit,
     onPrepareScanHistoryCsvExport: () -> Unit,
     onPrepareMedicationsCsvExport: () -> Unit,
+    onPrepareSymptomCsvExport: () -> Unit,
+    onPreparePantryCsvExport: () -> Unit,
     onPrepareReport: () -> Unit,
 ) {
     var showExportDialog by remember { mutableStateOf(false) }
@@ -170,6 +172,8 @@ internal fun BackupSection(
             onPrepareRecipesCsvExport = onPrepareRecipesCsvExport,
             onPrepareScanHistoryCsvExport = onPrepareScanHistoryCsvExport,
             onPrepareMedicationsCsvExport = onPrepareMedicationsCsvExport,
+            onPrepareSymptomCsvExport = onPrepareSymptomCsvExport,
+            onPreparePantryCsvExport = onPreparePantryCsvExport,
         )
         // PDF evolution report — a formatted, printable summary of the user's own
         // logged data (weight/nutrition/activity/hydration/fasting/expenses),

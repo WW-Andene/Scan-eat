@@ -38,6 +38,7 @@ fun SymptomScreen(viewModel: SymptomViewModel = hiltViewModel(), onBack: () -> U
     val loggedTypes = viewModel.loggedTypes.collectAsStateWithLifecycle()
     val selectedType = viewModel.selectedType.collectAsStateWithLifecycle()
     val correlations = viewModel.correlations.collectAsStateWithLifecycle()
+    val medicationCorrelations = viewModel.medicationCorrelations.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -89,6 +90,9 @@ fun SymptomScreen(viewModel: SymptomViewModel = hiltViewModel(), onBack: () -> U
 
             if (correlations.value.isNotEmpty()) {
                 item { SymptomCorrelationCard(correlations.value) }
+            }
+            if (medicationCorrelations.value.isNotEmpty()) {
+                item { SymptomMedicationCorrelationCard(medicationCorrelations.value) }
             }
 
             if (entries.value.isEmpty()) {
@@ -160,6 +164,22 @@ private fun SymptomCorrelationCard(correlations: List<fr.scanneat.domain.engine.
         correlations.take(5).forEach { c ->
             Text(
                 stringResource(R.string.symptom_correlation_row, c.productName, c.symptomDaysWithFood, c.totalSymptomDays),
+                style = MaterialTheme.typography.bodySmall, color = semanticAmber(),
+            )
+        }
+    }
+}
+
+/** app-audit §X: medication counterpart to [SymptomCorrelationCard] - see
+ *  SymptomViewModel.medicationCorrelations' own doc comment. */
+@Composable
+private fun SymptomMedicationCorrelationCard(correlations: List<fr.scanneat.domain.engine.symptom.MedicationCorrelation>) {
+    ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        Text(stringResource(R.string.symptom_medication_correlation_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.symptom_correlation_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+        correlations.take(5).forEach { c ->
+            Text(
+                stringResource(R.string.symptom_correlation_row, c.medicationName, c.symptomDaysWithMedication, c.totalSymptomDays),
                 style = MaterialTheme.typography.bodySmall, color = semanticAmber(),
             )
         }

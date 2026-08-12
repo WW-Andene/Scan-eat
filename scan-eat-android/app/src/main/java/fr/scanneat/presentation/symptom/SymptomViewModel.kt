@@ -3,12 +3,15 @@ package fr.scanneat.presentation.symptom
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.symptom.SymptomEntry
 import fr.scanneat.data.repository.symptom.SymptomRepository
 import fr.scanneat.data.repository.symptom.SymptomType
 import fr.scanneat.domain.engine.symptom.FoodCorrelation
+import fr.scanneat.domain.engine.symptom.MedicationCorrelation
 import fr.scanneat.domain.engine.symptom.symptomFoodCorrelations
+import fr.scanneat.domain.engine.symptom.symptomMedicationCorrelations
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +39,7 @@ private const val CORRELATION_WINDOW_DAYS = 60L
 class SymptomViewModel @Inject constructor(
     private val repo: SymptomRepository,
     private val consumptionRepo: ConsumptionRepository,
+    private val medicationRepo: MedicationRepository,
     private val prefs: UserPreferences,
 ) : ActionFailureViewModel() {
 
@@ -66,6 +70,28 @@ class SymptomViewModel @Inject constructor(
             val today = LocalDate.now()
             consumptionRepo.observeRange(today.minusDays(CORRELATION_WINDOW_DAYS), today, id)
                 .map { diaryEntries -> symptomFoodCorrelations(dates, diaryEntries) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * app-audit §X: same correlation heuristic as [correlations] above, applied
+     * to medication dose-log dates instead of diary entries - Medication has
+     * already been cross-referenced against Weight/Hydration/Activity, Symptom
+     * was the one remaining tracker it was never checked against, despite
+     * "is this from a new medication?" being a common reason to keep a symptom
+     * journal at all. See symptomMedicationCorrelations' own doc comment.
+     */
+    val medicationCorrelations: StateFlow<List<MedicationCorrelation>> = combine(entries, _selectedType, activeProfileId) { list, type, id ->
+        Triple(list, type, id)
+    }.flatMapLatest { (list, type, id) ->
+        val relevant = if (type != null) list.filter { it.type == type } else list
+        val dates = relevant.map { it.date }.toSet()
+        if (dates.isEmpty()) {
+            kotlinx.coroutines.flow.flowOf(emptyList())
+        } else {
+            val today = LocalDate.now()
+            medicationRepo.observeLogRange(today.minusDays(CORRELATION_WINDOW_DAYS), today, id)
+                .map { doses -> symptomMedicationCorrelations(dates, doses.map { it.date to it.medicationName }) }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

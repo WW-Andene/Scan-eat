@@ -282,6 +282,8 @@ fun SettingsScreen(
                     onPrepareRecipesCsvExport = { viewModel.prepareRecipesCsvExport() },
                     onPrepareScanHistoryCsvExport = { viewModel.prepareScanHistoryCsvExport() },
                     onPrepareMedicationsCsvExport = { viewModel.prepareMedicationsCsvExport() },
+                    onPrepareSymptomCsvExport = { viewModel.prepareSymptomCsvExport() },
+                    onPreparePantryCsvExport = { viewModel.preparePantryCsvExport() },
                     onPrepareReport = { viewModel.preparePdfReport() },
                 )
             }

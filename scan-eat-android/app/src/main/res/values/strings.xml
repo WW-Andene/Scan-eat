@@ -1339,6 +1339,8 @@
     <string name="settings_recipes_csv_export_button">Recettes (CSV)</string>
     <string name="settings_scanhistory_csv_export_button">Historique des scans (CSV)</string>
     <string name="settings_medications_csv_export_button">Traitements (CSV)</string>
+    <string name="settings_symptom_csv_export_button">Symptômes (CSV)</string>
+    <string name="settings_pantry_csv_export_button">Garde-manger (CSV)</string>
     <string name="settings_section_reset">Réinitialisation</string>
     <string name="settings_reset_hint">Effacer sélectivement certaines données de l\'application.</string>
     <string name="settings_reset_button">Options de réinitialisation</string>
@@ -1649,6 +1651,7 @@
     <string name="symptom_filter_all">Tous</string>
     <string name="symptom_correlation_filter_label">Filtrer les corrélations par symptôme</string>
     <string name="symptom_correlation_title">Corrélations possibles</string>
+    <string name="symptom_medication_correlation_title">Corrélations possibles avec un traitement</string>
     <string name="symptom_correlation_disclaimer">Observation statistique simple, pas une preuve médicale — à discuter avec un professionnel si ça persiste.</string>
     <string name="symptom_correlation_row">%1$s — présent %2$d/%3$d jours avec symptôme</string>
     <string name="dashboard_tile_pantry">Garde-manger</string>

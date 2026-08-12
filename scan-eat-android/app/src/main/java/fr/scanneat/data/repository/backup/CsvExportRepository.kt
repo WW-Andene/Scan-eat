@@ -15,8 +15,10 @@ import fr.scanneat.data.local.prefs.SecureFieldCipher
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.data.repository.pantry.PantryRepository
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.data.repository.planning.TemplateItem
+import fr.scanneat.data.repository.symptom.SymptomRepository
 import fr.scanneat.data.local.db.weight.WeightDao
 import fr.scanneat.util.formatDecimal
 import kotlinx.coroutines.flow.first
@@ -46,6 +48,8 @@ class CsvExportRepository @Inject constructor(
     private val recipeDao: RecipeDao,
     private val scanHistoryDao: ScanHistoryDao,
     private val medicationDao: MedicationDao,
+    private val symptomRepo: SymptomRepository,
+    private val pantryRepo: PantryRepository,
     private val moshi: Moshi,
 ) {
     /**
@@ -245,5 +249,29 @@ class CsvExportRepository @Inject constructor(
             "${csvField(name)},${csvField(dosage)},${csvField(scheduleNote)},${e.active}"
         }
         return buildCsv("name,dosage,scheduleNote,active", lines)
+    }
+
+    /**
+     * app-audit §X: Symptom/Pantry were the last two trackers with a JSON
+     * backup (exportAll()) but no CSV export - see [exportWeightCsv]'s own
+     * doc comment on why every other domain got one. A symptom journal in
+     * particular is exactly the kind of data a user would want to hand to a
+     * doctor or import elsewhere for their own correlation-hunting.
+     */
+    suspend fun exportSymptomCsv(): String {
+        val rows = symptomRepo.exportAll()
+        val lines = rows.sortedBy { it.date }.map { e ->
+            "${e.date},${csvField(e.type)},${e.severity},${csvField(e.notes)}"
+        }
+        return buildCsv("date,type,severity,notes", lines)
+    }
+
+    /** Exports the pantry inventory as CSV - see [exportSymptomCsv]'s own doc comment. */
+    suspend fun exportPantryCsv(): String {
+        val rows = pantryRepo.exportAll()
+        val lines = rows.sortedBy { it.name }.map { e ->
+            "${csvField(e.name)},${csvField(e.category)},${e.quantity},${e.unit},${e.expiryDate ?: ""}"
+        }
+        return buildCsv("name,category,quantity,unit,expiryDate", lines)
     }
 }
