@@ -59,7 +59,7 @@ class PantryRepository @Inject constructor(
                 name = name,
                 barcode = barcode,
                 category = category.key,
-                quantity = quantity,
+                quantity = quantity.coerceAtLeast(0.0),
                 unit = unit.key,
                 expiryDate = expiryDate?.toIsoString(),
                 addedAt = System.currentTimeMillis(),
@@ -86,7 +86,8 @@ class PantryRepository @Inject constructor(
         profileId: String = "default",
     ) {
         val current = dao.getAllForBackup(profileId).firstOrNull { entry ->
-            if (barcode != null) entry.barcode == barcode else entry.name.equals(name, ignoreCase = true)
+            if (barcode != null && entry.barcode != null) entry.barcode == barcode
+            else entry.name.equals(name, ignoreCase = true)
         }
         if (current != null) {
             dao.updateQuantity(current.id, current.quantity + quantity)
