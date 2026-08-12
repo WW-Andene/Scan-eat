@@ -535,15 +535,20 @@ class ScanViewModel @Inject constructor(
                                 )
                             // Neither OFF (food-only) nor the bundled NonConsumableLookupDb
                             // snapshot (frozen 2026-07-13) had this barcode - before giving up,
-                            // try OPF's own live API (the same public DB the static CSV was
-                            // built from, just not frozen in time). Reported case: a mouthwash
-                            // barcode fell through both of the above to a dead-end "not found"
-                            // error even though OPF has a live record of it. Best-effort only -
-                            // findNonConsumableViaOpf already swallows its own network errors,
-                            // and this never runs offline (no point trying a network call we
-                            // already know will fail).
+                            // try the live public DBs the static CSV/OFF can't cover. OBF (Open
+                            // Beauty Facts) tried first - it's the database actually dedicated
+                            // to cosmetics/personal-care (shampoo, shower gel, toothpaste,
+                            // makeup), the reported gap: most non-food scans failing were this
+                            // category, and OPF (general "everything else" - household
+                            // chemicals, batteries, tobacco) never had deep coverage of it. OPF
+                            // stays as the second try for the household/chemical/tobacco
+                            // barcodes it IS good at (the original mouthwash case this fallback
+                            // was built for). Both best-effort only - findNonConsumableViaObf/
+                            // Opf already swallow their own network errors, and neither runs
+                            // offline (no point trying a network call we already know will fail).
                             e is ProductNotFoundException && barcode != null && online -> {
-                                val opfEntry = scanRepo.findNonConsumableViaOpf(barcode)
+                                val obfEntry = scanRepo.findNonConsumableViaObf(barcode)
+                                val opfEntry = obfEntry ?: scanRepo.findNonConsumableViaOpf(barcode)
                                 if (opfEntry != null) ScanUiState.NonConsumableFound(opfEntry)
                                 // e.message is always lang-aware in practice (ScanOffLookup
                                 // already threads lang into ProductNotFoundException), so this

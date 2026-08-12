@@ -68,6 +68,7 @@ private fun missingApiKeyMessage(lang: String) =
 class ScanRepository @Inject constructor(
     private val offApi: OpenFoodFactsApi,
     private val opfApi: OpenProductsFactsApi,
+    private val obfApi: OpenBeautyFactsApi,
     private val dao: ScanHistoryDao,
     private val scoreHistoryDao: ScanScoreHistoryDao,
     private val onlineSearchCacheDao: OnlineSearchCacheDao,
@@ -101,7 +102,7 @@ class ScanRepository @Inject constructor(
     // below is an unchanged-signature one-line delegate to it, so this
     // class's own public API (and anything mocking it) is unaffected.
     private val historyQueries = ScanHistoryQueries(
-        dao, scoreHistoryDao, opfApi, offLookup,
+        dao, scoreHistoryDao, opfApi, obfApi, offLookup,
         toDomain = { entity -> mapScanHistoryEntity(entity, productAdapter, auditAdapter, warningsAdapter) },
         serializeProduct = { productAdapter.toJson(it) },
         serializeAudit = { auditAdapter.toJson(it) },
@@ -127,6 +128,9 @@ class ScanRepository @Inject constructor(
 
     suspend fun findNonConsumableViaOpf(barcode: String): NonConsumableDbEntry? =
         historyQueries.findNonConsumableViaOpf(barcode)
+
+    suspend fun findNonConsumableViaObf(barcode: String): NonConsumableDbEntry? =
+        historyQueries.findNonConsumableViaObf(barcode)
 
     fun observeFavorites(profileId: String = "default"): Flow<List<ScanResult>> =
         historyQueries.observeFavorites(profileId)

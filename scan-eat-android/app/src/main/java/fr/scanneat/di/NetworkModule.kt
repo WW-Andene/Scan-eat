@@ -90,6 +90,14 @@ object NetworkModule {
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
+    @Provides @Singleton @Named("obf")
+    fun provideObfRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://world.openbeautyfacts.org/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
     // Cerebras free-tier alternative to Groq — same OpenAI-compatible schema,
     // different vendor, so OCR scoring survives one provider being down/rate-limited.
     @Provides @Singleton @Named("cerebras")
@@ -115,6 +123,10 @@ object NetworkModule {
     @Provides @Singleton
     fun provideOpfApi(@Named("opf") retrofit: Retrofit): OpenProductsFactsApi =
         retrofit.create(OpenProductsFactsApi::class.java)
+
+    @Provides @Singleton
+    fun provideObfApi(@Named("obf") retrofit: Retrofit): OpenBeautyFactsApi =
+        retrofit.create(OpenBeautyFactsApi::class.java)
 
     // French government official product-recall open data (RappelConso) —
     // see RappelConsoApi.kt's own header comment.

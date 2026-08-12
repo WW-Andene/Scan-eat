@@ -4,6 +4,7 @@ import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
 import fr.scanneat.data.local.db.scan.TopScannedRow
+import fr.scanneat.data.remote.api.OpenBeautyFactsApi
 import fr.scanneat.data.remote.api.OpenProductsFactsApi
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableCategory
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
@@ -44,6 +45,7 @@ internal class ScanHistoryQueries(
     private val dao: ScanHistoryDao,
     private val scoreHistoryDao: ScanScoreHistoryDao,
     private val opfApi: OpenProductsFactsApi,
+    private val obfApi: OpenBeautyFactsApi,
     private val offLookup: ScanOffLookup,
     /** Delegates back to ScanRepository's own productAdapter/auditAdapter/warningsAdapter - see mapScanHistoryEntity(). */
     private val toDomain: (ScanHistoryEntity) -> ScanResult?,
@@ -170,6 +172,38 @@ internal class ScanHistoryQueries(
             name     = name,
             brand    = product.brands ?: "",
             category = runCatching { NonConsumableCategory.valueOf(category) }.getOrDefault(NonConsumableCategory.OTHER),
+            ingredientsText = product.ingredientsText,
+        )
+    }.getOrNull()
+
+    /**
+     * Live Open Beauty Facts lookup - OPF above is OFF/OBF's general-purpose
+     * "everything else" sister project (household chemicals, batteries,
+     * tobacco, pet supplies), not the cosmetics-dedicated one. Its own
+     * shampoo/shower-gel/toothpaste/makeup coverage is thin - most of what it
+     * does have lands in one undifferentiated PERSONAL_CARE bucket (see
+     * NonConsumableLookupDb.kt's own doc comment on the bundled CSV's
+     * category breakdown). OBF is the actual crowdsourced database built
+     * specifically for this product domain, and this app already has
+     * per-category cosmetic scorers (ShampooQualityScore.kt,
+     * ShowerGelQualityScore.kt, ToothpasteQualityScore.kt,
+     * MakeupQualityScore.kt, IntimateHygieneScore.kt,
+     * CosmeticActivesScore.kt) waiting for real data that nothing ever
+     * queried this database to provide - most non-consumable barcodes
+     * reported as "not recognized" were personal-care items OPF simply never
+     * carried. Same shape/fields as [findNonConsumableViaOpf] since OBF's
+     * v2 API mirrors OFF/OPF's exactly.
+     */
+    suspend fun findNonConsumableViaObf(barcode: String): NonConsumableDbEntry? = runCatching {
+        val product = obfApi.getProduct(barcode).product ?: return@runCatching null
+        val name = product.productName ?: ""
+        val category = classifyNonFood(product.categoriesTags, name, product.brands)
+            ?: NonConsumableCategory.PERSONAL_CARE.name
+        NonConsumableDbEntry(
+            barcode  = barcode,
+            name     = name,
+            brand    = product.brands ?: "",
+            category = runCatching { NonConsumableCategory.valueOf(category) }.getOrDefault(NonConsumableCategory.PERSONAL_CARE),
             ingredientsText = product.ingredientsText,
         )
     }.getOrNull()
