@@ -86,6 +86,14 @@ class BackupRepository @Inject constructor(
     internal val biolismRepo: BiolismRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val symptomRepo: fr.scanneat.data.repository.symptom.SymptomRepository,
+    // Added 13/08/2026 - app-wide §XI review found Sleep/Mood (and non-food
+    // scan history) had real exportAll/importAll functions with zero callers
+    // anywhere in the app, the same "real data, silently lost on backup/
+    // restore" class of gap every entity above already had fixed for it in
+    // turn (see pantryItems/symptoms above, loyaltyCards, priceLog, etc.).
+    private val sleepRepo: fr.scanneat.data.repository.sleep.SleepRepository,
+    private val moodRepo: fr.scanneat.data.repository.mood.MoodRepository,
+    private val nonFoodScanRepo: fr.scanneat.data.repository.nonfood.NonFoodScanRepository,
     private val moshi: Moshi,
 ) {
     // Internal (not private) so BackupParsing.kt's parseBundle() extension
@@ -160,6 +168,9 @@ class BackupRepository @Inject constructor(
             loyaltyCards = loyaltyCardRepo.exportAll(),
             pantryItems = pantryRepo.exportAll(),
             symptoms = symptomRepo.exportAll(),
+            sleep = sleepRepo.exportAll(),
+            mood = moodRepo.exportAll(),
+            nonFoodScans = nonFoodScanRepo.exportAll(),
         )
         val plainJson = bundleAdapter.indent("  ").toJson(bundle)
         // Opt-in - see BackupPassphraseCipher's own doc comment for the file
@@ -344,6 +355,9 @@ class BackupRepository @Inject constructor(
         // every DataStore-backed restore call below.
         pantryRepo.importAll(bundle.pantryItems)
         symptomRepo.importAll(bundle.symptoms)
+        sleepRepo.importAll(bundle.sleep)
+        moodRepo.importAll(bundle.mood)
+        nonFoodScanRepo.importAll(bundle.nonFoodScans)
 
         restoreDataStoreData(bundle)
 

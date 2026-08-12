@@ -5,7 +5,10 @@ import fr.scanneat.data.local.db.consumption.ConsumptionEntity
 import fr.scanneat.data.local.db.customfood.CustomFoodEntity
 import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.mood.MoodEntity
+import fr.scanneat.data.local.db.nonfood.NonFoodScanEntity
 import fr.scanneat.data.local.db.pantry.PantryEntity
+import fr.scanneat.data.local.db.sleep.SleepEntity
 import fr.scanneat.data.local.db.price.PriceEntity
 import fr.scanneat.data.local.db.symptom.SymptomEntity
 import fr.scanneat.data.local.db.recipe.RecipeEntity
@@ -83,7 +86,15 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // audit finding.
 // Since v14: profile.pregnancyStartDate - trimester-adapted nutrition
 // targets, see Profile.pregnancyStartDate's own doc comment.
-const val BACKUP_FORMAT_VERSION = 14
+// Since v15: sleep, mood, and nonFoodScans - an app-wide §XI coherence
+// review (13/08/2026) found SleepRepository/MoodRepository/
+// NonFoodScanRepository each already had a real exportAll()/importAll()
+// pair, written for exactly this purpose, but neither was ever actually
+// called from BackupRepository - real user data (nightly sleep logs, daily
+// mood/stress ratings, scanned shampoo/cosmetics history) silently lost on
+// every backup/restore, the same class of gap every entity above this line
+// already had fixed for it in turn.
+const val BACKUP_FORMAT_VERSION = 15
 
 data class ProfileBackup(
     val name: String,
@@ -172,6 +183,9 @@ data class BackupBundle(
     val loyaltyCards: List<LoyaltyCard> = emptyList(),
     val pantryItems: List<PantryEntity> = emptyList(),
     val symptoms: List<SymptomEntity> = emptyList(),
+    val sleep: List<SleepEntity> = emptyList(),
+    val mood: List<MoodEntity> = emptyList(),
+    val nonFoodScans: List<NonFoodScanEntity> = emptyList(),
 )
 
 data class BackupSummary(
@@ -188,8 +202,11 @@ data class BackupSummary(
     val priceLog: Int = 0,
     val pantryItems: Int = 0,
     val symptoms: Int = 0,
+    val sleep: Int = 0,
+    val mood: Int = 0,
+    val nonFoodScans: Int = 0,
 ) {
-    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms + sleep + mood + nonFoodScans
 
     companion object {
         fun from(bundle: BackupBundle) = BackupSummary(
@@ -206,6 +223,9 @@ data class BackupSummary(
             priceLog      = bundle.priceLog.size,
             pantryItems   = bundle.pantryItems.size,
             symptoms      = bundle.symptoms.size,
+            sleep         = bundle.sleep.size,
+            mood          = bundle.mood.size,
+            nonFoodScans  = bundle.nonFoodScans.size,
         )
     }
 }
