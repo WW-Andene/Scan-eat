@@ -61,6 +61,7 @@ fun ExpensesScreen(
     val budgetWeekly = viewModel.budgetWeeklyEuros.collectAsStateWithLifecycle()
     val budgetPerMeal = viewModel.budgetPerMealEuros.collectAsStateWithLifecycle()
     val budgetMonthly = viewModel.budgetMonthlyEuros.collectAsStateWithLifecycle()
+    val annualProjection = viewModel.annualProjection.collectAsStateWithLifecycle()
     val avgPerEntry = viewModel.avgPerEntryThisWeek.collectAsStateWithLifecycle()
     val avgPerEntryMonth = viewModel.avgPerEntryThisMonth.collectAsStateWithLifecycle()
     val spendByCategoryDay = viewModel.spendByCategoryDay.collectAsStateWithLifecycle()
@@ -148,6 +149,10 @@ fun ExpensesScreen(
 
             if (lowStockItems.value.isNotEmpty()) {
                 item { LowStockCard(items = lowStockItems.value, onAddToGrocery = { viewModel.addToGroceryList(it) }) }
+            }
+
+            if (monthTotal.value > 0) {
+                item { fr.scanneat.presentation.expenses.components.AnnualSpendCard(annualProjection.value, currencySymbol.value) }
             }
 
             item {

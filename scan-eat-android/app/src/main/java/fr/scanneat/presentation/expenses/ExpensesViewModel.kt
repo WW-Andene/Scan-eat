@@ -193,6 +193,20 @@ class ExpensesViewModel @Inject constructor(
     val spendByCategoryMonth: StateFlow<List<Pair<ProductCategory, Double>>> = monthStats.map { it.byCategory }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // User-requested: "empreinte financière annuelle" - project the current
+    // month's real spend rate into a full year and compare it to the
+    // declared monthly budget x12, instead of only ever showing week/month
+    // totals in isolation with no longer-term framing.
+    val annualProjection: StateFlow<fr.scanneat.domain.engine.expense.AnnualSpendProjection> =
+        combine(monthTotal, budgetMonthlyEuros, today) { total, budget, date ->
+            fr.scanneat.domain.engine.expense.annualSpendProjection(
+                monthTotalEuros = total,
+                dayOfMonth = date.dayOfMonth,
+                daysInMonth = date.lengthOfMonth(),
+                budgetMonthlyEuros = budget,
+            )
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), fr.scanneat.domain.engine.expense.AnnualSpendProjection(0.0, null, false))
+
     private val _actionFailed = MutableStateFlow(false)
     /** True briefly after a failed write, for a one-shot error snackbar. */
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
