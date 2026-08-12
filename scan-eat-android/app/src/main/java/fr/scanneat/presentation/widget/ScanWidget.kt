@@ -1,13 +1,14 @@
 package fr.scanneat.presentation.widget
 
 import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -42,10 +43,11 @@ import kotlinx.coroutines.flow.first
 // scanned product's score, the app's second widget after TodayWidget (kcal).
 // Same fixed-color-constants approach as TodayWidget (see that file's own F35
 // comment on why this never reads GlanceTheme.colors). Entirely read-only
-// except the "Scanner" chip, which opens straight into the Scan tab via the
-// same fr.scanneat.action.SHORTCUT_SCAN action the static launcher shortcut
-// (res/xml/shortcuts.xml) already uses - MainActivity.shortcutStartRoute
-// already routes it, nothing new needed there. Tapping the rest of the
+// except the "Scanner" chip, which opens straight into the Scan tab - see
+// WIDGET_ACTION_EXTRA's own comment below for why that goes through
+// ActionParameters rather than a plain Intent.action, and
+// MainActivity.shortcutStartRoute (same routing the static launcher shortcut
+// already uses for its own SHORTCUT_SCAN action). Tapping the rest of the
 // widget (the last-scan summary) opens the app normally, same as
 // TodayWidget's whole-widget click - deep-linking straight into that scan's
 // own Result screen would need a new intent-filter/start-destination
@@ -55,6 +57,17 @@ import kotlinx.coroutines.flow.first
 private val WidgetBackground       = ColorProvider(Color(0xFF1B1611))
 private val WidgetOnBackground     = ColorProvider(Color(0xFFEFEAE6))
 private val WidgetOnSurfaceVariant = ColorProvider(Color(0xFFCFC7CC))
+
+// actionStartActivity(Intent, ...) isn't available on this project's Glance
+// version (glance-appwidget 1.1.1) - only the reified/Class/ComponentName
+// overloads are, none of which carry a custom Intent.action. Routing the
+// "Scanner" chip straight to the Scan tab instead goes through
+// ActionParameters (which Glance puts on the launched Intent as extras
+// keyed by the ActionParameters.Key's own name) - MainActivity.
+// shortcutStartRoute reads this same extra key alongside the
+// action-based shortcuts, since intent.action itself is never set this way.
+const val WIDGET_ACTION_EXTRA = "fr.scanneat.extra.widget_action"
+private val ScanWidgetActionKey = ActionParameters.Key<String>(WIDGET_ACTION_EXTRA)
 
 // Same 3-tier spread NormalGradeColors (Colors.kt) uses, duplicated here as a
 // plain non-@Composable map rather than importing that private val - the
@@ -84,9 +97,6 @@ class ScanWidget : GlanceAppWidget() {
         val scanLabel = localizedString(context, lang, R.string.widget_scan_button)
         val emptyLabel = localizedString(context, lang, R.string.widget_scan_empty)
         val lastScanLabel = localizedString(context, lang, R.string.widget_scan_last_label)
-        val scanIntent = Intent(context, MainActivity::class.java).apply {
-            action = "fr.scanneat.action.SHORTCUT_SCAN"
-        }
 
         provideContent {
             ScanWidgetContent(
@@ -96,7 +106,6 @@ class ScanWidget : GlanceAppWidget() {
                 scanLabel = scanLabel,
                 emptyLabel = emptyLabel,
                 lastScanLabel = lastScanLabel,
-                scanIntent = scanIntent,
             )
         }
     }
@@ -110,7 +119,6 @@ private fun ScanWidgetContent(
     scanLabel: String,
     emptyLabel: String,
     lastScanLabel: String,
-    scanIntent: Intent,
 ) {
     Column(
         modifier = GlanceModifier
@@ -154,7 +162,11 @@ private fun ScanWidgetContent(
                     .background(ColorProvider(AccentCoralRaw))
                     .cornerRadius(12.dp)
                     .padding(horizontal = Spacing.SM, vertical = Spacing.XS)
-                    .clickable(actionStartActivity(scanIntent)),
+                    .clickable(
+                        actionStartActivity<MainActivity>(
+                            parameters = actionParametersOf(ScanWidgetActionKey to "fr.scanneat.action.SHORTCUT_SCAN"),
+                        ),
+                    ),
             ) {
                 Text(scanLabel, style = TextStyle(color = ColorProvider(Color.White), fontSize = 13.sp, fontWeight = FontWeight.Bold))
             }

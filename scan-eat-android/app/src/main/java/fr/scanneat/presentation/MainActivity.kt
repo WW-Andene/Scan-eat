@@ -38,8 +38,14 @@ class MainActivity : AppCompatActivity() {
     // entry - same "route by action" mechanism the privacy-rationale intent above
     // already uses, extended to jump straight to a tab instead of always landing on
     // whichever one the user last had open.
+    // ScanWidget's "Scanner" chip routes the same way but can't set
+    // intent.action directly (see WIDGET_ACTION_EXTRA's own doc comment in
+    // ScanWidget.kt for why) - Glance puts its ActionParameters on the
+    // launched Intent as plain extras instead, so this falls back to that
+    // extra (keyed by fr.scanneat.presentation.widget.WIDGET_ACTION_EXTRA)
+    // whenever intent.action itself is unset.
     private val shortcutStartRoute: String?
-        get() = when (intent?.action) {
+        get() = when (intent?.action ?: intent?.getStringExtra(fr.scanneat.presentation.widget.WIDGET_ACTION_EXTRA)) {
             "fr.scanneat.action.SHORTCUT_SCAN"      -> TopTab.Scan.route
             "fr.scanneat.action.SHORTCUT_DIARY"     -> TopTab.Diary.route
             "fr.scanneat.action.SHORTCUT_DASHBOARD" -> TopTab.Dashboard.route
