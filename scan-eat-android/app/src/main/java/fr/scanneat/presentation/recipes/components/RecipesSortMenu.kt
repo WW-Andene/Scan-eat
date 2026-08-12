@@ -3,10 +3,8 @@ package fr.scanneat.presentation.recipes.components
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Check
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Sort
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,16 +17,11 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.CardRadius
-import fr.scanneat.presentation.ui.theme.DROPDOWN_MENU_GAP
 import fr.scanneat.presentation.ui.theme.OnBackground
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import fr.scanneat.presentation.ui.theme.StandardCardAlpha
-import fr.scanneat.presentation.ui.theme.glassPopupSurface
+import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
 
 /**
  * User-requested: "develop the tool" for Recipes - same shape as History's
@@ -47,12 +40,8 @@ internal fun RecipesSortMenu(
         IconButton(onClick = { onExpandedChange(true) }) {
             Icon(Icons.Rounded.Sort, stringResource(R.string.recipes_sort_cd), tint = OnBackground)
         }
-        // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-        DropdownMenu(
+        ScanEatDropdownMenu(
             expanded = expanded, onDismissRequest = { onExpandedChange(false) },
-            shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
-            shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
-            offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP),
         ) {
             val options = listOf(
                 RecipesViewModel.RecipeSort.RECENT to stringResource(R.string.recipes_sort_recent),

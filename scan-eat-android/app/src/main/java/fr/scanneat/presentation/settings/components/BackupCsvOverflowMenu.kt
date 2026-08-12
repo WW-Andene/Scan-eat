@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -16,20 +14,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.dp
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Table
 import fr.scanneat.R
-import fr.scanneat.presentation.ui.theme.CardRadius
-import fr.scanneat.presentation.ui.theme.DROPDOWN_MENU_GAP
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
 import fr.scanneat.presentation.ui.theme.ScanEatOutlinedButton
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.StandardCardAlpha
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import fr.scanneat.presentation.ui.theme.glassPopupSurface
 
 /**
  * Weight/Activity/Hydration/Medication/Fasting/Prices/CustomFoods/MealTemplates/
@@ -66,8 +58,7 @@ internal fun BackupCsvOverflowMenu(
             Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
         }
-        // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-        DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
+        ScanEatDropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }) {
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
                 onClick = { moreCsvExpanded = false; onPrepareWeightCsvExport() })
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },

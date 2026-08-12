@@ -75,7 +75,7 @@ internal fun GroceryTopBarActions(
                 Icon(TablerIcons.Copy, stringResource(R.string.common_copy), tint = AccentCoral)
             }
             // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
+            ScanEatDropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.grocery_copy_plain)) },
                     onClick = { onCopyMenuExpandedChange(false); onCopyPlain() },

@@ -312,14 +312,9 @@ internal fun ExpenseCategoryPicker(category: ProductCategory, onCategoryChange: 
             ) {
                 Text(category.displayLabel(), color = OnBackground)
             }
-            DropdownMenu(
+            ScanEatDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                shape = RoundedCornerShape(CardRadius.CONTROL),
-                containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
-                shadowElevation = 0.dp,
-                modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
-                offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP),
             ) {
                 ProductCategory.entries.forEach { c ->
                     DropdownMenuItem(

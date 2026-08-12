@@ -1,8 +1,5 @@
 package fr.scanneat.presentation.shell
 
-import fr.scanneat.presentation.ui.theme.CardRadius
-import fr.scanneat.presentation.ui.theme.DROPDOWN_MENU_GAP
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -10,25 +7,20 @@ import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.OnBackground
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import fr.scanneat.presentation.ui.theme.StandardCardAlpha
-import fr.scanneat.presentation.ui.theme.glassPopupSurface
+import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
 
 /**
  * Recipes, Meal Templates, Meal Plan, Grocery, and Custom Foods constantly
@@ -54,8 +46,7 @@ fun PlanningSwitcherMenu(current: PlanningDestination, onNavigate: (PlanningDest
     IconButton(onClick = { expanded = true }) {
         Icon(Icons.Default.SwapHoriz, stringResource(R.string.planning_switcher_cd), tint = OnBackground)
     }
-    // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
+    ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
         PlanningDestination.entries.filter { it != current }.forEach { dest ->
             DropdownMenuItem(
                 text = { Text(stringResource(dest.labelRes)) },

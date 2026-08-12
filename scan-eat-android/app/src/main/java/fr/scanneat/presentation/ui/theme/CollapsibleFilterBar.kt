@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -81,24 +80,13 @@ fun CollapsibleFilterBar(
                 Icon(TablerIcons.ChevronDown, null, tint = AccentCoral)
             }
         }
-        // User-reported: the popup's own container used Material3's default
-        // (cool gray) surfaceContainer color, standing out against the app's
-        // warm palette — pinned to SurfaceVariant like every other themed
-        // surface in the app. Also carries the same glass treatment
-        // (tinted shadow + hairline sheen) as the app's cards — see
-        // glassPopupSurface()'s doc comment for why it stops short of real
-        // backdrop blur (DropdownMenu renders in its own Popup window).
-        DropdownMenu(
+        // User-reported: previously used Material3's own DropdownMenu, whose
+        // built-in position provider could flip the popup ABOVE this pill
+        // depending on scroll position - see ScanEatDropdownMenu's own doc
+        // comment. This is that shared always-below replacement.
+        ScanEatDropdownMenu(
             expanded = expanded,
             onDismissRequest = onToggle,
-            shape = RoundedCornerShape(CardRadius.CONTROL),
-            containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
-            shadowElevation = 0.dp,
-            modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
-            // User-reported: the popup opened flush against the trigger pill with
-            // no gap. DROPDOWN_MENU_GAP is the app-wide standard gap every
-            // DropdownMenu now keeps from its trigger (see its own doc comment).
-            offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP),
             content = content,
         )
     }

@@ -90,7 +90,7 @@ internal fun TemplateCard(
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
                 // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
+                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     // The "💡 Bon à savoir" hint panel was previously reachable
                     // only from a scanned product's Result screen - a template's
                     // items already carry real per-100g nutrition (see

@@ -59,5 +59,11 @@ object Spacing {
  * User-reported (round 2): Spacing.XS (4dp) still read as visually flush
  * against the trigger (e.g. Recipes' filter pill) - bumped to Spacing.S (6dp),
  * then user-requested (round 3): standardized to 10dp for every popup.
+ *
+ * User-reported (round 4): all 11 raw Material3 DropdownMenu call sites
+ * (including the two mentioned above) were replaced with the shared
+ * ScanEatDropdownMenu composable, which always anchors below its trigger -
+ * see that file's own doc comment for why. This constant is now only ever
+ * read from inside that one composable, not duplicated per call site.
  */
 val DROPDOWN_MENU_GAP: Dp = Spacing.M

@@ -55,17 +55,14 @@ import fr.scanneat.data.repository.planning.formatShareText
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.result.HintIconButton
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.DROPDOWN_MENU_GAP
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
+import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import fr.scanneat.presentation.ui.theme.StandardCardAlpha
-import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.IconSize
 
 @Composable
@@ -110,8 +107,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
-                // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
+                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     // Previously a recipe could only leave the app via the whole-database
                     // backup - no way to send just this one recipe to someone else.
                     DropdownMenuItem(
