@@ -164,6 +164,11 @@ fun proteinPriG(p: Profile): Double? {
  */
 fun proteinTargetG(p: Profile): Double? {
     val w = p.weightKg ?: return null
+    // Same non-positive guard as bmi() above - weightKg is a non-null Double once
+    // past the ?: return null, so a stray 0.0/negative (e.g. from a corrupted or
+    // hand-edited backup import bypassing ProfileScreen's coerceIn(20.0, 400.0))
+    // would otherwise divide silently into Infinity/NaN below.
+    if (w <= 0.0) return null
     val pri = proteinPriG(p) ?: return null
     var perKg = pri / w
     if (p.activityLevel != ActivityLevel.SEDENTARY) perKg = maxOf(perKg, 1.2)

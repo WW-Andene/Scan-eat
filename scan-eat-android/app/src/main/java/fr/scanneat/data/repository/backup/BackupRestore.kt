@@ -29,13 +29,20 @@ import java.time.LocalDate
  */
 internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle) {
     bundle.profile?.let { p ->
+        // Restored raw before this fix, unlike WeightEntry.weightKg (clamped to
+        // WeightRepository.log()'s own require(0, 400] just above in
+        // importFromJson) - a hand-edited or corrupted backup's weightKg/
+        // heightCm could land in the profile verbatim, bypassing
+        // ProfileScreen's own coerceIn(20.0, 400.0) entry bound and silently
+        // producing Infinity/NaN downstream in BMI/TDEE/protein-target math
+        // (see BmrCalculations.kt's own non-positive guards).
         prefs.saveProfile(Profile(
             name = p.name,
             sex = runCatching { Sex.valueOf(p.sex) }.getOrDefault(Sex.NOT_SPECIFIED),
             ageYears = p.ageYears,
-            heightCm = p.heightCm,
-            weightKg = p.weightKg,
-            goalWeightKg = p.goalWeightKg,
+            heightCm = p.heightCm?.coerceIn(50.0, 300.0),
+            weightKg = p.weightKg?.coerceIn(20.0, 400.0),
+            goalWeightKg = p.goalWeightKg?.coerceIn(20.0, 400.0),
             activityLevel = runCatching { ActivityLevel.valueOf(p.activityLevel) }.getOrDefault(ActivityLevel.MODERATELY_ACTIVE),
             goal = runCatching { Goal.valueOf(p.goal) }.getOrDefault(Goal.MAINTAIN),
             diet = DietKey.fromKey(p.diet),
