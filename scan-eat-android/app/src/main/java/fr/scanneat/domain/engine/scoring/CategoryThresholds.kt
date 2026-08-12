@@ -59,7 +59,14 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     ProductCategory.BREAD            to CategoryThresholds(Triple(6.0,9.0,12.0),  Triple(3.0,6.0,9.0),  Pair(220.0,390.0), false,
         saltThresholds = Triple(1.3,1.6,2.0)),
     ProductCategory.BREAKFAST_CEREAL to CategoryThresholds(Triple(6.0,10.0,14.0), Triple(5.0,8.0,12.0), Pair(320.0,420.0), true),
-    ProductCategory.YOGURT           to CategoryThresholds(Triple(3.0,5.0,9.0),   Triple(0.0,1.0,2.0),  Pair(40.0,120.0),  true),
+    // Fiber low tier raised from 0.0 - user-reported context/logic audit
+    // finding: plain yogurt has confirmed ~0g dietary fiber (USDA FoodData
+    // Central, "Yogurt, Greek, plain, nonfat"), so a low threshold of exactly
+    // 0.0 was trivially satisfied by any non-negative value, giving every
+    // plain yogurt a free 3/7 fiber credit it never earned. Fruit/muesli-
+    // added yogurt genuinely carries 1-2g fiber from the inclusions, which
+    // is what med/high (unchanged) already targets.
+    ProductCategory.YOGURT           to CategoryThresholds(Triple(3.0,5.0,9.0),   Triple(0.3,1.0,2.0),  Pair(40.0,120.0),  true),
     ProductCategory.CHEESE           to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(200.0,450.0), true,  satFatThresholds = Triple(12.0,20.0,30.0)),
     ProductCategory.PROCESSED_MEAT   to CategoryThresholds(Triple(10.0,15.0,22.0),Triple(0.0,0.0,1.0),  Pair(100.0,400.0), false,
         saltThresholds = Triple(2.5,4.0,6.0)),
@@ -93,7 +100,13 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // Same natural-vs-added-sugar gap already closed for jam/honey via the
     // CONDIMENT reroute, never applied to juice even though the underlying
     // structural cause (natural sugar concentration) is the same.
-    ProductCategory.BEVERAGE_JUICE   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,1.0,2.0),  Pair(20.0,60.0),   true,
+    // Fiber low tier raised from 0.0 - clear juice has confirmed ~0.1-0.2g
+    // fiber/100ml (USDA: orange juice without pulp), so a low threshold of
+    // exactly 0.0 gave every juice a free 3/7 fiber credit regardless of
+    // pulp content. Juice with pulp genuinely carries ~0.5-0.8g (USDA:
+    // orange juice with pulp, pineapple juice), which is what med/high
+    // (unchanged) already targets.
+    ProductCategory.BEVERAGE_JUICE   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.3,1.0,2.0),  Pair(20.0,60.0),   true,
         sugarThresholds = Quadruple(9.0,13.0,17.0,25.0)),
     ProductCategory.BEVERAGE_WATER   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(0.0,5.0),     false),
     // Beer ~35-45kcal/100ml, wine ~70-90kcal/100ml, spirits ~220-280kcal/100ml -
@@ -108,7 +121,16 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // sauces the 400 ceiling was tuned for (mayo ~680-720, pesto ~450-550,
     // tahini ~590-600, aioli ~600+kcal/100g) - the same reasoning OIL_FAT's
     // own 700-900 range already uses two lines below.
-    ProductCategory.CONDIMENT        to CategoryThresholds(Triple(0.0,3.0,7.0),   Triple(0.0,1.0,3.0),  Pair(20.0,750.0),  false,
+    // Protein/fiber low tiers raised from 0.0 - this category spans watery
+    // sauces with near-zero protein/fiber (ketchup ~1g protein/0.3g fiber,
+    // mustard/mayo similarly low, USDA FoodData Central) to legume/seed-based
+    // condiments (hummus ~8g protein/6g fiber, tahini comparable) - a low
+    // threshold of exactly 0.0 gave every condiment, including plain ketchup,
+    // a free 3-point credit on both axes it never earned. New low tiers sit
+    // just above the watery-sauce baseline so those correctly score 0, while
+    // the legume/seed end of the category (already targeted by the
+    // unchanged med/high tiers) keeps climbing normally.
+    ProductCategory.CONDIMENT        to CategoryThresholds(Triple(1.5,3.0,7.0),   Triple(0.5,1.0,3.0),  Pair(20.0,750.0),  false,
         sugarThresholds = Quadruple(10.0,20.0,30.0,45.0), saltThresholds = Triple(2.0,5.0,10.0)),
     // Honey ~76-80g sugar/100g, jam/marmalade ~55-65g/100g - all intrinsic
     // fructose from fruit/nectar, not an added-sugar manufacturing choice,
@@ -119,7 +141,17 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // here to close the gap for real this time (a prior comment claimed this
     // was already fixed via the CONDIMENT reroute, but the reroute only ever
     // shared CONDIMENT's bucket, never gave honey/jam their own thresholds).
-    ProductCategory.SPREAD_SWEET     to CategoryThresholds(Triple(0.0,0.0,1.0),   Triple(0.0,1.0,2.0),  Pair(250.0,320.0), false,
+    // Protein reclassified fully unearnable (0,0,0), not just low-tier-fixed -
+    // honey and jam both confirmed ~0.2-0.5g protein/100g regardless of
+    // variety (USDA FoodData Central: honey 0.3g, jam trace) - unlike
+    // CONDIMENT's genuine ketchup-vs-hummus spread, there's no realistic
+    // "high protein jam" this category needs a live axis for, so this
+    // correctly falls into ScoringEngine.kt's unearnable-axis rescale
+    // instead of keeping a 3-tier scale that could never distinguish real
+    // products from each other. Fiber low tier raised from 0.0 instead -
+    // honey is ~0g fiber but jam/marmalade genuinely carries some from fruit
+    // solids/pectin, a real (if modest) distinction worth keeping live.
+    ProductCategory.SPREAD_SWEET     to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.3,1.0,2.0),  Pair(250.0,320.0), false,
         sugarThresholds = Quadruple(40.0,55.0,70.0,85.0), saltThresholds = Triple(0.5,1.0,1.5)),
     ProductCategory.OIL_FAT          to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(700.0,900.0), false,
         satFatThresholds = Triple(20.0,35.0,50.0)),
@@ -140,7 +172,16 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // dairy ice cream, 25-30g sorbet) - same "high but normal for the
     // category" reasoning already used for SPREAD_SWEET/BEVERAGE_JUICE, not
     // flagged as added-sugar-style "critical" the way the default band would.
-    ProductCategory.ICE_CREAM to CategoryThresholds(Triple(1.5,3.0,5.0), Triple(0.0,0.0,1.0), Pair(80.0,340.0), false,
+    // Fiber low/med tiers raised from 0.0/0.0 - vanilla ice cream carries
+    // ~0.7g fiber/100g, chocolate ~1.2g (USDA FoodData Central / nutrition
+    // database cross-check), so a low threshold of exactly 0.0 gave every
+    // ice cream a free 3/7 fiber credit regardless of flavor. New tiers are
+    // anchored to those two real reference points (med=0.7 matches plain
+    // vanilla, high=1.2 matches chocolate) so a genuinely fiber-free
+    // formulation (sorbet-adjacent, low-cocoa) scores 0 instead of an
+    // unearned floor, while ordinary vanilla/chocolate still score
+    // proportionally to their real composition.
+    ProductCategory.ICE_CREAM to CategoryThresholds(Triple(1.5,3.0,5.0), Triple(0.4,0.7,1.2), Pair(80.0,340.0), false,
         satFatThresholds = Triple(6.0,12.0,18.0), sugarThresholds = Quadruple(15.0,22.0,28.0,35.0)),
     // Dry/uncooked pasta, rice, couscous, quinoa, semoule, boulgour - OFF
     // packaging near-universally declares nutrition per 100g dry, not

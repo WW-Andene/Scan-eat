@@ -59,7 +59,10 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     ProductCategory.BREAD            to CategoryThresholds(Triple(6.0,9.0,12.0),  Triple(3.0,6.0,9.0),  Pair(220.0,390.0), false,
         saltThresholds = Triple(1.3,1.6,2.0)),
     ProductCategory.BREAKFAST_CEREAL to CategoryThresholds(Triple(6.0,10.0,14.0), Triple(5.0,8.0,12.0), Pair(320.0,420.0), true),
-    ProductCategory.YOGURT           to CategoryThresholds(Triple(3.0,5.0,9.0),   Triple(0.0,1.0,2.0),  Pair(40.0,120.0),  true),
+    // Mirrors the identical fix on the Android side (see Scoring Drift
+    // Check) - fiber low tier raised from 0.0 (plain yogurt has ~0g fiber,
+    // USDA FoodData Central).
+    ProductCategory.YOGURT           to CategoryThresholds(Triple(3.0,5.0,9.0),   Triple(0.3,1.0,2.0),  Pair(40.0,120.0),  true),
     ProductCategory.CHEESE           to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(200.0,450.0), true,  satFatThresholds = Triple(12.0,20.0,30.0)),
     ProductCategory.PROCESSED_MEAT   to CategoryThresholds(Triple(10.0,15.0,22.0),Triple(0.0,0.0,1.0),  Pair(100.0,400.0), false,
         saltThresholds = Triple(2.5,4.0,6.0)),
@@ -81,7 +84,10 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // the fruit itself (OJ ~8-10g, apple ~10-11g, grape ~15-16g/100ml, all
     // intrinsic fructose). Mirrors the identical fix on the Android side (see
     // Scoring Drift Check).
-    ProductCategory.BEVERAGE_JUICE   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,1.0,2.0),  Pair(20.0,60.0),   true,
+    // Mirrors the identical fix on the Android side (see Scoring Drift
+    // Check) - fiber low tier raised from 0.0 (clear juice ~0.1-0.2g fiber,
+    // USDA FoodData Central).
+    ProductCategory.BEVERAGE_JUICE   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.3,1.0,2.0),  Pair(20.0,60.0),   true,
         sugarThresholds = Quadruple(9.0,13.0,17.0,25.0)),
     ProductCategory.BEVERAGE_WATER   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(0.0,5.0),     false),
     ProductCategory.ALCOHOLIC_BEVERAGE to CategoryThresholds(Triple(0.0,0.0,0.0), Triple(0.0,0.0,0.0),  Pair(30.0,280.0),  false),
@@ -89,13 +95,19 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // condiments (mayonnaise, pesto, tahini, aioli) whose kcal is structurally
     // dominated by fat (mayo ~680-720, pesto ~450-550kcal/100g). Mirrors the
     // identical fix on the Android side (see Scoring Drift Check).
-    ProductCategory.CONDIMENT        to CategoryThresholds(Triple(0.0,3.0,7.0),   Triple(0.0,1.0,3.0),  Pair(20.0,750.0),  false,
+    // Mirrors the identical fix on the Android side (see Scoring Drift
+    // Check) - protein/fiber low tiers raised from 0.0 (ketchup ~1g
+    // protein/0.3g fiber, USDA FoodData Central).
+    ProductCategory.CONDIMENT        to CategoryThresholds(Triple(1.5,3.0,7.0),   Triple(0.5,1.0,3.0),  Pair(20.0,750.0),  false,
         sugarThresholds = Quadruple(10.0,20.0,30.0,45.0), saltThresholds = Triple(2.0,5.0,10.0)),
     // Honey/jam split out of CONDIMENT: their sugar is intrinsic fruit/nectar
     // fructose (~55-80g/100g), not an added-sugar choice, and CONDIMENT's
     // 10/20/30/45 band was tuned for oversweetened savory sauces - mirrors
     // the identical fix on the Android side (see Scoring Drift Check).
-    ProductCategory.SPREAD_SWEET     to CategoryThresholds(Triple(0.0,0.0,1.0),   Triple(0.0,1.0,2.0),  Pair(250.0,320.0), false,
+    // Mirrors the identical fix on the Android side (see Scoring Drift
+    // Check) - protein reclassified fully unearnable (honey/jam ~0.2-0.5g
+    // protein regardless of variety), fiber low tier raised from 0.0.
+    ProductCategory.SPREAD_SWEET     to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.3,1.0,2.0),  Pair(250.0,320.0), false,
         sugarThresholds = Quadruple(40.0,55.0,70.0,85.0), saltThresholds = Triple(0.5,1.0,1.5)),
     ProductCategory.OIL_FAT          to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(700.0,900.0), false,
         satFatThresholds = Triple(20.0,35.0,50.0)),
@@ -116,7 +128,10 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // dairy ice cream, 25-30g sorbet) - same "high but normal for the
     // category" reasoning already used for SPREAD_SWEET/BEVERAGE_JUICE, not
     // flagged as added-sugar-style "critical" the way the default band would.
-    ProductCategory.ICE_CREAM to CategoryThresholds(Triple(1.5,3.0,5.0), Triple(0.0,0.0,1.0), Pair(80.0,340.0), false,
+    // Mirrors the identical fix on the Android side (see Scoring Drift
+    // Check) - fiber low/med tiers raised from 0.0/0.0, anchored to real
+    // vanilla (~0.7g) and chocolate (~1.2g) ice cream fiber content.
+    ProductCategory.ICE_CREAM to CategoryThresholds(Triple(1.5,3.0,5.0), Triple(0.4,0.7,1.2), Pair(80.0,340.0), false,
         satFatThresholds = Triple(6.0,12.0,18.0), sugarThresholds = Quadruple(15.0,22.0,28.0,35.0)),
     // Dry/uncooked pasta, rice, couscous, quinoa, semoule, boulgour - OFF
     // packaging near-universally declares nutrition per 100g dry, not
