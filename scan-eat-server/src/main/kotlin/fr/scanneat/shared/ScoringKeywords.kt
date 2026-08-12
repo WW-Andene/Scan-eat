@@ -22,7 +22,10 @@ internal val WHOLE_FOOD_KEYWORDS = listOf(
     // never a raw whole food, unlike porc/viande above which can name a raw
     // cut. Mirrors the identical fix on the Android side (see Scoring Drift
     // Check).
-    "dinde","canard","agneau","fromage","lait","yaourt","skyr","eau","miel",
+    // "eau"/"water" deliberately excluded from this general list - see
+    // IngredientIntegrityPillar.kt's isWholeFood() for why it's handled as a
+    // BEVERAGE_WATER-only special case instead of a plain keyword match here.
+    "dinde","canard","agneau","fromage","lait","yaourt","skyr","miel",
     "légume","legume",
     // Added — already recognized by FRESH_PRODUCE_NAME below (or, for the
     // seafood/legume/soy entries, matching the same whole-food tier as the

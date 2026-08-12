@@ -13,10 +13,23 @@ package fr.scanneat.shared
 private fun containsWord(text: String, word: String): Boolean =
     Regex("(?<![a-zà-ÿ0-9])${Regex.escape(word)}(?![a-zà-ÿ0-9])", RegexOption.IGNORE_CASE).containsMatchIn(text)
 
-private fun isWholeFood(ingredient: Ingredient): Boolean {
+private fun isWholeFood(ingredient: Ingredient, category: ProductCategory): Boolean {
     if (ingredient.isWholeFood == true) return true
     val lower = ingredient.name.lowercase()
     if (Regex("""sirop|huile|farine raffinée|amidon modifié|isolat|concentré""", RegexOption.IGNORE_CASE).containsMatchIn(lower)) return false
+    // User-reported: "eau" matched WHOLE_FOOD_KEYWORDS unconditionally, so a
+    // ready meal/sauce/soup listing "Eau" as ingredient #1 by weight (EU FIC
+    // 1169/2011 descending-weight ordering makes this common - water is the
+    // base of most manufactured foods) earned the same "whole food" credit
+    // as a genuinely raw ingredient like "Tomate", rewarding the product for
+    // containing the one substance present in nearly every processed food,
+    // not for actually being minimally processed. Water only IS the product
+    // (deserving full whole-food credit) in BEVERAGE_WATER; everywhere else
+    // it's a context-free diluent this axis shouldn't reward - it still
+    // counts toward the separate "recognizable ingredients" bonus below
+    // (plain, non-additive, legible name), just not toward whole-food
+    // composition outside the one category where it genuinely is one.
+    if (category == ProductCategory.BEVERAGE_WATER && containsWord(lower, "eau")) return true
     return WHOLE_FOOD_KEYWORDS.any { containsWord(lower, it) }
 }
 
@@ -38,7 +51,7 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     // Mirrors the identical clarifying comment on the Android side (see
     // Scoring Drift Check).
     val first3 = product.ingredients.take(3)
-    val first3Whole = first3.count { isWholeFood(it) }
+    val first3Whole = first3.count { isWholeFood(it, product.category) }
     val first3Score = if (first3.isEmpty()) 0.0
         else ((first3Whole.toDouble() / first3.size) * 5.0).let { kotlin.math.round(it).toDouble() }
     score += first3Score
