@@ -28,9 +28,19 @@ internal val CLASS_CAUTIONS: List<ClassCaution> = listOf(
     ClassCaution(DrugClass.NSAID, listOf("ibuprofene"),
         "AINS (anti-inflammatoire non stéroïdien) : risque digestif (ulcère, saignement) en usage prolongé, déconseillé au 3e trimestre de grossesse — demandez conseil à votre pharmacien en cas de traitement au long cours.",
         "NSAID (non-steroidal anti-inflammatory drug): carries a gastrointestinal risk (ulcer, bleeding) with prolonged use, and is not recommended in the third trimester of pregnancy — ask your pharmacist about long-term use."),
+    // Grapefruit note narrowed to atorvastatine/simvastatine - context/logic
+    // audit finding: rosuvastatine is metabolized via CYP2C9, not CYP3A4,
+    // and multiple pharmacology sources confirm it has no clinically
+    // significant grapefruit interaction, unlike atorvastatine/simvastatine
+    // (both genuinely CYP3A4-metabolized). Keeping rosuvastatine grouped
+    // under STATIN for the muscle-pain caution (a real, class-wide effect)
+    // while making the grapefruit sentence explicit that it doesn't apply
+    // to rosuvastatine, rather than implying it does via "notamment avec la
+    // simvastatine" (which reads as "especially simvastatin, but somewhat
+    // true for the others too").
     ClassCaution(DrugClass.STATIN, listOf("atorvastatine", "rosuvastatine", "simvastatine"),
-        "Statine : peut provoquer des douleurs musculaires ; le jus de pamplemousse peut augmenter sa concentration dans le sang (interaction bien documentée, notamment avec la simvastatine).",
-        "Statin: can cause muscle pain; grapefruit juice can raise its blood concentration (a well-documented interaction, particularly with simvastatin)."),
+        "Statine : peut provoquer des douleurs musculaires ; le jus de pamplemousse peut augmenter la concentration sanguine de l'atorvastatine/simvastatine (interaction bien documentée) — la rosuvastatine n'est pas concernée par cette interaction.",
+        "Statin: can cause muscle pain; grapefruit juice can raise the blood concentration of atorvastatin/simvastatin (a well-documented interaction) — rosuvastatin is not affected by this interaction."),
     ClassCaution(DrugClass.SARTAN, listOf("valsartan", "candesartan", "irbesartan", "losartan", "telmisartan"),
         "Sartan (antagoniste des récepteurs de l'angiotensine II) : contre-indiqué pendant la grossesse, risque d'hyperkaliémie — surveillance biologique généralement recommandée par le médecin traitant.",
         "Sartan (angiotensin II receptor blocker): contraindicated during pregnancy, carries a risk of high blood potassium — your doctor will typically recommend periodic blood monitoring."),

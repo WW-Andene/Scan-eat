@@ -1,5 +1,6 @@
 package fr.scanneat.domain.engine.health
 
+import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
 import fr.scanneat.domain.engine.scoring.normalizeForMatching
 
 /**
@@ -48,5 +49,12 @@ private val DRUG_CLASS_KEYWORDS: Map<ActivityRelevantDrugClass, List<String>> = 
 
 fun detectActivityRelevantDrugClasses(activeMedicationNames: List<String>): Set<ActivityRelevantDrugClass> {
     val normalized = activeMedicationNames.map { normalizeForMatching(it) }
-    return DRUG_CLASS_KEYWORDS.filterValues { keywords -> normalized.any { name -> keywords.any { name.contains(it) } } }.keys
+    // Word-boundary matching, not raw .contains() - context/logic audit
+    // finding: a free-text Medication.name is user-typed, not a controlled
+    // vocabulary (same reasoning IngredientMatcher.kt/FoodDrugInteractionDb.kt
+    // already document for the identical risk), so a short keyword like
+    // "insulin"/"heparin" could otherwise match inside an unrelated word and
+    // silently misclassify a medication into this app's beta-blocker/
+    // anticoagulant/diuretic/antidiabetic exercise-risk flags.
+    return DRUG_CLASS_KEYWORDS.filterValues { keywords -> normalized.any { name -> keywords.any { wordBoundaryMatch(name, it) } } }.keys
 }
