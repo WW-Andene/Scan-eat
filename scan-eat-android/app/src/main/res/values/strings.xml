@@ -8,6 +8,10 @@
     <string name="widget_today_hydration_ml">%1$d mL bus</string>
     <string name="widget_today_add_glass">+%1$d mL</string>
     <string name="widget_today_meds">Traitements %1$d/%2$d</string>
+    <string name="widget_scan_description">Scanner un produit en un tap, avec le score du dernier produit scanné</string>
+    <string name="widget_scan_button">Scanner</string>
+    <string name="widget_scan_empty">Aucun scan pour l\'instant</string>
+    <string name="widget_scan_last_label">Dernier scan</string>
     <string name="shortcut_scan_short">Scanner</string>
     <string name="shortcut_scan_long">Scanner un produit</string>
     <string name="shortcut_diary_short">Journal</string>
