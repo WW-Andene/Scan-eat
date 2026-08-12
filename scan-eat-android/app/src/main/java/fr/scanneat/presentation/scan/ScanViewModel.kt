@@ -575,7 +575,7 @@ class ScanViewModel @Inject constructor(
                 nonFoodScanRepo.log(
                     barcode = entry.barcode.ifBlank { null }, name = entry.name, brand = entry.brand, category = entry.category,
                     transparency = transparency, prohibited = prohibited, restricted = restricted,
-                    profileId = activeProfileId.value,
+                    profileId = activeProfileId.value, ingredientsText = entry.ingredientsText,
                 )
             }
         }

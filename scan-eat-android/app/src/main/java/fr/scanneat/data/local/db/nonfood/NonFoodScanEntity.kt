@@ -36,4 +36,16 @@ data class NonFoodScanEntity(
     val scannedAt: Long,        // epoch millis
     val profileId: String = "default",
     val favorite: Boolean = false,
+    // Added 13/08/2026: the per-category functional scores built this
+    // session (ShampooQualityScore, ShowerGelQualityScore, etc.) all
+    // recompute from raw ingredientsText, unlike the summary columns above
+    // which were pre-computed at scan time - this table didn't store that
+    // raw text at all, so a shampoo's functional profile (cleansing base,
+    // silicone content...) was visible in ScanStateOverlay's dialog at scan
+    // time but permanently unavailable the moment the user opened History,
+    // even though the exact same product/ingredients were sitting right
+    // there in this row. Nullable, same "no data was available" meaning as
+    // ingredientCount/complexity above, for rows scanned before this column
+    // existed or where OPF genuinely had no ingredient text.
+    val ingredientsText: String? = null,
 )

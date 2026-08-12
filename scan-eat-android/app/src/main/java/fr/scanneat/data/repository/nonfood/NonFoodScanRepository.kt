@@ -24,6 +24,7 @@ data class NonFoodScanItem(
     val restrictedCount: Int,
     val scannedAt: Long,
     val favorite: Boolean,
+    val ingredientsText: String?,
 )
 
 @Singleton
@@ -57,6 +58,7 @@ class NonFoodScanRepository @Inject constructor(
         prohibited: List<CosingMatch>,
         restricted: List<CosingMatch>,
         profileId: String = "default",
+        ingredientsText: String? = null,
     ) {
         dao.insert(
             NonFoodScanEntity(
@@ -71,6 +73,7 @@ class NonFoodScanRepository @Inject constructor(
                 restrictedCount = restricted.size,
                 scannedAt = System.currentTimeMillis(),
                 profileId = profileId,
+                ingredientsText = ingredientsText,
             )
         )
         dao.trimNonFavorites(MAX_HISTORY_ROWS, profileId)
@@ -100,4 +103,5 @@ private fun NonFoodScanEntity.toDomain() = NonFoodScanItem(
     restrictedCount = restrictedCount,
     scannedAt = scannedAt,
     favorite = favorite,
+    ingredientsText = ingredientsText,
 )

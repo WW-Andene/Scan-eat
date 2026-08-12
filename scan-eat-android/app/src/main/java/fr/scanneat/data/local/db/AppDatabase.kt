@@ -63,7 +63,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         SleepEntity::class,
         MoodEntity::class,
     ],
-    version = 38,
+    version = 39,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -655,5 +655,14 @@ val MIGRATION_37_38 = object : Migration(37, 38) {
                 "PRIMARY KEY(`id`))"
         )
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_mood_log_date_profileId` ON `mood_log` (`date`, `profileId`)")
+    }
+}
+val MIGRATION_38_39 = object : Migration(38, 39) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v38 → v39: new nullable `ingredientsText` column on `nonfood_scans`
+        // - see NonFoodScanEntity's own doc comment on why History couldn't
+        // show the per-category functional scores (shampoo/gel douche/...)
+        // without it.
+        db.execSQL("ALTER TABLE `nonfood_scans` ADD COLUMN `ingredientsText` TEXT")
     }
 }

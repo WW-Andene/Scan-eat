@@ -18,7 +18,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.nonfood.NonFoodScanItem
+import fr.scanneat.domain.engine.nonconsumable.CleansingBase
 import fr.scanneat.domain.engine.nonconsumable.FormulaComplexity
+import fr.scanneat.domain.engine.nonconsumable.ShowerGelCleansingBase
+import fr.scanneat.domain.engine.nonconsumable.computeCosmeticActives
+import fr.scanneat.domain.engine.nonconsumable.computeIntimateWipeQuality
+import fr.scanneat.domain.engine.nonconsumable.computeMakeupQuality
+import fr.scanneat.domain.engine.nonconsumable.computeShampooQuality
+import fr.scanneat.domain.engine.nonconsumable.computeShowerGelQuality
+import fr.scanneat.domain.engine.nonconsumable.computeToothpasteQuality
+import fr.scanneat.domain.engine.nonconsumable.isLikelyGeneralCosmetic
+import fr.scanneat.domain.engine.nonconsumable.isLikelyIntimateWipe
+import fr.scanneat.domain.engine.nonconsumable.isLikelyMakeup
+import fr.scanneat.domain.engine.nonconsumable.isLikelyShampoo
+import fr.scanneat.domain.engine.nonconsumable.isLikelyShowerGel
+import fr.scanneat.domain.engine.nonconsumable.isLikelyToothpaste
 import fr.scanneat.presentation.ui.theme.*
 import java.text.DateFormat
 import java.util.Date
@@ -109,16 +123,32 @@ private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Uni
                         stringResource(R.string.nonfood_history_restricted_badge, item.restrictedCount),
                         style = MaterialTheme.typography.labelSmall, color = semanticAmber(),
                     )
-                } else if (item.complexity != null) {
-                    val complexityColor = when (item.complexity) {
-                        FormulaComplexity.SIMPLE -> semanticGreen()
-                        FormulaComplexity.MODERATE -> semanticAmber()
-                        else -> semanticRed()
+                } else {
+                    // Added 13/08/2026: the per-category functional scores
+                    // (shampoo/gel douche/dentifrice/cosmétique/hygiène
+                    // intime/maquillage) built this session previously only
+                    // ever showed up in ScanStateOverlay's live scan dialog
+                    // - nothing here in History re-derived them from the now-
+                    // persisted ingredientsText (see NonFoodScanEntity's own
+                    // doc comment), so they were effectively invisible the
+                    // moment a user left the scan screen. Same priority
+                    // order ScanStateOverlay checks its six isLikelyX gates
+                    // in, first match wins - one compact line, not a full
+                    // section, to fit this row's existing shape.
+                    val functionalBadge = functionalBadgeFor(item.name, item.ingredientsText)
+                    if (functionalBadge != null) {
+                        Text(functionalBadge.first, style = MaterialTheme.typography.labelSmall, color = functionalBadge.second)
+                    } else if (item.complexity != null) {
+                        val complexityColor = when (item.complexity) {
+                            FormulaComplexity.SIMPLE -> semanticGreen()
+                            FormulaComplexity.MODERATE -> semanticAmber()
+                            else -> semanticRed()
+                        }
+                        Text(
+                            stringResource(R.string.nonconsumable_ingredient_count, item.ingredientCount ?: 0, complexityLabel(item.complexity)),
+                            style = MaterialTheme.typography.labelSmall, color = complexityColor,
+                        )
                     }
-                    Text(
-                        stringResource(R.string.nonconsumable_ingredient_count, item.ingredientCount ?: 0, complexityLabel(item.complexity)),
-                        style = MaterialTheme.typography.labelSmall, color = complexityColor,
-                    )
                 }
             }
             IconButton(onClick = onToggleFavorite) {
@@ -130,6 +160,70 @@ private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Uni
             IconButton(onClick = onDelete) { Icon(TablerIcons.Trash, stringResource(R.string.common_delete), tint = OnBackground.copy(0.5f)) }
         }
     }
+}
+
+/**
+ * Compact single-line functional-score summary for a History row - see this
+ * file's own "Added 13/08/2026" comment above on why this exists. Returns
+ * (text, color) for the first of the six per-category scores that applies,
+ * same priority order/isLikelyX gates ScanStateOverlay's dialog uses, or
+ * null when [ingredientsText] is unavailable or none of the six curated
+ * ingredient lists matched anything (see each compute*Quality's own
+ * "consistency fix" doc comment on why that's null, not an empty result).
+ */
+@Composable
+private fun functionalBadgeFor(name: String, ingredientsText: String?): Pair<String, androidx.compose.ui.graphics.Color>? {
+    if (ingredientsText.isNullOrBlank()) return null
+    if (isLikelyShampoo(name)) {
+        computeShampooQuality(ingredientsText)?.let {
+            val (label, color) = when (it.cleansingBase) {
+                CleansingBase.GENTLE  -> stringResource(R.string.shampoo_base_gentle) to semanticGreen()
+                CleansingBase.MIXED   -> stringResource(R.string.shampoo_base_mixed) to semanticAmber()
+                CleansingBase.HARSH   -> stringResource(R.string.shampoo_base_harsh) to semanticAmber()
+                CleansingBase.UNKNOWN -> return@let
+            }
+            return stringResource(R.string.shampoo_base_label, label) to color
+        }
+    }
+    if (isLikelyShowerGel(name)) {
+        computeShowerGelQuality(ingredientsText)?.let {
+            val (label, color) = when (it.cleansingBase) {
+                ShowerGelCleansingBase.GENTLE  -> stringResource(R.string.shampoo_base_gentle) to semanticGreen()
+                ShowerGelCleansingBase.MIXED   -> stringResource(R.string.shampoo_base_mixed) to semanticAmber()
+                ShowerGelCleansingBase.HARSH   -> stringResource(R.string.shampoo_base_harsh) to semanticAmber()
+                ShowerGelCleansingBase.UNKNOWN -> return@let
+            }
+            return stringResource(R.string.shampoo_base_label, label) to color
+        }
+    }
+    if (isLikelyToothpaste(name)) {
+        computeToothpasteQuality(ingredientsText)?.let {
+            return if (it.hasFluoride) stringResource(R.string.toothpaste_has_fluoride) to semanticGreen()
+            else stringResource(R.string.toothpaste_no_fluoride) to semanticAmber()
+        }
+    }
+    if (isLikelyMakeup(name)) {
+        computeMakeupQuality(ingredientsText)?.let {
+            if (it.hasTalc) return stringResource(R.string.makeup_has_talc) to semanticAmber()
+            if (it.hasRegulatedPreservative) return stringResource(R.string.makeup_has_regulated_preservative) to semanticGreen()
+            if (it.hasComedogenicContested) return stringResource(R.string.makeup_has_comedogenic_contested) to OnBackground.copy(0.7f)
+        }
+    }
+    if (isLikelyIntimateWipe(name)) {
+        computeIntimateWipeQuality(ingredientsText)?.let {
+            if (it.hasFragrance) return stringResource(R.string.intimate_wipe_has_fragrance) to semanticAmber()
+            if (it.hasAlcohol) return stringResource(R.string.intimate_wipe_has_alcohol) to semanticAmber()
+            if (it.hasPhBuffering) return stringResource(R.string.intimate_wipe_has_ph_buffering) to semanticGreen()
+        }
+    }
+    if (isLikelyGeneralCosmetic(name)) {
+        computeCosmeticActives(ingredientsText)?.let {
+            if (it.hasNiacinamide) return stringResource(R.string.cosmetic_has_niacinamide) to semanticGreen()
+            if (it.hasVitaminC) return stringResource(R.string.cosmetic_has_vitamin_c) to semanticGreen()
+            if (it.hasRetinoid) return stringResource(R.string.cosmetic_has_retinoid_caution) to semanticAmber()
+        }
+    }
+    return null
 }
 
 @Composable
