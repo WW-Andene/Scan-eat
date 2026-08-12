@@ -9,6 +9,7 @@ import fr.scanneat.data.local.db.mood.MoodEntity
 import fr.scanneat.data.local.db.nonfood.NonFoodScanEntity
 import fr.scanneat.data.local.db.pantry.PantryEntity
 import fr.scanneat.data.local.db.report.MisclassificationReportEntity
+import fr.scanneat.data.repository.foodsearch.SavedSearchFilter
 import fr.scanneat.data.local.db.sleep.SleepEntity
 import fr.scanneat.data.local.db.price.PriceEntity
 import fr.scanneat.data.local.db.symptom.SymptomEntity
@@ -98,7 +99,10 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // Since v16: misclassificationReports - the new local "signaler une erreur de
 // classification" log (MisclassificationReportEntity), included from the
 // start rather than as a follow-up audit finding, per the v15 lesson above.
-const val BACKUP_FORMAT_VERSION = 16
+// Since v17: savedSearchFilters - Recherche's new named filter presets
+// (SavedSearchFilter, its own small DataStore file), same "wire it in from
+// the start" discipline.
+const val BACKUP_FORMAT_VERSION = 17
 
 data class ProfileBackup(
     val name: String,
@@ -191,6 +195,7 @@ data class BackupBundle(
     val mood: List<MoodEntity> = emptyList(),
     val nonFoodScans: List<NonFoodScanEntity> = emptyList(),
     val misclassificationReports: List<MisclassificationReportEntity> = emptyList(),
+    val savedSearchFilters: List<SavedSearchFilter> = emptyList(),
 )
 
 data class BackupSummary(
@@ -211,8 +216,9 @@ data class BackupSummary(
     val mood: Int = 0,
     val nonFoodScans: Int = 0,
     val misclassificationReports: Int = 0,
+    val savedSearchFilters: Int = 0,
 ) {
-    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms + sleep + mood + nonFoodScans + misclassificationReports
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms + sleep + mood + nonFoodScans + misclassificationReports + savedSearchFilters
 
     companion object {
         fun from(bundle: BackupBundle) = BackupSummary(
@@ -233,6 +239,7 @@ data class BackupSummary(
             mood          = bundle.mood.size,
             nonFoodScans  = bundle.nonFoodScans.size,
             misclassificationReports = bundle.misclassificationReports.size,
+            savedSearchFilters = bundle.savedSearchFilters.size,
         )
     }
 }

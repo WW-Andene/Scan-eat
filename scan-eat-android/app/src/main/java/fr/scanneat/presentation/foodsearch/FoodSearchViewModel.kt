@@ -4,6 +4,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.presentation.common.ActionFailureViewModel
+import fr.scanneat.data.repository.foodsearch.SavedSearchFilter
+import fr.scanneat.data.repository.foodsearch.SavedSearchFilterRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.scan.ScanRepository
@@ -127,6 +129,7 @@ class FoodSearchViewModel @Inject constructor(
     private val scanRepo: ScanRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
+    private val savedSearchFilterRepo: SavedSearchFilterRepository,
     private val prefs: UserPreferences,
 ) : ActionFailureViewModel() {
 
@@ -166,6 +169,27 @@ class FoodSearchViewModel @Inject constructor(
     private val _gradeFilter = MutableStateFlow<Grade?>(null)
     val gradeFilter: StateFlow<Grade?> = _gradeFilter.asStateFlow()
     fun setGradeFilter(g: Grade?) { _gradeFilter.value = g }
+
+    // User-requested: "filtres sauvegardés (ex: 'sans sulfates' en un tap)" -
+    // see SavedSearchFilter's own doc comment.
+    val savedFilters: StateFlow<List<SavedSearchFilter>> = savedSearchFilterRepo.filters
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun saveCurrentFilter(label: String) {
+        if (label.isBlank()) return
+        guardedLaunch {
+            savedSearchFilterRepo.add(label, _query.value, _filter.value.name, _gradeFilter.value?.name)
+        }
+    }
+
+    /** Applies a saved preset's query/filter/grade in one tap. */
+    fun applySavedFilter(saved: SavedSearchFilter) {
+        _query.value = saved.query
+        _filter.value = runCatching { FoodSearchFilter.valueOf(saved.filterName) }.getOrDefault(FoodSearchFilter.ALL)
+        _gradeFilter.value = saved.gradeName?.let { runCatching { Grade.valueOf(it) }.getOrNull() }
+    }
+
+    fun deleteSavedFilter(id: Int) = guardedLaunch { savedSearchFilterRepo.delete(id) }
 
     private val _displayMode = MutableStateFlow(SearchDisplayMode.PRODUCTS)
     val displayMode: StateFlow<SearchDisplayMode> = _displayMode.asStateFlow()

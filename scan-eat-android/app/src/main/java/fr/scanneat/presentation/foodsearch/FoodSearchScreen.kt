@@ -19,6 +19,7 @@ import fr.scanneat.presentation.foodsearch.components.FiltersSection
 import fr.scanneat.presentation.foodsearch.components.GradeFilterSection
 import fr.scanneat.presentation.foodsearch.components.FoodSearchRow
 import fr.scanneat.presentation.foodsearch.components.OnlineSearchSection
+import fr.scanneat.presentation.foodsearch.components.SavedFiltersRow
 import fr.scanneat.presentation.foodsearch.components.SourceLinksSection
 import fr.scanneat.presentation.result.LogSheet
 import fr.scanneat.presentation.ui.theme.*
@@ -43,6 +44,7 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
     val displayMode   = viewModel.displayMode.collectAsStateWithLifecycle()
     val sourceLinks   = viewModel.sourceLinks.collectAsStateWithLifecycle()
     val neverTriedCategories = viewModel.neverTriedCategories.collectAsStateWithLifecycle()
+    val savedFilters = viewModel.savedFilters.collectAsStateWithLifecycle()
     var filtersExpanded by remember { mutableStateOf(false) }
     var gradeFilterExpanded by remember { mutableStateOf(false) }
     // SCANNED starts expanded - a user's own scanned products are the most
@@ -140,6 +142,16 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                         onToggle = { gradeFilterExpanded = !gradeFilterExpanded },
                         gradeFilter = gradeFilter.value,
                         onGradeFilterChange = viewModel::setGradeFilter,
+                    )
+                }
+                item {
+                    SavedFiltersRow(
+                        savedFilters = savedFilters.value,
+                        hasActiveFilter = query.value.isNotBlank() || filter.value != FoodSearchFilter.ALL || gradeFilter.value != null,
+                        onApply = viewModel::applySavedFilter,
+                        onSave = viewModel::saveCurrentFilter,
+                        onDelete = viewModel::deleteSavedFilter,
+                        modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
                     )
                 }
                 if (query.value.isNotBlank()) {
