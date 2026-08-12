@@ -42,9 +42,12 @@ class BiolismEngineTest {
 
     @Test
     fun `computeSubstrates protein fraction at key keto hours`() {
+        // Pass-2 audit: peak moved from 96h to 24h (Cahill/Owen - see
+        // SubstratePartition.kt's protFrac comment), curve now declines
+        // monotonically after the peak instead of rising to it at 96h.
         assertEquals(0.170, BiolismEngine.computeSubstrates(0.858, 0.0).protFrac, 0.001)
-        assertEquals(0.190, BiolismEngine.computeSubstrates(0.788, 24.0).protFrac, 0.001)
-        assertEquals(0.220, BiolismEngine.computeSubstrates(0.768, 96.0).protFrac, 0.001)
+        assertEquals(0.220, BiolismEngine.computeSubstrates(0.788, 24.0).protFrac, 0.001)
+        assertEquals(0.180, BiolismEngine.computeSubstrates(0.768, 96.0).protFrac, 0.001)
         assertEquals(0.120, BiolismEngine.computeSubstrates(0.720, 504.0).protFrac, 0.001)
     }
 

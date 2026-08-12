@@ -63,6 +63,14 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
             b("E542"),      // bone phosphate
             b("E631|E635"), // ribonucleotides — often animal-derived
             b("cochenille|carmin|phosphate osseux|lanoline"),
+            // Vitamin D2 (ergocalciferol, yeast/fungal-derived) is always vegan and
+            // never flagged. Vitamin D3 (cholecalciferol) is overwhelmingly
+            // lanolin-derived (sheep wool grease) in fortified food absent a
+            // specific vegan/lichen-sourced claim - flagging it by default and
+            // exempting only when the product text itself says "vegan"/"lichen"/
+            // "végétal(e)" right after it (a genuinely vegan D3 source exists,
+            // extracted from lichen, and is the only non-animal D3 source).
+            b("vitamine d3(?! v[eé]gane?| de lichen| v[eé]g[eé]tale?)|cholecalciferol(?! v[eé]gane?| de lichen)|chol[eé]calcif[eé]rol(?! v[eé]gane?| de lichen)"),
         ),
         // Restricted to V-Label (European Vegetarian Union's actual
         // certification mark), not bare marketing words - "vegan"/"plant-
@@ -83,8 +91,8 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
         // B12 exists naturally only in animal foods (or fortified plant products the
         // scanner already treats as compliant) - a vegan diet has no other source in
         // scope, so this is a lifestyle-level adequacy note, not a per-product finding.
-        noteFr = "Exclut tout produit animal : viande, poisson, œufs, lait, miel, gélatine, cire d'abeille E901, shellac E904, carmin E120, phosphate osseux E542. Pensez à une supplémentation en vitamine B12, absente du régime végan.",
-        noteEn = "Excludes any animal product: meat, fish, eggs, dairy, honey, gelatin, beeswax E901, shellac E904, carmine E120, bone phosphate E542. Consider B12 supplementation — a vegan diet has no other reliable source.",
+        noteFr = "Exclut tout produit animal : viande, poisson, œufs, lait, miel, gélatine, cire d'abeille E901, shellac E904, carmin E120, phosphate osseux E542, vitamine D3 non végane (lanoline, sauf source lichen déclarée — la D2 reste toujours végane). Pensez à une supplémentation en vitamine B12, absente du régime végan.",
+        noteEn = "Excludes any animal product: meat, fish, eggs, dairy, honey, gelatin, beeswax E901, shellac E904, carmine E120, bone phosphate E542, non-vegan vitamin D3 (lanolin, unless a lichen-sourced claim is declared — D2 is always vegan). Consider B12 supplementation — a vegan diet has no other reliable source.",
     ),
 
     DietKey.PESCATARIAN to DietDef(

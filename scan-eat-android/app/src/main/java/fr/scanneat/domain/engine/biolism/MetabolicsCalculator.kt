@@ -120,17 +120,22 @@ fun BiolismEngine.computeMetabolics(
     val hepaticFfa = ffaFlux * hepaticFrac
     val bhbMmolPerMin = if (ketoAct > 0) (hepaticFfa / 0.256) * 4.0 * ketoAct else 0.0
 
-    // ── GNG fraction (Cahill 1966 / Owen 1967 / Keys 1950) ───────────────
+    // ── GNG fraction (Cahill 1970 "Starvation in Man" / Owen 1967 / Keys 1950) ──
+    // Pass-2 context/logic audit finding: same backwards rise-to-a-late-peak
+    // shape as SubstratePartition.kt's protFrac (see that file's comment for
+    // the full sourcing) - gluconeogenic protein use peaks early (~24h, the
+    // post-absorptive GNG surge before ketone adaptation matures) and
+    // declines monotonically after, not the other way around. Corrected to
+    // the same peak-then-decline shape and a flat long-term floor instead of
+    // the previous tail rising back up past 1440h.
     val gngProtFrac = when {
         effKh <= 0.0    -> 0.300
-        effKh <= 96.0   -> 0.300 + 0.550 * (effKh / 96.0)
-        effKh <= 168.0  -> 0.850 - 0.150 * ((effKh - 96.0) / 72.0)
-        effKh <= 504.0  -> 0.700 - 0.150 * ((effKh - 168.0) / 336.0)
-        effKh <= 1440.0 -> 0.550 - 0.050 * ((effKh - 504.0) / 936.0)
-        else -> {
-            val ex = effKh - 1440.0
-            min(0.750, 0.500 + 0.250 * (1.0 - exp(-ex / 720.0)))
-        }
+        effKh <= 24.0   -> 0.300 + 0.550 * (effKh / 24.0)          // rises to the peak (0.850) at glycogen depletion / early GNG surge
+        effKh <= 96.0   -> 0.850 - 0.150 * ((effKh - 24.0) / 72.0) // falls as ketone adaptation ramps (day 1 → day 4)
+        effKh <= 168.0  -> 0.700 - 0.150 * ((effKh - 96.0) / 72.0) // day 4 → day 7
+        effKh <= 504.0  -> 0.550 - 0.100 * ((effKh - 168.0) / 336.0) // day 7 → ~3 weeks
+        effKh <= 1440.0 -> 0.450 - 0.100 * ((effKh - 504.0) / 936.0) // ~3 weeks → 2 months
+        else            -> 0.350                                    // long-term floor; no literature support for a late rebound
     }
     val gngGPerHr = protOx * gngProtFrac * 0.58 * 60.0
 

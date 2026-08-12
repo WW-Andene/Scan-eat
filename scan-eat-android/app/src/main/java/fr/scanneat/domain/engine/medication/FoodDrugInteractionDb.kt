@@ -39,7 +39,13 @@ import fr.scanneat.domain.model.Product
 // vitamin-K caution for a rivaroxaban/apixaban/dabigatran/heparin user
 // eating spinach/broccoli/kale - a caution that doesn't apply to their
 // drug's actual mechanism at all.
-private enum class FoodInteractionDrugClass { ANTICOAGULANT_VKA, MAOI, STATIN_OR_CCB }
+// ACE_INHIBITOR_SARTAN and LEVOTHYROXINE - pass-2 audit additions. Both
+// interactions were already present as static informational text in
+// DrugClassCautionsDb.kt (hyperkalemia caution, narrow-therapeutic-margin/
+// empty-stomach-timing caution) but, like the pre-fix VKA/statin cases
+// above, were never actually checked against a scanned product - same gap,
+// same fix pattern.
+private enum class FoodInteractionDrugClass { ANTICOAGULANT_VKA, MAOI, STATIN_OR_CCB, ACE_INHIBITOR_SARTAN, LEVOTHYROXINE }
 
 private data class DrugKeywordGroup(val drugClass: FoodInteractionDrugClass, val keywords: List<String>)
 
@@ -66,6 +72,22 @@ private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
         // caution text below is worded to reflect that difference rather
         // than implying equal severity across all three.
         listOf("atorvastatine", "simvastatine", "amlodipine", "felodipine", "nifedipine"),
+    ),
+    DrugKeywordGroup(
+        // ACE inhibitors and sartans (ARBs) both reduce aldosterone-driven
+        // renal potassium excretion via the same renin-angiotensin-
+        // aldosterone pathway, so both classes genuinely share the
+        // hyperkalemia mechanism - this is a coherent grouping, unlike the
+        // now-fixed VKA/DOAC or statin/rosuvastatine cases.
+        FoodInteractionDrugClass.ACE_INHIBITOR_SARTAN,
+        listOf(
+            "enalapril", "lisinopril", "ramipril", "perindopril", "captopril", "quinapril", "trandolapril",
+            "losartan", "valsartan", "irbesartan", "candesartan", "telmisartan", "olmesartan",
+        ),
+    ),
+    DrugKeywordGroup(
+        FoodInteractionDrugClass.LEVOTHYROXINE,
+        listOf("levothyroxine", "levothyrox", "euthyrox", "l-thyroxine"),
     ),
 ).map { it.copy(keywords = it.keywords.map(::normalizeForMatching)) }
 
@@ -94,6 +116,39 @@ private val FOOD_CAUTIONS: List<FoodCaution> = listOf(
         listOf("pamplemousse", "grapefruit"),
         "Le pamplemousse peut augmenter la concentration sanguine de votre statine/inhibiteur calcique (interaction bien documentée pour la félodipine et la nifédipine ; nettement plus faible pour l'amlodipine), avec un risque accru d'effets indésirables — évitez de les associer sans avis médical.",
         "Grapefruit can raise your statin's/calcium channel blocker's blood concentration (a well-documented interaction for felodipine and nifedipine; markedly weaker for amlodipine), increasing the risk of side effects — avoid combining them without medical advice.",
+    ),
+    FoodCaution(
+        // Deliberately narrow to potassium CHLORIDE salt substitutes, not
+        // ordinary potassium-containing whole foods (banana, potato,
+        // avocado) - salt substitutes deliver a concentrated, easy-to-
+        // underestimate potassium dose specifically marketed as a
+        // drop-in replacement for table salt, which is the scenario
+        // behind real documented hyperkalemia cases on ACE
+        // inhibitors/sartans. A single banana is a far lower, well-
+        // tolerated exposure and flagging every potassium-containing food
+        // would dilute this into noise rather than a genuine caution.
+        FoodInteractionDrugClass.ACE_INHIBITOR_SARTAN,
+        listOf("sel de regime", "substitut de sel", "chlorure de potassium", "sel allege", "sel hyposode"),
+        "Ce produit est un substitut de sel riche en potassium (chlorure de potassium) : associé à un IEC ou un sartan, qui réduisent déjà l'élimination rénale du potassium, il augmente le risque d'hyperkaliémie — demandez conseil à votre médecin/pharmacien avant utilisation régulière.",
+        "This product is a potassium-based salt substitute (potassium chloride): combined with an ACE inhibitor or sartan (ARB), which already reduce renal potassium excretion, it raises the risk of hyperkalemia — ask your doctor/pharmacist before regular use.",
+    ),
+    FoodCaution(
+        // Calcium/iron block levothyroxine absorption by forming insoluble
+        // complexes in the gut, and coffee reduces absorption via a
+        // separate, faster-acting mechanism - both are already covered as
+        // static "take on an empty stomach" text in DrugClassCautionsDb.kt,
+        // this is the same fact now actually checked against a scanned
+        // product. Kept to fortified/supplement-strength sources (calcium
+        // carbonate/citrate, iron salts) rather than every food containing
+        // trace calcium or iron, for the same reason the potassium caution
+        // above is scoped to salt substitutes, not every potassium food.
+        FoodInteractionDrugClass.LEVOTHYROXINE,
+        listOf(
+            "carbonate de calcium", "citrate de calcium", "sulfate de fer", "fumarate ferreux", "gluconate de fer",
+            "sulfate ferreux", "cafe", "coffee",
+        ),
+        "Le calcium, le fer et le café réduisent l'absorption de la lévothyroxine s'ils sont pris au même moment — respectez un intervalle d'au moins 4 heures (calcium/fer) ou 30-60 minutes (café) avec votre prise de lévothyroxine à jeun, et demandez conseil à votre médecin/pharmacien.",
+        "Calcium, iron and coffee reduce levothyroxine absorption if taken at the same time — keep at least a 4-hour gap (calcium/iron) or 30-60 minutes (coffee) from your empty-stomach levothyroxine dose, and ask your doctor/pharmacist for advice.",
     ),
 ).map { it.copy(foodKeywords = it.foodKeywords.map(::normalizeForMatching)) }
 
