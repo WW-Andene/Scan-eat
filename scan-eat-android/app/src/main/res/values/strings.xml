@@ -50,6 +50,11 @@
     <string name="shampoo_contains_silicone">Contient %1$d silicone(s) — lisse les cheveux mais peut s\'accumuler avec un usage fréquent.</string>
     <string name="shampoo_contains_gentle_conditioner">Contient %1$d ingrédient(s) conditionneur/hydratant sans silicone.</string>
     <string name="shampoo_quality_disclaimer">Profil de base nettoyante uniquement, basé sur une liste restreinte et évolutive d\'ingrédients courants de shampoing — non exhaustif, pas un verdict de danger (sulfates et silicones sont tous deux des ingrédients légaux et courants).</string>
+    <string name="shower_gel_quality_title">Profil du gel douche</string>
+    <string name="shower_gel_contains_soap">Contient %1$d savon traditionnel — plus alcalin, peut perturber le film hydrolipidique de la peau.</string>
+    <string name="shower_gel_contains_proven_emollient">Contient %1$d hydratant(s) à efficacité cliniquement démontrée (ex. glycérine, panthénol).</string>
+    <string name="shower_gel_contains_marketing_emollient">Contient %1$d ingrédient(s) émollient(s) courant(s) (ex. beurre de karité, huiles végétales) sans preuve clinique équivalente.</string>
+    <string name="shower_gel_quality_disclaimer">Profil de base nettoyante uniquement, basé sur une liste restreinte et évolutive d\'ingrédients courants de gel douche — non exhaustif, pas un verdict de danger.</string>
     <string name="nonfood_history_title">Produits non-alimentaires</string>
     <string name="nonfood_history_empty">Aucun produit non-alimentaire scanné pour le moment.</string>
     <string name="nonfood_history_empty_favorites">Aucun produit non-alimentaire favori pour le moment.</string>

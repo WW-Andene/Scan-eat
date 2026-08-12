@@ -50,6 +50,11 @@
     <string name="shampoo_contains_silicone">Contains %1$d silicone(s) — smooths hair but can build up with frequent use.</string>
     <string name="shampoo_contains_gentle_conditioner">Contains %1$d non-silicone conditioning/moisturizing ingredient(s).</string>
     <string name="shampoo_quality_disclaimer">Cleansing-base profile only, based on a small, growing list of common shampoo ingredients — not exhaustive, not a hazard verdict (sulfates and silicones are both legal, common ingredients).</string>
+    <string name="shower_gel_quality_title">Shower gel profile</string>
+    <string name="shower_gel_contains_soap">Contains %1$d traditional soap — more alkaline, can disrupt the skin\'s protective barrier.</string>
+    <string name="shower_gel_contains_proven_emollient">Contains %1$d clinically-evidenced moisturizer(s) (e.g. glycerin, panthenol).</string>
+    <string name="shower_gel_contains_marketing_emollient">Contains %1$d common emollient(s) (e.g. shea butter, plant oils) without equivalent clinical evidence.</string>
+    <string name="shower_gel_quality_disclaimer">Cleansing-base profile only, based on a small, growing list of common shower gel ingredients — not exhaustive, not a hazard verdict.</string>
     <string name="nonfood_history_title">Non-food products</string>
     <string name="nonfood_history_empty">No non-food products scanned yet.</string>
     <string name="nonfood_history_empty_favorites">No favorite non-food products yet.</string>

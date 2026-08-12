@@ -40,12 +40,16 @@ import fr.scanneat.domain.engine.nonconsumable.CleansingBase
 import fr.scanneat.domain.engine.nonconsumable.CosingMatch
 import fr.scanneat.domain.engine.nonconsumable.FormulaComplexity
 import fr.scanneat.domain.engine.nonconsumable.ShampooQualityResult
+import fr.scanneat.domain.engine.nonconsumable.ShowerGelCleansingBase
+import fr.scanneat.domain.engine.nonconsumable.ShowerGelQualityResult
 import fr.scanneat.domain.engine.nonconsumable.computeCosmeticTransparency
 import fr.scanneat.domain.engine.nonconsumable.computeShampooQuality
+import fr.scanneat.domain.engine.nonconsumable.computeShowerGelQuality
 import fr.scanneat.domain.engine.nonconsumable.findProhibitedSubstances
 import fr.scanneat.domain.engine.nonconsumable.findRestrictedSubstances
 import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
 import fr.scanneat.domain.engine.nonconsumable.isLikelyShampoo
+import fr.scanneat.domain.engine.nonconsumable.isLikelyShowerGel
 import fr.scanneat.presentation.medication.InteractionWarning
 import fr.scanneat.presentation.medication.components.MedicationInteractionWarningBanner
 import fr.scanneat.presentation.result.FactsCautionsColumn
@@ -174,6 +178,11 @@ internal fun BoxScope.ScanStateOverlay(
             val shampooQuality = remember(s.entry) {
                 if (isLikelyShampoo(s.entry.name)) computeShampooQuality(s.entry.ingredientsText) else null
             }
+            // app-audit: étape 3b (per-category functional score, gel douche
+            // second) - see ShowerGelQualityScore.kt's own header for the data source.
+            val showerGelQuality = remember(s.entry) {
+                if (isLikelyShowerGel(s.entry.name)) computeShowerGelQuality(s.entry.ingredientsText) else null
+            }
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -186,6 +195,7 @@ internal fun BoxScope.ScanStateOverlay(
                         Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
                         CosmeticTransparencySection(transparency, prohibited, restricted)
                         if (shampooQuality != null) ShampooQualitySection(shampooQuality)
+                        if (showerGelQuality != null) ShowerGelQualitySection(showerGelQuality)
                         FactsCautionsColumn(hints.facts, hints.cautions)
                     }
                 },
@@ -280,5 +290,38 @@ private fun ShampooQualitySection(result: ShampooQualityResult) {
             Text(stringResource(R.string.shampoo_contains_gentle_conditioner, result.gentleConditionerCount), style = MaterialTheme.typography.bodySmall, color = semanticGreen())
         }
         Text(stringResource(R.string.shampoo_quality_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
+    }
+}
+
+/**
+ * User-requested: a real functional profile for shower gel/body wash
+ * specifically (second of the planned series) - see
+ * ShowerGelQualityScore.kt's own header for the sourcing and why this is a
+ * cleansing-base PROFILE, not a hazard verdict.
+ */
+@Composable
+private fun ShowerGelQualitySection(result: ShowerGelQualityResult) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+        Text(
+            stringResource(R.string.shower_gel_quality_title),
+            style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
+        )
+        val (baseLabel, baseColor) = when (result.cleansingBase) {
+            ShowerGelCleansingBase.GENTLE  -> stringResource(R.string.shampoo_base_gentle) to semanticGreen()
+            ShowerGelCleansingBase.MIXED   -> stringResource(R.string.shampoo_base_mixed) to semanticAmber()
+            ShowerGelCleansingBase.HARSH   -> stringResource(R.string.shampoo_base_harsh) to semanticAmber()
+            ShowerGelCleansingBase.UNKNOWN -> stringResource(R.string.nonconsumable_transparency_no_data) to OnBackground.copy(0.5f)
+        }
+        Text(stringResource(R.string.shampoo_base_label, baseLabel), style = MaterialTheme.typography.bodySmall, color = baseColor)
+        if (result.soapBasedCount > 0) {
+            Text(stringResource(R.string.shower_gel_contains_soap, result.soapBasedCount), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+        }
+        if (result.provenEmollientCount > 0) {
+            Text(stringResource(R.string.shower_gel_contains_proven_emollient, result.provenEmollientCount), style = MaterialTheme.typography.bodySmall, color = semanticGreen())
+        }
+        if (result.marketingEmollientCount > 0) {
+            Text(stringResource(R.string.shower_gel_contains_marketing_emollient, result.marketingEmollientCount), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+        }
+        Text(stringResource(R.string.shower_gel_quality_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
     }
 }
