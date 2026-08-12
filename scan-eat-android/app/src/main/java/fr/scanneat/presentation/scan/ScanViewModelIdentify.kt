@@ -49,7 +49,18 @@ internal fun ScanViewModel.identifyFromPhotos() {
                     val name = scanResult.product.name
                     val medication = withContext(Dispatchers.IO) { findMedicationByName(appContext, name) }
                     val nonConsumable = if (medication == null) {
-                        withContext(Dispatchers.IO) { findNonConsumableByName(appContext, name) }
+                        withContext(Dispatchers.IO) { findNonConsumableByName(appContext, name) }?.let { staticMatch ->
+                            // Same static-CSV-has-no-ingredients gap fixed in
+                            // ScanViewModel.score()'s barcode path 13/08/2026 - see
+                            // that fix's own comment. [online] is already true here
+                            // (checked above at this function's start), and this
+                            // OCR-name match's own barcode is enough to try the
+                            // same live-OPF enrichment.
+                            if (staticMatch.ingredientsText.isNullOrBlank()) {
+                                val liveIngredients = withContext(Dispatchers.IO) { scanRepo.findNonConsumableViaOpf(staticMatch.barcode) }?.ingredientsText
+                                if (liveIngredients.isNullOrBlank()) staticMatch else staticMatch.copy(ingredientsText = liveIngredients)
+                            } else staticMatch
+                        }
                     } else null
                     when {
                         medication != null -> _state.value = ScanUiState.MedicationFound(medication)

@@ -180,10 +180,17 @@ internal class ScanOffLookup(
         offResponse?.product?.let { dto ->
             val name = dto.productNameFr ?: dto.productName ?: dto.genericNameFr ?: ""
             classifyNonFood(dto.categoriesTags, name, dto.brands)?.let { category ->
+                // Added 13/08/2026 - dto.ingredientsTextFr/ingredientsText were
+                // already fetched (OFF_FIELDS includes both) and sitting right
+                // here; see NonFoodProductException's own doc comment on why
+                // discarding them broke every per-category functional score
+                // for products recognized through this path. Same fr-then-
+                // generic precedence mapOffProduct already uses below.
                 throw NonFoodProductException(
                     productName = name,
                     brand       = dto.brands ?: "",
                     category    = category,
+                    ingredientsText = dto.ingredientsTextFr ?: dto.ingredientsText,
                 )
             }
         }

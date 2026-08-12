@@ -66,6 +66,7 @@ class ScoreService(
                     barcode  = barcode,
                     nonFoodCategory = nonFoodCategory,
                     nonFoodBrand = offRaw.brands,
+                    nonFoodIngredientsText = offRaw.ingredientsTextFr ?: offRaw.ingredientsText,
                 ),
             )
         }

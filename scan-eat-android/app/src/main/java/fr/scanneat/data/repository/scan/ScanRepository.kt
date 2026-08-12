@@ -42,7 +42,16 @@ class ProductNotFoundException(message: String) : Exception(message)
  * NonConsumableLookupDb's own enum names exactly), kept as a plain string here
  * so this file has no dependency on that package.
  */
-class NonFoodProductException(val productName: String, val brand: String, val category: String) : Exception()
+// [ingredientsText] added 13/08/2026 - a real gap found alongside the static-
+// CSV enrichment fix: both throw sites (ScanOffLookup.kt, ScanServerClient.kt)
+// already had the OFF product's own ingredients_text in hand at the exact
+// point they threw this exception, but were discarding it - meaning every one
+// of the six per-category functional scores (and CosmeticTransparencyScore)
+// silently never ran for a product recognized via this specific path, the
+// same "recognized but scoreless" symptom as the static-CSV gap, just with
+// an even simpler fix (no extra network call needed, the data was already
+// fetched - see both throw sites' own comments).
+class NonFoodProductException(val productName: String, val brand: String, val category: String, val ingredientsText: String? = null) : Exception()
 
 // These reach the user verbatim (ScanViewModel shows e.message directly in the
 // error banner) — "Groq API key not configured" was leaking straight to a

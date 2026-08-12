@@ -87,6 +87,7 @@ internal class ScanServerClient(
                 productName = response.product.name,
                 brand       = response.nonFoodBrand ?: "",
                 category    = category,
+                ingredientsText = response.nonFoodIngredientsText,
             )
         }
         return response.toDomain(lang)

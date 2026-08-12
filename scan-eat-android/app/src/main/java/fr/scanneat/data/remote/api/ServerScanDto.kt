@@ -156,6 +156,7 @@ data class ServerScoreResponse(
     // is consumed.
     val nonFoodCategory: String? = null,
     val nonFoodBrand: String? = null,
+    val nonFoodIngredientsText: String? = null,
 )
 
 @JsonClass(generateAdapter = true)

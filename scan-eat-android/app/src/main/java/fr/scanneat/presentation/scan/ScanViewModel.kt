@@ -492,6 +492,9 @@ class ScanViewModel @Inject constructor(
                                         brand   = e.brand,
                                         category = runCatching { NonConsumableCategory.valueOf(e.category) }
                                             .getOrDefault(NonConsumableCategory.OTHER),
+                                        // Added 13/08/2026 - see NonFoodProductException's own
+                                        // doc comment on why this was previously always null here.
+                                        ingredientsText = e.ingredientsText,
                                     ),
                                 )
                             // Neither OFF (food-only) nor the bundled NonConsumableLookupDb

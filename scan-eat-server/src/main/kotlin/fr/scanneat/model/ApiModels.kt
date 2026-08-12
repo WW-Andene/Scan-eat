@@ -46,6 +46,15 @@ data class ScoreResponse(
     // (OFF's brands string is discarded during mapOffProduct's normal mapping),
     // but the non-food dialog wants it for a "Name (Brand)" line.
     val nonFoodBrand: String? = null,
+    // Added 13/08/2026 - only set alongside nonFoodCategory, same reason as
+    // nonFoodBrand: Product/ProductDto have no ingredients field for a non-
+    // food item, but the Android app's six per-category functional scores
+    // (shampoo/gel douche/dentifrice/cosmétique/hygiène intime/maquillage)
+    // all need the raw ingredient text to compute anything at all. This was
+    // a real gap - offRaw's own ingredients_text was already fetched in
+    // ScoreService right where nonFoodCategory/nonFoodBrand are populated,
+    // just never threaded into the response.
+    val nonFoodIngredientsText: String? = null,
 )
 
 // ---- /api/identify / identify-multi / identify-menu ----
