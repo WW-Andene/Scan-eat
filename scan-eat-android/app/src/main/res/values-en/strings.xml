@@ -42,6 +42,14 @@
     <string name="nonconsumable_transparency_disclaimer">Composition signal only, not a safety or toxicology verdict — ingredient count and EU-mandated fragrance-allergen disclosure, not a per-substance hazard assessment.</string>
     <string name="nonconsumable_prohibited_detected">⚠ %1$d declared ingredient(s) match the EU\'s Annex II list of substances PROHIBITED in cosmetic products: %2$s. This may indicate a labeling/data error — verify against the physical product before drawing conclusions.</string>
     <string name="nonconsumable_restricted_detected">%1$d declared ingredient(s) are on the EU\'s Annex III list of regulated-with-conditions substances (legal to use within a set limit, not a hazard flag): %2$s</string>
+    <string name="shampoo_quality_title">Shampoo profile</string>
+    <string name="shampoo_base_label">Cleansing base: %1$s</string>
+    <string name="shampoo_base_gentle">gentle (sulfate-free surfactants)</string>
+    <string name="shampoo_base_mixed">mixed (sulfates + gentler surfactants)</string>
+    <string name="shampoo_base_harsh">strong-foaming (sulfate-based)</string>
+    <string name="shampoo_contains_silicone">Contains %1$d silicone(s) — smooths hair but can build up with frequent use.</string>
+    <string name="shampoo_contains_gentle_conditioner">Contains %1$d non-silicone conditioning/moisturizing ingredient(s).</string>
+    <string name="shampoo_quality_disclaimer">Cleansing-base profile only, based on a small, growing list of common shampoo ingredients — not exhaustive, not a hazard verdict (sulfates and silicones are both legal, common ingredients).</string>
     <string name="nonfood_history_title">Non-food products</string>
     <string name="nonfood_history_empty">No non-food products scanned yet.</string>
     <string name="nonfood_history_empty_favorites">No favorite non-food products yet.</string>
