@@ -6,7 +6,6 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.domain.engine.biolism.BiolismProfile
 import fr.scanneat.presentation.common.ActionFailureViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -64,9 +63,7 @@ class BiolismProfileViewModel @Inject constructor(
     // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
     // write failure here wasn't just silent, it was an uncaught exception that would
     // crash the app.
-    fun save(p: BiolismProfile) = viewModelScope.launch {
-        runCatching { repo.saveProfile(p) }.onSuccess { _saved.value = true }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
-    }
+    fun save(p: BiolismProfile) = guardedLaunch { repo.saveProfile(p); _saved.value = true }
     fun clearSaved() { _saved.value = false }
 
     fun completeOnboarding(p: BiolismProfile) = guardedLaunch { repo.saveProfile(p); repo.setOnboarded(true) }

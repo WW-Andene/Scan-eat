@@ -13,11 +13,9 @@ import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.inferCategoryFromName
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.presentation.common.ActionFailureViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -224,10 +222,9 @@ class ExpensesViewModel @Inject constructor(
 
     fun deleteEntry(id: String) {
         val entry = entries.value.firstOrNull { it.id == id }
-        viewModelScope.launch {
-            runCatching { priceRepo.delete(id) }
-                .onSuccess { lastDeleted = entry }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            priceRepo.delete(id)
+            lastDeleted = entry
         }
     }
 
@@ -270,11 +267,7 @@ class ExpensesViewModel @Inject constructor(
     private val _csvExportReady = MutableStateFlow<String?>(null)
     val csvExportReady: StateFlow<String?> = _csvExportReady.asStateFlow()
     fun prepareCsvExport() {
-        viewModelScope.launch {
-            runCatching { csvExportRepository.exportPricesCsv() }
-                .onSuccess { _csvExportReady.value = it }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
-        }
+        guardedLaunch { _csvExportReady.value = csvExportRepository.exportPricesCsv() }
     }
     fun clearCsvExport() { _csvExportReady.value = null }
     /** The SAF "save file" picker succeeded but the write itself failed (disk full,

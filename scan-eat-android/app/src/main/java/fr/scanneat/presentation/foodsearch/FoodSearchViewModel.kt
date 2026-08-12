@@ -18,7 +18,6 @@ import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.domain.model.ScanSource
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -409,10 +408,9 @@ class FoodSearchViewModel @Inject constructor(
      */
     fun openOnlineItem(item: FoodSearchItem, onOpened: (Long) -> Unit) {
         val raw = item.barcode?.let { onlineRawCache[it] } ?: return
-        viewModelScope.launch {
-            runCatching { scanRepo.persist(raw, activeProfileId.value) }
-                .onSuccess { onOpened(it) }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            val id = scanRepo.persist(raw, activeProfileId.value)
+            onOpened(id)
         }
     }
 
@@ -477,9 +475,35 @@ class FoodSearchViewModel @Inject constructor(
 
     fun confirmLog(portionG: Double, mealSlot: MealSlot) {
         val resolved = _logTarget.value ?: return
-        viewModelScope.launch {
-            runCatching {
-                consumptionRepo.log(
+        guardedLaunch {
+            val loggedDuringFast = consumptionRepo.log(
+                DiaryEntry(
+                    date        = LocalDate.now(),
+                    mealSlot    = mealSlot,
+                    productName = resolved.product.name,
+                    barcode     = resolved.barcode,
+                    portionG    = portionG,
+                    nutrition   = resolved.product.nutrition,
+                    source      = resolved.source,
+                    ingredients = resolved.product.ingredients,
+                    category    = resolved.product.category,
+                    profileId   = activeProfileId.value,
+                )
+            )
+            _logTarget.value = null
+            if (loggedDuringFast) _loggedDuringFast.value = true
+        }
+    }
+
+    /** Same "Repas"/"Garde-manger" destination split as ResultScreen's own LogSheet
+     *  call - lets a search result be stocked in the pantry without it counting as
+     *  eaten today, previously reachable only from a live barcode scan. */
+    fun confirmLogWithDestinations(portionG: Double, mealSlot: MealSlot, destinations: Set<fr.scanneat.presentation.result.LogDestination>) {
+        val resolved = _logTarget.value ?: return
+        guardedLaunch {
+            var loggedDuringFast = false
+            if (fr.scanneat.presentation.result.LogDestination.REPAS in destinations) {
+                loggedDuringFast = consumptionRepo.log(
                     DiaryEntry(
                         date        = LocalDate.now(),
                         mealSlot    = mealSlot,
@@ -493,45 +517,16 @@ class FoodSearchViewModel @Inject constructor(
                         profileId   = activeProfileId.value,
                     )
                 )
-            }.onSuccess { loggedDuringFast -> _logTarget.value = null; if (loggedDuringFast) _loggedDuringFast.value = true }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
-        }
-    }
-
-    /** Same "Repas"/"Garde-manger" destination split as ResultScreen's own LogSheet
-     *  call - lets a search result be stocked in the pantry without it counting as
-     *  eaten today, previously reachable only from a live barcode scan. */
-    fun confirmLogWithDestinations(portionG: Double, mealSlot: MealSlot, destinations: Set<fr.scanneat.presentation.result.LogDestination>) {
-        val resolved = _logTarget.value ?: return
-        viewModelScope.launch {
-            runCatching {
-                var loggedDuringFast = false
-                if (fr.scanneat.presentation.result.LogDestination.REPAS in destinations) {
-                    loggedDuringFast = consumptionRepo.log(
-                        DiaryEntry(
-                            date        = LocalDate.now(),
-                            mealSlot    = mealSlot,
-                            productName = resolved.product.name,
-                            barcode     = resolved.barcode,
-                            portionG    = portionG,
-                            nutrition   = resolved.product.nutrition,
-                            source      = resolved.source,
-                            ingredients = resolved.product.ingredients,
-                            category    = resolved.product.category,
-                            profileId   = activeProfileId.value,
-                        )
-                    )
-                }
-                if (fr.scanneat.presentation.result.LogDestination.GARDE_MANGER in destinations) {
-                    pantryRepo.addOrUpdate(
-                        name = resolved.product.name, barcode = resolved.barcode, category = resolved.product.category,
-                        quantity = resolved.product.weightG ?: 100.0, unit = fr.scanneat.data.repository.pantry.PantryUnit.GRAMS,
-                        expiryDate = null, profileId = activeProfileId.value,
-                    )
-                }
-                loggedDuringFast
-            }.onSuccess { loggedDuringFast -> _logTarget.value = null; if (loggedDuringFast) _loggedDuringFast.value = true }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+            }
+            if (fr.scanneat.presentation.result.LogDestination.GARDE_MANGER in destinations) {
+                pantryRepo.addOrUpdate(
+                    name = resolved.product.name, barcode = resolved.barcode, category = resolved.product.category,
+                    quantity = resolved.product.weightG ?: 100.0, unit = fr.scanneat.data.repository.pantry.PantryUnit.GRAMS,
+                    expiryDate = null, profileId = activeProfileId.value,
+                )
+            }
+            _logTarget.value = null
+            if (loggedDuringFast) _loggedDuringFast.value = true
         }
     }
 }

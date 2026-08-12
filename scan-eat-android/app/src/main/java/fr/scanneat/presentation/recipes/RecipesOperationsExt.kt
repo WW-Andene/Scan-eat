@@ -21,16 +21,16 @@ import java.time.LocalDate
 // main file to keep it from growing unbounded, same purely-structural split
 // ScanRepository already went through for ScanOffLookup/ScanServerClient.
 // Every function here touches the same RecipesViewModel private-turned-internal
-// state (`repo`, `templateRepo`, `consumptionRepo`, `_actionFailed`,
+// state (`repo`, `templateRepo`, `consumptionRepo`, `flagActionFailed()`,
 // `_cloneUnmatchedCount`, `_allRecipes`, `lastDeleted`, `lastPreScale`) the main
 // file itself used before the split - no behavior change.
 
 fun RecipesViewModel.toggleFavorite(recipe: Recipe) = viewModelScope.launch {
-    runCatching { repo.setFavorite(recipe.id, !recipe.favorite) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    runCatching { repo.setFavorite(recipe.id, !recipe.favorite) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
 }
 
 fun RecipesViewModel.save(name: String, components: List<RecipeComponent>, servings: Int = 1, notes: String = "") {
-    viewModelScope.launch { runCatching { repo.save(name, components, servings, profileId = activeProfileId.value, notes = notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.save(name, components, servings, profileId = activeProfileId.value, notes = notes) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 // Same undo-delete pattern as Diary/Weight/ScanHistory/Medication/Grocery -
@@ -42,7 +42,7 @@ fun RecipesViewModel.delete(id: String) {
     viewModelScope.launch {
         runCatching { repo.delete(id) }
             .onSuccess { lastDeleted = entry }
-            .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
     }
 }
 
@@ -56,7 +56,7 @@ fun RecipesViewModel.undoDelete() {
         // a restored recipe jumped to the top of the createdAt-sorted list and
         // lost its favorite star. See RecipeRepository.save()'s own doc comment.
         runCatching { repo.save(entry.name, entry.components, entry.servings, id = entry.id, profileId = activeProfileId.value, notes = entry.notes, createdAt = entry.createdAt, favorite = entry.favorite) }
-            .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
     }
 }
 
@@ -74,7 +74,7 @@ fun RecipesViewModel.duplicate(recipe: Recipe) {
 /** Inverse of TemplatesViewModel.saveAsRecipe() - a Recipe has no meal of its own,
  *  so the screen must ask which slot before this can be saved as a Saved Meal. */
 fun RecipesViewModel.saveAsTemplate(recipe: Recipe, meal: MealSlot) = viewModelScope.launch {
-    runCatching { templateRepo.save(recipe.name, meal, recipe.toTemplateItems(meal), profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    runCatching { templateRepo.save(recipe.name, meal, recipe.toTemplateItems(meal), profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
 }
 
 /** Replaces a saved recipe's name/servings/ingredient list in place - previously
@@ -84,7 +84,7 @@ fun RecipesViewModel.updateRecipe(recipe: Recipe, name: String, components: List
     if (name.isBlank() || components.isEmpty()) return
     viewModelScope.launch {
         runCatching { repo.save(name, components, servings.coerceAtLeast(1), id = recipe.id, profileId = activeProfileId.value, notes = notes) }
-            .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
     }
 }
 
@@ -93,12 +93,12 @@ fun RecipesViewModel.rename(recipe: Recipe, newName: String) {
     // notes = recipe.notes - without this, renaming (a distinct UI action from
     // editing notes) would silently wipe any notes already saved on the recipe,
     // since save() otherwise defaults an unpassed notes to "".
-    viewModelScope.launch { runCatching { repo.save(newName, recipe.components, recipe.servings, id = recipe.id, profileId = activeProfileId.value, notes = recipe.notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.save(newName, recipe.components, recipe.servings, id = recipe.id, profileId = activeProfileId.value, notes = recipe.notes) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 /** Edits a recipe's prep notes/instructions independently of rename. */
 fun RecipesViewModel.updateNotes(recipe: Recipe, notes: String) {
-    viewModelScope.launch { runCatching { repo.save(recipe.name, recipe.components, recipe.servings, id = recipe.id, profileId = activeProfileId.value, notes = notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.save(recipe.name, recipe.components, recipe.servings, id = recipe.id, profileId = activeProfileId.value, notes = notes) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 /** Permanently rescales every component's stored quantity (grams/kcal/macros) for a new serving count. */
@@ -111,7 +111,7 @@ fun RecipesViewModel.scale(recipe: Recipe, newServings: Int) {
         runCatching {
             repo.save(recipe.name, recipe.scaledComponents(newServings), newServings, id = recipe.id, profileId = activeProfileId.value, notes = recipe.notes)
         }.onSuccess { lastPreScale = recipe }
-            .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
     }
 }
 
@@ -120,7 +120,7 @@ fun RecipesViewModel.undoScale() {
     lastPreScale = null
     viewModelScope.launch {
         runCatching { repo.save(entry.name, entry.components, entry.servings, id = entry.id, profileId = activeProfileId.value, notes = entry.notes) }
-            .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
     }
 }
 
@@ -139,7 +139,7 @@ fun RecipesViewModel.log(recipe: Recipe, mealSlot: MealSlot, portionFraction: Do
             recipe.components.forEach { c ->
                 pantryRepo.deductStock(barcode = null, name = c.productName, portionG = c.grams * portionFraction, profileId = activeProfileId.value)
             }
-        }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
     }
 }
 
@@ -189,7 +189,7 @@ fun RecipesViewModel.logOfficial(recipe: OfficialRecipe, mealSlot: MealSlot, por
                     profileId = activeProfileId.value,
                 )
             )
-        }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
     }
 }
 

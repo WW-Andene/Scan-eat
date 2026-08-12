@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.biolism.tracker
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -8,6 +7,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.domain.engine.biolism.*
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.time.Instant
@@ -21,7 +21,7 @@ class TrackerViewModel @Inject constructor(
     internal val repo: BiolismRepository,
     private val prefs: UserPreferences,
     private val fastingRepo: FastingRepository,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     // ── Profile ───────────────────────────────────────────────────────────────
     val profile: StateFlow<BiolismProfile> = repo.profile
@@ -74,11 +74,6 @@ class TrackerViewModel @Inject constructor(
     // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
     // write failure here wasn't just silent, it was an uncaught exception that would
     // crash the app.
-    internal val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed save, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     // Fix 8: live metabolic state derived every 100ms in ViewModel, not in composition
     val liveMetabolic: StateFlow<LiveMetabolicState> = combine(
         profile, _timerState, _elapsedMs, _ketoElapsedMs, language,
@@ -200,7 +195,7 @@ class TrackerViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.saveSession(session) }
                 .onSuccess { _saved.value = true }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 

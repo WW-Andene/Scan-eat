@@ -13,11 +13,9 @@ import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.common.ActionFailureViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -131,13 +129,10 @@ class CustomFoodViewModel @Inject constructor(
     /** Deletes by stable row id (not name) so two custom foods sharing a name can't cause one delete to remove both. */
     fun delete(id: String) {
         val entry = foodsWithId.value.firstOrNull { it.first == id }?.second
-        viewModelScope.launch {
-            runCatching {
-                val barcode = repo.findBarcode(id)
-                repo.delete(id)
-                barcode to entry
-            }.onSuccess { (barcode, e) -> if (e != null) lastDeleted = Triple(id, e, barcode) }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            val barcode = repo.findBarcode(id)
+            repo.delete(id)
+            if (entry != null) lastDeleted = Triple(id, entry, barcode)
         }
     }
 
@@ -196,14 +191,13 @@ class CustomFoodViewModel @Inject constructor(
 
     fun rename(id: String, newName: String) {
         if (newName.isBlank()) return
-        viewModelScope.launch {
-            // repo.rename() returns false (rather than throwing) on a name collision -
-            // surface that the same way as any other failed write, since the dialog
-            // otherwise closes as if the rename had succeeded while the food silently
-            // keeps its old name.
-            runCatching { repo.rename(id, newName) }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
-                .onSuccess { renamed -> if (!renamed) flagActionFailed() }
+        // repo.rename() returns false (rather than throwing) on a name collision -
+        // surface that the same way as any other failed write, since the dialog
+        // otherwise closes as if the rename had succeeded while the food silently
+        // keeps its old name.
+        guardedLaunch {
+            val renamed = repo.rename(id, newName)
+            if (!renamed) flagActionFailed()
         }
     }
 

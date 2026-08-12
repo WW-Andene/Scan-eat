@@ -27,12 +27,18 @@ abstract class ActionFailureViewModel : ViewModel() {
     fun clearActionFailed() { _actionFailed.value = false }
 
     /**
-     * app-audit §L2: for a failure path that doesn't fit guardedLaunch/
+     * app-audit §L2/§XI: for a failure path that doesn't fit guardedLaunch/
      * guardedSuspend's shape (e.g. HydrationViewModel's CSV-export IO failure,
      * reported from inside an onFailure callback of its own already-running
-     * coroutine rather than as a block this class can wrap).
+     * coroutine rather than as a block this class can wrap). internal, not
+     * protected - RecipesOperationsExt.kt/TrackerTimerControl.kt/
+     * TrackerKetosisFastingLogic.kt call this from extension functions on
+     * RecipesViewModel/TrackerViewModel in a different file, and Kotlin's
+     * protected visibility does not extend to extension functions (only to
+     * actual subclasses) - same reason _actionFailed/actionFailed on those
+     * two ViewModels were originally declared internal instead of private.
      */
-    protected fun flagActionFailed() { _actionFailed.value = true }
+    internal fun flagActionFailed() { _actionFailed.value = true }
 
     /** Fire-and-forget: runs [block] in viewModelScope, flags [actionFailed] on failure. */
     protected fun guardedLaunch(block: suspend () -> Unit): Job = viewModelScope.launch {

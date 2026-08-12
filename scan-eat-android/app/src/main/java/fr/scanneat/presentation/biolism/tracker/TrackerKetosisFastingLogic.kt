@@ -27,28 +27,28 @@ internal fun TrackerViewModel.toggleKetosis() {
     }
     _timerState.value = next
     _ketoElapsedMs.value = next.ketoElapsedMs
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 internal fun TrackerViewModel.toggleKetoAdapted() {
     val s = _timerState.value
     val next = s.copy(ketoAdapted = !s.ketoAdapted)
     _timerState.value = next
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 internal fun TrackerViewModel.toggleFastingActive() {
     val s = _timerState.value
     val next = s.copy(fastingActive = !s.fastingActive)
     _timerState.value = next
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 internal fun TrackerViewModel.logMealNow() {
     val s = _timerState.value
     val next = s.copy(fastingActive = true, lastMealTs = System.currentTimeMillis())
     _timerState.value = next
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 internal fun TrackerViewModel.importRealFast() {
@@ -56,7 +56,7 @@ internal fun TrackerViewModel.importRealFast() {
     val s = _timerState.value
     val next = s.copy(fastingActive = true, lastMealTs = System.currentTimeMillis() - (hours * MS_PER_HOUR).toLong())
     _timerState.value = next
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 // ── Add time to keto/fasting timers ──────────────────────────────────────
@@ -66,7 +66,7 @@ internal fun TrackerViewModel.addKetoHours(hours: Double) {
     val next  = s.copy(ketoAccumulatedMs = (s.ketoAccumulatedMs + addMs).coerceAtLeast(0L))
     _timerState.value = next
     _ketoElapsedMs.value = next.ketoElapsedMs
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 internal fun TrackerViewModel.addFastingHours(hours: Double) {
@@ -79,5 +79,5 @@ internal fun TrackerViewModel.addFastingHours(hours: Double) {
         .coerceIn(0L, System.currentTimeMillis())
     val next    = s.copy(fastingActive = true, lastMealTs = newTs)
     _timerState.value = next
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }

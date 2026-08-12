@@ -1,9 +1,9 @@
 package fr.scanneat.presentation.recipes
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.MealTemplateRepository
@@ -48,7 +48,7 @@ class RecipesViewModel @Inject constructor(
     // ingredients from the pantry (same reasoning as repo/templateRepo above).
     internal val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     prefs: UserPreferences,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }
 
     /**
@@ -146,14 +146,6 @@ class RecipesViewModel @Inject constructor(
     internal val _cloneUnmatchedCount = MutableStateFlow(0)
     val cloneUnmatchedCount: StateFlow<Int> = _cloneUnmatchedCount.asStateFlow()
     fun clearCloneUnmatchedCount() { _cloneUnmatchedCount.value = 0 }
-
-    // Widened from private to internal - RecipesOperationsExt.kt's extension
-    // functions mutate this directly, same as every function in this file did
-    // before the split.
-    internal val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed write, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
 
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")

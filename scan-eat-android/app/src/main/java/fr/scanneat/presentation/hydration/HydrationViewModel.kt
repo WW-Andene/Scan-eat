@@ -222,11 +222,7 @@ class HydrationViewModel @Inject constructor(
     private val _csvExportReady = MutableStateFlow<String?>(null)
     val csvExportReady: StateFlow<String?> = _csvExportReady.asStateFlow()
     fun prepareCsvExport() {
-        viewModelScope.launch {
-            runCatching { csvExportRepository.exportHydrationCsv() }
-                .onSuccess { _csvExportReady.value = it }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
-        }
+        guardedLaunch { _csvExportReady.value = csvExportRepository.exportHydrationCsv() }
     }
     fun clearCsvExport() { _csvExportReady.value = null }
     fun reportCsvExportIoFailed() { _csvExportReady.value = null; flagActionFailed() }

@@ -11,7 +11,6 @@ import fr.scanneat.domain.model.Grade
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.common.ActionFailureViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -268,10 +267,9 @@ class ScanHistoryViewModel @Inject constructor(
     fun delete(id: Long) {
         val entry = allScans.value.firstOrNull { it.dbId == id }
             ?: favoriteScans.value.firstOrNull { it.dbId == id }
-        viewModelScope.launch {
-            runCatching { repo.delete(id) }
-                .onSuccess { lastDeleted = entry }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            repo.delete(id)
+            lastDeleted = entry
         }
     }
 

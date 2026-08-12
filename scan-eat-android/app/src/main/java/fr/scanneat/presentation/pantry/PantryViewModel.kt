@@ -8,7 +8,6 @@ import fr.scanneat.data.repository.pantry.PantryRepository
 import fr.scanneat.data.repository.pantry.PantryUnit
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.presentation.common.ActionFailureViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -98,10 +96,9 @@ class PantryViewModel @Inject constructor(
     private var lastDeleted: PantryItem? = null
 
     fun delete(item: PantryItem) {
-        viewModelScope.launch {
-            runCatching { repo.delete(item.id) }
-                .onSuccess { lastDeleted = item }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            repo.delete(item.id)
+            lastDeleted = item
         }
     }
 

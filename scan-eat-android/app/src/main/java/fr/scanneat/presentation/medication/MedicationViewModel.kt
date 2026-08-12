@@ -14,7 +14,6 @@ import fr.scanneat.domain.engine.medication.MedicationDbEntry
 import fr.scanneat.domain.engine.medication.findMedicationByBarcode
 import fr.scanneat.domain.engine.medication.findMedicationByName
 import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -28,7 +27,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
@@ -381,10 +379,9 @@ class MedicationViewModel @Inject constructor(
 
     fun delete(id: String) {
         val entry = medications.value.firstOrNull { it.id == id }
-        viewModelScope.launch {
-            runCatching { repo.delete(id) }
-                .onSuccess { lastDeleted = entry }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            repo.delete(id)
+            lastDeleted = entry
         }
     }
 

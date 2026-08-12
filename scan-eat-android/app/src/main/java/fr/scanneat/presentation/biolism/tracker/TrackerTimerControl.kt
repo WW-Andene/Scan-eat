@@ -29,7 +29,7 @@ private fun TrackerViewModel.startSession(s: TimerState) {
     )
     _timerState.value = next
     _saved.value = false
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
     startTicker()
 }
 
@@ -43,7 +43,7 @@ private fun TrackerViewModel.pauseSession(s: TimerState) {
     _elapsedMs.value    = accMs
     _ketoElapsedMs.value = ketoAccMs
     stopTicker()
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 internal fun TrackerViewModel.reset() {
@@ -56,7 +56,7 @@ internal fun TrackerViewModel.reset() {
     _elapsedMs.value = 0L
     _ketoElapsedMs.value = 0L
     _saved.value = false
-    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() } }
 }
 
 internal fun TrackerViewModel.startTicker() {

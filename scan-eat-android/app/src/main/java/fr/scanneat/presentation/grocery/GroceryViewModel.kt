@@ -17,7 +17,6 @@ import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.engine.scoring.healthConditionCautions
 import fr.scanneat.presentation.common.ActionFailureViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -98,24 +97,20 @@ class GroceryViewModel @Inject constructor(
     fun switchList(name: String) { _activeListName.value = name }
 
     fun createList(name: String) {
-        viewModelScope.launch {
-            runCatching { manualGroceryRepo.createList(name, activeProfileId.value) }
-                .onSuccess { if (name.trim().isNotBlank()) _activeListName.value = name.trim() }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            manualGroceryRepo.createList(name, activeProfileId.value)
+            if (name.trim().isNotBlank()) _activeListName.value = name.trim()
         }
     }
 
     /** Renames a list, switching the active list along if it was the one renamed. */
     fun renameList(oldName: String, newName: String) {
-        viewModelScope.launch {
-            runCatching { manualGroceryRepo.renameList(oldName, newName, activeProfileId.value) }
-                .onSuccess {
-                    val trimmed = newName.trim()
-                    if (_activeListName.value == oldName && trimmed.isNotBlank() && trimmed != fr.scanneat.data.repository.planning.DEFAULT_LIST) {
-                        _activeListName.value = trimmed
-                    }
-                }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            manualGroceryRepo.renameList(oldName, newName, activeProfileId.value)
+            val trimmed = newName.trim()
+            if (_activeListName.value == oldName && trimmed.isNotBlank() && trimmed != fr.scanneat.data.repository.planning.DEFAULT_LIST) {
+                _activeListName.value = trimmed
+            }
         }
     }
 
@@ -393,7 +388,7 @@ class GroceryViewModel @Inject constructor(
             // would prune every persisted checked key away the instant this
             // ViewModel is created, before the real recipe list even loads.
             allRecipeItems.drop(1).collect { items ->
-                runCatching { checkedRepo.pruneToKeys(items.map { it.key }.toSet(), activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+                guardedLaunch { checkedRepo.pruneToKeys(items.map { it.key }.toSet(), activeProfileId.value) }
             }
         }
     }
@@ -495,15 +490,12 @@ class GroceryViewModel @Inject constructor(
 
     /** Removes every manual entry that contributed to the aggregated row keyed [groceryKey] — a recipe-sourced contribution to the same row, if any, is untouched. */
     fun deleteManualContribution(groceryKey: String) {
-        viewModelScope.launch {
-            runCatching {
-                val existingKeys = rawItems.value.map { it.key }.toSet()
-                val toRemove = manualGroceryRepo.items(activeProfileId.value, _activeListName.value).first()
-                    .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
-                toRemove.forEach { manualGroceryRepo.remove(it.id, activeProfileId.value) }
-                toRemove
-            }.onSuccess { removed -> lastDeleted = removed }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            val existingKeys = rawItems.value.map { it.key }.toSet()
+            val toRemove = manualGroceryRepo.items(activeProfileId.value, _activeListName.value).first()
+                .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
+            toRemove.forEach { manualGroceryRepo.remove(it.id, activeProfileId.value) }
+            lastDeleted = toRemove
         }
     }
 

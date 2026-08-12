@@ -20,10 +20,8 @@ import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.engine.scoring.healthConditionCautions
 import fr.scanneat.domain.model.MealSlot
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -135,10 +133,9 @@ class TemplatesViewModel @Inject constructor(
 
     fun delete(id: String) {
         val entry = _allTemplates.value.firstOrNull { it.id == id }
-        viewModelScope.launch {
-            runCatching { repo.delete(id) }
-                .onSuccess { lastDeleted = entry }
-                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+        guardedLaunch {
+            repo.delete(id)
+            lastDeleted = entry
         }
     }
 
