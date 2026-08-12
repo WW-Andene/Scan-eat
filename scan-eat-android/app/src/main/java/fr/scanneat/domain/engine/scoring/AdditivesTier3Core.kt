@@ -61,7 +61,7 @@ internal val ADDITIVES_TIER3_CORE: List<AdditiveInfo> = listOf(
     AdditiveInfo("E500", listOf("bicarbonate de sodium", "sodium bicarbonate", "carbonate de sodium"), AdditiveTier.THREE, AdditiveCategory.ACIDITY_REGULATOR,
         "Leavening agent; no concern.", "EU authorisation without ADI."),
     AdditiveInfo("E551", listOf("dioxyde de silicium", "silicon dioxide", "silice"), AdditiveTier.THREE, AdditiveCategory.ANTICAKING,
-        "Anti-caking; EFSA 2018 requested more data on nanoparticulate forms.", "EFSA 2018;16(1):5088."),
+        "Anti-caking; EFSA's 2024 follow-up (incl. nanoparticulate/infant-specific assessment) found no safety concern for any population group.", "EFSA Journal 2024;22(10):8880."),
     AdditiveInfo("E422", listOf("glycérol", "glycerol", "glycérine"), AdditiveTier.THREE, AdditiveCategory.HUMECTANT,
         "Metabolised like a carbohydrate; no ADI specified.", "EU authorisation without ADI."),
     AdditiveInfo("E960", listOf("glycosides de stéviol", "steviol glycosides", "stévia", "stevia"), AdditiveTier.THREE, AdditiveCategory.SWEETENER,
