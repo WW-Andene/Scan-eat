@@ -37,8 +37,16 @@ import fr.scanneat.domain.engine.scoring.normalizeForMatching
 //     squamometry) than SLES (ethoxylated, milder) and than glucoside/
 //     isethionate/sarcosinate surfactants in controlled comparisons -
 //     Marrakchi & Maibach, "Sodium lauryl sulfate induced irritant contact
-//     dermatitis..." (PubMed 8917825); Löffler & Effendy, SLS vs SLES open
-//     assay comparison (PubMed 11278060).
+//     dermatitis..." (PubMed 8917825); Charbonnier, Morrison, Paye & Maibach,
+//     open-assay SLS vs SLES comparison (PubMed 11278060, Food Chem Toxicol
+//     2001 - corrected 13/08/2026: an earlier draft of this comment
+//     misattributed this PMID to Löffler & Effendy and to a 3-surfactant
+//     SLS/SLES/glucoside comparison; independently verified, this paper is
+//     actually a 2-surfactant SLS-vs-SLES-only study); Löffler & Effendy,
+//     SLS/SLES/alkyl-polyglucoside patch-test comparison (PubMed 12641575,
+//     Contact Dermatitis 2003 - this is the correct citation for the
+//     3-surfactant "SLS worst, SLES milder, glucoside barely detectable"
+//     finding).
 //   - Silicone buildup is NOT a property of "silicones" as a class - it
 //     specifically concerns water-INSOLUBLE, high-viscosity fractions
 //     (dimethicone, dimethiconol); volatile/cyclic silicones like

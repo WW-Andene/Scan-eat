@@ -20,13 +20,23 @@ import fr.scanneat.domain.engine.scoring.normalizeForMatching
 //      is gel douche's headline marketing claim and the evidence quality
 //      genuinely varies.
 //
-// Sourced from (12/08/2026 web search, all freely accessible):
+// Sourced from (12/08/2026 web search, independently verified 13/08/2026 -
+// two corrections made after verification, see below):
 //   - Surfactant irritation ranking (SLS harshest, SLES milder, glucosides/
-//     betaine mildest): Löffler & Effendy (PubMed 11278060, patch-test skin
-//     irritation comparison); Wilhelm et al., surfactant-mixture irritation
-//     patch study (PubMed 18503452) - showing betaine/glucoside co-surfactants
-//     measurably reduce irritation from SLES-based systems, which is why
-//     MIXED (harsh+mild together) is treated as better than HARSH-only below.
+//     betaine mildest): Charbonnier, Morrison, Paye & Maibach, open-assay SLS
+//     vs SLES comparison (PubMed 11278060, Food Chem Toxicol 2001 - corrected
+//     13/08/2026: an earlier draft misattributed this PMID to Löffler &
+//     Effendy and to a 3-surfactant SLS/SLES/glucoside comparison; it is
+//     actually a 2-surfactant SLS-vs-SLES-only study); Löffler & Effendy,
+//     SLS/SLES/alkyl-polyglucoside patch-test comparison (PubMed 12641575,
+//     Contact Dermatitis 2003 - the correct citation for "SLS worst, SLES
+//     milder, glucoside barely detectable"). A surfactant-mixture patch study
+//     (PubMed 18503452) was also checked but is NOT cited for a directional
+//     "co-surfactants reduce irritation" claim - independent verification
+//     found its actual result is dose/combination-dependent (irritation was
+//     highest with certain combinations, not simply lower than SLES alone),
+//     so this file does not rely on it; the MIXED-better-than-HARSH ordering
+//     below rests only on the two SLS/SLES/glucoside comparisons above.
 //   - Soap vs syndet (pH 9-10 alkaline soap disrupts the skin's acid mantle
 //     and raises water loss, vs pH 5-7 syndet which preserves it): classic
 //     dermatology literature - Prottey et al./soap irritancy studies (PubMed
@@ -85,9 +95,10 @@ data class ShowerGelQualityResult(
     val provenEmollientCount: Int,
     val marketingEmollientCount: Int,
 ) {
-    /** MIXED (harsh+mild together) is treated as better than HARSH-only -
-     *  co-surfactants measurably reduce irritation from SLES-based systems
-     *  (see header, Wilhelm et al. PubMed 18503452). */
+    /** MIXED (harsh+mild together) is treated as better than HARSH-only,
+     *  same ordering as ShampooQualityScore.CleansingBase - based on the
+     *  SLS/SLES/glucoside irritation ranking in this file's header, not on
+     *  PubMed 18503452 (checked but not relied on, see header). */
     val cleansingBase: ShowerGelCleansingBase get() = when {
         harshSurfactantCount == 0 && mildSurfactantCount == 0 -> ShowerGelCleansingBase.UNKNOWN
         harshSurfactantCount > 0 && mildSurfactantCount == 0  -> ShowerGelCleansingBase.HARSH
