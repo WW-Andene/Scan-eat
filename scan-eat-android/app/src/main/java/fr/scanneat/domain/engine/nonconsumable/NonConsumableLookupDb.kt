@@ -44,6 +44,13 @@ data class NonConsumableDbEntry(
     val name: String,
     val brand: String,
     val category: NonConsumableCategory,
+    // Only ever populated via a live OPF lookup (ScanRepositoryHistory.
+    // findNonConsumableViaOpf) - the bundled CSV this file otherwise reads
+    // from doesn't carry ingredients at all, so a barcode/name match against
+    // it always leaves this null. Feeds CosmeticTransparencyScore.kt; null
+    // means "no ingredient data available", a real and common state, not
+    // "empty formulation".
+    val ingredientsText: String? = null,
 )
 
 private object NonConsumableStore {

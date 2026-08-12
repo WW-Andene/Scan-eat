@@ -26,7 +26,12 @@ interface OpenProductsFactsApi {
     ): OpfResponse
 }
 
-val OPF_FIELDS = listOf("product_name", "brands", "categories_tags").joinToString(",")
+// app-audit: ingredients_text added for the Cosmetic Transparency Score
+// (CosmeticTransparencyScore.kt) - OPF carries this field for a real subset
+// of personal-care/cosmetic entries (same field OFF exposes for food), and
+// it was previously never requested even though the score it now feeds has
+// nothing else to read from.
+val OPF_FIELDS = listOf("product_name", "brands", "categories_tags", "ingredients_text").joinToString(",")
 
 @JsonClass(generateAdapter = true)
 data class OpfResponse(
@@ -39,4 +44,5 @@ data class OpfProductDto(
     @Json(name = "product_name") val productName: String?,
     val brands: String?,
     @Json(name = "categories_tags") val categoriesTags: List<String>?,
+    @Json(name = "ingredients_text") val ingredientsText: String?,
 )

@@ -35,6 +35,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.medication.generateMedicationHints
+import fr.scanneat.domain.engine.nonconsumable.FormulaComplexity
+import fr.scanneat.domain.engine.nonconsumable.computeCosmeticTransparency
 import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
 import fr.scanneat.presentation.medication.InteractionWarning
 import fr.scanneat.presentation.medication.components.MedicationInteractionWarningBanner
@@ -53,7 +55,10 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.glassSheen
+import fr.scanneat.presentation.ui.theme.semanticAmber
+import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.semanticRed
+import fr.scanneat.domain.engine.nonconsumable.CosmeticTransparencyResult
 
 @Composable
 internal fun BoxScope.ScanStateOverlay(
@@ -148,6 +153,7 @@ internal fun BoxScope.ScanStateOverlay(
         }
         is ScanUiState.NonConsumableFound -> {
             val hints = remember(s.entry, language) { generateNonConsumableHints(s.entry.category, language) }
+            val transparency = remember(s.entry) { computeCosmeticTransparency(s.entry.ingredientsText) }
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -158,6 +164,7 @@ internal fun BoxScope.ScanStateOverlay(
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Text(stringResource(R.string.scan_nonconsumable_found_body, s.entry.name, s.entry.brand), color = OnBackground.copy(0.8f))
                         Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
+                        CosmeticTransparencySection(transparency)
                         FactsCautionsColumn(hints.facts, hints.cautions)
                     }
                 },
@@ -167,5 +174,43 @@ internal fun BoxScope.ScanStateOverlay(
         is ScanUiState.MultiFoodFound -> {
             MultiFoodFoundDialog(items = s.items, onPick = onPickMultiFood, onDismiss = onDismissFound)
         }
+    }
+}
+
+/**
+ * User-requested: a "score" for non-food products, alongside (not replacing)
+ * the category-level safety cautions above - see CosmeticTransparencyScore.kt's
+ * own header for why this is a composition/transparency signal, not a
+ * toxicology verdict. null [result] means no ingredient data was available
+ * (most non-food barcodes) - shown honestly as such rather than hidden.
+ */
+@Composable
+private fun CosmeticTransparencySection(result: CosmeticTransparencyResult?) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+        Text(
+            stringResource(R.string.nonconsumable_transparency_title),
+            style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
+        )
+        if (result == null) {
+            Text(stringResource(R.string.nonconsumable_transparency_no_data), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            return
+        }
+        val (complexityLabel, complexityColor) = when (result.complexity) {
+            FormulaComplexity.SIMPLE   -> stringResource(R.string.nonconsumable_complexity_simple) to semanticGreen()
+            FormulaComplexity.MODERATE -> stringResource(R.string.nonconsumable_complexity_moderate) to semanticAmber()
+            FormulaComplexity.COMPLEX  -> stringResource(R.string.nonconsumable_complexity_complex) to semanticRed()
+            FormulaComplexity.UNKNOWN  -> stringResource(R.string.nonconsumable_transparency_no_data) to OnBackground.copy(0.5f)
+        }
+        Text(
+            stringResource(R.string.nonconsumable_ingredient_count, result.ingredientCount ?: 0, complexityLabel),
+            style = MaterialTheme.typography.bodySmall, color = complexityColor,
+        )
+        if (result.detectedAllergens.isNotEmpty()) {
+            Text(
+                stringResource(R.string.nonconsumable_allergens_detected, result.detectedAllergens.size),
+                style = MaterialTheme.typography.bodySmall, color = semanticAmber(),
+            )
+        }
+        Text(stringResource(R.string.nonconsumable_transparency_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
     }
 }

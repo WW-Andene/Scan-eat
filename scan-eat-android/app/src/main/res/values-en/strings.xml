@@ -32,6 +32,14 @@
     <string name="scan_nonconsumable_found_title">Non-food product</string>
     <string name="scan_nonconsumable_found_body">%1$s (%2$s) — this product is not intended for consumption.</string>
     <string name="scan_nonconsumable_safety_line">Do not ingest. In case of ingestion or exposure, contact emergency services immediately (112 in Europe, 911 in the US) or a poison control center.</string>
+    <string name="nonconsumable_transparency_title">Formula transparency</string>
+    <string name="nonconsumable_transparency_no_data">No ingredient data available for this product.</string>
+    <string name="nonconsumable_ingredient_count">%1$d declared ingredients — %2$s formula</string>
+    <string name="nonconsumable_complexity_simple">simple</string>
+    <string name="nonconsumable_complexity_moderate">moderate</string>
+    <string name="nonconsumable_complexity_complex">complex</string>
+    <string name="nonconsumable_allergens_detected">Contains %1$d of the 26 EU-regulated fragrance allergens (must be declared, not necessarily unsafe for you).</string>
+    <string name="nonconsumable_transparency_disclaimer">Composition signal only, not a safety or toxicology verdict — ingredient count and EU-mandated fragrance-allergen disclosure, not a per-substance hazard assessment.</string>
     <string name="scan_cd_scan">Scan</string>
     <string name="scan_no_camera_title">No camera detected</string>
     <string name="scan_no_camera_body">This device has no camera. Enter the barcode manually instead.</string>

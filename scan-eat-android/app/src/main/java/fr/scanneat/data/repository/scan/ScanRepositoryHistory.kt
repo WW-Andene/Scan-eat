@@ -170,6 +170,7 @@ internal class ScanHistoryQueries(
             name     = name,
             brand    = product.brands ?: "",
             category = runCatching { NonConsumableCategory.valueOf(category) }.getOrDefault(NonConsumableCategory.OTHER),
+            ingredientsText = product.ingredientsText,
         )
     }.getOrNull()
 

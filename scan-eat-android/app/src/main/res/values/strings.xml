@@ -32,6 +32,14 @@
     <string name="scan_nonconsumable_found_title">Produit non alimentaire</string>
     <string name="scan_nonconsumable_found_body">%1$s (%2$s) — ce produit n\'est pas destiné à la consommation.</string>
     <string name="scan_nonconsumable_safety_line">Ne pas ingérer. En cas d\'ingestion ou d\'exposition, contactez immédiatement les urgences (15 ou 112 en Europe) ou un centre antipoison.</string>
+    <string name="nonconsumable_transparency_title">Transparence de la formule</string>
+    <string name="nonconsumable_transparency_no_data">Aucune donnée d\'ingrédients disponible pour ce produit.</string>
+    <string name="nonconsumable_ingredient_count">%1$d ingrédients déclarés — formule %2$s</string>
+    <string name="nonconsumable_complexity_simple">simple</string>
+    <string name="nonconsumable_complexity_moderate">modérée</string>
+    <string name="nonconsumable_complexity_complex">complexe</string>
+    <string name="nonconsumable_allergens_detected">Contient %1$d des 26 allergènes de parfum réglementés UE (déclaration obligatoire, pas forcément un risque pour vous).</string>
+    <string name="nonconsumable_transparency_disclaimer">Signal de composition uniquement, pas un verdict de sécurité ou de toxicologie — nombre d\'ingrédients et allergènes de parfum à déclaration obligatoire UE, pas une évaluation de danger par substance.</string>
     <string name="scan_cd_scan">Scanner</string>
     <string name="scan_no_camera_title">Aucune caméra détectée</string>
     <string name="scan_no_camera_body">Cet appareil n\'a pas de caméra. Saisissez le code-barres manuellement.</string>
