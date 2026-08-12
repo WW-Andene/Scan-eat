@@ -1028,7 +1028,7 @@
     <string name="onboarding_value_title">Pourquoi Scan\'eat</string>
     <string name="onboarding_value_transparency_title">Le calcul est visible</string>
     <string name="onboarding_value_transparency_body">Chaque score s\'appuie sur une formule consultable — sources et méthode incluses, pas juste un chiffre.</string>
-    <string name="onboarding_value_biolism_title">Métabolisme : votre métabolisme, en direct</string>
+    <string name="onboarding_value_biolism_title">Votre métabolisme, en direct</string>
     <string name="onboarding_value_biolism_body">Au-delà du scan, suivez votre BMR, votre cétose et votre jeûne en temps réel — un onglet dédié, inclus dans l\'app.</string>
     <string name="onboarding_value_safety_title">Des vérifications de sécurité intégrées</string>
     <string name="onboarding_value_safety_body">Chaque score est vérifié par rapport à vos propres allergènes, et vos traitements sont contrôlés pour les risques d\'interaction connus — automatiquement, sans étape supplémentaire.</string>
