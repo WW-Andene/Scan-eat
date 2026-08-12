@@ -1106,6 +1106,16 @@
     <string name="diary_entry_recommended">Recommended for your profile</string>
     <string name="diary_edit_portion_label">Portion (g)</string>
 
+    <!-- ── Scan result first-time tutorial ──────────────────────────────────── -->
+    <string name="scan_tutorial_next">Next</string>
+    <string name="scan_tutorial_done">Done</string>
+    <string name="scan_tutorial_step1_title">The score</string>
+    <string name="scan_tutorial_step1_body">This ring gives a score out of 100 based on the product\'s actual composition (nutrition, additives, processing). Higher is better — regardless of price or brand.</string>
+    <string name="scan_tutorial_step2_title">The badges</string>
+    <string name="scan_tutorial_step2_body">Below the score, badges flag what matters to you: detected allergens, interactions with an active medication, or conditions from your health profile. No badge means nothing stood out.</string>
+    <string name="scan_tutorial_step3_title">How to improve</string>
+    <string name="scan_tutorial_step3_body">Further down, the "improvement tips" list shows exactly what's lowering the score and what to swap it for — the one section built to act on, not just inform.</string>
+
     <!-- ── Onboarding screen ──────────────────────────────────────────────── -->
     <string name="onboarding_skip_all">Skip</string>
     <string name="onboarding_welcome_body">Scan a barcode or photograph a label to get a 0–100 nutrition score based on the product\'s actual composition.</string>

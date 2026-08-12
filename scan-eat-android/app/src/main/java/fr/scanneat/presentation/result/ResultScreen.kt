@@ -69,6 +69,7 @@ fun ResultScreen(
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val pantryStock = viewModel.pantryStock.collectAsStateWithLifecycle()
     val avgLoggedPortionG = viewModel.avgLoggedPortionG.collectAsStateWithLifecycle()
+    val scanTutorialSeen = viewModel.scanTutorialSeen.collectAsStateWithLifecycle()
     // rememberSaveable, not remember - a process death while either dialog was open
     // (backgrounding the app is enough on a low-memory device) previously reset both
     // flags to false on restoration, silently closing the LogSheet/SaveDestinationsPopup
@@ -268,6 +269,15 @@ fun ResultScreen(
                 },
                 onDismiss = { showSaveMenu = false },
             )
+        }
+
+        // User-requested: interactive walkthrough shown once, over a real
+        // scan result, instead of a static onboarding page - see
+        // ScanResultTutorialDialog.kt's own header. scanTutorialSeen defaults
+        // to true until UserPreferences resolves, so this never flashes on
+        // for an existing user before the real (already-seen) value loads.
+        if (!scanTutorialSeen.value) {
+            ScanResultTutorialDialog(onDismiss = { viewModel.markScanTutorialSeen() })
         }
     }
 }

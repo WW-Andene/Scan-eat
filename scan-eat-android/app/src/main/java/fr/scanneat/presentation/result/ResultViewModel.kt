@@ -116,6 +116,16 @@ class ResultViewModel @Inject constructor(
     val profile: StateFlow<Profile> = prefs.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
 
+    // User-requested: interactive walkthrough shown once, over a real scan
+    // result, instead of a static onboarding page - see
+    // ScanResultTutorialDialog.kt's own header.
+    val scanTutorialSeen: StateFlow<Boolean> = prefs.scanTutorialSeen
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun markScanTutorialSeen() {
+        viewModelScope.launch { prefs.setScanTutorialSeen() }
+    }
+
     // User-requested: does the hint panel know about medication+ingredient
     // risks for the specific product being viewed? Previously no - see
     // ProductHints.medicationRisks/checkFoodDrugInteractions' own doc

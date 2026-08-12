@@ -1110,6 +1110,16 @@
     <string name="diary_entry_recommended">Recommandé pour votre profil</string>
     <string name="diary_edit_portion_label">Portion (g)</string>
 
+    <!-- ── Scan result first-time tutorial ──────────────────────────────────── -->
+    <string name="scan_tutorial_next">Suivant</string>
+    <string name="scan_tutorial_done">Terminé</string>
+    <string name="scan_tutorial_step1_title">Le score</string>
+    <string name="scan_tutorial_step1_body">Ce cercle donne une note sur 100 basée sur la composition réelle du produit (nutrition, additifs, transformation). Plus la note est haute, meilleur est le produit — indépendamment de son prix ou de sa marque.</string>
+    <string name="scan_tutorial_step2_title">Les badges</string>
+    <string name="scan_tutorial_step2_body">Sous le score, des badges signalent ce qui compte pour vous : allergènes détectés, interactions avec un médicament en cours, ou conditions de santé de votre profil. Un produit sans badge n\'a rien de particulier à signaler.</string>
+    <string name="scan_tutorial_step3_title">Comment améliorer</string>
+    <string name="scan_tutorial_step3_body">Plus bas, la liste \"pistes d\'amélioration\" indique concrètement ce qui fait baisser la note et par quoi le remplacer — la seule section pensée pour agir, pas juste informer.</string>
+
     <!-- ── Onboarding screen ──────────────────────────────────────────────── -->
     <string name="onboarding_skip_all">Passer</string>
     <string name="onboarding_welcome_body">Scannez un code-barres ou photographiez une étiquette pour obtenir un score nutritionnel 0–100 basé sur la composition réelle du produit.</string>
