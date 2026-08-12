@@ -109,7 +109,7 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
                                     modifier = Modifier.padding(top = Spacing.S),
                                 )
                             }
-                            items(categoryItems, key = { it.id }) { pantryItem -> PantryRowWithActions(pantryItem, viewModel, editTargetSetter = { editTarget = it }, snackbarHostState, scope, deletedMessage, undoLabel) }
+                            items(categoryItems, key = { it.id }) { pantryItem -> PantryRowWithActions(pantryItem, viewModel, editTargetSetter = { editTarget = it }, snackbarHostState, scope, deletedMessage, undoLabel, recalledBarcodes.value) }
                         }
                     }
                 }

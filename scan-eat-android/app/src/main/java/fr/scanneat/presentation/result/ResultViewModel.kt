@@ -188,7 +188,7 @@ class ResultViewModel @Inject constructor(
     val avgLoggedPortionG: StateFlow<Double?> = state
         .flatMapLatest { s ->
             val scan = s.scanResult
-            if (scan == null) flowOf(null)
+            if (scan == null) flowOf<Double?>(null)
             else flow { emit(consumptionRepo.avgPortionFor(scan.product.name, prefs.activeProfileId.first())) }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
