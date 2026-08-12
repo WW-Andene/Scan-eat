@@ -23,6 +23,15 @@ import javax.inject.Singleton
 // Custom foods win ties in searchFoodDB (score -0.5 vs 0 for built-ins).
 // ============================================================================
 
+/** Double.coerceIn(min, max) returns NaN unchanged - every comparison against
+ *  NaN is false, so neither the `this < min` nor `this > max` branch fires.
+ *  Used everywhere save()/clampNutritionJson() clamp a macro/micronutrient
+ *  value, since both are meant to guarantee a finite, in-range value reaches
+ *  the DB (a hand-edited/corrupted backup's NaN previously slipped through
+ *  both untouched, the one case coerceIn alone doesn't cover). */
+private fun Double.finiteCoerceIn(min: Double, max: Double): Double =
+    if (isFinite()) coerceIn(min, max) else min
+
 @Singleton
 class CustomFoodRepository @Inject constructor(
     private val dao: CustomFoodDao,
@@ -126,18 +135,18 @@ class CustomFoodRepository @Inject constructor(
         // physical ceiling for any single macro per 100g of product.
         val entry = FoodEntry(
             name      = name.trim(),
-            kcal      = kcal.coerceIn(0.0, 900.0),
-            proteinG  = proteinG.coerceIn(0.0, 100.0),
-            carbsG    = carbsG.coerceIn(0.0, 100.0),
-            fatG      = fatG.coerceIn(0.0, 100.0),
-            fiberG    = fiberG.coerceIn(0.0, 100.0),
-            saltG     = saltG.coerceIn(0.0, 100.0),
-            saturatedFatG = saturatedFatG.coerceIn(0.0, 100.0),
-            sugarsG   = sugarsG.coerceIn(0.0, 100.0),
-            ironMg    = ironMg.coerceIn(0.0, 100.0),
-            calciumMg = calciumMg.coerceIn(0.0, 2500.0),
-            vitDUg    = vitDUg.coerceIn(0.0, 250.0),
-            b12Ug     = b12Ug.coerceIn(0.0, 100.0),
+            kcal      = kcal.finiteCoerceIn(0.0, 900.0),
+            proteinG  = proteinG.finiteCoerceIn(0.0, 100.0),
+            carbsG    = carbsG.finiteCoerceIn(0.0, 100.0),
+            fatG      = fatG.finiteCoerceIn(0.0, 100.0),
+            fiberG    = fiberG.finiteCoerceIn(0.0, 100.0),
+            saltG     = saltG.finiteCoerceIn(0.0, 100.0),
+            saturatedFatG = saturatedFatG.finiteCoerceIn(0.0, 100.0),
+            sugarsG   = sugarsG.finiteCoerceIn(0.0, 100.0),
+            ironMg    = ironMg.finiteCoerceIn(0.0, 100.0),
+            calciumMg = calciumMg.finiteCoerceIn(0.0, 2500.0),
+            vitDUg    = vitDUg.finiteCoerceIn(0.0, 250.0),
+            b12Ug     = b12Ug.finiteCoerceIn(0.0, 100.0),
             aliases   = aliases.filter { it.isNotBlank() },
         )
         // Two custom foods sharing a name break Compose's LazyColumn key uniqueness in
@@ -190,18 +199,18 @@ class CustomFoodRepository @Inject constructor(
     fun clampNutritionJson(raw: String): String {
         val j = runCatching { jsonAdapter.fromJson(raw) }.getOrNull() ?: return raw
         val clamped = j.copy(
-            kcal = j.kcal.coerceIn(0.0, 900.0),
-            proteinG = j.proteinG.coerceIn(0.0, 100.0),
-            carbsG = j.carbsG.coerceIn(0.0, 100.0),
-            fatG = j.fatG.coerceIn(0.0, 100.0),
-            fiberG = j.fiberG.coerceIn(0.0, 100.0),
-            saltG = j.saltG.coerceIn(0.0, 100.0),
-            saturatedFatG = j.saturatedFatG.coerceIn(0.0, 100.0),
-            sugarsG = j.sugarsG.coerceIn(0.0, 100.0),
-            ironMg = j.ironMg.coerceIn(0.0, 100.0),
-            calciumMg = j.calciumMg.coerceIn(0.0, 2500.0),
-            vitDUg = j.vitDUg.coerceIn(0.0, 250.0),
-            b12Ug = j.b12Ug.coerceIn(0.0, 100.0),
+            kcal = j.kcal.finiteCoerceIn(0.0, 900.0),
+            proteinG = j.proteinG.finiteCoerceIn(0.0, 100.0),
+            carbsG = j.carbsG.finiteCoerceIn(0.0, 100.0),
+            fatG = j.fatG.finiteCoerceIn(0.0, 100.0),
+            fiberG = j.fiberG.finiteCoerceIn(0.0, 100.0),
+            saltG = j.saltG.finiteCoerceIn(0.0, 100.0),
+            saturatedFatG = j.saturatedFatG.finiteCoerceIn(0.0, 100.0),
+            sugarsG = j.sugarsG.finiteCoerceIn(0.0, 100.0),
+            ironMg = j.ironMg.finiteCoerceIn(0.0, 100.0),
+            calciumMg = j.calciumMg.finiteCoerceIn(0.0, 2500.0),
+            vitDUg = j.vitDUg.finiteCoerceIn(0.0, 250.0),
+            b12Ug = j.b12Ug.finiteCoerceIn(0.0, 100.0),
         )
         return jsonAdapter.toJson(clamped)
     }

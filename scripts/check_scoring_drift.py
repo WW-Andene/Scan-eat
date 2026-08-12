@@ -44,6 +44,11 @@ ANDROID_NUTRITION_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/d
 ANDROID_UTIL_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/util"
 SERVER_SERVICE_DIR = REPO / "scan-eat-server/src/main/kotlin/fr/scanneat/service"
 ANDROID_SCAN_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/data/repository/scan"
+# RouteHelpers.MAX_IMAGES caps how many photos a single request accepts server-side;
+# ScanViewModel.MAX_QUEUED_PHOTOS is the client-side mirror of that same cap (see
+# MAX_IMAGES_PAIR below) - neither lives under SERVER_DIR/ANDROID_SCORING_DIR.
+SERVER_ROUTING_DIR = REPO / "scan-eat-server/src/main/kotlin/fr/scanneat/routing"
+ANDROID_PRESENTATION_SCAN_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/presentation/scan"
 
 # (function name, server path, android path) — pure-logic functions that must
 # stay identical between the two hand-maintained copies.
@@ -161,6 +166,21 @@ VETO_CAP_PAIR = (
     ANDROID_SCORING_DIR / "ScoringEngine.kt",
 )
 VETO_CAP_RE = re.compile(r"object VetoCap\s*\{(.*?)\n\}", re.DOTALL)
+
+# MAX_IMAGES/MAX_QUEUED_PHOTOS (server RouteHelpers.kt / android ScanViewModel.kt) -
+# both sides' own doc comments already say to keep these in sync ("Mirrors the
+# server's RouteHelpers.MAX_IMAGES"), but neither is a top-level `fun`/`val` (the
+# Android one is a companion-object member) and PAIRS/extract_declaration can't
+# reach it - a §B6 audit finding: this is the same duplication-drift pattern
+# VetoCap/NutritionLimits above already guard against, just for a plain `const
+# val = N` instead of an object literal, so it gets the same direct-regex
+# treatment rather than stretching extract_val to a shape it wasn't built for.
+MAX_IMAGES_PAIR = (
+    SERVER_ROUTING_DIR / "RouteHelpers.kt",
+    ANDROID_PRESENTATION_SCAN_DIR / "ScanViewModel.kt",
+)
+MAX_IMAGES_RE = re.compile(r"const val MAX_IMAGES\s*=\s*(\d+)")
+MAX_QUEUED_PHOTOS_RE = re.compile(r"const val MAX_QUEUED_PHOTOS\s*=\s*(\d+)")
 
 FUNC_START_RE_TMPL = r"^(?:private |internal |public )?fun {name}\b"
 VAL_START_RE_TMPL = r"^(?:private |internal |public )?val {name}\b"
@@ -443,6 +463,25 @@ def check_veto_cap() -> str | None:
     return None
 
 
+def check_max_images() -> str | None:
+    """Direct check for MAX_IMAGES_PAIR - see that constant's comment for why
+    this bypasses extract_declaration/PAIRS entirely."""
+    server_path, android_path = MAX_IMAGES_PAIR
+    server_m = MAX_IMAGES_RE.search(server_path.read_text())
+    android_m = MAX_QUEUED_PHOTOS_RE.search(android_path.read_text())
+    if server_m is None:
+        return f"[MAX_IMAGES] `const val MAX_IMAGES` not found in {server_path.relative_to(REPO)}"
+    if android_m is None:
+        return f"[MAX_IMAGES] `const val MAX_QUEUED_PHOTOS` not found in {android_path.relative_to(REPO)}"
+    if server_m.group(1) != android_m.group(1):
+        return (
+            f"[MAX_IMAGES] DRIFT between {server_path.relative_to(REPO)}'s MAX_IMAGES "
+            f"({server_m.group(1)}) and {android_path.relative_to(REPO)}'s "
+            f"MAX_QUEUED_PHOTOS ({android_m.group(1)})\n"
+        )
+    return None
+
+
 def main() -> int:
     failures = []
     nutrition_limits_failure = check_nutrition_limits()
@@ -451,6 +490,9 @@ def main() -> int:
     veto_cap_failure = check_veto_cap()
     if veto_cap_failure:
         failures.append(veto_cap_failure)
+    max_images_failure = check_max_images()
+    if max_images_failure:
+        failures.append(max_images_failure)
     for name, server_path, android_path in PAIRS:
         try:
             server_body = extract_declaration(server_path, name)
@@ -477,7 +519,7 @@ def main() -> int:
         print("\n".join(failures))
         return 1
 
-    print(f"OK — {len(PAIRS)} matched declarations + NutritionLimits + VetoCap are in sync between server and android.")
+    print(f"OK — {len(PAIRS)} matched declarations + NutritionLimits + VetoCap + MAX_IMAGES are in sync between server and android.")
     return 0
 
 

@@ -85,6 +85,10 @@ internal fun ScanViewModel.removePhoto(index: Int) {
 internal fun ScanViewModel.clearQueue() {
     _images.value = emptyList()
     _scannedBarcode.value = null
+    // Matches resultConsumed()'s own reset - without this, a stale OCR-detected
+    // price from the dismissed product silently blocks onPriceTextDetected()'s
+    // null-guard on the next one for a few frames.
+    _detectedPriceEuros.value = null
     _state.value = ScanUiState.Idle
     // See resultConsumed()'s own doc comment for why this stale-streak leak
     // needs resetting here too - clearQueue() is the other path (dismissed

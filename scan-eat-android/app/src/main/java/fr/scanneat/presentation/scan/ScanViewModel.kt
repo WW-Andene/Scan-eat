@@ -136,7 +136,9 @@ class ScanViewModel @Inject constructor(
     // into PriceRepository once score() succeeds (see its own doc comment) -
     // shows up in PriceEntryCard/Expenses exactly like a manual entry, so
     // it's edited/deleted the same way if wrong, never a silent, unfixable value.
-    private val _detectedPriceEuros = MutableStateFlow<Double?>(null)
+    // internal (not private) so ScanViewModelPhotoQueue.kt's clearQueue() can reset it
+    // too, matching resultConsumed()'s own reset - see clearQueue()'s doc comment.
+    internal val _detectedPriceEuros = MutableStateFlow<Double?>(null)
     val detectedPriceEuros: StateFlow<Double?> = _detectedPriceEuros.asStateFlow()
 
     fun onPriceTextDetected(text: String) {
