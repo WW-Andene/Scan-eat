@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.ImprovementTip
 import fr.scanneat.domain.engine.scoring.PersonalScoreResult
+import fr.scanneat.domain.engine.scoring.gradeVerdict
 import fr.scanneat.domain.engine.scoring.personalGrade
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanResult
@@ -174,8 +175,20 @@ internal fun ResultContent(
             ProductScoreHistoryRow(scores = scoreHistory, currentScore = audit.score)
         }
 
-        // Verdict
-        Text(audit.verdict, style = MaterialTheme.typography.bodyLarge, color = OnBackground,
+        // Verdict — matches whichever grade the ring above actually shows. When
+        // a personal score is displayed, the ring switches to the PERSONAL
+        // grade (diet/health/goal adjustments can move it a full letter away
+        // from the classic grade - e.g. plain water: NutritionalDensityPillar
+        // correctly scores 0/25 for it since protein/fiber/micronutrients
+        // aren't a meaningful axis for water, landing the classic grade in B
+        // territory, while a positive personal delta pushes it to A) - showing
+        // audit.verdict (always the classic-grade text) here contradicted the
+        // grade letter the user was just shown, e.g. "A" ring above
+        // "Acceptable — fréquence modérée" underneath.
+        val verdictText = if (personalScore != null && personalScore.applicable) {
+            gradeVerdict(personalGrade(personalScore.personalScore), language)
+        } else audit.verdict
+        Text(verdictText, style = MaterialTheme.typography.bodyLarge, color = OnBackground,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
 
         comparisonResult?.let { ComparisonCard(it) }

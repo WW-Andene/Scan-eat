@@ -54,7 +54,12 @@ internal fun scoreToGrade(score: Int): Grade = when {
 // misattribution (wrong unit, wrong classification target). The grade itself
 // already IS the calibrated, evidence-based verdict; euphemizing the verdict
 // text undermines that without adding accuracy.
-private fun gradeVerdict(grade: Grade, lang: String = "en"): String = if (lang == "en") when (grade) {
+// internal (not private): reused by ResultContent.kt to re-derive the verdict
+// text for the PERSONAL grade when a personal score is shown - see that call
+// site's own comment for why audit.verdict (always the classic-grade text)
+// previously stayed under the ring even when the ring itself switched to
+// showing the personal grade.
+internal fun gradeVerdict(grade: Grade, lang: String = "en"): String = if (lang == "en") when (grade) {
     Grade.A_PLUS -> "Excellent — daily staple potential"
     Grade.A      -> "Good — regular consumption fine"
     Grade.B      -> "Acceptable — moderate frequency"
