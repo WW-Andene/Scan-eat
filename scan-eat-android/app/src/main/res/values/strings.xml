@@ -1436,6 +1436,13 @@
     <string name="settings_about_licenses_button">Licences open source</string>
     <string name="settings_about_share_crash_log">Partager le journal de diagnostic</string>
     <string name="settings_about_no_crash_log">Aucun plantage n\'a été enregistré sur cet appareil</string>
+    <string name="settings_about_export_diagnostic">Exporter un rapport de bug</string>
+    <string name="settings_diagnostic_header">Rapport de diagnostic Scan\'eat</string>
+    <string name="settings_diagnostic_settings">Réglages : thème=%1$s, langue=%2$s, mode daltonien=%3$s, mode API=%4$s</string>
+    <string name="settings_diagnostic_recent_scans_header">Derniers scans :</string>
+    <string name="settings_diagnostic_no_recent_scans">Aucun scan récent</string>
+    <string name="settings_diagnostic_crash_header">Dernier plantage :</string>
+    <string name="settings_diagnostic_no_crash">Aucun plantage enregistré</string>
     <string name="settings_licenses_dialog_title">Licences open source</string>
     <string name="settings_licenses_apache_note">Texte complet de l\'Apache License 2.0 : apache.org/licenses/LICENSE-2.0</string>
     <string name="settings_section_backup">Sauvegarde</string>

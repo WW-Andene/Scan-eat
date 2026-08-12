@@ -75,6 +75,7 @@ fun SettingsScreen(
     val healthConnectAvailability = viewModel.healthConnectAvailability.collectAsStateWithLifecycle()
     val healthConnectConnected = viewModel.healthConnectConnected.collectAsStateWithLifecycle()
     val dataStats = viewModel.dataStats.collectAsStateWithLifecycle()
+    val recentScanSummaries = viewModel.recentScanSummaries.collectAsStateWithLifecycle()
 
     var keyVisible  by remember { mutableStateOf(false) }
     // rememberSaveable, not remember - these hold a typed/pasted-but-not-yet-saved API
@@ -307,6 +308,11 @@ fun SettingsScreen(
                 AboutSection(
                     onShowLicenses = { showLicensesDialog = true },
                     onNoCrashLog = { coroutineScope.launch { snackbarHostState.showSnackbar(noCrashLogMessage) } },
+                    theme = theme.value,
+                    language = language.value,
+                    colorblindMode = colorblindMode.value,
+                    apiMode = mode.value.name,
+                    recentScanSummaries = recentScanSummaries.value,
                 )
             }
 

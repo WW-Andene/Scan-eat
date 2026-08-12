@@ -24,7 +24,22 @@ import fr.scanneat.domain.engine.scoring.ENGINE_VERSION
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-internal fun AboutSection(onShowLicenses: () -> Unit, onNoCrashLog: () -> Unit) {
+internal fun AboutSection(
+    onShowLicenses: () -> Unit,
+    onNoCrashLog: () -> Unit,
+    // User-requested: "mode debug export pour signaler un bug avec les
+    // dernières actions" - theme/language/colorblindMode/apiMode/
+    // recentScanSummaries are the app-state context a bug report actually
+    // needs (what was configured, what was scanned right before the bug),
+    // passed in rather than re-injecting SettingsViewModel's dependencies
+    // here - SettingsScreen already collects every one of these StateFlows
+    // for its own controls.
+    theme: String,
+    language: String,
+    colorblindMode: String,
+    apiMode: String,
+    recentScanSummaries: List<String>,
+) {
     val context = LocalContext.current
     SettingsSection(stringResource(R.string.settings_section_about), icon = Icons.Default.Info) {
         Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
@@ -58,6 +73,44 @@ internal fun AboutSection(onShowLicenses: () -> Unit, onNoCrashLog: () -> Unit) 
             contentPadding = PaddingValues(0.dp),
         ) {
             Text(stringResource(R.string.settings_about_share_crash_log), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
+        }
+        // Broader than the crash-log share above: bundles app/device info,
+        // current settings, and the last few scans so a bug report has real
+        // reproduction context even when nothing actually crashed (a wrong
+        // score, a UI glitch) - the crash-log share only ever has something
+        // to send after an uncaught exception.
+        val versionLine = stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION)
+        val sdkLine = stringResource(R.string.settings_about_sdk)
+        val diagnosticHeader = stringResource(R.string.settings_diagnostic_header)
+        val diagnosticSettingsLine = stringResource(R.string.settings_diagnostic_settings, theme, language, colorblindMode, apiMode)
+        val diagnosticRecentScansHeader = stringResource(R.string.settings_diagnostic_recent_scans_header)
+        val diagnosticNoRecentScans = stringResource(R.string.settings_diagnostic_no_recent_scans)
+        val diagnosticCrashHeader = stringResource(R.string.settings_diagnostic_crash_header)
+        val diagnosticNoCrash = stringResource(R.string.settings_diagnostic_no_crash)
+        TextButton(
+            onClick = {
+                val report = buildString {
+                    appendLine(diagnosticHeader)
+                    appendLine(versionLine)
+                    appendLine(sdkLine)
+                    appendLine(diagnosticSettingsLine)
+                    appendLine()
+                    appendLine(diagnosticRecentScansHeader)
+                    if (recentScanSummaries.isEmpty()) appendLine(diagnosticNoRecentScans)
+                    else recentScanSummaries.forEach { appendLine("- $it") }
+                    appendLine()
+                    appendLine(diagnosticCrashHeader)
+                    append(CrashLogger.readLastCrash(context) ?: diagnosticNoCrash)
+                }
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, report)
+                }
+                context.startActivity(Intent.createChooser(sendIntent, null))
+            },
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            Text(stringResource(R.string.settings_about_export_diagnostic), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
         }
     }
 }

@@ -18,6 +18,7 @@ import fr.scanneat.data.repository.backup.PdfReportRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.data.repository.health.HealthConnectRepository
+import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -49,6 +50,7 @@ sealed class BackupUiState {
 /** Maps to a stringResource in the screen — keeps user-facing copy out of the ViewModel. */
 enum class BackupErrorKey { UNSUPPORTED_VERSION, MALFORMED, IO }
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val prefs: UserPreferences,
@@ -58,6 +60,7 @@ class SettingsViewModel @Inject constructor(
     private val healthConnect: HealthConnectRepository,
     private val fastingRepo: FastingRepository,
     private val priceRepo: fr.scanneat.data.repository.expense.PriceRepository,
+    private val scanRepo: ScanRepository,
     @ApplicationContext private val context: Context,
 ) : ActionFailureViewModel() {
     val apiKey    = prefs.groqApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -80,6 +83,17 @@ class SettingsViewModel @Inject constructor(
     val animatedBackground = prefs.animatedBackground.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     /** Freemium gate - see UserPreferences.isPremium's own doc comment. */
     val isPremium = prefs.isPremium.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    // User-requested: "mode debug export pour signaler un bug avec les
+    // dernières actions" - feeds AboutSection's diagnostic-report share
+    // (see that composable's own doc comment). Score/grade/category only,
+    // no barcode/full product data - just enough recent-activity context to
+    // help reproduce a bug without dumping a user's full scan history into
+    // a report they're about to share outside the app.
+    val recentScanSummaries: StateFlow<List<String>> = prefs.activeProfileId
+        .flatMapLatest { id -> scanRepo.observeHistory(limit = 5, profileId = id) }
+        .map { list -> list.map { "${it.product.name} — ${it.audit.grade.label} (${it.product.category.key})" } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _savedField = MutableStateFlow<String?>(null)
     /** Which field was just saved — SettingsScreen shows a brief confirmation, then clears it. */

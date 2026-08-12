@@ -1374,6 +1374,13 @@
     <string name="settings_about_licenses_button">Open source licenses</string>
     <string name="settings_about_share_crash_log">Share diagnostic log</string>
     <string name="settings_about_no_crash_log">No crash has been recorded on this device</string>
+    <string name="settings_about_export_diagnostic">Export a bug report</string>
+    <string name="settings_diagnostic_header">Scan\'eat diagnostic report</string>
+    <string name="settings_diagnostic_settings">Settings: theme=%1$s, language=%2$s, colorblind mode=%3$s, API mode=%4$s</string>
+    <string name="settings_diagnostic_recent_scans_header">Recent scans:</string>
+    <string name="settings_diagnostic_no_recent_scans">No recent scans</string>
+    <string name="settings_diagnostic_crash_header">Last crash:</string>
+    <string name="settings_diagnostic_no_crash">No crash recorded</string>
     <string name="settings_licenses_dialog_title">Open source licenses</string>
     <string name="settings_licenses_apache_note">Full Apache License 2.0 text: apache.org/licenses/LICENSE-2.0</string>
     <string name="settings_section_backup">Backup</string>
