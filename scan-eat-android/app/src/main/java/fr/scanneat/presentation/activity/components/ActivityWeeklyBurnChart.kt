@@ -53,7 +53,12 @@ internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>, lan
                         // app-audit §N: was date.dayOfWeek.name.take(1) - the raw English
                         // enum name ("MONDAY" -> "M") regardless of app language. Now uses
                         // the in-app language, not device locale (see comment above).
-                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, locale),
+                        // app-audit §J2: SHORT, not NARROW - NARROW collapses to a single
+                        // letter ambiguous in both supported languages (EN: Tuesday/Thursday
+                        // both "T", Saturday/Sunday both "S"; FR: Mardi/Mercredi both "M"),
+                        // the same day-label ambiguity WeeklyBarsCard.kt already found and
+                        // fixed for its own weekly chart.
+                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale),
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
                         color = OnSurface.copy(if (date == LocalDate.now()) 0.8f else 0.4f),

@@ -106,7 +106,10 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
                         // on ActivityWeeklyBurnChart claimed this exact chart was already the
                         // "good example" other charts should copy, but it was still
                         // device-locale-driven itself.
-                        date.dayOfWeek.getDisplayName(JTextStyle.NARROW, Locale(language)).replaceFirstChar { it.uppercaseChar() },
+                        // app-audit §J2: SHORT, not NARROW - same day-label ambiguity
+                        // (FR: Mardi/Mercredi both "M"; EN: Tuesday/Thursday both "T")
+                        // WeeklyBarsCard.kt already found and fixed for its own chart.
+                        date.dayOfWeek.getDisplayName(JTextStyle.SHORT, Locale(language)).replaceFirstChar { it.uppercaseChar() },
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (daysBack == 0) AccentCoral else OnSurface.copy(0.35f),

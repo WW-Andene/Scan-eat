@@ -85,7 +85,12 @@ internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goal
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 weeklyIntake.forEach { (date, _) ->
                     Text(
-                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, locale).replaceFirstChar { it.uppercaseChar() },
+                        // app-audit §J2: SHORT, not NARROW - NARROW collapses to a single
+                        // letter ambiguous in both supported languages (FR: Mardi/Mercredi
+                        // both "M"; EN: Tuesday/Thursday both "T"), the same day-label
+                        // ambiguity WeeklyBarsCard.kt already found and fixed for its own
+                        // weekly chart.
+                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale).replaceFirstChar { it.uppercaseChar() },
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (date == java.time.LocalDate.now()) semanticBlue() else OnBackground.copy(0.35f),

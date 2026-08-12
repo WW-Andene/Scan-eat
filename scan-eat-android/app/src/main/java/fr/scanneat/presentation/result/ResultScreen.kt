@@ -6,6 +6,7 @@ import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import android.content.Intent
 import android.widget.Toast
+import java.util.Locale
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -125,7 +126,11 @@ fun ResultScreen(
         actions = {
             state.value.scanResult?.let { scan ->
                 IconButton(onClick = {
-                    val text = String.format(shareTemplate, scan.product.name, scan.audit.score, scan.audit.grade.label)
+                    // app-audit §J1: Locale.US, same as every other formatted numeric string
+                    // in the app (see UnitConversion.kt's own doc comment) - without it, a
+                    // device set to a locale with non-Latin digits (Arabic-Indic, Persian)
+                    // would render the score using those digits in the shared text alone.
+                    val text = String.format(Locale.US, shareTemplate, scan.product.name, scan.audit.score, scan.audit.grade.label)
                     val sendIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
                         putExtra(Intent.EXTRA_TEXT, text)

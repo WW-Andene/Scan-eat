@@ -18,6 +18,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import fr.scanneat.util.formatDecimal
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.Medication
@@ -71,8 +72,12 @@ internal fun MedicationEntryRow(
                 }
                 weightDeltaKg?.let { delta ->
                     val sign = if (delta >= 0) "+" else ""
+                    // app-audit §J1: formatDecimal() (Locale.US) instead of a bare "%.1f".format(delta)
+                    // - the same missing-Locale.US bug class UnitConversion.kt's dispWeight() was
+                    // hardened against (a French-locale device would otherwise render "70,5" comma
+                    // decimal here, inconsistent with every other weight figure in the app).
                     Text(
-                        stringResource(R.string.medication_weight_since_start, "$sign${"%.1f".format(delta)}"),
+                        stringResource(R.string.medication_weight_since_start, "$sign${delta.formatDecimal()}"),
                         style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f),
                     )
                 }
@@ -254,7 +259,13 @@ internal fun MedicationReminderDialog(
                         FilterChip(
                             selected = selected,
                             onClick = { daysMask = if (selected) daysMask and bit.inv() else daysMask or bit },
-                            label = { Text(day.getDisplayName(java.time.format.TextStyle.NARROW, locale), style = MaterialTheme.typography.labelSmall) },
+                            // app-audit §J2: SHORT, not NARROW - NARROW collapses to a single
+                            // letter ambiguous in both supported languages (FR: Mardi/Mercredi
+                            // both "M"; EN: Tuesday/Thursday both "T"), same bug class
+                            // WeeklyBarsCard.kt already found and fixed - worse here since
+                            // these are individually-tappable day-selector chips, not just
+                            // read-only labels, so ambiguity risks toggling the wrong day.
+                            label = { Text(day.getDisplayName(java.time.format.TextStyle.SHORT, locale), style = MaterialTheme.typography.labelSmall) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = AccentCoral.copy(0.2f),
                                 selectedLabelColor = AccentCoral,

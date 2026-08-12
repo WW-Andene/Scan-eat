@@ -194,7 +194,10 @@ internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>,
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 weeklyAdherence.forEach { day ->
                     Text(
-                        day.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, locale).replaceFirstChar { it.uppercaseChar() },
+                        // app-audit §J2: SHORT, not NARROW - same day-label ambiguity
+                        // (FR: Mardi/Mercredi both "M"; EN: Tuesday/Thursday both "T")
+                        // WeeklyBarsCard.kt already found and fixed for its own chart.
+                        day.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale).replaceFirstChar { it.uppercaseChar() },
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
                         color = OnSurface.copy(if (day.date == LocalDate.now()) 0.8f else 0.4f),
