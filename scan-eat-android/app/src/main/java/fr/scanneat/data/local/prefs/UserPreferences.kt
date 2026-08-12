@@ -385,6 +385,11 @@ class UserPreferences @Inject constructor(
             p.remove(profileFloatKey(id, "height"))
             p.remove(profileFloatKey(id, "goal_weight"))
             p.remove(profileBoolKey(id, "menstruating"))
+            // saveProfile() (below) also writes this key but it was never listed
+            // here - pregnancy status is medical data same as allergens/conditions
+            // above, and a user deleting a profile expects it gone, not left
+            // behind indefinitely under a UUID no longer reachable from the UI.
+            p.remove(profileKey(id, "pregnancy_start"))
             if (p[KEY_ACTIVE_PROFILE] == id) p[KEY_ACTIVE_PROFILE] = "default"
         }
     }
