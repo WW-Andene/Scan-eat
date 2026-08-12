@@ -97,10 +97,30 @@ class PantryRepository @Inject constructor(
 
     suspend fun updateQuantity(id: String, quantity: Double) = dao.updateQuantity(id, quantity.coerceAtLeast(0.0))
 
-    /** Full edit (quantity/unit/expiry) - lets a row be corrected directly
+    /**
+     * Best-effort stock deduction when a logged diary entry matches something in the
+     * pantry - mirrors PriceRepository.deductStock's own barcode-keyed drawdown, which
+     * ConsumptionRepository.log()/logAll() already call on every "Repas" log. Only
+     * meaningful for weight/volume units (GRAMS/MILLILITERS): portionG has no direct
+     * mapping to a UNITS-counted item's stock (e.g. "150 g eaten" doesn't say how many
+     * eggs that was), so a UNITS row is left untouched rather than guessed at. Without
+     * this, Pantry stayed purely additive - eating something you'd stocked never
+     * reduced its tracked quantity, silently drifting from what's actually on hand.
+     */
+    suspend fun deductStock(barcode: String?, name: String, portionG: Double, profileId: String = "default") {
+        if (portionG <= 0.0) return
+        val match = dao.getAllForBackup(profileId).firstOrNull { entry ->
+            if (barcode != null && entry.barcode != null) entry.barcode == barcode
+            else entry.name.equals(name, ignoreCase = true)
+        } ?: return
+        if (match.unit != PantryUnit.GRAMS.key && match.unit != PantryUnit.MILLILITERS.key) return
+        dao.updateQuantity(match.id, (match.quantity - portionG).coerceAtLeast(0.0))
+    }
+
+    /** Full edit (quantity/unit/expiry/category) - lets a row be corrected directly
      *  instead of only nudged by the list's +/-1 stepper. */
-    suspend fun updateDetails(id: String, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?) =
-        dao.updateDetails(id, quantity.coerceAtLeast(0.0), unit.key, expiryDate?.toIsoString())
+    suspend fun updateDetails(id: String, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?, category: ProductCategory) =
+        dao.updateDetails(id, quantity.coerceAtLeast(0.0), unit.key, expiryDate?.toIsoString(), category.key)
 
     suspend fun delete(id: String) = dao.delete(id)
 

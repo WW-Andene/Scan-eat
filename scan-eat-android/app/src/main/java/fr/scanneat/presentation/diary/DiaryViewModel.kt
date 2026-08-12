@@ -50,6 +50,7 @@ class DiaryViewModel @Inject constructor(
     private val biolismRepo: BiolismRepository,
     private val priceRepo: PriceRepository,
     private val activityRepo: ActivityRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
 ) : ViewModel() {
 
     // Fix 13: selectedDate as a StateFlow — avoids stale data across midnight
@@ -374,6 +375,42 @@ class DiaryViewModel @Inject constructor(
         }
     }
 
+    /** Same "Repas"/"Garde-manger" destination split as ResultScreen's own
+     *  LogSheet call - see FoodSearchViewModel.confirmLogWithDestinations. */
+    fun addEntryWithDestinations(entry: FoodEntry, portionG: Double, mealSlot: MealSlot, destinations: Set<fr.scanneat.presentation.result.LogDestination>) {
+        viewModelScope.launch {
+            val product = customFoodRepo.toProduct(entry)
+            runCatching {
+                var loggedDuringFast = false
+                if (fr.scanneat.presentation.result.LogDestination.REPAS in destinations) {
+                    loggedDuringFast = consumptionRepo.log(
+                        DiaryEntry(
+                            date        = _selectedDate.value,
+                            mealSlot    = mealSlot,
+                            productName = entry.name,
+                            barcode     = null,
+                            portionG    = portionG,
+                            nutrition   = product.nutrition,
+                            source      = ScanSource.MANUAL,
+                            ingredients = product.ingredients,
+                            category    = product.category,
+                            profileId   = activeProfileId.value,
+                        )
+                    )
+                }
+                if (fr.scanneat.presentation.result.LogDestination.GARDE_MANGER in destinations) {
+                    pantryRepo.addOrUpdate(
+                        name = entry.name, barcode = null, category = product.category,
+                        quantity = portionG, unit = fr.scanneat.data.repository.pantry.PantryUnit.GRAMS,
+                        expiryDate = null, profileId = activeProfileId.value,
+                    )
+                }
+                loggedDuringFast
+            }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     /**
      * Same as [addEntry] but for a picked scan-history item — logs directly from
      * [scan]'s real product/barcode/source instead of reconstructing a lossy
@@ -398,6 +435,41 @@ class DiaryViewModel @Inject constructor(
                         profileId   = activeProfileId.value,
                     )
                 )
+            }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** Same "Repas"/"Garde-manger" destination split as ResultScreen's own
+     *  LogSheet call - see FoodSearchViewModel.confirmLogWithDestinations. */
+    fun addEntryFromScanWithDestinations(scan: ScanResult, portionG: Double, mealSlot: MealSlot, destinations: Set<fr.scanneat.presentation.result.LogDestination>) {
+        viewModelScope.launch {
+            runCatching {
+                var loggedDuringFast = false
+                if (fr.scanneat.presentation.result.LogDestination.REPAS in destinations) {
+                    loggedDuringFast = consumptionRepo.log(
+                        DiaryEntry(
+                            date        = _selectedDate.value,
+                            mealSlot    = mealSlot,
+                            productName = scan.product.name,
+                            barcode     = scan.barcode,
+                            portionG    = portionG,
+                            nutrition   = scan.product.nutrition,
+                            source      = scan.source,
+                            ingredients = scan.product.ingredients,
+                            category    = scan.product.category,
+                            profileId   = activeProfileId.value,
+                        )
+                    )
+                }
+                if (fr.scanneat.presentation.result.LogDestination.GARDE_MANGER in destinations) {
+                    pantryRepo.addOrUpdate(
+                        name = scan.product.name, barcode = scan.barcode, category = scan.product.category,
+                        quantity = scan.product.weightG ?: portionG, unit = fr.scanneat.data.repository.pantry.PantryUnit.GRAMS,
+                        expiryDate = null, profileId = activeProfileId.value,
+                    )
+                }
+                loggedDuringFast
             }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }

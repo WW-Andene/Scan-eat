@@ -94,9 +94,9 @@ class PantryViewModel @Inject constructor(
         }
     }
 
-    fun updateDetails(id: String, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?) {
+    fun updateDetails(id: String, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?, category: ProductCategory) {
         viewModelScope.launch {
-            runCatching { repo.updateDetails(id, quantity, unit, expiryDate) }
+            runCatching { repo.updateDetails(id, quantity, unit, expiryDate, category) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

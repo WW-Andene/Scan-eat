@@ -91,6 +91,9 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
             product = product,
             onConfirm = { portionG, mealSlot -> viewModel.confirmLog(portionG, mealSlot) },
             onDismiss = viewModel::dismissLogSheet,
+            showDestinationPicker = true,
+            allowPriceLogging = false,
+            onConfirmWithDestinations = { g, slot, destinations, _, _ -> viewModel.confirmLogWithDestinations(g, slot, destinations) },
         )
     }
 

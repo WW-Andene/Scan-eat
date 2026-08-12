@@ -1,6 +1,9 @@
 package fr.scanneat.presentation.pantry.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,6 +19,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.pantry.PantryUnit
+import fr.scanneat.domain.model.ProductCategory
+import fr.scanneat.presentation.expenses.components.displayLabel
+import fr.scanneat.presentation.onboarding.enumSaver
 import fr.scanneat.presentation.ui.theme.*
 import java.time.Instant
 import java.time.LocalDate
@@ -28,14 +34,17 @@ internal fun AddPantryItemDialog(
     initialQuantity: Double = 1.0,
     initialUnit: PantryUnit = PantryUnit.UNITS,
     initialExpiryDate: LocalDate? = null,
+    initialCategory: ProductCategory = ProductCategory.OTHER,
     lockName: Boolean = false,
     onDismiss: () -> Unit,
-    onAdd: (name: String, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?) -> Unit,
+    onAdd: (name: String, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?, category: ProductCategory) -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf(initialName) }
     var quantityText by rememberSaveable { mutableStateOf(formatQtyForEdit(initialQuantity)) }
     var unit by rememberSaveable { mutableStateOf(initialUnit) }
     var expiryDate by rememberSaveable { mutableStateOf(initialExpiryDate) }
+    var category by rememberSaveable(stateSaver = enumSaver<ProductCategory>()) { mutableStateOf(initialCategory) }
+    var showCategoryPicker by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val quantity = quantityText.replace(',', '.').toDoubleOrNull()
@@ -99,6 +108,14 @@ internal fun AddPantryItemDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    Text(stringResource(R.string.pantry_field_category), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                    TextButton(onClick = { showCategoryPicker = true }) { Text(category.displayLabel(), color = AccentCoral) }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
                         expiryDate?.let { it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) } ?: stringResource(R.string.pantry_field_no_expiry),
                         style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.8f),
@@ -114,12 +131,38 @@ internal fun AddPantryItemDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { quantity?.let { onAdd(name.trim(), it, unit, expiryDate) } },
+                onClick = { quantity?.let { onAdd(name.trim(), it, unit, expiryDate, category) } },
                 enabled = isValid,
             ) { Text(stringResource(if (lockName) R.string.common_save else R.string.common_add), color = if (isValid) AccentCoral else OnBackground.copy(0.3f)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )
+
+    if (showCategoryPicker) {
+        AlertDialog(
+            onDismissRequest = { showCategoryPicker = false },
+            containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+            modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+            shape = RoundedCornerShape(CardRadius.PROMINENT),
+            title = { Text(stringResource(R.string.pantry_field_category), color = OnBackground) },
+            text = {
+                LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+                    items(ProductCategory.entries, key = { it.key }) { c ->
+                        Text(
+                            c.displayLabel(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (c == category) AccentCoral else OnBackground,
+                            modifier = Modifier.fillMaxWidth()
+                                .clickable { category = c; showCategoryPicker = false }
+                                .padding(vertical = Spacing.S),
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { showCategoryPicker = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        )
+    }
 }
 
 private fun formatQtyForEdit(q: Double): String = if (q == q.toLong().toDouble()) q.toLong().toString() else "%.1f".format(q)

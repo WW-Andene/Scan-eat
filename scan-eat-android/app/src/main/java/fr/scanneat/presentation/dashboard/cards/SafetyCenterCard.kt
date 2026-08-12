@@ -80,4 +80,6 @@ private fun buildMessage(warning: DashboardSafetyWarning): Pair<String, androidx
         ) to (if (warning.warning.severity == OverhydrationSeverity.HIGH) semanticRed() else semanticAmber())
     is DashboardSafetyWarning.MedicationInteraction -> interactionWarningLabel(warning.warning) to semanticRed()
     is DashboardSafetyWarning.MedicationFood -> warning.message to semanticAmber()
+    is DashboardSafetyWarning.PantryExpiry ->
+        stringResource(R.string.dashboard_safety_pantry_expiry, warning.itemNames.size, warning.itemNames.take(3).joinToString(", ")) to semanticAmber()
 }

@@ -60,6 +60,13 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                 onDismiss()
             },
             onDismiss  = { selected = null },
+            showDestinationPicker = true,
+            allowPriceLogging = false,
+            onConfirmWithDestinations = { g, slot, destinations, _, _ ->
+                viewModel.addEntryWithDestinations(picked, g, slot, destinations)
+                selected = null
+                onDismiss()
+            },
         )
         return
     }
@@ -77,6 +84,13 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                 onDismiss()
             },
             onDismiss  = { selectedScan = null },
+            showDestinationPicker = true,
+            allowPriceLogging = false,
+            onConfirmWithDestinations = { g, slot, destinations, _, _ ->
+                viewModel.addEntryFromScanWithDestinations(pickedScan, g, slot, destinations)
+                selectedScan = null
+                onDismiss()
+            },
         )
         return
     }

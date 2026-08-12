@@ -15,6 +15,7 @@ import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.presentation.pantry.expiryUrgency
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
@@ -46,6 +47,7 @@ class DashboardViewModel @Inject constructor(
     private val fastingRepo: FastingRepository,
     private val medicationRepo: MedicationRepository,
     private val priceRepo: PriceRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
 ) : ViewModel() {
 
     // R&D audit finding, phase 2: profileId was dead scaffolding until
@@ -249,12 +251,20 @@ class DashboardViewModel @Inject constructor(
             ) { todayActivity, hydrationMl, meds, dailySummary, profile ->
                 SafetyInputs(todayActivity, hydrationMl, meds, dailySummary, profile)
             }.combine(language) { inputs, lang -> inputs to lang }
-        }.map { (inputs, lang) ->
+                .combine(pantryRepo.observeAll(id)) { pair, pantryItems -> Triple(pair.first, pair.second, pantryItems) }
+        }.map { (inputs, lang, pantryItems) ->
             val activeMedNames = inputs.meds.filter { it.active }.map { it.name }
             val hydrationGoal = hydrationRepo.goalMl(
                 inputs.profile.sex, inputs.profile.activityLevel, inputs.profile.healthConditions,
                 inputs.todayActivity.sumOf { it.minutes }, inputs.profile.weightKg,
             )
+            // User-requested "connect everything": the Pantry expiry banner
+            // previously only ever showed inside the Pantry screen itself -
+            // pulled into the same centre de vigilance every other safety
+            // check here already reports through.
+            val expiringPantryNames = pantryItems
+                .filter { it.expiryUrgency() in setOf(fr.scanneat.presentation.pantry.PantryExpiryUrgency.SOON, fr.scanneat.presentation.pantry.PantryExpiryUrgency.EXPIRED) }
+                .map { it.name }
             buildDashboardSafetyWarnings(
                 todayActivity = inputs.todayActivity,
                 profile = inputs.profile,
@@ -263,6 +273,7 @@ class DashboardViewModel @Inject constructor(
                 hydrationGoalMl = hydrationGoal,
                 todayDiaryEntries = inputs.dailySummary.entries,
                 lang = lang,
+                expiringPantryItemNames = expiringPantryNames,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -347,7 +358,7 @@ class DashboardViewModel @Inject constructor(
     // DashboardGapLoggingDelegate in DashboardGapLogging.kt (same package) -
     // moved verbatim; the public surface below just forwards to it so no
     // external caller (GapCloserCard/NeverLoggedScansCard/DashboardScreen) needs to change.
-    private val gapLogging = DashboardGapLoggingDelegate(viewModelScope, consumptionRepo, customFoodRepo, activeProfileId)
+    private val gapLogging = DashboardGapLoggingDelegate(viewModelScope, consumptionRepo, customFoodRepo, pantryRepo, activeProfileId)
 
     /** Non-null briefly after a successful log, for a one-shot confirmation snackbar. */
     val gapLoggedName: StateFlow<String?> get() = gapLogging.gapLoggedName
@@ -363,6 +374,11 @@ class DashboardViewModel @Inject constructor(
     /** Logs a never-logged scan straight from its real product/barcode/source — see [DashboardUiState.neverLoggedScans]. */
     fun logNeverLoggedScan(scan: ScanResult, portionG: Double, mealSlot: MealSlot) =
         gapLogging.logNeverLoggedScan(scan, portionG, mealSlot)
+
+    fun logNeverLoggedScanWithDestinations(
+        scan: ScanResult, portionG: Double, mealSlot: MealSlot,
+        destinations: Set<fr.scanneat.presentation.result.LogDestination>,
+    ) = gapLogging.logNeverLoggedScanWithDestinations(scan, portionG, mealSlot, destinations)
 
     // Local tuple to carry 4 values cleanly through flatMapLatest
     private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)

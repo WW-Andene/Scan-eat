@@ -111,8 +111,8 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
     if (showAdd) {
         AddPantryItemDialog(
             onDismiss = { showAdd = false },
-            onAdd = { name, quantity, unit, expiryDate ->
-                viewModel.add(name, barcode = null, category = fr.scanneat.domain.model.ProductCategory.OTHER, quantity = quantity, unit = unit, expiryDate = expiryDate)
+            onAdd = { name, quantity, unit, expiryDate, category ->
+                viewModel.add(name, barcode = null, category = category, quantity = quantity, unit = unit, expiryDate = expiryDate)
                 showAdd = false
             },
         )
@@ -124,10 +124,11 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
             initialQuantity = target.quantity,
             initialUnit = target.unit,
             initialExpiryDate = target.expiryDate,
+            initialCategory = target.category,
             lockName = true,
             onDismiss = { editTarget = null },
-            onAdd = { _, quantity, unit, expiryDate ->
-                viewModel.updateDetails(target.id, quantity, unit, expiryDate)
+            onAdd = { _, quantity, unit, expiryDate, category ->
+                viewModel.updateDetails(target.id, quantity, unit, expiryDate, category)
                 editTarget = null
             },
         )

@@ -29,6 +29,7 @@ internal class DashboardGapLoggingDelegate(
     private val scope: CoroutineScope,
     private val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val activeProfileId: kotlinx.coroutines.flow.StateFlow<String>,
 ) {
     // ── Gap-closer suggestions: previously a dead end ────────────────────────
@@ -112,6 +113,46 @@ internal class DashboardGapLoggingDelegate(
                             profileId   = activeProfileId.value,
                         )
                     )
+                }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            } finally {
+                loggingKeys.remove(key)
+            }
+        }
+    }
+
+    /** Same "Repas"/"Garde-manger" destination split as ResultScreen's own
+     *  LogSheet call - see FoodSearchViewModel.confirmLogWithDestinations. */
+    fun logNeverLoggedScanWithDestinations(
+        scan: ScanResult, portionG: Double, mealSlot: MealSlot,
+        destinations: Set<fr.scanneat.presentation.result.LogDestination>,
+    ) {
+        val key = "scan:" + (scan.barcode ?: scan.product.name.lowercase())
+        if (!loggingKeys.add(key)) return
+        scope.launch {
+            try {
+                runCatching {
+                    if (fr.scanneat.presentation.result.LogDestination.REPAS in destinations) {
+                        consumptionRepo.log(
+                            DiaryEntry(
+                                date        = LocalDate.now(),
+                                mealSlot    = mealSlot,
+                                productName = scan.product.name,
+                                barcode     = scan.barcode,
+                                portionG    = portionG,
+                                nutrition   = scan.product.nutrition,
+                                source      = scan.source,
+                                ingredients = scan.product.ingredients,
+                                profileId   = activeProfileId.value,
+                            )
+                        )
+                    }
+                    if (fr.scanneat.presentation.result.LogDestination.GARDE_MANGER in destinations) {
+                        pantryRepo.addOrUpdate(
+                            name = scan.product.name, barcode = scan.barcode, category = scan.product.category,
+                            quantity = scan.product.weightG ?: 100.0, unit = fr.scanneat.data.repository.pantry.PantryUnit.GRAMS,
+                            expiryDate = null, profileId = activeProfileId.value,
+                        )
+                    }
                 }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
             } finally {
                 loggingKeys.remove(key)

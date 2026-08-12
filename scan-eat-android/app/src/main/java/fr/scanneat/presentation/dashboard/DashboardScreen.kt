@@ -308,6 +308,12 @@ fun DashboardScreen(
                 loggingScan = null
             },
             onDismiss  = { loggingScan = null },
+            showDestinationPicker = true,
+            allowPriceLogging = false,
+            onConfirmWithDestinations = { g, slot, destinations, _, _ ->
+                viewModel.logNeverLoggedScanWithDestinations(scan, g, slot, destinations)
+                loggingScan = null
+            },
         )
     }
 

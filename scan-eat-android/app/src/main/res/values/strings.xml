@@ -1611,11 +1611,13 @@
     <string name="hint_section_condition_risks">Risque lié à votre profil</string>
     <string name="hint_section_medication_risks">Risque lié à vos médicaments</string>
     <string name="dashboard_safety_center_title">Centre de vigilance (%1$d)</string>
+    <string name="dashboard_safety_pantry_expiry">%1$d article(s) du garde-manger bientôt périmés : %2$s</string>
     <string name="dashboard_tile_pantry">Garde-manger</string>
     <string name="pantry_title">Garde-manger</string>
     <string name="pantry_edit_dialog_title">Modifier l\'article</string>
     <string name="pantry_search_placeholder">Rechercher dans le garde-manger</string>
     <string name="pantry_search_empty">Aucun article ne correspond à cette recherche</string>
+    <string name="pantry_field_category">Catégorie</string>
     <string name="pantry_add_dialog_title">Ajouter au garde-manger</string>
     <string name="pantry_field_name">Nom</string>
     <string name="pantry_field_quantity">Quantité</string>

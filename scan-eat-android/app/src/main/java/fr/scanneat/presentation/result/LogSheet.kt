@@ -81,6 +81,12 @@ fun LogSheet(
     // showDestinationPicker defaults false, so onConfirm(portionG, mealSlot)
     // above still fires exactly as before, always implicitly "log to Repas".
     showDestinationPicker: Boolean = false,
+    // ResultScreen is the only call site with a real price-logging path
+    // (PriceRepository, barcode-keyed) wired up - the other three call sites
+    // that opt into showDestinationPicker (FoodSearch/Dashboard/Diary's
+    // manual-add flow) only need Repas/Garde-manger, so DEPENSES is hidden
+    // there rather than showing a checkbox with nothing behind it.
+    allowPriceLogging: Boolean = true,
     onConfirmWithDestinations: ((
         portionG: Double, mealSlot: MealSlot, destinations: Set<LogDestination>,
         priceEuros: Double?, weightG: Double?,
@@ -109,7 +115,7 @@ fun LogSheet(
     // required field(s) filled in - REPAS needs nothing beyond the portion
     // already required below; DEPENSES needs a valid price.
     val destinationsValid = destinations.isNotEmpty() &&
-        (LogDestination.DEPENSES !in destinations || (priceEuros != null && priceEuros > 0))
+        (LogDestination.DEPENSES !in destinations || (!allowPriceLogging || (priceEuros != null && priceEuros > 0)))
 
     val shape = RoundedCornerShape(CardRadius.PROMINENT)
     AlertDialog(
@@ -233,10 +239,12 @@ fun LogSheet(
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Text(stringResource(R.string.logsheet_destinations_label), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f))
                         DestinationCheckboxRow(LogDestination.REPAS, stringResource(R.string.logsheet_destination_repas), destinations) { destinations = it }
-                        DestinationCheckboxRow(LogDestination.DEPENSES, stringResource(R.string.logsheet_destination_depenses), destinations) { destinations = it }
+                        if (allowPriceLogging) {
+                            DestinationCheckboxRow(LogDestination.DEPENSES, stringResource(R.string.logsheet_destination_depenses), destinations) { destinations = it }
+                        }
                         DestinationCheckboxRow(LogDestination.GARDE_MANGER, stringResource(R.string.logsheet_destination_garde_manger), destinations) { destinations = it }
                     }
-                    if (LogDestination.DEPENSES in destinations) {
+                    if (allowPriceLogging && LogDestination.DEPENSES in destinations) {
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                             OutlinedTextField(
                                 value = priceText, onValueChange = { priceText = it },

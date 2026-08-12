@@ -35,6 +35,10 @@ sealed class DashboardSafetyWarning {
      *  param) - built from today's logged Diary entries, not a single
      *  scanned product like ProductHints.medicationRisks. */
     data class MedicationFood(val message: String) : DashboardSafetyWarning()
+    /** Pantry items expiring soon or already past their date - previously only
+     *  ever shown inside the Pantry screen's own banner, never surfaced here
+     *  alongside every other "worth a second look today" check. */
+    data class PantryExpiry(val itemNames: List<String>) : DashboardSafetyWarning()
 }
 
 fun buildDashboardSafetyWarnings(
@@ -45,6 +49,7 @@ fun buildDashboardSafetyWarnings(
     hydrationGoalMl: Int,
     todayDiaryEntries: List<DiaryEntry>,
     lang: String,
+    expiringPantryItemNames: List<String> = emptyList(),
 ): List<DashboardSafetyWarning> {
     val activeMedNamesSet = activeMedicationNames.toSet()
     // Same activity-relevant drug classes (beta-blocker/anticoagulant/diuretic/
@@ -75,5 +80,8 @@ fun buildDashboardSafetyWarnings(
         .distinct()
         .map { DashboardSafetyWarning.MedicationFood(it) }
 
-    return overtraining + overhydration + medInteractions + medFood
+    val pantryExpiry = if (expiringPantryItemNames.isEmpty()) emptyList()
+        else listOf(DashboardSafetyWarning.PantryExpiry(expiringPantryItemNames))
+
+    return overtraining + overhydration + medInteractions + medFood + pantryExpiry
 }

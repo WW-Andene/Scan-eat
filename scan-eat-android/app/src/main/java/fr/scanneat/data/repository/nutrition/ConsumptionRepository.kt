@@ -31,6 +31,7 @@ class ConsumptionRepository @Inject constructor(
     private val moshi: Moshi,
     private val healthConnect: HealthConnectRepository,
     private val priceRepo: PriceRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val hydrationRepo: HydrationRepository,
     private val fastingRepo: FastingRepository,
     @ApplicationContext private val context: Context,
@@ -61,6 +62,7 @@ class ConsumptionRepository @Inject constructor(
         dao.insert(entry.toEntity())
         dao.trim(MAX_HISTORY_ROWS, entry.profileId)
         priceRepo.deductStock(entry.barcode, entry.portionG, entry.profileId)
+        pantryRepo.deductStock(entry.barcode, entry.productName, entry.portionG, entry.profileId)
         mirrorToHealthConnect(entry)
         mirrorToHydration(entry)
         refreshWidget()
@@ -72,6 +74,7 @@ class ConsumptionRepository @Inject constructor(
         dao.insertAll(entries.map { it.toEntity() })
         entries.map { it.profileId }.distinct().forEach { dao.trim(MAX_HISTORY_ROWS, it) }
         entries.forEach { priceRepo.deductStock(it.barcode, it.portionG, it.profileId) }
+        entries.forEach { pantryRepo.deductStock(it.barcode, it.productName, it.portionG, it.profileId) }
         entries.forEach { mirrorToHealthConnect(it) }
         entries.forEach { mirrorToHydration(it) }
         refreshWidget()

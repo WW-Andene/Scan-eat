@@ -1549,11 +1549,13 @@
     <string name="hint_section_condition_risks">Risk linked to your profile</string>
     <string name="hint_section_medication_risks">Risk linked to your medications</string>
     <string name="dashboard_safety_center_title">Safety center (%1$d)</string>
+    <string name="dashboard_safety_pantry_expiry">%1$d pantry item(s) expiring soon: %2$s</string>
     <string name="dashboard_tile_pantry">Pantry</string>
     <string name="pantry_title">Pantry</string>
     <string name="pantry_edit_dialog_title">Edit item</string>
     <string name="pantry_search_placeholder">Search pantry</string>
     <string name="pantry_search_empty">No item matches this search</string>
+    <string name="pantry_field_category">Category</string>
     <string name="pantry_add_dialog_title">Add to pantry</string>
     <string name="pantry_field_name">Name</string>
     <string name="pantry_field_quantity">Quantity</string>
