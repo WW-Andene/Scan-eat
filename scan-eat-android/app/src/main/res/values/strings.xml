@@ -1619,6 +1619,7 @@
     <string name="pantry_search_empty">Aucun article ne correspond à cette recherche</string>
     <string name="pantry_field_category">Catégorie</string>
     <string name="result_pantry_stock">%1$s %2$s déjà en stock au garde-manger</string>
+    <string name="pantry_category_header">%1$s (%2$d)</string>
     <string name="pantry_add_dialog_title">Ajouter au garde-manger</string>
     <string name="pantry_field_name">Nom</string>
     <string name="pantry_field_quantity">Quantité</string>
@@ -1749,6 +1750,11 @@
     <string name="notif_channel_activity">Rappels activité</string>
     <string name="notif_channel_summary">Bilan quotidien</string>
     <string name="notif_channel_custom">Rappels personnalisés</string>
+    <string name="notif_channel_pantry">Garde-manger</string>
+    <string name="reminders_pantry_expiry_title">Alerte péremption garde-manger</string>
+    <string name="reminders_pantry_expiry_subtitle">Prévenir quand un article est bientôt/déjà périmé</string>
+    <string name="reminders_notif_pantry_expiry_title">Garde-manger</string>
+    <string name="reminders_notif_pantry_expiry_body">%1$d article(s) bientôt/déjà périmés : %2$s</string>
     <string name="notif_summary_title">Bilan du jour</string>
     <string name="notif_summary_body">%1$d kcal journalisées · %2$d repas</string>
     <string name="notif_streak_risk_title">Continuez votre série ?</string>

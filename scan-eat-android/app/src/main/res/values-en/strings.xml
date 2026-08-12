@@ -1557,6 +1557,7 @@
     <string name="pantry_search_empty">No item matches this search</string>
     <string name="pantry_field_category">Category</string>
     <string name="result_pantry_stock">%1$s %2$s already in stock in your pantry</string>
+    <string name="pantry_category_header">%1$s (%2$d)</string>
     <string name="pantry_add_dialog_title">Add to pantry</string>
     <string name="pantry_field_name">Name</string>
     <string name="pantry_field_quantity">Quantity</string>
@@ -1687,6 +1688,11 @@
     <string name="notif_channel_activity">Activity reminders</string>
     <string name="notif_channel_summary">Daily digest</string>
     <string name="notif_channel_custom">Custom reminders</string>
+    <string name="notif_channel_pantry">Pantry</string>
+    <string name="reminders_pantry_expiry_title">Pantry expiry alert</string>
+    <string name="reminders_pantry_expiry_subtitle">Notify when an item is about to expire or already has</string>
+    <string name="reminders_notif_pantry_expiry_title">Pantry</string>
+    <string name="reminders_notif_pantry_expiry_body">%1$d item(s) expiring soon or already expired: %2$s</string>
     <string name="notif_summary_title">Daily digest</string>
     <string name="notif_summary_body">%1$d kcal logged · %2$d meals</string>
     <string name="notif_streak_risk_title">Keep your streak going?</string>

@@ -47,6 +47,10 @@ data class ReminderSettings(
     val customReminders: List<CustomReminder> = emptyList(),
     /** New: daily 21:00 digest notification summarising today's progress. */
     val dailyDigestOn: Boolean = false,
+    /** Default true (opt-out, unlike every other reminder above) - an expiring
+     *  pantry item is time-sensitive food-waste/safety information, not a
+     *  scheduling nudge the user necessarily thought to turn on. */
+    val pantryExpiryOn: Boolean = true,
 )
 
 private val Context.remindersDataStore by preferencesDataStore(name = "reminders")
@@ -108,6 +112,8 @@ class RemindersRepository @Inject constructor(
         val K_LAST_FASTING_NOTIFIED_START = longPreferencesKey("rem_last_fasting_notified_start")
         val K_DAILY_DIGEST_ON = booleanPreferencesKey("rem_daily_digest_on")
         val K_CUSTOM_NEXT_ID = intPreferencesKey("rem_custom_next_id")
+        val K_PANTRY_EXPIRY_ON = booleanPreferencesKey("rem_pantry_expiry_on")
+        val K_LAST_PANTRY_EXPIRY_DATE = stringPreferencesKey("rem_last_pantry_expiry_date")
     }
 
     val settings: Flow<ReminderSettings> = storeData.map { p ->
@@ -129,6 +135,7 @@ class RemindersRepository @Inject constructor(
             activityThresholdDays = p[K_ACTIVITY_THRESHOLD] ?: 3,
             customReminders = customs,
             dailyDigestOn   = p[K_DAILY_DIGEST_ON] ?: false,
+            pantryExpiryOn  = p[K_PANTRY_EXPIRY_ON] ?: true,
         )
     }.distinctUntilChanged()
 
@@ -217,6 +224,7 @@ class RemindersRepository @Inject constructor(
     suspend fun setWeight(on: Boolean, thresholdDays: Int)    = store.edit { it[K_WEIGHT_ON] = on; it[K_WEIGHT_THRESHOLD] = thresholdDays }
     suspend fun setActivity(on: Boolean, thresholdDays: Int)  = store.edit { it[K_ACTIVITY_ON] = on; it[K_ACTIVITY_THRESHOLD] = thresholdDays }
     suspend fun setDailyDigest(on: Boolean) = store.edit { it[K_DAILY_DIGEST_ON] = on }
+    suspend fun setPantryExpiry(on: Boolean) = store.edit { it[K_PANTRY_EXPIRY_ON] = on }
     suspend fun setWeightCustom(on: Boolean, time: String) = store.edit {
         it[K_WEIGHT_CUSTOM_ON] = on; it[K_WEIGHT_CUSTOM_TIME] = time
         if (on) markStaleIfPast(it, time, K_LAST_WEIGHT_CUSTOM_DATE)
@@ -247,6 +255,7 @@ class RemindersRepository @Inject constructor(
         // function's own doc comment says it was written to prevent for snack/
         // labels/custom reminders in an earlier round.
         p[K_DAILY_DIGEST_ON] = settings.dailyDigestOn
+        p[K_PANTRY_EXPIRY_ON] = settings.pantryExpiryOn
     }
 
     suspend fun fastingTargetAlreadyNotified(startMs: Long): Boolean =

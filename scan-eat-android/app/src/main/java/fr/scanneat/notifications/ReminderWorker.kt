@@ -17,6 +17,8 @@ import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
 import fr.scanneat.domain.engine.dashboard.logStreakDays
+import fr.scanneat.presentation.pantry.PantryExpiryUrgency
+import fr.scanneat.presentation.pantry.expiryUrgency
 import fr.scanneat.util.localizedString
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -34,6 +36,7 @@ class ReminderWorker @AssistedInject constructor(
     private val medicationRepo: MedicationRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val hydrationRepo: HydrationRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val prefs: UserPreferences,
 ) : CoroutineWorker(context, params) {
 
@@ -190,6 +193,23 @@ class ReminderWorker @AssistedInject constructor(
                     String.format(localizedString(lang, R.string.notif_summary_body), totalKcal, mealCount)
             if (NotificationHelper.show(applicationContext, 110, title, body, NotifChannel.SUMMARY)) {
                 remindersRepo.markFiredToday(K_LAST_DIGEST_DATE)
+            }
+        }
+
+        // New: pantry expiry alert - once per day, after 9:00, when at least one
+        // item is expiring soon/already expired (see PantryExpiryUrgency). Unlike
+        // every other reminder above, default-on (see ReminderSettings.pantryExpiryOn's
+        // own doc comment) - a fired-today guard still applies so this can't repeat
+        // more than once a day even while items stay expired across several runs.
+        if (s.pantryExpiryOn && now.hour >= 9 && !remindersRepo.wasFiredToday(RemindersRepository.K_LAST_PANTRY_EXPIRY_DATE)) {
+            val expiring = pantryRepo.observeAll(profileId).first()
+                .filter { it.expiryUrgency() in setOf(PantryExpiryUrgency.SOON, PantryExpiryUrgency.EXPIRED) }
+            if (expiring.isNotEmpty()) {
+                val title = localizedString(lang, R.string.reminders_notif_pantry_expiry_title)
+                val body = String.format(localizedString(lang, R.string.reminders_notif_pantry_expiry_body), expiring.size, expiring.take(3).joinToString(", ") { it.name })
+                if (NotificationHelper.show(applicationContext, 112, title, body, NotifChannel.PANTRY)) {
+                    remindersRepo.markFiredToday(RemindersRepository.K_LAST_PANTRY_EXPIRY_DATE)
+                }
             }
         }
 

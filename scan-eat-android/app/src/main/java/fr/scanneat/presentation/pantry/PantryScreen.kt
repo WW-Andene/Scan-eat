@@ -20,6 +20,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.pantry.PantryItem
+import fr.scanneat.domain.model.ProductCategory
+import fr.scanneat.presentation.expenses.components.displayLabel
 import fr.scanneat.presentation.pantry.components.AddPantryItemDialog
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
@@ -27,10 +29,11 @@ import java.time.format.DateTimeFormatter
 
 /**
  * User-requested: a real persisted pantry inventory - see
- * PantryViewModel/PantryEntity's own doc comments. Deliberately simple list
- * screen (no category grouping like FoodSearch, no shopping-list checkbox
- * flow like Courses) since this is a small, glanceable "what do I have and
- * is it about to expire" view, not a browsing tool.
+ * PantryViewModel/PantryEntity's own doc comments. Grouped by category
+ * (declaration order, same as ExpensesSummaryCard.displayLabel()'s `when`)
+ * once the list holds items across more than one category - a flat list
+ * sorted only by expiry/name got hard to scan once the pantry held more
+ * than a handful of unrelated staples.
  */
 @Composable
 fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Unit) {
@@ -87,21 +90,27 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
                     EmptyListState(TablerIcons.ShoppingCart, emptyMessage)
                 }
             } else {
-                items(items.value, key = { it.id }) { pantryItem ->
-                    val step = if (pantryItem.unit == fr.scanneat.data.repository.pantry.PantryUnit.UNITS) 1.0 else 10.0
-                    PantryItemRow(
-                        item = pantryItem,
-                        onIncrement = { viewModel.updateQuantity(pantryItem.id, pantryItem.quantity + step) },
-                        onDecrement = { viewModel.updateQuantity(pantryItem.id, (pantryItem.quantity - step).coerceAtLeast(0.0)) },
-                        onEdit = { editTarget = pantryItem },
-                        onDelete = {
-                            viewModel.delete(pantryItem)
-                            scope.launch {
-                                val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
-                                if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+                val byCategory = items.value.groupBy { it.category }
+                // Only worth a header/grouping once items actually span more than
+                // one category - a pantry holding only "Autre" items (every manual
+                // add before this pass defaulted there) would otherwise show one
+                // header for the whole list, adding noise with no new information.
+                if (byCategory.size <= 1) {
+                    items(items.value, key = { it.id }) { pantryItem -> PantryRowWithActions(pantryItem, viewModel, editTargetSetter = { editTarget = it }, snackbarHostState, scope, deletedMessage, undoLabel) }
+                } else {
+                    ProductCategory.entries.forEach { category ->
+                        val categoryItems = byCategory[category].orEmpty()
+                        if (categoryItems.isNotEmpty()) {
+                            item(key = "header_${category.key}") {
+                                Text(
+                                    stringResource(R.string.pantry_category_header, category.displayLabel(), categoryItems.size),
+                                    style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(top = Spacing.S),
+                                )
                             }
-                        },
-                    )
+                            items(categoryItems, key = { it.id }) { pantryItem -> PantryRowWithActions(pantryItem, viewModel, editTargetSetter = { editTarget = it }, snackbarHostState, scope, deletedMessage, undoLabel) }
+                        }
+                    }
                 }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
@@ -156,6 +165,32 @@ private fun PantryExpiryBanner(count: Int) {
 @Composable
 private fun pluralStringResourceCompat(count: Int): String =
     androidx.compose.ui.res.pluralStringResource(R.plurals.pantry_expiring_count, count, count)
+
+@Composable
+private fun PantryRowWithActions(
+    pantryItem: PantryItem,
+    viewModel: PantryViewModel,
+    editTargetSetter: (PantryItem) -> Unit,
+    snackbarHostState: SnackbarHostState,
+    scope: kotlinx.coroutines.CoroutineScope,
+    deletedMessage: String,
+    undoLabel: String,
+) {
+    val step = if (pantryItem.unit == fr.scanneat.data.repository.pantry.PantryUnit.UNITS) 1.0 else 10.0
+    PantryItemRow(
+        item = pantryItem,
+        onIncrement = { viewModel.updateQuantity(pantryItem.id, pantryItem.quantity + step) },
+        onDecrement = { viewModel.updateQuantity(pantryItem.id, (pantryItem.quantity - step).coerceAtLeast(0.0)) },
+        onEdit = { editTargetSetter(pantryItem) },
+        onDelete = {
+            viewModel.delete(pantryItem)
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+            }
+        },
+    )
+}
 
 @Composable
 private fun PantryItemRow(item: PantryItem, onIncrement: () -> Unit, onDecrement: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {

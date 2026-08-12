@@ -136,6 +136,21 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel(), sharedPer
                 colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
             )
         }
+
+        // User-requested "connect everything": the Pantry expiry banner only
+        // ever surfaced by opening the app - a user who doesn't check Garde-
+        // manger daily could miss an item going bad with no warning at all.
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.reminders_pantry_expiry_title), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                Text(stringResource(R.string.reminders_pantry_expiry_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            }
+            Switch(
+                checked = s.pantryExpiryOn,
+                onCheckedChange = { viewModel.setPantryExpiry(it) },
+                colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
+            )
+        }
     }
 }
 

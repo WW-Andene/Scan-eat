@@ -28,6 +28,7 @@ enum class NotifChannel(val id: String, val nameRes: Int) {
     ACTIVITY   ("reminders_activity",   R.string.notif_channel_activity),
     SUMMARY    ("daily_summary",        R.string.notif_channel_summary),
     CUSTOM     ("reminders_custom",     R.string.notif_channel_custom),
+    PANTRY     ("reminders_pantry",     R.string.notif_channel_pantry),
 }
 
 object NotificationHelper {
