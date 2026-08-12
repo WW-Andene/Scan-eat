@@ -45,7 +45,7 @@ Scan'eat n'a aucun contrôle sur la façon dont Open Food Facts, Groq ou Cerebra
 
 ## 5. Suppression de vos données
 
-Désinstaller l'application supprime l'intégralité des données stockées localement. Un export/sauvegarde manuel est disponible dans Réglages ; supprimer ce fichier de sauvegarde relève de votre propre gestion de fichiers.
+Un bouton dédié dans Réglages ("Effacer toutes les données") supprime immédiatement l'intégralité des données stockées localement (base de données, préférences, fichiers en cache), sans nécessiter de désinstaller l'application. Désinstaller l'application produit le même résultat. Un export/sauvegarde manuel est disponible dans Réglages ; supprimer ce fichier de sauvegarde relève de votre propre gestion de fichiers.
 
 ## 6. Avertissement médical
 
