@@ -188,6 +188,18 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "sex-toy" in tag || "lubricant" in tag || "lubrifiant" in tag || "glijmiddel" in tag -> "PERSONAL_CARE"
             "feminine-hygiene" in tag || "sanitary-protection" in tag ||
                 "diaper" in tag || "baby-hygiene" in tag -> "HYGIENE_PRODUCT"
+            // Added 13/08/2026 alongside the other hygiene additions below -
+            // toilet paper was explicitly requested as part of "hygiène
+            // intime" scope but had no tag or name match at all, so it fell
+            // straight through to "product not found" like shampoo/
+            // toothpaste did before this same fix. Deliberately routed to
+            // the existing generic HYGIENE_PRODUCT hints (NonConsumableHints.kt)
+            // rather than a new per-ingredient score - no citable primary
+            // source was found for toilet-paper-specific claims (see
+            // IntimateHygieneScore.kt's own header on why that was left out
+            // rather than asserted unsourced), so recognition alone is the
+            // honest fix here, not a fabricated fact.
+            "toilet-paper" in tag || "toilet-tissue" in tag || "papier-toilette" in tag || "papier-hygienique" in tag -> "HYGIENE_PRODUCT"
             "tobacco" in tag || "cigarette" in tag || "e-cigarette" in tag -> "TOBACCO"
             "battery" in tag || "batteries" in tag -> "BATTERY"
             "bleach" in tag || "javel" in tag -> "BLEACH"
@@ -236,6 +248,18 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "dentifrice" in nameAndBrand || "toothpaste" in nameAndBrand ||
             "mascara" in nameAndBrand || "rouge à lèvres" in nameAndBrand || "rouge a levres" in nameAndBrand ||
             "fond de teint" in nameAndBrand || "eyeliner" in nameAndBrand -> "PERSONAL_CARE"
+        // Added 13/08/2026 - general cosmetics/skincare (crème/lotion/sérum,
+        // the CosmeticActivesScore category) had no name-fallback either.
+        "creme" in nameAndBrand || "cream" in nameAndBrand || "lotion" in nameAndBrand ||
+            "serum" in nameAndBrand || "sérum" in nameAndBrand -> "PERSONAL_CARE"
+        // Added 13/08/2026 - tampons/pads/wipes (IntimateHygieneScore's other
+        // half) had no name fallback, only sparse OPF tags above.
+        "tampon" in nameAndBrand || "serviette hygienique" in nameAndBrand || "serviette hygiénique" in nameAndBrand ||
+            "protege-slip" in nameAndBrand || "coupe menstruelle" in nameAndBrand || "menstrual cup" in nameAndBrand ||
+            "lingette intime" in nameAndBrand || "toilette intime" in nameAndBrand -> "HYGIENE_PRODUCT"
+        // Added 13/08/2026 - toilet paper, see the tag-based addition above for why.
+        "papier toilette" in nameAndBrand || "papier hygienique" in nameAndBrand || "papier hygiénique" in nameAndBrand ||
+            "toilet paper" in nameAndBrand -> "HYGIENE_PRODUCT"
         else -> null
     }
 }
