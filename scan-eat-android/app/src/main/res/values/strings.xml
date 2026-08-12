@@ -77,6 +77,12 @@
     <string name="intimate_wipe_has_ph_buffering">Contient de l\'acide lactique — soutient le pH physiologique de la zone intime (environ 3,8–4,5).</string>
     <string name="intimate_wipe_quality_disclaimer">Profil basé sur une liste restreinte et évolutive d\'ingrédients courants — non exhaustif, pas un verdict de danger.</string>
     <string name="absorbent_hygiene_facts_title">À propos de ce type de produit</string>
+    <string name="makeup_quality_title">Profil du maquillage</string>
+    <string name="makeup_has_comedogenic_contested">Contient un ingrédient historiquement classé comédogène (bouche les pores) — classification contestée par des données dermatologiques plus récentes.</string>
+    <string name="makeup_has_regulated_preservative">Contient un conservateur évalué par les autorités européennes (SCCS) comme sûr aux concentrations cosmétiques utilisées.</string>
+    <string name="makeup_has_talc">Contient du talc — les méthodes de test réglementaires pour la contamination à l\'amiante sont en cours de révision (sujet réglementaire non tranché, pas un verdict de danger).</string>
+    <string name="makeup_quality_disclaimer">Profil basé sur une liste restreinte et évolutive d\'ingrédients courants — non exhaustif, pas un verdict de danger.</string>
+    <string name="makeup_educational_facts_title">À propos de ce type de produit</string>
     <string name="nonfood_history_title">Produits non-alimentaires</string>
     <string name="nonfood_history_empty">Aucun produit non-alimentaire scanné pour le moment.</string>
     <string name="nonfood_history_empty_favorites">Aucun produit non-alimentaire favori pour le moment.</string>

@@ -43,22 +43,27 @@ import fr.scanneat.domain.engine.nonconsumable.ShampooQualityResult
 import fr.scanneat.domain.engine.nonconsumable.AbsorbentHygieneFacts
 import fr.scanneat.domain.engine.nonconsumable.CosmeticActivesResult
 import fr.scanneat.domain.engine.nonconsumable.IntimateWipeQualityResult
+import fr.scanneat.domain.engine.nonconsumable.MakeupEducationalFacts
+import fr.scanneat.domain.engine.nonconsumable.MakeupQualityResult
 import fr.scanneat.domain.engine.nonconsumable.ShowerGelCleansingBase
 import fr.scanneat.domain.engine.nonconsumable.ShowerGelQualityResult
 import fr.scanneat.domain.engine.nonconsumable.ToothpasteQualityResult
 import fr.scanneat.domain.engine.nonconsumable.computeCosmeticActives
 import fr.scanneat.domain.engine.nonconsumable.computeCosmeticTransparency
 import fr.scanneat.domain.engine.nonconsumable.computeIntimateWipeQuality
+import fr.scanneat.domain.engine.nonconsumable.computeMakeupQuality
 import fr.scanneat.domain.engine.nonconsumable.computeShampooQuality
 import fr.scanneat.domain.engine.nonconsumable.computeShowerGelQuality
 import fr.scanneat.domain.engine.nonconsumable.computeToothpasteQuality
 import fr.scanneat.domain.engine.nonconsumable.findProhibitedSubstances
 import fr.scanneat.domain.engine.nonconsumable.findRestrictedSubstances
 import fr.scanneat.domain.engine.nonconsumable.generateAbsorbentHygieneFacts
+import fr.scanneat.domain.engine.nonconsumable.generateMakeupEducationalFacts
 import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
 import fr.scanneat.domain.engine.nonconsumable.isLikelyAbsorbentHygieneProduct
 import fr.scanneat.domain.engine.nonconsumable.isLikelyGeneralCosmetic
 import fr.scanneat.domain.engine.nonconsumable.isLikelyIntimateWipe
+import fr.scanneat.domain.engine.nonconsumable.isLikelyMakeup
 import fr.scanneat.domain.engine.nonconsumable.isLikelyShampoo
 import fr.scanneat.domain.engine.nonconsumable.isLikelyShowerGel
 import fr.scanneat.domain.engine.nonconsumable.isLikelyToothpaste
@@ -219,6 +224,14 @@ internal fun BoxScope.ScanStateOverlay(
             val absorbentHygieneFacts = remember(s.entry, language) {
                 if (isLikelyAbsorbentHygieneProduct(s.entry.name)) generateAbsorbentHygieneFacts(s.entry.name, language) else null
             }
+            // app-audit: étape 3f (per-category functional score, maquillage
+            // last) - see MakeupQualityScore.kt's own header for the data source.
+            val makeupQuality = remember(s.entry) {
+                if (isLikelyMakeup(s.entry.name)) computeMakeupQuality(s.entry.ingredientsText) else null
+            }
+            val makeupEducationalFacts = remember(s.entry, language) {
+                if (isLikelyMakeup(s.entry.name)) generateMakeupEducationalFacts(s.entry.name, language) else null
+            }
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -236,6 +249,8 @@ internal fun BoxScope.ScanStateOverlay(
                         if (cosmeticActives != null) CosmeticActivesSection(cosmeticActives)
                         if (intimateWipeQuality != null) IntimateWipeQualitySection(intimateWipeQuality)
                         if (absorbentHygieneFacts != null) AbsorbentHygieneFactsSection(absorbentHygieneFacts)
+                        if (makeupQuality != null) MakeupQualitySection(makeupQuality)
+                        if (makeupEducationalFacts != null && makeupEducationalFacts.facts.isNotEmpty()) MakeupEducationalFactsSection(makeupEducationalFacts)
                         FactsCautionsColumn(hints.facts, hints.cautions)
                     }
                 },
@@ -477,5 +492,46 @@ private fun AbsorbentHygieneFactsSection(result: AbsorbentHygieneFacts) {
         )
         result.facts.forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f)) }
         result.notes.forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber()) }
+    }
+}
+
+/**
+ * User-requested: a real functional profile for makeup specifically (last of
+ * the planned series) - see MakeupQualityScore.kt's own header for the
+ * sourcing.
+ */
+@Composable
+private fun MakeupQualitySection(result: MakeupQualityResult) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+        Text(
+            stringResource(R.string.makeup_quality_title),
+            style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
+        )
+        if (result.hasComedogenicContested) {
+            Text(stringResource(R.string.makeup_has_comedogenic_contested), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+        }
+        if (result.hasRegulatedPreservative) {
+            Text(stringResource(R.string.makeup_has_regulated_preservative), style = MaterialTheme.typography.bodySmall, color = semanticGreen())
+        }
+        if (result.hasTalc) {
+            Text(stringResource(R.string.makeup_has_talc), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+        }
+        Text(stringResource(R.string.makeup_quality_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
+    }
+}
+
+/**
+ * NOT a per-ingredient score - trace-contaminant regulatory status and
+ * applicator-hygiene guidance can't be read from an ingredient list, see
+ * MakeupQualityScore.kt's own header.
+ */
+@Composable
+private fun MakeupEducationalFactsSection(result: MakeupEducationalFacts) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+        Text(
+            stringResource(R.string.makeup_educational_facts_title),
+            style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
+        )
+        result.facts.forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f)) }
     }
 }

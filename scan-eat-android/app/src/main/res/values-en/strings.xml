@@ -77,6 +77,12 @@
     <string name="intimate_wipe_has_ph_buffering">Contains lactic acid — supports the physiological pH of the intimate area (roughly 3.8–4.5).</string>
     <string name="intimate_wipe_quality_disclaimer">Profile based on a small, growing list of common ingredients — not exhaustive, not a hazard verdict.</string>
     <string name="absorbent_hygiene_facts_title">About this type of product</string>
+    <string name="makeup_quality_title">Makeup profile</string>
+    <string name="makeup_has_comedogenic_contested">Contains an ingredient historically rated comedogenic (pore-clogging) — a classification contested by newer dermatological data.</string>
+    <string name="makeup_has_regulated_preservative">Contains a preservative reviewed by EU regulators (SCCS) as safe at the concentrations used in cosmetics.</string>
+    <string name="makeup_has_talc">Contains talc — regulatory testing methods for asbestos contamination are currently under revision (an open regulatory topic, not a hazard verdict).</string>
+    <string name="makeup_quality_disclaimer">Profile based on a small, growing list of common ingredients — not exhaustive, not a hazard verdict.</string>
+    <string name="makeup_educational_facts_title">About this type of product</string>
     <string name="nonfood_history_title">Non-food products</string>
     <string name="nonfood_history_empty">No non-food products scanned yet.</string>
     <string name="nonfood_history_empty_favorites">No favorite non-food products yet.</string>
