@@ -15,6 +15,8 @@ import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogDao
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.nonfood.NonFoodScanDao
+import fr.scanneat.data.local.db.nonfood.NonFoodScanEntity
 import fr.scanneat.data.local.db.pantry.PantryDao
 import fr.scanneat.data.local.db.pantry.PantryEntity
 import fr.scanneat.data.local.db.price.PriceDao
@@ -53,8 +55,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         RecallEntity::class,
         PantryEntity::class,
         SymptomEntity::class,
+        NonFoodScanEntity::class,
     ],
-    version = 35,
+    version = 36,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -73,6 +76,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recallDao(): RecallDao
     abstract fun pantryDao(): PantryDao
     abstract fun symptomDao(): SymptomDao
+    abstract fun nonFoodScanDao(): NonFoodScanDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -583,5 +587,29 @@ val MIGRATION_34_35 = object : Migration(34, 35) {
                 "PRIMARY KEY(`id`))"
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_symptoms_profileId_date` ON `symptoms` (`profileId`, `date`)")
+    }
+}
+
+val MIGRATION_35_36 = object : Migration(35, 36) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v35 → v36: new `nonfood_scans` table - see NonFoodScanEntity's own
+        // doc comment. NonConsumableFound was dismiss-only until now.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `nonfood_scans` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`barcode` TEXT, " +
+                "`name` TEXT NOT NULL, " +
+                "`brand` TEXT NOT NULL, " +
+                "`category` TEXT NOT NULL, " +
+                "`ingredientCount` INTEGER, " +
+                "`complexity` TEXT, " +
+                "`allergenCount` INTEGER NOT NULL, " +
+                "`prohibitedCount` INTEGER NOT NULL, " +
+                "`restrictedCount` INTEGER NOT NULL, " +
+                "`scannedAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, " +
+                "`favorite` INTEGER NOT NULL)"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_nonfood_scans_profileId_scannedAt` ON `nonfood_scans` (`profileId`, `scannedAt`)")
     }
 }

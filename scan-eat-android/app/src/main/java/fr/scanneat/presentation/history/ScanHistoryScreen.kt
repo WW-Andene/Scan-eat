@@ -4,6 +4,7 @@ import compose.icons.tablericons.History
 import compose.icons.TablerIcons
 import compose.icons.tablericons.AlertCircle
 import compose.icons.tablericons.ArrowLeft
+import compose.icons.tablericons.Bottle
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -39,6 +40,7 @@ fun ScanHistoryScreen(
     onOpenResult: (Long) -> Unit,
     onBack: () -> Unit,
     startFavoritesOnly: Boolean = false,
+    onOpenNonFoodHistory: () -> Unit = {},
 ) {
     val scans = viewModel.filtered.collectAsStateWithLifecycle()
     val query = viewModel.query.collectAsStateWithLifecycle()
@@ -110,6 +112,16 @@ fun ScanHistoryScreen(
                     } else {
                         Icon(TablerIcons.AlertCircle, stringResource(R.string.favorites_check_recalls), tint = OnBackground)
                     }
+                }
+            }
+            // User-requested: non-food products (shampoo/gel douche/cosmétiques...)
+            // get their own small history/favorites screen (NonFoodHistoryScreen) -
+            // only shown on the main History screen, not the dedicated Favorites
+            // one, same "keep the Favorites app bar minimal" reasoning the recall
+            // check button above already follows for its own placement.
+            if (!startFavoritesOnly) {
+                IconButton(onClick = onOpenNonFoodHistory) {
+                    Icon(TablerIcons.Bottle, stringResource(R.string.nonfood_history_title), tint = OnBackground)
                 }
             }
             HistorySortMenu(

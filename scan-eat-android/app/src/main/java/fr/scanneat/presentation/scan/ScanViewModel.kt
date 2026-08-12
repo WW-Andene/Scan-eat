@@ -54,6 +54,7 @@ class ScanViewModel @Inject constructor(
     private val connectivityManager: ConnectivityManager,
     internal val medicationRepo: MedicationRepository,
     private val priceRepo: PriceRepository,
+    private val nonFoodScanRepo: fr.scanneat.data.repository.nonfood.NonFoodScanRepository,
     private val recallRepo: RecallRepository,
     @ApplicationContext internal val appContext: Context,
 ) : ViewModel() {
@@ -409,6 +410,7 @@ class ScanViewModel @Inject constructor(
                     }
                     withContext(Dispatchers.IO) { findNonConsumableByBarcode(appContext, barcode) }?.let { entry ->
                         _state.value = ScanUiState.NonConsumableFound(entry)
+                        logNonConsumableScan(entry)
                         return@launch
                     }
                 }
@@ -497,6 +499,7 @@ class ScanViewModel @Inject constructor(
                             // identifyMultiFromPhotos() use for these same HTTP codes.
                             else -> ScanUiState.Error(httpFriendlyMessage(e, lang))
                         }
+                        (_state.value as? ScanUiState.NonConsumableFound)?.let { logNonConsumableScan(it.entry) }
                     },
                 )
             } finally {
@@ -539,6 +542,44 @@ class ScanViewModel @Inject constructor(
      * silently carried over into the user's next, unrelated scan attempt.
      */
     fun dismissFound() { clearQueue() }
+
+    /**
+     * User-requested: non-food scans (shampoo/gel douche/cosmétiques...) now
+     * get a history + favorites tab, same as food - previously
+     * NonConsumableFound was dismiss-only, nothing was ever persisted.
+     * Auto-logged the moment the dialog is shown, same "every scan already
+     * counts as logged" behavior food scans already have via
+     * scanRepo.persist() inside score()'s onSuccess - the user isn't asked
+     * to separately confirm a save just to have it show up in Historique.
+     * Fire-and-forget: a logging failure here shouldn't block or error out
+     * the dialog the user is actively looking at.
+     */
+    // internal, not private: ScanViewModelIdentify.kt's identifyFromPhotos()/
+    // identifyMultiFromPhotos() extension functions need to call this too -
+    // a private member here isn't visible to an extension function declared
+    // on this class in another file (Kotlin's visibility rule for extension
+    // functions, learned the hard way this same session with
+    // ActionFailureViewModel.flagActionFailed()).
+    internal fun logNonConsumableScan(entry: NonConsumableDbEntry) {
+        viewModelScope.launch {
+            runCatching {
+                val transparency = withContext(Dispatchers.IO) {
+                    fr.scanneat.domain.engine.nonconsumable.computeCosmeticTransparency(entry.ingredientsText)
+                }
+                val prohibited = withContext(Dispatchers.IO) {
+                    fr.scanneat.domain.engine.nonconsumable.findProhibitedSubstances(appContext, entry.ingredientsText)
+                }
+                val restricted = withContext(Dispatchers.IO) {
+                    fr.scanneat.domain.engine.nonconsumable.findRestrictedSubstances(appContext, entry.ingredientsText)
+                }
+                nonFoodScanRepo.log(
+                    barcode = entry.barcode.ifBlank { null }, name = entry.name, brand = entry.brand, category = entry.category,
+                    transparency = transparency, prohibited = prohibited, restricted = restricted,
+                    profileId = activeProfileId.value,
+                )
+            }
+        }
+    }
 
     /**
      * Confirms saving a detected medication (ScanUiState.MedicationFound) into Traitement.

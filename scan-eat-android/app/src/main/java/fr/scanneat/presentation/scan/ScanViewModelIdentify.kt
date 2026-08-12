@@ -53,7 +53,7 @@ internal fun ScanViewModel.identifyFromPhotos() {
                     } else null
                     when {
                         medication != null -> _state.value = ScanUiState.MedicationFound(medication)
-                        nonConsumable != null -> _state.value = ScanUiState.NonConsumableFound(nonConsumable)
+                        nonConsumable != null -> { _state.value = ScanUiState.NonConsumableFound(nonConsumable); logNonConsumableScan(nonConsumable) }
                         // app-audit §N/§I3: scanRepo.persist() (a Room write) was
                         // previously unguarded here, unlike the identical
                         // identify->persist sequence in identifyShelfBox() (which
