@@ -5,10 +5,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.mood.MoodEntry
 import fr.scanneat.data.repository.mood.MoodRepository
+import fr.scanneat.data.repository.sleep.SleepRepository
+import fr.scanneat.domain.engine.dashboard.SleepMoodCorrelation
+import fr.scanneat.domain.engine.dashboard.computeSleepMoodCorrelation
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -25,6 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MoodViewModel @Inject constructor(
     private val repo: MoodRepository,
+    private val sleepRepo: SleepRepository,
     private val prefs: UserPreferences,
 ) : ActionFailureViewModel() {
 
@@ -69,6 +74,16 @@ class MoodViewModel @Inject constructor(
         val recent = list.sortedByDescending { it.date }.take(7)
         if (recent.isEmpty()) null else recent.sumOf { it.stress } / recent.size.toDouble()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // User-requested: "corrélation sommeil/humeur" - Sleep and Mood were
+    // tracked separately with no cross-reference anywhere - see
+    // computeSleepMoodCorrelation's own doc comment on why this is a plain
+    // "good nights vs. poor nights" average comparison, not a real
+    // correlation coefficient.
+    val sleepMoodCorrelation: StateFlow<SleepMoodCorrelation?> =
+        combine(entries, activeProfileId.flatMapLatest { id -> sleepRepo.observeAll(id) }) { moods, sleeps ->
+            computeSleepMoodCorrelation(sleeps, moods)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun log(mood: Int, stress: Int, notes: String = "", date: LocalDate? = null) = guardedLaunch {
         repo.log(mood, stress, notes, date, activeProfileId.value)

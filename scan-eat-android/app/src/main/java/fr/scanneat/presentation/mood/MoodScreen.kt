@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.mood.MoodEntry
+import fr.scanneat.domain.engine.dashboard.SleepMoodCorrelation
 import fr.scanneat.presentation.mood.components.AddMoodEntryDialog
 import fr.scanneat.presentation.mood.components.MoodWeeklyChart
 import fr.scanneat.presentation.ui.theme.*
@@ -47,6 +48,7 @@ fun MoodScreen(
     val weeklyMoodStress = viewModel.weeklyMoodStress.collectAsStateWithLifecycle()
     val avgMood = viewModel.avgMood.collectAsStateWithLifecycle()
     val avgStress = viewModel.avgStress.collectAsStateWithLifecycle()
+    val sleepMoodCorrelation = viewModel.sleepMoodCorrelation.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
 
     var showAdd by remember { mutableStateOf(false) }
@@ -104,6 +106,10 @@ fun MoodScreen(
 
             if (weeklyMoodStress.value.any { it.second > 0 || it.third > 0 }) {
                 item { MoodWeeklyChart(weeklyMoodStress.value, language.value) }
+            }
+
+            sleepMoodCorrelation.value?.let { correlation ->
+                item { SleepMoodCorrelationCard(correlation) }
             }
 
             item {
@@ -167,6 +173,28 @@ fun MoodScreen(
     deleteTarget?.let { targetId ->
         val entryDate = entries.value.find { it.id == targetId }?.date?.toString()
         DeleteConfirmDialog(itemName = entryDate, onConfirm = { viewModel.delete(targetId); deleteTarget = null }, onDismiss = { deleteTarget = null })
+    }
+}
+
+/**
+ * User-requested: "corrélation sommeil/humeur" - see
+ * computeSleepMoodCorrelation's own doc comment on why this is a plain
+ * good-vs-poor-nights average comparison, not a real correlation
+ * coefficient. Only rendered when the ViewModel already found enough paired
+ * days on both sides (see MIN_NIGHTS_PER_SIDE) to be a real signal.
+ */
+@Composable
+private fun SleepMoodCorrelationCard(correlation: SleepMoodCorrelation) {
+    ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        Text(stringResource(R.string.mood_sleep_correlation_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+        Text(
+            stringResource(
+                R.string.mood_sleep_correlation_body,
+                correlation.goodSleepAvgMood, correlation.goodSleepNights,
+                correlation.poorSleepAvgMood, correlation.poorSleepNights,
+            ),
+            style = MaterialTheme.typography.bodyMedium, color = OnSurface.copy(0.85f),
+        )
     }
 }
 
