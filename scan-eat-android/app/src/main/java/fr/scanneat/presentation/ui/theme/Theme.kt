@@ -325,7 +325,7 @@ private fun Typography.withDyslexicSpacing(): Typography = copy(
  */
 @Composable
 fun ScanEatTheme(
-    theme: String = "oled",
+    theme: String = "dark",
     colorAccent: String = "none",
     dyslexicFont: Boolean = false,
     colorblindMode: String = "none",

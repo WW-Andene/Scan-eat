@@ -148,7 +148,7 @@ class UserPreferences @Inject constructor(
     // device's actual current locale (not a value captured once at process start),
     // same reasoning DateTimeConversions/formatDecimal already apply to Locale.
     val language: Flow<String>    = storeData.map { it[KEY_LANGUAGE] ?: defaultLanguage() }.distinctUntilChanged()
-    val theme: Flow<String>       = storeData.map { it[KEY_THEME]      ?: "oled" }.distinctUntilChanged()
+    val theme: Flow<String>       = storeData.map { it[KEY_THEME]      ?: "dark" }.distinctUntilChanged()
     val colorAccent: Flow<String> = storeData.map { it[KEY_COLOR_ACCENT] ?: "none" }.distinctUntilChanged()
     val onboardingComplete: Flow<Boolean> = storeData.map { it[KEY_ONBOARDING_COMPLETE] ?: false }.distinctUntilChanged()
     val whatsNewSeenVersion: Flow<Int> = storeData.map { it[KEY_WHATS_NEW_SEEN_VERSION] ?: 0 }.distinctUntilChanged()
