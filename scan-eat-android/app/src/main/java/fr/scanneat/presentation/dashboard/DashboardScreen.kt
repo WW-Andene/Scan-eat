@@ -89,6 +89,7 @@ fun DashboardScreen(
     val weeklyValueScoreCounts = viewModel.weeklyValueScoreCounts.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val safetyWarnings = viewModel.safetyWarnings.collectAsStateWithLifecycle()
+    val whatsNewSeenVersion = viewModel.whatsNewSeenVersion.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var loggingScan by remember { mutableStateOf<ScanResult?>(null) }
     // User-reported: tapping a GapCloser/ChronicGap suggestion chip logged it to the
@@ -231,6 +232,12 @@ fun DashboardScreen(
             // ---- Scanned today but never logged ----
             if (s.neverLoggedScans.isNotEmpty()) {
                 item { NeverLoggedScansCard(scans = s.neverLoggedScans, onLogClick = { loggingScan = it }) }
+            }
+
+            // ---- One-time spotlight for features that otherwise shipped with zero
+            // notice (app-audit §F) - sits right above the tile grid it's pointing at. ----
+            if (whatsNewSeenVersion.value < fr.scanneat.presentation.dashboard.cards.WhatsNewContent.CURRENT_VERSION) {
+                item { fr.scanneat.presentation.dashboard.cards.WhatsNewCard(onDismiss = { viewModel.dismissWhatsNew() }) }
             }
 
             // ---- Feature tiles — meal-planning tools only; daily logging tasks

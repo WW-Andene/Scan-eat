@@ -24,6 +24,7 @@ import fr.scanneat.domain.model.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -200,6 +201,15 @@ class DashboardViewModel @Inject constructor(
     // same weight value depending on which screen showed it.
     val useImperialWeight: StateFlow<Boolean> = prefs.useImperialWeight
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    // app-audit §F: Pantry/Symptoms/Pregnancy tracking shipped with no notice
+    // to existing users - see WhatsNewCard's own doc comment.
+    val whatsNewSeenVersion: StateFlow<Int> = prefs.whatsNewSeenVersion
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WhatsNewContent.CURRENT_VERSION)
+
+    fun dismissWhatsNew() {
+        viewModelScope.launch { prefs.setWhatsNewSeenVersion(WhatsNewContent.CURRENT_VERSION) }
+    }
 
     /**
      * dbId -> short personal-safety warning, same checkUserAllergens()/

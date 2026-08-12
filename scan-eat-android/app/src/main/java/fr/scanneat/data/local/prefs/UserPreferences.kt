@@ -50,6 +50,11 @@ class UserPreferences @Inject constructor(
         // layered on top of any brightness mode.
         val KEY_COLOR_ACCENT         = stringPreferencesKey("color_accent")
         val KEY_ONBOARDING_COMPLETE  = booleanPreferencesKey("onboarding_complete")
+        // app-audit §F: Pantry/Symptoms/Pregnancy tracking shipped this session
+        // with zero notice to existing users - no onboarding mention, no "what's
+        // new". Bumped whenever a batch of features warrants a one-time spotlight;
+        // WhatsNewCard compares this against WHATS_NEW_CURRENT_VERSION.
+        val KEY_WHATS_NEW_SEEN_VERSION = intPreferencesKey("whats_new_seen_version")
         val KEY_DYSLEXIC_FONT        = booleanPreferencesKey("dyslexic_font")
         val KEY_COLORBLIND_MODE      = stringPreferencesKey("colorblind_mode")
         val KEY_USE_IMPERIAL_WEIGHT  = booleanPreferencesKey("use_imperial_weight")
@@ -141,6 +146,8 @@ class UserPreferences @Inject constructor(
     val theme: Flow<String>       = storeData.map { it[KEY_THEME]      ?: "oled" }.distinctUntilChanged()
     val colorAccent: Flow<String> = storeData.map { it[KEY_COLOR_ACCENT] ?: "none" }.distinctUntilChanged()
     val onboardingComplete: Flow<Boolean> = storeData.map { it[KEY_ONBOARDING_COMPLETE] ?: false }.distinctUntilChanged()
+    val whatsNewSeenVersion: Flow<Int> = storeData.map { it[KEY_WHATS_NEW_SEEN_VERSION] ?: 0 }.distinctUntilChanged()
+    suspend fun setWhatsNewSeenVersion(v: Int) = store.edit { it[KEY_WHATS_NEW_SEEN_VERSION] = v }
     val dyslexicFont: Flow<Boolean>       = storeData.map { it[KEY_DYSLEXIC_FONT] ?: false }.distinctUntilChanged()
     /** "none" | "deuteranopia" | "protanopia" | "tritanopia" */
     val colorblindMode: Flow<String>      = storeData.map { it[KEY_COLORBLIND_MODE] ?: "none" }.distinctUntilChanged()

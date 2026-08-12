@@ -1555,6 +1555,12 @@
     <string name="dashboard_diversity_title">Food diversity (7 days)</string>
     <string name="dashboard_diversity_count">%1$d different foods</string>
     <string name="dashboard_diversity_low">Low — try to vary more</string>
+    <string name="dashboard_features_group_planning">Planning</string>
+    <string name="dashboard_features_group_shopping">Shopping &amp; food</string>
+    <string name="dashboard_features_group_browse">History &amp; search</string>
+    <string name="dashboard_features_group_tracking">Seasonal &amp; tracking</string>
+    <string name="dashboard_whats_new_title">New in Scan\'eat</string>
+    <string name="dashboard_whats_new_body">Pantry, symptom journal, and pregnancy tracking just landed — find them in the grid below.</string>
     <string name="dashboard_diversity_moderate">Fair — room to grow</string>
     <string name="dashboard_diversity_good">Good diversity</string>
     <string name="dashboard_diversity_high">Excellent diversity</string>

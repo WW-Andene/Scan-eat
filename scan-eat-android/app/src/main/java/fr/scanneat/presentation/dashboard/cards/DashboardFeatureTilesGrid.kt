@@ -10,9 +10,12 @@ import androidx.compose.material.icons.rounded.Eco
 import androidx.compose.material.icons.rounded.EventNote
 import androidx.compose.material.icons.rounded.Fastfood
 import androidx.compose.material.icons.rounded.Kitchen
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Calendar
 import compose.icons.tablericons.ClipboardList
@@ -23,6 +26,7 @@ import compose.icons.tablericons.ShoppingCart
 import compose.icons.tablericons.Star
 import fr.scanneat.R
 import fr.scanneat.presentation.dashboard.FeatureTile
+import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 
 /**
@@ -50,12 +54,18 @@ fun DashboardFeatureTilesGrid(
     // top-level Rows here would overlap without an explicit container. Matches the
     // LazyColumn's own inter-item spacing (Spacing.M) so this single-item grid looks
     // identical to when each row was its own separate item.
+    // app-audit §F: 12 tiles under one flat "Fonctionnalités" heading gave every
+    // feature equal visual weight with no grouping logic - a per-row label
+    // (matching each row's existing thematic grouping, not a reshuffle) gives
+    // the grid actual structure without touching tile order/routes/icons.
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+    GroupLabel(stringResource(R.string.dashboard_features_group_planning))
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         FeatureTile(TablerIcons.ClipboardList, stringResource(R.string.dashboard_tile_recipes), Modifier.weight(1f), onClick = onOpenRecipes)
         FeatureTile(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.dashboard_tile_templates), Modifier.weight(1f), onClick = onOpenTemplates)
         FeatureTile(TablerIcons.Calendar, stringResource(R.string.dashboard_tile_mealplan), Modifier.weight(1f), onClick = onOpenMealPlan)
     }
+    GroupLabel(stringResource(R.string.dashboard_features_group_shopping))
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         FeatureTile(TablerIcons.ShoppingCart, stringResource(R.string.dashboard_tile_grocery), Modifier.weight(1f), onClick = onOpenGrocery)
         // onOpenCustomFoods had no call site anywhere in the composable -
@@ -63,6 +73,7 @@ fun DashboardFeatureTilesGrid(
         FeatureTile(Icons.Rounded.Fastfood, stringResource(R.string.dashboard_tile_customfoods), Modifier.weight(1f), onClick = onOpenCustomFoods)
         FeatureTile(TablerIcons.Star, stringResource(R.string.dashboard_tile_favorites), Modifier.weight(1f), onClick = onOpenFavorites)
     }
+    GroupLabel(stringResource(R.string.dashboard_features_group_browse))
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         // Previously no single place showed everything logged on a given
         // day - Diary/Weight/Activity/Hydration each embedded their own
@@ -82,6 +93,7 @@ fun DashboardFeatureTilesGrid(
         // a real browsable/filterable search tool in its own right.
         FeatureTile(TablerIcons.Search, stringResource(R.string.dashboard_tile_search), Modifier.weight(1f), onClick = onOpenFoodSearch)
     }
+    GroupLabel(stringResource(R.string.dashboard_features_group_tracking))
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         FeatureTile(Icons.Rounded.Eco, stringResource(R.string.dashboard_tile_seasonal), Modifier.weight(1f), onClick = onOpenSeasonalProduce)
         // User-requested: a real persisted pantry inventory - see
@@ -93,4 +105,9 @@ fun DashboardFeatureTilesGrid(
         FeatureTile(TablerIcons.Heart, stringResource(R.string.dashboard_tile_symptoms), Modifier.weight(1f), onClick = onOpenSymptoms)
     }
     }
+}
+
+@Composable
+private fun GroupLabel(text: String) {
+    Text(text, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), fontWeight = FontWeight.SemiBold)
 }

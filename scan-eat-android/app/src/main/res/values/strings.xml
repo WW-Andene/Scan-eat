@@ -1373,6 +1373,10 @@
         <item quantity="other">Série sport : %1$d jours</item>
     </plurals>
     <string name="dashboard_features_title">Fonctionnalités</string>
+    <string name="dashboard_features_group_planning">Planification</string>
+    <string name="dashboard_features_group_shopping">Courses &amp; aliments</string>
+    <string name="dashboard_features_group_browse">Historique &amp; recherche</string>
+    <string name="dashboard_features_group_tracking">Saison &amp; suivi</string>
     <string name="dashboard_tile_recipes">Recettes</string>
     <string name="dashboard_tile_templates">Modèles</string>
     <string name="dashboard_tile_mealplan">Planning</string>
@@ -1617,6 +1621,8 @@
     <string name="dashboard_diversity_title">Diversité alimentaire (7 jours)</string>
     <string name="dashboard_diversity_count">%1$d aliments différents</string>
     <string name="dashboard_diversity_low">Faible — essayez de varier davantage</string>
+    <string name="dashboard_whats_new_title">Nouveau dans Scan\'eat</string>
+    <string name="dashboard_whats_new_body">Garde-manger, journal de symptômes et suivi de grossesse sont arrivés — retrouvez-les dans la grille ci-dessous.</string>
     <string name="dashboard_diversity_moderate">Correcte — encore de la marge</string>
     <string name="dashboard_diversity_good">Bonne diversité</string>
     <string name="dashboard_diversity_high">Excellente diversité</string>
