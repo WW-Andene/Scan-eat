@@ -69,7 +69,26 @@ fun bmrMifflinStJeor(p: Profile): Double? {
     // sat-fat/sugar budgets) ever displays a negative or near-zero value.
     val clampedAge = p.ageYears!!.coerceIn(1, 110)
     val raw = 10.0 * p.weightKg!! + 6.25 * p.heightCm!! - 5.0 * clampedAge + sexOffset
-    return raw.coerceAtLeast(500.0)
+    // app-audit: Profile.fatLevel was previously stored/displayed but fed no
+    // calculation at all (a genuine dead end, caught by an 13/08/2026 audit
+    // of the body-composition feature). Lean mass is metabolically more
+    // active than fat mass per unit weight - the same physiological
+    // rationale the Katch-McArdle BMR formula is built on - so two people at
+    // the same weightKg/heightCm/age but a self-reported lower vs higher
+    // body-fat level plausibly have a somewhat different BMR. This is a
+    // coarse 5-point self-reported scale, not a measured body-fat
+    // percentage, so the adjustment is deliberately small (±2%/±4%, not a
+    // full Katch-McArdle lean-mass recalculation this app has no %BF input
+    // to support) and applied AFTER the floor-check below, same "small,
+    // bounded nudge" scale as the existing sex offset.
+    val fatAdjusted = when (p.fatLevel) {
+        BodyCompositionLevel.VERY_LOW  -> raw * 1.04
+        BodyCompositionLevel.LOW       -> raw * 1.02
+        BodyCompositionLevel.HIGH      -> raw * 0.98
+        BodyCompositionLevel.VERY_HIGH -> raw * 0.96
+        BodyCompositionLevel.MODERATE, null -> raw
+    }
+    return fatAdjusted.coerceAtLeast(500.0)
 }
 
 fun tdeeKcal(p: Profile): Double? {
