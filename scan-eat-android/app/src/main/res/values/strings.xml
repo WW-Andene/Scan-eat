@@ -1623,7 +1623,7 @@
     <string name="foodsearch_never_tried_title">Jamais essayé</string>
     <string name="dashboard_tile_symptoms">Symptômes</string>
     <string name="symptom_title">Carnet de symptômes</string>
-    <string name="symptom_empty">Aucun symptôme enregistré</string>
+    <string name="symptom_empty">Aucun symptôme enregistré. Appuyez sur + pour en ajouter un.</string>
     <string name="symptom_add_dialog_title">Ajouter un symptôme</string>
     <string name="symptom_field_custom_label">Nom du symptôme</string>
     <string name="symptom_field_severity">Intensité : %1$d/5</string>
@@ -1645,9 +1645,9 @@
     <string name="pantry_title">Garde-manger</string>
     <string name="pantry_edit_dialog_title">Modifier l\'article</string>
     <string name="pantry_search_placeholder">Rechercher dans le garde-manger</string>
-    <string name="pantry_search_empty">Aucun article ne correspond à cette recherche</string>
+    <string name="pantry_search_empty">Aucun article ne correspond à cette recherche.</string>
     <string name="pantry_field_category">Catégorie</string>
-    <string name="pantry_recalled_warning">Produit rappelé</string>
+    <string name="pantry_recalled_warning">Produit rappelé — ne pas consommer, vérifiez RappelConso</string>
     <string name="weight_plateau_warning">Plateau : poids quasi stable depuis 30 jours malgré votre objectif</string>
     <string name="expenses_annual_projection_title">Empreinte financière annuelle</string>
     <string name="expenses_annual_projection_amount">Estimation : %1$s / an au rythme actuel</string>

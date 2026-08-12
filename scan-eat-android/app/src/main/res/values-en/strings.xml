@@ -1561,7 +1561,7 @@
     <string name="foodsearch_never_tried_title">Never tried</string>
     <string name="dashboard_tile_symptoms">Symptoms</string>
     <string name="symptom_title">Symptom journal</string>
-    <string name="symptom_empty">No symptom logged yet</string>
+    <string name="symptom_empty">No symptom logged yet. Tap + to add one.</string>
     <string name="symptom_add_dialog_title">Add a symptom</string>
     <string name="symptom_field_custom_label">Symptom name</string>
     <string name="symptom_field_severity">Severity: %1$d/5</string>
@@ -1583,9 +1583,9 @@
     <string name="pantry_title">Pantry</string>
     <string name="pantry_edit_dialog_title">Edit item</string>
     <string name="pantry_search_placeholder">Search pantry</string>
-    <string name="pantry_search_empty">No item matches this search</string>
+    <string name="pantry_search_empty">No item matches this search.</string>
     <string name="pantry_field_category">Category</string>
-    <string name="pantry_recalled_warning">Recalled product</string>
+    <string name="pantry_recalled_warning">Recalled product — do not consume, check the official recall notice</string>
     <string name="weight_plateau_warning">Plateau: weight has barely moved in 30 days despite your goal</string>
     <string name="expenses_annual_projection_title">Annual financial footprint</string>
     <string name="expenses_annual_projection_amount">Estimate: %1$s / year at the current rate</string>
