@@ -42,14 +42,17 @@ import fr.scanneat.domain.engine.nonconsumable.FormulaComplexity
 import fr.scanneat.domain.engine.nonconsumable.ShampooQualityResult
 import fr.scanneat.domain.engine.nonconsumable.ShowerGelCleansingBase
 import fr.scanneat.domain.engine.nonconsumable.ShowerGelQualityResult
+import fr.scanneat.domain.engine.nonconsumable.ToothpasteQualityResult
 import fr.scanneat.domain.engine.nonconsumable.computeCosmeticTransparency
 import fr.scanneat.domain.engine.nonconsumable.computeShampooQuality
 import fr.scanneat.domain.engine.nonconsumable.computeShowerGelQuality
+import fr.scanneat.domain.engine.nonconsumable.computeToothpasteQuality
 import fr.scanneat.domain.engine.nonconsumable.findProhibitedSubstances
 import fr.scanneat.domain.engine.nonconsumable.findRestrictedSubstances
 import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
 import fr.scanneat.domain.engine.nonconsumable.isLikelyShampoo
 import fr.scanneat.domain.engine.nonconsumable.isLikelyShowerGel
+import fr.scanneat.domain.engine.nonconsumable.isLikelyToothpaste
 import fr.scanneat.presentation.medication.InteractionWarning
 import fr.scanneat.presentation.medication.components.MedicationInteractionWarningBanner
 import fr.scanneat.presentation.result.FactsCautionsColumn
@@ -183,6 +186,11 @@ internal fun BoxScope.ScanStateOverlay(
             val showerGelQuality = remember(s.entry) {
                 if (isLikelyShowerGel(s.entry.name)) computeShowerGelQuality(s.entry.ingredientsText) else null
             }
+            // app-audit: étape 3c (per-category functional score, dentifrice
+            // third) - see ToothpasteQualityScore.kt's own header for the data source.
+            val toothpasteQuality = remember(s.entry) {
+                if (isLikelyToothpaste(s.entry.name)) computeToothpasteQuality(s.entry.ingredientsText) else null
+            }
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -196,6 +204,7 @@ internal fun BoxScope.ScanStateOverlay(
                         CosmeticTransparencySection(transparency, prohibited, restricted)
                         if (shampooQuality != null) ShampooQualitySection(shampooQuality)
                         if (showerGelQuality != null) ShowerGelQualitySection(showerGelQuality)
+                        if (toothpasteQuality != null) ToothpasteQualitySection(toothpasteQuality)
                         FactsCautionsColumn(hints.facts, hints.cautions)
                     }
                 },
@@ -323,5 +332,39 @@ private fun ShowerGelQualitySection(result: ShowerGelQualityResult) {
             Text(stringResource(R.string.shower_gel_contains_marketing_emollient, result.marketingEmollientCount), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
         }
         Text(stringResource(R.string.shower_gel_quality_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
+    }
+}
+
+/**
+ * User-requested: a real functional profile for toothpaste/dentifrice
+ * specifically (third of the planned series) - see
+ * ToothpasteQualityScore.kt's own header for the sourcing and the important
+ * limitation that INCI ingredient lists carry no concentration (ppm/RDA)
+ * data, so fluoride/abrasivity here are presence-only signals.
+ */
+@Composable
+private fun ToothpasteQualitySection(result: ToothpasteQualityResult) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+        Text(
+            stringResource(R.string.toothpaste_quality_title),
+            style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
+        )
+        Text(
+            if (result.hasFluoride) stringResource(R.string.toothpaste_has_fluoride) else stringResource(R.string.toothpaste_no_fluoride),
+            style = MaterialTheme.typography.bodySmall, color = if (result.hasFluoride) semanticGreen() else semanticAmber(),
+        )
+        if (result.higherAbrasiveCount > 0) {
+            Text(stringResource(R.string.toothpaste_higher_abrasive, result.higherAbrasiveCount), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+        }
+        if (result.lowerAbrasiveCount > 0) {
+            Text(stringResource(R.string.toothpaste_lower_abrasive, result.lowerAbrasiveCount), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+        }
+        if (result.oralIrritantCount > 0) {
+            Text(stringResource(R.string.toothpaste_oral_irritant, result.oralIrritantCount), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+        }
+        if (result.sensitivityCareCount > 0) {
+            Text(stringResource(R.string.toothpaste_sensitivity_care, result.sensitivityCareCount), style = MaterialTheme.typography.bodySmall, color = semanticGreen())
+        }
+        Text(stringResource(R.string.toothpaste_quality_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
     }
 }

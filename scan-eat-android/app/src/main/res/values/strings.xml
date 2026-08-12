@@ -55,6 +55,14 @@
     <string name="shower_gel_contains_proven_emollient">Contient %1$d hydratant(s) à efficacité cliniquement démontrée (ex. glycérine, panthénol).</string>
     <string name="shower_gel_contains_marketing_emollient">Contient %1$d ingrédient(s) émollient(s) courant(s) (ex. beurre de karité, huiles végétales) sans preuve clinique équivalente.</string>
     <string name="shower_gel_quality_disclaimer">Profil de base nettoyante uniquement, basé sur une liste restreinte et évolutive d\'ingrédients courants de gel douche — non exhaustif, pas un verdict de danger.</string>
+    <string name="toothpaste_quality_title">Profil du dentifrice</string>
+    <string name="toothpaste_has_fluoride">Contient un composé fluoré (protection anti-carie reconnue, concentration non vérifiable sur l\'étiquette).</string>
+    <string name="toothpaste_no_fluoride">Aucun composé fluoré détecté dans la liste d\'ingrédients.</string>
+    <string name="toothpaste_higher_abrasive">Contient %1$d agent(s) polissant(s) à abrasivité relative plus élevée (ex. silice).</string>
+    <string name="toothpaste_lower_abrasive">Contient %1$d agent(s) polissant(s) à abrasivité relative plus faible (ex. carbonate de calcium).</string>
+    <string name="toothpaste_oral_irritant">Contient %1$d ingrédient(s) associé(s), avec un niveau de preuve limité, à un risque accru d\'aphtes (ex. sulfate de sodium).</string>
+    <string name="toothpaste_sensitivity_care">Contient %1$d ingrédient(s) pour dents sensibles (preuves cliniques faibles à mitigées).</string>
+    <string name="toothpaste_quality_disclaimer">Profil basé sur la présence d\'ingrédients uniquement (pas de concentration ppm/RDA disponible), sur une liste restreinte et évolutive — non exhaustif, pas un verdict de danger.</string>
     <string name="nonfood_history_title">Produits non-alimentaires</string>
     <string name="nonfood_history_empty">Aucun produit non-alimentaire scanné pour le moment.</string>
     <string name="nonfood_history_empty_favorites">Aucun produit non-alimentaire favori pour le moment.</string>

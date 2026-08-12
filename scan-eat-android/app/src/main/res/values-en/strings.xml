@@ -55,6 +55,14 @@
     <string name="shower_gel_contains_proven_emollient">Contains %1$d clinically-evidenced moisturizer(s) (e.g. glycerin, panthenol).</string>
     <string name="shower_gel_contains_marketing_emollient">Contains %1$d common emollient(s) (e.g. shea butter, plant oils) without equivalent clinical evidence.</string>
     <string name="shower_gel_quality_disclaimer">Cleansing-base profile only, based on a small, growing list of common shower gel ingredients — not exhaustive, not a hazard verdict.</string>
+    <string name="toothpaste_quality_title">Toothpaste profile</string>
+    <string name="toothpaste_has_fluoride">Contains a fluoride compound (recognized caries protection, concentration not verifiable from the label).</string>
+    <string name="toothpaste_no_fluoride">No fluoride compound detected in the ingredient list.</string>
+    <string name="toothpaste_higher_abrasive">Contains %1$d higher-relative-abrasivity polishing agent(s) (e.g. silica).</string>
+    <string name="toothpaste_lower_abrasive">Contains %1$d lower-relative-abrasivity polishing agent(s) (e.g. calcium carbonate).</string>
+    <string name="toothpaste_oral_irritant">Contains %1$d ingredient(s) with limited-evidence association to increased mouth ulcer risk (e.g. sodium lauryl sulfate).</string>
+    <string name="toothpaste_sensitivity_care">Contains %1$d sensitivity-relief ingredient(s) (weak to mixed clinical evidence).</string>
+    <string name="toothpaste_quality_disclaimer">Presence-only profile (no ppm/RDA concentration data available), based on a small, growing list — not exhaustive, not a hazard verdict.</string>
     <string name="nonfood_history_title">Non-food products</string>
     <string name="nonfood_history_empty">No non-food products scanned yet.</string>
     <string name="nonfood_history_empty_favorites">No favorite non-food products yet.</string>
