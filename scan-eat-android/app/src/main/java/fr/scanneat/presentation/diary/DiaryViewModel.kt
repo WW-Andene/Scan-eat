@@ -341,6 +341,34 @@ class DiaryViewModel @Inject constructor(
             .flatMapLatest { (q, id) -> if (q.isBlank()) flowOf(emptyList()) else scanRepo.searchHistory(q, id) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // User-requested: Quick Add's search previously only ever covered
+    // FOOD_DB/custom foods and this user's own scan history - unlike the
+    // "Recherche" tab (FoodSearchViewModel), it never queried Open Food
+    // Facts' live catalog at all, so anything not already scanned before
+    // was simply unfindable from this "+" flow, even though the exact same
+    // product was one tap away in Recherche. Reuses scanRepo.searchOffProducts
+    // (the same call Recherche's own online search makes) and
+    // addEntryFromScan/addEntryFromScanWithDestinations below (already built
+    // for scanSearchResults, since an online OFF hit is a ScanResult too) -
+    // no new logging path needed, only a new source feeding the same one.
+    // Same 700ms/2-char debounce floor Recherche's own online search uses
+    // (OFF's published guideline is ~10 search requests/minute, well below
+    // what the two local sources above can safely re-query on every
+    // keystroke) - deliberately no persistent typing-cache/instant-match
+    // layer here (that's FoodSearchViewModel's own multi-session
+    // optimization), just the live call itself, so this panel is never
+    // worse than before while offline or between keystrokes.
+    val onlineSearchResults: StateFlow<List<ScanResult>> =
+        _searchQuery.debounce(700).map { it.trim() }.distinctUntilChanged()
+            .flatMapLatest { q ->
+                if (q.length < 2) flowOf(emptyList())
+                else flow {
+                    val lang = prefs.language.first()
+                    emit(runCatching { scanRepo.searchOffProducts(q, lang) }.getOrDefault(emptyList()))
+                }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun setSearchQuery(q: String) { _searchQuery.value = q }
     fun clearSearch() { _searchQuery.value = "" }
 

@@ -41,6 +41,15 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
     val query      = viewModel.searchQuery.collectAsStateWithLifecycle()
     val results    = viewModel.searchResults.collectAsStateWithLifecycle()
     val scanResults = viewModel.scanSearchResults.collectAsStateWithLifecycle()
+    val onlineResults = viewModel.onlineSearchResults.collectAsStateWithLifecycle()
+    // A barcode already in scanResults (this user's own history) is a more
+    // precise/faster hit than the same product surfacing again from the live
+    // OFF catalog search - same dedup reasoning as Recherche's own merge of
+    // its scanned/online sources.
+    val scannedBarcodes = remember(scanResults.value) { scanResults.value.mapNotNull { it.barcode }.toSet() }
+    val dedupedOnlineResults = remember(onlineResults.value, scannedBarcodes) {
+        onlineResults.value.filter { it.barcode !in scannedBarcodes }
+    }
     var selected by remember { mutableStateOf<FoodEntry?>(null) }
     var selectedScan by remember { mutableStateOf<ScanResult?>(null) }
 
@@ -122,7 +131,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                 )
                 Spacer(Modifier.height(Spacing.S))
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    if (query.value.isNotBlank() && results.value.isEmpty() && scanResults.value.isEmpty()) {
+                    if (query.value.isNotBlank() && results.value.isEmpty() && scanResults.value.isEmpty() && dedupedOnlineResults.isEmpty()) {
                         item {
                             Text(stringResource(R.string.diary_add_entry_no_results, query.value),
                                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
@@ -133,6 +142,33 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                     // sourced nutrition is a more precise match than a FOOD_DB
                     // approximation of the same food.
                     items(scanResults.value, key = { "scan-${it.dbId}" }) { scan ->
+                        Surface(
+                            onClick = { selectedScan = scan },
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
+                            color = SurfaceVariant.copy(alpha = 0.42f),
+                            modifier = Modifier.fillMaxWidth()
+                                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .clip(RoundedCornerShape(CardRadius.CONTROL)),
+                            shadowElevation = 0.dp,
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.diary_add_entry_kcal_per_100g, scan.product.nutrition.energyKcal.toInt()),
+                                    style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                            }
+                        }
+                    }
+                    // Live Open Food Facts hits - anything not already in this
+                    // user's own scan history, so the "+" flow finally reaches
+                    // the same catalog "Recherche" already searches instead of
+                    // being limited to FOOD_DB/custom foods + past scans.
+                    items(dedupedOnlineResults, key = { "online-${it.barcode}" }) { scan ->
                         Surface(
                             onClick = { selectedScan = scan },
                             shape = RoundedCornerShape(CardRadius.CONTROL),
