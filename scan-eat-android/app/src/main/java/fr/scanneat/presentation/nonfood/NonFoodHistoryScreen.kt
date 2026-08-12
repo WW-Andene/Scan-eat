@@ -165,11 +165,16 @@ private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Uni
 /**
  * Compact single-line functional-score summary for a History row - see this
  * file's own "Added 13/08/2026" comment above on why this exists. Returns
- * (text, color) for the first of the six per-category scores that applies,
- * same priority order/isLikelyX gates ScanStateOverlay's dialog uses, or
- * null when [ingredientsText] is unavailable or none of the six curated
- * ingredient lists matched anything (see each compute*Quality's own
- * "consistency fix" doc comment on why that's null, not an empty result).
+ * (text, color) for the first of the six per-category scores that applies.
+ * History can only show one badge per row, so it picks in the same
+ * declaration order ScanStateOverlay.kt renders its dialog sections in
+ * (shampoo -> showerGel -> toothpaste -> cosmeticActives -> intimateWipe ->
+ * makeup) - note the overlay itself is NOT first-match-wins, it shows every
+ * matching section at once; this function is a single-badge approximation
+ * of that same order, not a behavioral match. Returns null when
+ * [ingredientsText] is unavailable or none of the six curated ingredient
+ * lists matched anything (see each compute*Quality's own "consistency fix"
+ * doc comment on why that's null, not an empty result).
  */
 @Composable
 private fun functionalBadgeFor(name: String, brand: String, ingredientsText: String?): Pair<String, androidx.compose.ui.graphics.Color>? {
@@ -202,11 +207,11 @@ private fun functionalBadgeFor(name: String, brand: String, ingredientsText: Str
             else stringResource(R.string.toothpaste_no_fluoride) to semanticAmber()
         }
     }
-    if (isLikelyMakeup(name, brand)) {
-        computeMakeupQuality(ingredientsText)?.let {
-            if (it.hasTalc) return stringResource(R.string.makeup_has_talc) to semanticAmber()
-            if (it.hasRegulatedPreservative) return stringResource(R.string.makeup_has_regulated_preservative) to semanticGreen()
-            if (it.hasComedogenicContested) return stringResource(R.string.makeup_has_comedogenic_contested) to OnBackground.copy(0.7f)
+    if (isLikelyGeneralCosmetic(name, brand)) {
+        computeCosmeticActives(ingredientsText)?.let {
+            if (it.hasNiacinamide) return stringResource(R.string.cosmetic_has_niacinamide) to semanticGreen()
+            if (it.hasVitaminC) return stringResource(R.string.cosmetic_has_vitamin_c) to semanticGreen()
+            if (it.hasRetinoid) return stringResource(R.string.cosmetic_has_retinoid_caution) to semanticAmber()
         }
     }
     if (isLikelyIntimateWipe(name)) {
@@ -216,11 +221,11 @@ private fun functionalBadgeFor(name: String, brand: String, ingredientsText: Str
             if (it.hasPhBuffering) return stringResource(R.string.intimate_wipe_has_ph_buffering) to semanticGreen()
         }
     }
-    if (isLikelyGeneralCosmetic(name, brand)) {
-        computeCosmeticActives(ingredientsText)?.let {
-            if (it.hasNiacinamide) return stringResource(R.string.cosmetic_has_niacinamide) to semanticGreen()
-            if (it.hasVitaminC) return stringResource(R.string.cosmetic_has_vitamin_c) to semanticGreen()
-            if (it.hasRetinoid) return stringResource(R.string.cosmetic_has_retinoid_caution) to semanticAmber()
+    if (isLikelyMakeup(name, brand)) {
+        computeMakeupQuality(ingredientsText)?.let {
+            if (it.hasTalc) return stringResource(R.string.makeup_has_talc) to semanticAmber()
+            if (it.hasRegulatedPreservative) return stringResource(R.string.makeup_has_regulated_preservative) to semanticGreen()
+            if (it.hasComedogenicContested) return stringResource(R.string.makeup_has_comedogenic_contested) to OnBackground.copy(0.7f)
         }
     }
     return null
