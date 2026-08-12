@@ -451,10 +451,16 @@ class PersonalScoreEngineTest {
     }
 
     @Test
-    fun `Ordinary chicken breast does not trigger the kidney_disease protein caution`() {
-        // 23g protein/100g is completely unremarkable for FRESH_MEAT (category's
-        // own high tier is 25g) - the old flat 15g bar flagged literally every
-        // fresh meat/fish scan regardless of being typical for the category.
+    fun `Ordinary chicken breast triggers the kidney_disease protein caution - absolute budget, not category-relative`() {
+        // Pass-2 audit finding, sourced against French clinical guidance
+        // (ameli.fr/Assurance Maladie, French nephrology sources): CKD
+        // protein restriction is a hard DAILY GRAM BUDGET (0.55-1.0 g/kg/day
+        // depending on stage), not a "is this unusually protein-dense for
+        // its category" quality judgment. 23g protein/100g counts fully
+        // toward a kidney patient's fixed daily allowance regardless of
+        // being entirely typical for FRESH_MEAT - the flat 15g absolute bar
+        // (reverted from an earlier category-relative version in commit
+        // 184b854) correctly flags it.
         val chicken = Product(
             name = "Blanc de poulet", category = ProductCategory.FRESH_MEAT, novaClass = NovaClass.UNPROCESSED,
             ingredients = listOf(Ingredient(name = "poulet", isWholeFood = true, category = IngredientCategory.FOOD)),
@@ -465,15 +471,15 @@ class PersonalScoreEngineTest {
         )
         val audit = scoreProduct(chicken)
         val result = computePersonalScore(audit, chicken, maleProfile().copy(healthConditions = setOf("kidney_disease")), lang = "en")
-        assertTrue("Ordinary meat protein should not trigger the kidney_disease caution",
-            result.adjustments.none { it.category == AdjustmentCategory.CONDITION })
+        assertTrue("Meat protein above the absolute 15g/100g budget bar should trigger the kidney_disease caution",
+            result.adjustments.any { it.category == AdjustmentCategory.CONDITION && it.reason.contains("protein", ignoreCase = true) })
     }
 
     @Test
-    fun `Protein bar unusually protein-dense for its own category still triggers the kidney_disease caution`() {
-        // 18g protein/100g is unremarkable for meat/fish but genuinely unusual
-        // for SNACK_SWEET (category's own high tier is only 10g) - the fix must
-        // still catch a real outlier, not just raise the bar for everything.
+    fun `Protein bar above the kidney_disease absolute protein bar still triggers the caution`() {
+        // Same absolute-budget bar as the chicken-breast test above - this
+        // is no longer testing category-relative behavior (there is none),
+        // just confirming the caution fires for a different category too.
         val proteinBar = Product(
             name = "Barre protéinée", category = ProductCategory.SNACK_SWEET, novaClass = NovaClass.ULTRA_PROCESSED,
             ingredients = listOf(Ingredient(name = "isolat de protéine de lactosérum", category = IngredientCategory.FOOD)),
