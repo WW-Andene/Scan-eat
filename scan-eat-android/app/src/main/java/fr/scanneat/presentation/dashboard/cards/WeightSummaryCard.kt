@@ -44,5 +44,16 @@ internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummar
                 }
             }
         }
+        // User-requested: automatic plateau detection - weightForecast()
+        // already computes Flat whenever the 30-day trend slope is below the
+        // scale-noise floor (see its own doc comment), but with an active
+        // goal set (the only time this function is even called - see
+        // DashboardHeavyState) that specifically means "you have a goal and
+        // the scale hasn't meaningfully moved in a month", not just "no
+        // trend yet" - previously computed but silently dropped, never
+        // rendered anywhere.
+        if (forecast is WeightForecast.Flat) {
+            Text(stringResource(R.string.weight_plateau_warning), style = MaterialTheme.typography.labelSmall, color = semanticAmber())
+        }
   }
 }
