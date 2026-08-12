@@ -24,13 +24,17 @@ import fr.scanneat.domain.engine.scoring.normalizeForMatching
 //     questions this - presented here as "historically flagged, contested
 //     by newer evidence", not a pore-clogging verdict.
 //   - Lead in lipstick: FDA, "Limiting Lead in Lipstick and Other
-//     Cosmetics" / "Lead in Cosmetics" - FDA's own survey found an average
-//     of 1.11 ppm lead across ~400 lipsticks tested, with guidance capping
-//     lead as an unavoidable trace impurity at 10 ppm max - FDA states
-//     current levels are NOT a safety concern. This is a LARGELY RESOLVED
-//     historical concern, not an active hazard - presented as a factual,
-//     reassuring note, not a caution, since ingredient lists don't carry
-//     ppm data anyway (same limitation as ToothpasteQualityScore's fluoride
+//     Cosmetics" / "Lead in Cosmetics" - FDA's own ~400-lipstick survey
+//     found an average lead level of roughly 1 ppm (corrected 13/08/2026:
+//     an earlier draft cited a more precise "1.11 ppm" figure that appears
+//     only in secondary summaries, not clearly FDA's own stated number -
+//     now stated as an approximate figure rather than false precision),
+//     with guidance capping lead as an unavoidable trace impurity at 10 ppm
+//     max - FDA states current levels are NOT a safety concern. This is a
+//     LARGELY RESOLVED historical concern, not an active hazard -
+//     presented as a factual, reassuring note, not a caution, since
+//     ingredient lists don't carry ppm data anyway (same limitation as
+//     ToothpasteQualityScore's fluoride
 //     ppm caveat).
 //   - Talc/asbestos: FDA Federal Register rulemaking on standardized
 //     asbestos-testing methods for talc-containing cosmetics (mandated by
@@ -106,13 +110,13 @@ fun generateMakeupEducationalFacts(productName: String, lang: String): MakeupEdu
     val facts = mutableListOf<String>()
 
     if ("rouge a levres" in n || "lipstick" in n) {
-        facts += if (en) "FDA's own survey of ~400 lipsticks found an average lead level of 1.11 ppm, well within its 10 ppm guidance cap for this unavoidable trace impurity - FDA states current lipstick lead levels are not a safety concern (a largely resolved historical topic, not an active one)."
-                 else "L'enquête de la FDA sur environ 400 rouges à lèvres a mesuré une teneur moyenne en plomb de 1,11 ppm, bien en dessous de son seuil de tolérance de 10 ppm pour cette impureté à l'état de trace inévitable — la FDA indique que les niveaux actuels de plomb dans les rouges à lèvres ne posent pas de problème de sécurité (un sujet historique largement résolu, pas une préoccupation active)."
+        facts += if (en) "FDA's own survey of ~400 lipsticks found an average lead level of roughly 1 ppm, well within its 10 ppm guidance cap for this unavoidable trace impurity - FDA states current lipstick lead levels are not a safety concern (a largely resolved historical topic, not an active one)."
+                 else "L'enquête de la FDA sur environ 400 rouges à lèvres a mesuré une teneur moyenne en plomb d'environ 1 ppm, bien en dessous de son seuil de tolérance de 10 ppm pour cette impureté à l'état de trace inévitable — la FDA indique que les niveaux actuels de plomb dans les rouges à lèvres ne posent pas de problème de sécurité (un sujet historique largement résolu, pas une préoccupation active)."
     }
 
     if ("mascara" in n || "eyeliner" in n) {
-        facts += if (en) "Eye cosmetics (mascara, eyeliner) are commonly recommended for replacement roughly every 3 months, since repeated applicator contact with the eye area is a recognized route for microbial contamination over time."
-                 else "Les cosmétiques pour les yeux (mascara, eyeliner) sont généralement recommandés à remplacer tous les 3 mois environ, car le contact répété de l'applicateur avec la zone oculaire est une voie reconnue de contamination microbienne progressive."
+        facts += if (en) "Eye cosmetics (mascara, eyeliner) are commonly replaced roughly every 3 months as a widely-repeated convention (not a single formal regulatory standard), since repeated applicator contact with the eye area is a recognized route for microbial contamination over time - one primary study found roughly a third of in-use mascaras contaminated by that point."
+                 else "Les cosmétiques pour les yeux (mascara, eyeliner) sont généralement remplacés tous les 3 mois environ, une convention largement répandue (pas une norme réglementaire unique et formelle), car le contact répété de l'applicateur avec la zone oculaire est une voie reconnue de contamination microbienne progressive — une étude a mesuré qu'environ un tiers des mascaras en cours d'utilisation étaient contaminés à ce stade."
     }
 
     return MakeupEducationalFacts(facts)
