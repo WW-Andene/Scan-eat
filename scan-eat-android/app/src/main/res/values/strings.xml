@@ -1757,6 +1757,7 @@
     <string name="result_classic_score_label">Score classique</string>
     <string name="result_personal_score_label">Score personnel</string>
     <string name="result_veto_description">Veto : incompatible avec votre profil, quel que soit le score</string>
+    <string name="result_veto_short_label">Incompatible</string>
     <string name="result_pillars_title">Détail des piliers</string>
     <string name="result_pillar_score">%1$d/%2$d</string>
     <string name="result_nutrition_title">Nutrition / 100 g</string>
@@ -1825,7 +1826,7 @@
     <string name="reminders_notif_hydration_title">Hydratation</string>
     <string name="reminders_notif_hydration_body">Pensez à boire un verre d\'eau.</string>
     <string name="reminders_notif_weight_title">Pesée</string>
-    <string name="reminders_notif_weight_body">Ça fait un moment — enregistrez votre poids.</string>
+    <string name="reminders_notif_weight_body">Envie de noter votre poids aujourd\'hui ?</string>
     <string name="reminders_notif_fasting_title">Jeûne terminé</string>
     <string name="reminders_notif_fasting_body">Vous avez atteint votre objectif de jeûne — bravo !</string>
     <string name="reminders_notif_medication_title">Traitement</string>

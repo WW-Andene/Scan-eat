@@ -1695,6 +1695,7 @@
     <string name="result_classic_score_label">Classic Score</string>
     <string name="result_personal_score_label">Personal Score</string>
     <string name="result_veto_description">Veto: incompatible with your profile regardless of score</string>
+    <string name="result_veto_short_label">Incompatible</string>
     <string name="result_pillars_title">Pillar Breakdown</string>
     <string name="result_pillar_score">%1$d/%2$d</string>
     <string name="result_nutrition_title">Nutrition / 100 g</string>
@@ -1763,7 +1764,7 @@
     <string name="reminders_notif_hydration_title">Hydration</string>
     <string name="reminders_notif_hydration_body">Remember to drink a glass of water.</string>
     <string name="reminders_notif_weight_title">Weigh-in</string>
-    <string name="reminders_notif_weight_body">It\'s been a while — log your weight.</string>
+    <string name="reminders_notif_weight_body">Want to log your weight today?</string>
     <string name="reminders_notif_fasting_title">Fast complete</string>
     <string name="reminders_notif_fasting_body">You\'ve reached your fasting goal — well done!</string>
     <string name="reminders_notif_medication_title">Medication</string>
