@@ -40,19 +40,25 @@ import fr.scanneat.domain.engine.nonconsumable.CleansingBase
 import fr.scanneat.domain.engine.nonconsumable.CosingMatch
 import fr.scanneat.domain.engine.nonconsumable.FormulaComplexity
 import fr.scanneat.domain.engine.nonconsumable.ShampooQualityResult
+import fr.scanneat.domain.engine.nonconsumable.AbsorbentHygieneFacts
 import fr.scanneat.domain.engine.nonconsumable.CosmeticActivesResult
+import fr.scanneat.domain.engine.nonconsumable.IntimateWipeQualityResult
 import fr.scanneat.domain.engine.nonconsumable.ShowerGelCleansingBase
 import fr.scanneat.domain.engine.nonconsumable.ShowerGelQualityResult
 import fr.scanneat.domain.engine.nonconsumable.ToothpasteQualityResult
 import fr.scanneat.domain.engine.nonconsumable.computeCosmeticActives
 import fr.scanneat.domain.engine.nonconsumable.computeCosmeticTransparency
+import fr.scanneat.domain.engine.nonconsumable.computeIntimateWipeQuality
 import fr.scanneat.domain.engine.nonconsumable.computeShampooQuality
 import fr.scanneat.domain.engine.nonconsumable.computeShowerGelQuality
 import fr.scanneat.domain.engine.nonconsumable.computeToothpasteQuality
 import fr.scanneat.domain.engine.nonconsumable.findProhibitedSubstances
 import fr.scanneat.domain.engine.nonconsumable.findRestrictedSubstances
+import fr.scanneat.domain.engine.nonconsumable.generateAbsorbentHygieneFacts
 import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
+import fr.scanneat.domain.engine.nonconsumable.isLikelyAbsorbentHygieneProduct
 import fr.scanneat.domain.engine.nonconsumable.isLikelyGeneralCosmetic
+import fr.scanneat.domain.engine.nonconsumable.isLikelyIntimateWipe
 import fr.scanneat.domain.engine.nonconsumable.isLikelyShampoo
 import fr.scanneat.domain.engine.nonconsumable.isLikelyShowerGel
 import fr.scanneat.domain.engine.nonconsumable.isLikelyToothpaste
@@ -203,6 +209,16 @@ internal fun BoxScope.ScanStateOverlay(
                     computeCosmeticActives(s.entry.ingredientsText)
                 } else null
             }
+            // app-audit: étape 3e (per-category functional score, hygiène
+            // intime fifth/last) - see IntimateHygieneScore.kt's own header
+            // for why this splits into an ingredient-based wipe score and a
+            // name-based educational fact set for tampons/pads.
+            val intimateWipeQuality = remember(s.entry) {
+                if (isLikelyIntimateWipe(s.entry.name)) computeIntimateWipeQuality(s.entry.ingredientsText) else null
+            }
+            val absorbentHygieneFacts = remember(s.entry, language) {
+                if (isLikelyAbsorbentHygieneProduct(s.entry.name)) generateAbsorbentHygieneFacts(s.entry.name, language) else null
+            }
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -218,6 +234,8 @@ internal fun BoxScope.ScanStateOverlay(
                         if (showerGelQuality != null) ShowerGelQualitySection(showerGelQuality)
                         if (toothpasteQuality != null) ToothpasteQualitySection(toothpasteQuality)
                         if (cosmeticActives != null) CosmeticActivesSection(cosmeticActives)
+                        if (intimateWipeQuality != null) IntimateWipeQualitySection(intimateWipeQuality)
+                        if (absorbentHygieneFacts != null) AbsorbentHygieneFactsSection(absorbentHygieneFacts)
                         FactsCautionsColumn(hints.facts, hints.cautions)
                     }
                 },
@@ -415,5 +433,49 @@ private fun CosmeticActivesSection(result: CosmeticActivesResult) {
             Text(stringResource(R.string.cosmetic_has_chemical_uv_filter_caution, result.chemicalUvFilterCautionCount), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
         }
         Text(stringResource(R.string.cosmetic_actives_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
+    }
+}
+
+/**
+ * User-requested: a real functional profile for intimate wet wipes
+ * specifically (fifth/last of the planned series) - see
+ * IntimateHygieneScore.kt's own header for the sourcing.
+ */
+@Composable
+private fun IntimateWipeQualitySection(result: IntimateWipeQualityResult) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+        Text(
+            stringResource(R.string.intimate_wipe_quality_title),
+            style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
+        )
+        if (result.hasFragrance) {
+            Text(stringResource(R.string.intimate_wipe_has_fragrance), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+        }
+        if (result.hasAlcohol) {
+            Text(stringResource(R.string.intimate_wipe_has_alcohol), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+        }
+        if (result.hasPhBuffering) {
+            Text(stringResource(R.string.intimate_wipe_has_ph_buffering), style = MaterialTheme.typography.bodySmall, color = semanticGreen())
+        }
+        Text(stringResource(R.string.intimate_wipe_quality_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
+    }
+}
+
+/**
+ * NOT a per-ingredient score (tampons/pads rarely carry a usable ingredient
+ * list - see IntimateHygieneScore.kt's own header) - a small set of
+ * well-sourced educational facts, explicitly separating what's
+ * well-established from what's weakly evidenced or still under active
+ * research, rather than a hazard/quality verdict.
+ */
+@Composable
+private fun AbsorbentHygieneFactsSection(result: AbsorbentHygieneFacts) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+        Text(
+            stringResource(R.string.absorbent_hygiene_facts_title),
+            style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
+        )
+        result.facts.forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f)) }
+        result.notes.forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber()) }
     }
 }
