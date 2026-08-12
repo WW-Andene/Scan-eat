@@ -44,6 +44,12 @@ data class Profile(
     // single bucket it replaced which was too heterogeneous to score against.
     val healthConditions: Set<String> = emptySet(),
     val isMenstruating: Boolean = false,
+    // User-requested: trimester-adapted nutrition targets instead of the same
+    // static "pregnancy" veto/caution the whole pregnancy - only meaningful
+    // (and only ever surfaced in the UI) when "pregnancy" is also in
+    // [healthConditions]; see dailyTargets()'s own trimester logic and
+    // ProfileScreen's conditional date field.
+    val pregnancyStartDate: java.time.LocalDate? = null,
 )
 // NOTE: DailyTargets is defined in domain/engine/scoring/PersonalScoreEngine.kt (canonical location).
 // Do NOT add a second DailyTargets here.

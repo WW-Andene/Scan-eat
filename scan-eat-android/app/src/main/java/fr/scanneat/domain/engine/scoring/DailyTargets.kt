@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
 import fr.scanneat.domain.model.*
+import java.time.temporal.ChronoUnit
 
 data class DailyTargets(
     // Energy + macros
@@ -49,6 +50,50 @@ data class DailyTargets(
 private const val GOAL_KCAL_ADJUSTMENT = 500.0
 
 /**
+ * User-requested: trimester-adapted targets instead of the same flat
+ * "pregnancy" health-condition caution the whole pregnancy - see
+ * [Profile.pregnancyStartDate]'s own doc comment. Deliberately general,
+ * widely-cited figures (IOM Dietary Reference Intakes 2005/2011, EFSA DRVs)
+ * - a genuine per-person prenatal nutrition plan needs an obstetrician/
+ * dietitian, not this app; every UI surface showing these MUST keep the
+ * "consult a healthcare professional" disclaimer visible alongside them.
+ *
+ * Weeks-based, not a fixed day count per trimester - T1 ends at 13 weeks
+ * (91 days), T2 at 27 weeks (189 days), matching standard obstetric
+ * convention rather than splitting ~280 days into three even thirds.
+ */
+enum class PregnancyTrimester { FIRST, SECOND, THIRD }
+
+fun pregnancyTrimester(startDate: java.time.LocalDate, today: java.time.LocalDate): PregnancyTrimester {
+    val days = ChronoUnit.DAYS.between(startDate, today).coerceAtLeast(0)
+    return when {
+        days < 91  -> PregnancyTrimester.FIRST
+        days < 189 -> PregnancyTrimester.SECOND
+        else       -> PregnancyTrimester.THIRD
+    }
+}
+
+/** Extra kcal/day on top of maintenance TDEE - IOM 2005 EER pregnancy
+ *  increments, commonly rounded to +0 / +340 / +450. */
+private fun pregnancyKcalBonus(trimester: PregnancyTrimester): Double = when (trimester) {
+    PregnancyTrimester.FIRST  -> 0.0
+    PregnancyTrimester.SECOND -> 340.0
+    PregnancyTrimester.THIRD  -> 450.0
+}
+
+/** Extra protein g/day - IOM 2005 RDA bump (+25 g/day), applied from the
+ *  second trimester on (first-trimester needs are close to non-pregnant
+ *  baseline in most guidance). */
+private fun pregnancyProteinBonus(trimester: PregnancyTrimester): Double =
+    if (trimester == PregnancyTrimester.FIRST) 0.0 else 25.0
+
+/** Same gating [dailyTargets] applies internally - UI call sites (Profile's
+ *  trimester badge) read this instead of re-deriving the same "pregnancy" +
+ *  date-present check by hand. */
+fun currentPregnancyTrimester(p: Profile): PregnancyTrimester? =
+    if ("pregnancy" in p.healthConditions) p.pregnancyStartDate?.let { pregnancyTrimester(it, java.time.LocalDate.now()) } else null
+
+/**
  * [weightKgOverride] recomputes every weight-derived figure (BMR, protein
  * PRI target) as if the profile's body weight were this value instead of
  * [Profile.weightKg] - used to show what the day's macro targets would look
@@ -71,16 +116,25 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     // floor, not a per-profile clinical calculation - this app doesn't
     // attempt medical weight-loss supervision, so a hard floor here is the
     // right kind of guardrail rather than a fake precision figure.
-    val goalAdjustedKcal = when (p.goal) {
+    val goalAdjustedKcalBase = when (p.goal) {
         Goal.LOSE     -> (tdee - GOAL_KCAL_ADJUSTMENT).coerceAtLeast(1200.0)
         Goal.GAIN     -> tdee + GOAL_KCAL_ADJUSTMENT
         Goal.MAINTAIN -> tdee
     }
+    // Only when the profile has both explicitly opted into "pregnancy" as a
+    // health condition AND entered a start date (ProfileScreen only shows the
+    // date field once the former is true - see this function's own header
+    // comment on why this stays gated rather than inferred). Deliberately
+    // ignores Goal.LOSE's deficit/1200 floor above during pregnancy - an
+    // intentional calorie deficit isn't a scenario this app should be
+    // computing a "target" for at all here.
+    val trimester = currentPregnancyTrimester(p)
+    val goalAdjustedKcal = if (trimester != null) tdee + pregnancyKcalBonus(trimester) else goalAdjustedKcalBase
     // proteinTargetG(), not the bare proteinPriG() EFSA minimum - see that
     // function's own doc comment for why the Journal/Dashboard target needs
     // to be activity/goal-aware while the scan-result "% of EFSA PRI" callout
     // (ProteinAndBudgetAdjustments.kt) stays tied to the literal PRI figure.
-    val pri  = proteinTargetG(effectiveP) ?: 0.0
+    val pri  = (proteinTargetG(effectiveP) ?: 0.0) + (trimester?.let { pregnancyProteinBonus(it) } ?: 0.0)
     // Sex-specific iron: menstruating women 16 mg/day (EFSA 2015). Uses the
     // profile's own isMenstruating answer rather than inferring from age —
     // the app already asks this explicitly (ProfileScreen shows the checkbox
@@ -88,7 +142,11 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     // isn't currently menstruating (menopause, pregnancy, hormonal
     // contraception, amenorrhea) got the wrong 16 mg target from the age
     // heuristic alone, and the checkbox answer had no effect anywhere.
-    val ironTarget = if (p.sex == Sex.FEMALE && p.isMenstruating) 16.0 else 11.0
+    // Pregnancy overrides both: 27 mg/day (IOM 2001 RDA, commonly cited),
+    // higher than either non-pregnant figure for the whole pregnancy, not
+    // just later trimesters - iron-deficiency risk rises from early
+    // pregnancy on as blood volume expands.
+    val ironTarget = if (trimester != null) 27.0 else if (p.sex == Sex.FEMALE && p.isMenstruating) 16.0 else 11.0
     // Sex-specific zinc: women 7.5 mg/day (EFSA 2014)
     val zincTarget = if (p.sex == Sex.FEMALE) 7.5 else 9.4
     // Older adults: higher vitD target 20 µg/day ≥75y. Value unchanged, but the
@@ -141,7 +199,11 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
         zincMgTarget      = zincTarget,
         vitCMgTarget      = vitCTarget,
         vitAUgTarget      = vitATarget,
-        b9UgTarget        = 330.0,
+        // Pregnancy: 600 µg DFE/day (IOM 2001 RDA, commonly cited) vs 330 µg
+        // baseline - neural tube defect prevention is highest-stakes in the
+        // very first weeks, so this stays flat across all three trimesters
+        // rather than only bumping from a given week on.
+        b9UgTarget        = if (trimester != null) 600.0 else 330.0,
     )
 }
 

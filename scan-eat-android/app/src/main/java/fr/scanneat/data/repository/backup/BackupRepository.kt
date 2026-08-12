@@ -129,6 +129,7 @@ class BackupRepository @Inject constructor(
                 allergens = profile.allergens.toList(),
                 isMenstruating = profile.isMenstruating,
                 healthConditions = profile.healthConditions.toList(),
+                pregnancyStartDate = profile.pregnancyStartDate?.toString(),
             ),
             // Deliberately excludes the Groq API key — see BackupModels.kt.
             settings = SettingsBackup(

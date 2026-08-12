@@ -81,7 +81,9 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // Since v13: symptoms - a symptom journal added alongside Pantry's own
 // backup fix, included from the start this time rather than as a follow-up
 // audit finding.
-const val BACKUP_FORMAT_VERSION = 13
+// Since v14: profile.pregnancyStartDate - trimester-adapted nutrition
+// targets, see Profile.pregnancyStartDate's own doc comment.
+const val BACKUP_FORMAT_VERSION = 14
 
 data class ProfileBackup(
     val name: String,
@@ -101,6 +103,10 @@ data class ProfileBackup(
     // previously missing here entirely - restoring a backup to a new device silently
     // lost it, same class of gap allergens/isMenstruating above already cover.
     val healthConditions: List<String> = emptyList(),
+    // Since v14 - trimester-adapted pregnancy targets need this to survive a
+    // backup/restore like every other profile field above it, ISO
+    // yyyy-MM-dd or null.
+    val pregnancyStartDate: String? = null,
 )
 
 data class SettingsBackup(

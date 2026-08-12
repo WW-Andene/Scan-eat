@@ -267,6 +267,7 @@ class UserPreferences @Inject constructor(
                 isMenstruating = p[profileBoolKey(id, "menstruating")] ?: false,
                 allergens      = decryptCsvSet(p[profileKey(id, "allergens")]),
                 healthConditions = decryptCsvSet(p[profileKey(id, "conditions")]),
+                pregnancyStartDate = p[profileKey(id, "pregnancy_start")]?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() },
             )
             // Legacy fallback — the only profile storage that existed before
             // multi-profile support, read as-is until "default" is ever saved
@@ -387,6 +388,7 @@ class UserPreferences @Inject constructor(
         p[profileBoolKey(id, "menstruating")] = profile.isMenstruating
         p[profileKey(id, "allergens")]    = SecureFieldCipher.encrypt(profile.allergens.joinToString(","))
         p[profileKey(id, "conditions")]   = SecureFieldCipher.encrypt(profile.healthConditions.joinToString(","))
+        profile.pregnancyStartDate?.let { p[profileKey(id, "pregnancy_start")] = it.toString() } ?: p.remove(profileKey(id, "pregnancy_start"))
     }
 
     /** Convenience — update only weight (used by WeightRepository after logging

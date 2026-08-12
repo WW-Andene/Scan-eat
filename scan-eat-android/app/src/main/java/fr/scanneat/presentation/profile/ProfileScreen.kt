@@ -103,6 +103,11 @@ fun ProfileScreen(
     var allergens  by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.allergens) }
     var conditions by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.healthConditions) }
     var isMenstruating by rememberSaveable(profile.value) { mutableStateOf(profile.value.isMenstruating) }
+    // User-requested: trimester-adapted pregnancy targets, only reachable
+    // when "pregnancy" is also checked in conditions above (see this
+    // screen's own ConditionsSelector call site) - see
+    // Profile.pregnancyStartDate/dailyTargets' own doc comments.
+    var pregnancyStartDate by rememberSaveable(profile.value) { mutableStateOf(profile.value.pregnancyStartDate) }
     // Circumferences + ethnicity — previously only editable from Métabolisme >
     // Mon Profil (BiolismProfileScreen), even though they live in the same
     // BiolismRepository already synced with this screen's shared fields.
@@ -144,6 +149,7 @@ fun ProfileScreen(
                         allergens     = allergens,
                         healthConditions = conditions,
                         isMenstruating = isMenstruating,
+                        pregnancyStartDate = if ("pregnancy" in conditions) pregnancyStartDate else null,
                     ),
                     waistCm     = waistCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
                     hipCm       = hipCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
@@ -266,6 +272,18 @@ fun ProfileScreen(
             item {
                 ProfileSection(stringResource(R.string.profile_section_conditions)) {
                     ConditionsSelector(conditions) { conditions = it }
+                }
+            }
+
+            // ---- Pregnancy: trimester-adapted targets, only when
+            // "pregnancy" is checked above - see Profile.pregnancyStartDate/
+            // dailyTargets' own doc comments. ----
+            if ("pregnancy" in conditions) {
+                item {
+                    fr.scanneat.presentation.profile.components.PregnancySection(
+                        startDate = pregnancyStartDate,
+                        onDateChange = { pregnancyStartDate = it },
+                    )
                 }
             }
 

@@ -1651,6 +1651,13 @@
     <string name="expenses_annual_projection_title">Empreinte financière annuelle</string>
     <string name="expenses_annual_projection_amount">Estimation : %1$s / an au rythme actuel</string>
     <string name="expenses_annual_projection_budget">Budget annuel déclaré : %1$s</string>
+    <string name="profile_section_pregnancy">Grossesse</string>
+    <string name="profile_pregnancy_disclaimer">Valeurs générales (IOM/EFSA), pas un plan personnalisé — consultez votre sage-femme ou médecin pour un suivi nutritionnel adapté.</string>
+    <string name="profile_pregnancy_no_date">Date de début non renseignée</string>
+    <string name="profile_pregnancy_set_date">Définir la date</string>
+    <string name="profile_pregnancy_trimester_1">1er trimestre — objectifs caloriques inchangés, fer et folates augmentés</string>
+    <string name="profile_pregnancy_trimester_2">2e trimestre — +340 kcal/j, protéines +25g/j, fer et folates augmentés</string>
+    <string name="profile_pregnancy_trimester_3">3e trimestre — +450 kcal/j, protéines +25g/j, fer et folates augmentés</string>
     <string name="result_pantry_stock">%1$s %2$s déjà en stock au garde-manger</string>
     <string name="result_avg_portion">Vous logguez en moyenne %1$d g (référence : %2$d g)</string>
     <string name="pantry_category_header">%1$s (%2$d)</string>
