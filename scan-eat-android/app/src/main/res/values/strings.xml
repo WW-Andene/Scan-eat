@@ -1974,6 +1974,10 @@
     <string name="reminders_notif_hydration_body">Pensez à boire un verre d\'eau.</string>
     <string name="reminders_notif_weight_title">Pesée</string>
     <string name="reminders_notif_weight_body">Envie de noter votre poids aujourd\'hui ?</string>
+    <string name="reminders_notif_mood_title">Humeur</string>
+    <string name="reminders_notif_mood_body">Avez-vous noté votre humeur aujourd\'hui ?</string>
+    <string name="reminders_notif_sleep_title">Sommeil</string>
+    <string name="reminders_notif_sleep_body">Avez-vous noté votre nuit de sommeil ?</string>
     <string name="reminders_notif_fasting_title">Jeûne terminé</string>
     <string name="reminders_notif_fasting_body">Vous avez atteint votre objectif de jeûne — bravo !</string>
     <string name="reminders_notif_medication_title">Traitement</string>
@@ -1988,6 +1992,8 @@
     <string name="reminders_hydration">Hydratation</string>
     <string name="reminders_weight">Pesée</string>
     <string name="reminders_activity">Activité</string>
+    <string name="reminders_mood">Humeur</string>
+    <string name="reminders_sleep">Sommeil</string>
     <string name="reminders_test_body">Ceci est un rappel de test.</string>
     <string name="reminders_cd_test">Tester le rappel : %1$s</string>
     <string name="reminders_every_n_hours">%1$dh</string>

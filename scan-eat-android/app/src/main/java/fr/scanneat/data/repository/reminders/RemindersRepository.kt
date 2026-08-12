@@ -51,6 +51,15 @@ data class ReminderSettings(
      *  pantry item is time-sensitive food-waste/safety information, not a
      *  scheduling nudge the user necessarily thought to turn on. */
     val pantryExpiryOn: Boolean = true,
+    // User-requested: "as-tu noté ton humeur/sommeil aujourd'hui" - Mood and
+    // Sleep were the two trackers with a daily-log habit (like Weight) but no
+    // reminder to protect that habit, same gap Activity's own reminder above
+    // was added to close for its streak. Unlike a plain custom-time reminder,
+    // ReminderWorker skips firing these if today's entry is already logged
+    // (see its own doc comment) - a "did you log X" nudge that fires even
+    // after X was already logged would just be noise.
+    val moodOn: Boolean = false, val moodTime: String = "20:00",
+    val sleepOn: Boolean = false, val sleepTime: String = "08:00",
 )
 
 private val Context.remindersDataStore by preferencesDataStore(name = "reminders")
@@ -114,6 +123,12 @@ class RemindersRepository @Inject constructor(
         val K_CUSTOM_NEXT_ID = intPreferencesKey("rem_custom_next_id")
         val K_PANTRY_EXPIRY_ON = booleanPreferencesKey("rem_pantry_expiry_on")
         val K_LAST_PANTRY_EXPIRY_DATE = stringPreferencesKey("rem_last_pantry_expiry_date")
+        val K_MOOD_ON   = booleanPreferencesKey("rem_mood_on")
+        val K_MOOD_TIME = stringPreferencesKey("rem_mood_time")
+        val K_LAST_MOOD_DATE = stringPreferencesKey("rem_last_mood_date")
+        val K_SLEEP_ON   = booleanPreferencesKey("rem_sleep_on")
+        val K_SLEEP_TIME = stringPreferencesKey("rem_sleep_time")
+        val K_LAST_SLEEP_DATE = stringPreferencesKey("rem_last_sleep_date")
     }
 
     val settings: Flow<ReminderSettings> = storeData.map { p ->
@@ -136,6 +151,8 @@ class RemindersRepository @Inject constructor(
             customReminders = customs,
             dailyDigestOn   = p[K_DAILY_DIGEST_ON] ?: false,
             pantryExpiryOn  = p[K_PANTRY_EXPIRY_ON] ?: true,
+            moodOn  = p[K_MOOD_ON] ?: false,  moodTime  = p[K_MOOD_TIME] ?: "20:00",
+            sleepOn = p[K_SLEEP_ON] ?: false, sleepTime = p[K_SLEEP_TIME] ?: "08:00",
         )
     }.distinctUntilChanged()
 
@@ -229,6 +246,14 @@ class RemindersRepository @Inject constructor(
         it[K_WEIGHT_CUSTOM_ON] = on; it[K_WEIGHT_CUSTOM_TIME] = time
         if (on) markStaleIfPast(it, time, K_LAST_WEIGHT_CUSTOM_DATE)
     }
+    suspend fun setMood(on: Boolean, time: String) = store.edit {
+        it[K_MOOD_ON] = on; it[K_MOOD_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_MOOD_DATE)
+    }
+    suspend fun setSleep(on: Boolean, time: String) = store.edit {
+        it[K_SLEEP_ON] = on; it[K_SLEEP_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_SLEEP_DATE)
+    }
 
     /**
      * Restores every field of [settings] in one transaction — backup restore
@@ -256,6 +281,8 @@ class RemindersRepository @Inject constructor(
         // labels/custom reminders in an earlier round.
         p[K_DAILY_DIGEST_ON] = settings.dailyDigestOn
         p[K_PANTRY_EXPIRY_ON] = settings.pantryExpiryOn
+        p[K_MOOD_ON] = settings.moodOn; p[K_MOOD_TIME] = settings.moodTime
+        p[K_SLEEP_ON] = settings.sleepOn; p[K_SLEEP_TIME] = settings.sleepTime
     }
 
     suspend fun fastingTargetAlreadyNotified(startMs: Long): Boolean =

@@ -1912,6 +1912,10 @@
     <string name="reminders_notif_hydration_body">Remember to drink a glass of water.</string>
     <string name="reminders_notif_weight_title">Weigh-in</string>
     <string name="reminders_notif_weight_body">Want to log your weight today?</string>
+    <string name="reminders_notif_mood_title">Mood</string>
+    <string name="reminders_notif_mood_body">Have you logged your mood today?</string>
+    <string name="reminders_notif_sleep_title">Sleep</string>
+    <string name="reminders_notif_sleep_body">Have you logged last night\'s sleep?</string>
     <string name="reminders_notif_fasting_title">Fast complete</string>
     <string name="reminders_notif_fasting_body">You\'ve reached your fasting goal — well done!</string>
     <string name="reminders_notif_medication_title">Medication</string>
@@ -1926,6 +1930,8 @@
     <string name="reminders_hydration">Hydration</string>
     <string name="reminders_weight">Weigh-in</string>
     <string name="reminders_activity">Activity</string>
+    <string name="reminders_mood">Mood</string>
+    <string name="reminders_sleep">Sleep</string>
     <string name="reminders_test_body">This is a test reminder.</string>
     <string name="reminders_cd_test">Test reminder: %1$s</string>
     <string name="reminders_every_n_hours">%1$dh</string>

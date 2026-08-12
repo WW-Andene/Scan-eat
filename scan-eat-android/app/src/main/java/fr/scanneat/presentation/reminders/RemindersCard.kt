@@ -151,6 +151,17 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel(), sharedPer
                 colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
             )
         }
+
+        // User-requested: "as-tu noté ton humeur/sommeil aujourd'hui" - see
+        // ReminderWorker's own doc comment on why these skip firing once
+        // today's entry is already logged, unlike the meal rows above.
+        ScanEatDivider()
+        ReminderRow(defaultLabel = stringResource(R.string.reminders_mood), on = s.moodOn, time = s.moodTime,
+            onToggle = { viewModel.setMood(it, s.moodTime) }, onTimeChange = { viewModel.setMood(s.moodOn, it) },
+            onTest = { NotificationHelper.show(context, 913, context.getString(R.string.reminders_mood), context.getString(R.string.reminders_test_body)) })
+        ReminderRow(defaultLabel = stringResource(R.string.reminders_sleep), on = s.sleepOn, time = s.sleepTime,
+            onToggle = { viewModel.setSleep(it, s.sleepTime) }, onTimeChange = { viewModel.setSleep(s.sleepOn, it) },
+            onTest = { NotificationHelper.show(context, 914, context.getString(R.string.reminders_sleep), context.getString(R.string.reminders_test_body)) })
     }
 }
 

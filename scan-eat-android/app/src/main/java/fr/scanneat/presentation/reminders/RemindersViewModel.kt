@@ -38,4 +38,6 @@ class RemindersViewModel @Inject constructor(
     fun deleteCustomReminder(id: Int)                  = guardedLaunch { repo.deleteCustomReminder(id) }
     fun setDailyDigest(on: Boolean)                    = guardedLaunch { repo.setDailyDigest(on) }
     fun setPantryExpiry(on: Boolean)                   = guardedLaunch { repo.setPantryExpiry(on) }
+    fun setMood(on: Boolean, time: String)             = guardedLaunch { repo.setMood(on, time) }
+    fun setSleep(on: Boolean, time: String)            = guardedLaunch { repo.setSleep(on, time) }
 }

@@ -14,8 +14,10 @@ import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
+import fr.scanneat.data.repository.mood.MoodRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
+import fr.scanneat.data.repository.sleep.SleepRepository
 import fr.scanneat.domain.engine.dashboard.logStreakDays
 import fr.scanneat.presentation.pantry.PantryExpiryUrgency
 import fr.scanneat.presentation.pantry.expiryUrgency
@@ -37,6 +39,8 @@ class ReminderWorker @AssistedInject constructor(
     private val consumptionRepo: ConsumptionRepository,
     private val hydrationRepo: HydrationRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
+    private val moodRepo: MoodRepository,
+    private val sleepRepo: SleepRepository,
     private val prefs: UserPreferences,
 ) : CoroutineWorker(context, params) {
 
@@ -210,6 +214,26 @@ class ReminderWorker @AssistedInject constructor(
                 if (NotificationHelper.show(applicationContext, 112, title, body, NotifChannel.PANTRY)) {
                     remindersRepo.markFiredToday(RemindersRepository.K_LAST_PANTRY_EXPIRY_DATE)
                 }
+            }
+        }
+
+        // New: "as-tu noté ton humeur/sommeil aujourd'hui" - unlike checkMeal's
+        // other call sites (which nudge at a fixed time regardless of whether
+        // the user already acted), these two skip firing entirely once
+        // today's entry is already logged - a "did you log X" reminder that
+        // still fires after X was logged would just be noise, not a nudge.
+        if (s.moodOn) {
+            val alreadyLogged = moodRepo.observeAll(profileId).first().any { it.date == LocalDate.now() }
+            if (!alreadyLogged) {
+                checkMeal(true, s.moodTime, RemindersRepository.K_LAST_MOOD_DATE, now, 113,
+                    localizedString(lang, R.string.reminders_notif_mood_title), localizedString(lang, R.string.reminders_notif_mood_body), NotifChannel.CUSTOM)
+            }
+        }
+        if (s.sleepOn) {
+            val alreadyLogged = sleepRepo.observeAll(profileId).first().any { it.date == LocalDate.now() }
+            if (!alreadyLogged) {
+                checkMeal(true, s.sleepTime, RemindersRepository.K_LAST_SLEEP_DATE, now, 114,
+                    localizedString(lang, R.string.reminders_notif_sleep_title), localizedString(lang, R.string.reminders_notif_sleep_body), NotifChannel.CUSTOM)
             }
         }
 
