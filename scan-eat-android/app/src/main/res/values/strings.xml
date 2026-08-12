@@ -717,6 +717,14 @@
     <string name="profile_field_goal_weight">Poids cible (kg)</string>
     <string name="profile_field_goal_weight_imperial">Poids cible (lb)</string>
     <string name="profile_menstruating_checkbox">En âge menstruel (ajuste le besoin en fer)</string>
+    <string name="profile_field_fat_level">Niveau de masse grasse estimé (estimation approximative)</string>
+    <string name="profile_field_muscle_level">Niveau de masse musculaire estimé (estimation approximative)</string>
+    <string name="profile_field_fat_level_short">Masse grasse</string>
+    <string name="profile_field_muscle_level_short">Masse musculaire</string>
+    <string name="profile_body_comp_fat_low">Très peu gras</string>
+    <string name="profile_body_comp_fat_high">Très gras</string>
+    <string name="profile_body_comp_muscle_low">Très peu musclé</string>
+    <string name="profile_body_comp_muscle_high">Très musclé</string>
     <string name="profile_allergen_hint">Sélectionnez les allergènes à surveiller</string>
     <string name="profile_section_conditions">Conditions de santé</string>
     <string name="profile_condition_hint">Sélectionnez les conditions à prendre en compte dans les calculs</string>

@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DietKey
+import fr.scanneat.domain.model.BodyCompositionLevel
 import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.presentation.ui.theme.*
@@ -111,6 +112,17 @@ internal fun ProfileMetricsPreviewCard(
                 listOf("$proteinAbbr ${pPct.toInt()}%" to semanticGreen(), "$carbsAbbr ${cPct.toInt()}%" to AccentCoral, "$fatAbbr ${fPct.toInt()}%" to Gold).forEach { (label, color) ->
                     Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = color)
                 }
+            }
+        }
+        // User-requested body-composition estimate - shown here (not just
+        // buried in the form below) since it now actually feeds proteinTargetG,
+        // same "surface what actually changes the numbers above" reasoning as
+        // the macro ratio bar.
+        if (currentProfile.fatLevel != null || currentProfile.muscleLevel != null) {
+            HorizontalDivider(color = OnSurface.copy(0.08f))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                currentProfile.fatLevel?.let { MetricChip(stringResource(R.string.profile_field_fat_level_short), it.shortLabel()) }
+                currentProfile.muscleLevel?.let { MetricChip(stringResource(R.string.profile_field_muscle_level_short), it.shortLabel()) }
             }
         }
         // New: goal weight progress + weeks-to-goal ETA.

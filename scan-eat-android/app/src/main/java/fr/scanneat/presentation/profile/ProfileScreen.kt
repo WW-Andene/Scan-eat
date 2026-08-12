@@ -34,6 +34,7 @@ import fr.scanneat.presentation.profile.components.ProfileSection
 import fr.scanneat.presentation.profile.components.ProfileSwitcherCard
 import fr.scanneat.presentation.profile.components.SexSelector
 import fr.scanneat.presentation.onboarding.enumSaver
+import fr.scanneat.presentation.onboarding.enumSaverNullable
 import fr.scanneat.presentation.ui.theme.*
 
 /** Bundle doesn't natively round-trip a raw Set<String> - same gap enumSaver() (see
@@ -103,6 +104,8 @@ fun ProfileScreen(
     var allergens  by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.allergens) }
     var conditions by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.healthConditions) }
     var isMenstruating by rememberSaveable(profile.value) { mutableStateOf(profile.value.isMenstruating) }
+    var fatLevel    by rememberSaveable(profile.value, stateSaver = enumSaverNullable()) { mutableStateOf(profile.value.fatLevel) }
+    var muscleLevel by rememberSaveable(profile.value, stateSaver = enumSaverNullable()) { mutableStateOf(profile.value.muscleLevel) }
     // User-requested: trimester-adapted pregnancy targets, only reachable
     // when "pregnancy" is also checked in conditions above (see this
     // screen's own ConditionsSelector call site) - see
@@ -150,6 +153,8 @@ fun ProfileScreen(
                         healthConditions = conditions,
                         isMenstruating = isMenstruating,
                         pregnancyStartDate = if ("pregnancy" in conditions) pregnancyStartDate else null,
+                        fatLevel      = fatLevel,
+                        muscleLevel   = muscleLevel,
                     ),
                     waistCm     = waistCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
                     hipCm       = hipCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
@@ -235,6 +240,8 @@ fun ProfileScreen(
                     useImperial = useImperial.value, onUseImperialChange = { viewModel.setUseImperial(it) },
                     sex = sex,
                     isMenstruating = isMenstruating, onIsMenstruatingChange = { isMenstruating = it },
+                    fatLevel = fatLevel, onFatLevelChange = { fatLevel = it },
+                    muscleLevel = muscleLevel, onMuscleLevelChange = { muscleLevel = it },
                 )
             }
 

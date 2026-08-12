@@ -34,6 +34,14 @@ internal inline fun <reified T : Enum<T>> enumSaver() = Saver<T, String>(
     restore = { enumValueOf<T>(it) },
 )
 
+/** Nullable counterpart to [enumSaver] - for an optional enum field like
+ *  Profile.fatLevel/muscleLevel, where "not set" is a real, distinct state
+ *  from any enum value, not just a UI default to fall back to. */
+internal inline fun <reified T : Enum<T>> enumSaverNullable() = Saver<T?, String>(
+    save = { it?.name ?: "" },
+    restore = { if (it.isEmpty()) null else enumValueOf<T>(it) },
+)
+
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),

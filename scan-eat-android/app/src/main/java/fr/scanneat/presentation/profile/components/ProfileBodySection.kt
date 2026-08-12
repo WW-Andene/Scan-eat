@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
+import fr.scanneat.domain.model.BodyCompositionLevel
 import fr.scanneat.domain.model.Sex
 import fr.scanneat.presentation.biolism.bioProfile.BioInputUnit
 import fr.scanneat.presentation.ui.theme.*
@@ -37,6 +38,10 @@ internal fun ProfileBodySection(
     sex: Sex,
     isMenstruating: Boolean,
     onIsMenstruatingChange: (Boolean) -> Unit,
+    fatLevel: BodyCompositionLevel?,
+    onFatLevelChange: (BodyCompositionLevel?) -> Unit,
+    muscleLevel: BodyCompositionLevel?,
+    onMuscleLevelChange: (BodyCompositionLevel?) -> Unit,
 ) {
     ProfileSection(stringResource(R.string.profile_section_body)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -76,5 +81,19 @@ internal fun ProfileBodySection(
                 Text(stringResource(R.string.profile_menstruating_checkbox), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
             }
         }
+        // User-requested: a quick self-assessed body-composition estimate,
+        // alongside (not instead of) BiolismProfile's precise but opt-in Navy
+        // BF% tape-measure calculation - see BodyCompositionLevel's own doc
+        // comment. Feeds proteinTargetG's existing muscle-preservation floor.
+        Text(stringResource(R.string.profile_field_fat_level), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+        BodyCompositionSelector(
+            current = fatLevel, onSelect = onFatLevelChange,
+            lowLabel = stringResource(R.string.profile_body_comp_fat_low), highLabel = stringResource(R.string.profile_body_comp_fat_high),
+        )
+        Text(stringResource(R.string.profile_field_muscle_level), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+        BodyCompositionSelector(
+            current = muscleLevel, onSelect = onMuscleLevelChange,
+            lowLabel = stringResource(R.string.profile_body_comp_muscle_low), highLabel = stringResource(R.string.profile_body_comp_muscle_high),
+        )
     }
 }

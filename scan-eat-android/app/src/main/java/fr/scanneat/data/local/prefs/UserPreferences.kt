@@ -275,6 +275,8 @@ class UserPreferences @Inject constructor(
                 allergens      = decryptCsvSet(p[profileKey(id, "allergens")]),
                 healthConditions = decryptCsvSet(p[profileKey(id, "conditions")]),
                 pregnancyStartDate = p[profileKey(id, "pregnancy_start")]?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() },
+                fatLevel       = BodyCompositionLevel.entries.firstOrNull { it.name == p[profileKey(id, "fat_level")] },
+                muscleLevel    = BodyCompositionLevel.entries.firstOrNull { it.name == p[profileKey(id, "muscle_level")] },
             )
             // Legacy fallback — the only profile storage that existed before
             // multi-profile support, read as-is until "default" is ever saved
@@ -352,7 +354,7 @@ class UserPreferences @Inject constructor(
         if (id == "default") return
         store.edit { p ->
             p[KEY_PROFILE_IDS] = storedProfileIds(p).filter { it != id }.joinToString(",")
-            listOf("name", "sex", "diet", "activity", "goal", "allergens", "conditions").forEach { p.remove(profileKey(id, it)) }
+            listOf("name", "sex", "diet", "activity", "goal", "allergens", "conditions", "fat_level", "muscle_level").forEach { p.remove(profileKey(id, it)) }
             p.remove(profileIntKey(id, "age"))
             p.remove(profileFloatKey(id, "weight"))
             p.remove(profileFloatKey(id, "height"))
@@ -396,6 +398,8 @@ class UserPreferences @Inject constructor(
         p[profileKey(id, "allergens")]    = SecureFieldCipher.encrypt(profile.allergens.joinToString(","))
         p[profileKey(id, "conditions")]   = SecureFieldCipher.encrypt(profile.healthConditions.joinToString(","))
         profile.pregnancyStartDate?.let { p[profileKey(id, "pregnancy_start")] = it.toString() } ?: p.remove(profileKey(id, "pregnancy_start"))
+        profile.fatLevel?.let    { p[profileKey(id, "fat_level")]    = it.name } ?: p.remove(profileKey(id, "fat_level"))
+        profile.muscleLevel?.let { p[profileKey(id, "muscle_level")] = it.name } ?: p.remove(profileKey(id, "muscle_level"))
     }
 
     /** Convenience — update only weight (used by WeightRepository after logging

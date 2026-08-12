@@ -150,5 +150,15 @@ fun proteinTargetG(p: Profile): Double? {
     if (p.activityLevel != ActivityLevel.SEDENTARY) perKg = maxOf(perKg, 1.2)
     if (p.activityLevel == ActivityLevel.VERY_ACTIVE || p.activityLevel == ActivityLevel.EXTRA_ACTIVE) perKg = maxOf(perKg, 1.6)
     if (p.goal == Goal.LOSE) perKg = maxOf(perKg, 1.6)
+    // User-requested body-composition estimate (Profile.muscleLevel) feeds
+    // this same "protect lean mass" floor the activity/goal checks above
+    // already apply, per the same IOC/ISSN 1.2-2.0 g/kg range cited at the
+    // top of this file - a self-reported HIGH/VERY_HIGH muscle level implies
+    // more lean mass to maintain than weightKg alone tells this formula.
+    when (p.muscleLevel) {
+        BodyCompositionLevel.HIGH      -> perKg = maxOf(perKg, 1.6)
+        BodyCompositionLevel.VERY_HIGH -> perKg = maxOf(perKg, 1.8)
+        else -> {}
+    }
     return (w * perKg).roundToInt().toDouble()
 }

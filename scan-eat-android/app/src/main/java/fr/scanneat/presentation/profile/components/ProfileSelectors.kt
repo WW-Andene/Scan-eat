@@ -26,6 +26,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.engine.scoring.dietNote
 import fr.scanneat.domain.model.ActivityLevel
+import fr.scanneat.domain.model.BodyCompositionLevel
 import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Sex
 import fr.scanneat.presentation.ui.theme.AccentCoral
@@ -140,6 +141,52 @@ internal fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
                 Text(
                     note, style = MaterialTheme.typography.bodySmall,
                     color = OnBackground.copy(0.6f),
+                )
+            }
+        }
+    }
+}
+
+/** 1-5 display text for ProfileMetricsPreviewCard's compact chip. */
+internal fun BodyCompositionLevel.shortLabel(): String =
+    (BodyCompositionLevel.entries.indexOf(this) + 1).toString() + "/5"
+
+/**
+ * See BodyCompositionLevel's own doc comment. [lowLabel]/[highLabel] carry
+ * the axis-specific wording ("Très peu musclé"/"Très musclé" vs "Très peu de
+ * masse grasse"/"Beaucoup de masse grasse") since the same 5-point enum backs
+ * both the fat-level and muscle-level axes but the endpoints read differently
+ * for each. current == null (never set) shows no chip selected, same
+ * "nothing selected until the user picks one" affordance FilterChip rows
+ * elsewhere on this screen already have (e.g. AllergenSelector).
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun BodyCompositionSelector(
+    current: BodyCompositionLevel?,
+    onSelect: (BodyCompositionLevel?) -> Unit,
+    lowLabel: String,
+    highLabel: String,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(lowLabel, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+            Text(highLabel, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            BodyCompositionLevel.entries.forEachIndexed { index, level ->
+                FilterChip(
+                    selected = current == level,
+                    // Tapping the already-selected level clears it - this is a
+                    // rough self-estimate, not a required field, so "I'm not sure
+                    // anymore" needs to be reachable without picking a different
+                    // (wrong) level just to deselect.
+                    onClick  = { onSelect(if (current == level) null else level) },
+                    label = { Text((index + 1).toString(), style = MaterialTheme.typography.labelMedium) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                        labelColor = OnBackground.copy(0.7f),
+                    ),
                 )
             }
         }

@@ -21,6 +21,19 @@ enum class ActivityLevel {
 
 enum class Goal { LOSE, MAINTAIN, GAIN }
 
+/**
+ * User-requested: a quick self-assessed body-composition estimate ("très peu
+ * musclé/gras" → "très musclé/gras") for anyone who doesn't want to pull out
+ * a tape measure for the Navy BF% method (BiolismProfile's waistCm/hipCm/
+ * neckCm - see MetabolicsCalculator's own doc comment on that, precise but
+ * opt-in). Deliberately a 5-point subjective scale, not a claimed percentage
+ * - same "rough estimate, not a lab measurement" honesty ActivityLevel/Goal
+ * already model as enums rather than continuous inputs. Reused for both the
+ * fat-level and muscle-level axes since they're independent but share the
+ * same low↔high shape.
+ */
+enum class BodyCompositionLevel { VERY_LOW, LOW, MODERATE, HIGH, VERY_HIGH }
+
 data class Profile(
     val id: String = "default",
     val name: String = "",
@@ -50,6 +63,11 @@ data class Profile(
     // [healthConditions]; see dailyTargets()'s own trimester logic and
     // ProfileScreen's conditional date field.
     val pregnancyStartDate: java.time.LocalDate? = null,
+    // See BodyCompositionLevel's own doc comment. Null = not set (neither
+    // axis is required - most downstream math already works from
+    // weightKg/heightCm alone).
+    val fatLevel: BodyCompositionLevel? = null,
+    val muscleLevel: BodyCompositionLevel? = null,
 )
 // NOTE: DailyTargets is defined in domain/engine/scoring/PersonalScoreEngine.kt (canonical location).
 // Do NOT add a second DailyTargets here.
