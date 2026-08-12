@@ -59,6 +59,7 @@ class ScanViewModel @Inject constructor(
     private val nonFoodScanRepo: fr.scanneat.data.repository.nonfood.NonFoodScanRepository,
     private val recallRepo: RecallRepository,
     private val speechAnnouncer: ScoreSpeechAnnouncer,
+    private val misclassificationReportRepo: fr.scanneat.data.repository.report.MisclassificationReportRepository,
     @ApplicationContext internal val appContext: Context,
 ) : ViewModel() {
 
@@ -113,6 +114,23 @@ class ScanViewModel @Inject constructor(
             val lang = prefs.language.first()
             val text = localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_announce_format, scanResult.audit.score, scanResult.audit.grade.label)
             speechAnnouncer.speak(text, lang)
+        }
+    }
+
+    // User-requested: "signaler une erreur de classification" from the
+    // NonConsumableFound dialog - see ReportMisclassificationDialog's own
+    // header.
+    fun reportMisclassification(barcode: String?, productName: String, brand: String, currentClassification: String, correctedClassification: String, note: String) {
+        viewModelScope.launch {
+            misclassificationReportRepo.report(
+                barcode = barcode,
+                productName = productName,
+                brand = brand,
+                currentClassification = currentClassification,
+                correctedClassification = correctedClassification,
+                note = note,
+                profileId = activeProfileId.value,
+            )
         }
     }
 

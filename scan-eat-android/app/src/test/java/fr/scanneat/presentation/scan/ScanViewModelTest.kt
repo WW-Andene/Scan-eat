@@ -8,6 +8,7 @@ import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.nonfood.NonFoodScanRepository
 import fr.scanneat.data.repository.recall.RecallRepository
+import fr.scanneat.data.repository.report.MisclassificationReportRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.util.ScoreSpeechAnnouncer
@@ -47,6 +48,7 @@ class ScanViewModelTest {
     private val nonFoodScanRepo = mockk<NonFoodScanRepository>(relaxed = true)
     private val recallRepo = mockk<RecallRepository>(relaxed = true)
     private val speechAnnouncer = mockk<ScoreSpeechAnnouncer>(relaxed = true)
+    private val misclassificationReportRepo = mockk<MisclassificationReportRepository>(relaxed = true)
     private val appContext = mockk<Context>(relaxed = true)
 
     private lateinit var viewModel: ScanViewModel
@@ -61,7 +63,7 @@ class ScanViewModelTest {
         coEvery { scanRepo.getCachedByBarcode(any(), any()) } returns null
         coEvery { recallRepo.checkBarcode(any()) } returns null
 
-        viewModel = ScanViewModel(scanRepo, prefs, connectivityManager, medicationRepo, priceRepo, nonFoodScanRepo, recallRepo, speechAnnouncer, appContext)
+        viewModel = ScanViewModel(scanRepo, prefs, connectivityManager, medicationRepo, priceRepo, nonFoodScanRepo, recallRepo, speechAnnouncer, misclassificationReportRepo, appContext)
     }
 
     @After

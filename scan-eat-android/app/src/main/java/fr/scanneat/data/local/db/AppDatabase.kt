@@ -25,6 +25,8 @@ import fr.scanneat.data.local.db.recall.RecallDao
 import fr.scanneat.data.local.db.recall.RecallEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.recipe.RecipeEntity
+import fr.scanneat.data.local.db.report.MisclassificationReportDao
+import fr.scanneat.data.local.db.report.MisclassificationReportEntity
 import fr.scanneat.data.local.db.mood.MoodDao
 import fr.scanneat.data.local.db.mood.MoodEntity
 import fr.scanneat.data.local.db.sleep.SleepDao
@@ -62,8 +64,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         NonFoodScanEntity::class,
         SleepEntity::class,
         MoodEntity::class,
+        MisclassificationReportEntity::class,
     ],
-    version = 39,
+    version = 40,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -85,6 +88,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun nonFoodScanDao(): NonFoodScanDao
     abstract fun sleepDao(): SleepDao
     abstract fun moodDao(): MoodDao
+    abstract fun misclassificationReportDao(): MisclassificationReportDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -664,5 +668,20 @@ val MIGRATION_38_39 = object : Migration(38, 39) {
         // show the per-category functional scores (shampoo/gel douche/...)
         // without it.
         db.execSQL("ALTER TABLE `nonfood_scans` ADD COLUMN `ingredientsText` TEXT")
+    }
+}
+val MIGRATION_39_40 = object : Migration(39, 40) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v39 → v40: new `misclassification_reports` table - see
+        // MisclassificationReportEntity's own doc comment.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `misclassification_reports` (" +
+                "`id` TEXT NOT NULL, `barcode` TEXT, `productName` TEXT NOT NULL, " +
+                "`brand` TEXT NOT NULL, `currentClassification` TEXT NOT NULL, " +
+                "`correctedClassification` TEXT NOT NULL, `note` TEXT NOT NULL, " +
+                "`reportedAt` INTEGER NOT NULL, `profileId` TEXT NOT NULL, " +
+                "PRIMARY KEY(`id`))"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_misclassification_reports_profileId_reportedAt` ON `misclassification_reports` (`profileId`, `reportedAt`)")
     }
 }

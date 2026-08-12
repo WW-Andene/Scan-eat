@@ -19,6 +19,7 @@ import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.data.repository.recall.RecallEntry
 import fr.scanneat.data.repository.recall.RecallRepository
+import fr.scanneat.data.repository.report.MisclassificationReportRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
@@ -86,6 +87,7 @@ class ResultViewModel @Inject constructor(
     private val recallRepo: RecallRepository,
     private val medicationRepo: MedicationRepository,
     internal val pantryRepo: PantryRepository,
+    private val misclassificationReportRepo: MisclassificationReportRepository,
     savedStateHandle: SavedStateHandle,
 ) : ActionFailureViewModel() {
 
@@ -273,6 +275,27 @@ class ResultViewModel @Inject constructor(
 
     fun deletePrice(id: String) {
         guardedLaunch { priceRepo.delete(id) }
+    }
+
+    // User-requested: "signaler une erreur de classification" - see
+    // ReportMisclassificationDialog's own header on why this is a local log,
+    // not a real server submission.
+    fun reportMisclassification(correctedClassification: String, note: String) {
+        val scan = state.value.scanResult ?: return
+        guardedLaunch {
+            misclassificationReportRepo.report(
+                barcode = scan.barcode,
+                productName = scan.product.name,
+                // Product (food) carries no separate brand field, unlike
+                // NonConsumableDbEntry - name alone is what's actually shown/
+                // searched for a food scan anyway.
+                brand = "",
+                currentClassification = "FOOD",
+                correctedClassification = correctedClassification,
+                note = note,
+                profileId = profile.value.id,
+            )
+        }
     }
 
     // saveToDestinations (the "Save to..." popup's multi-destination write) is

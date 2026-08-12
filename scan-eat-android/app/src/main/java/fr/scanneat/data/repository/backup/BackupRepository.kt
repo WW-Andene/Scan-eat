@@ -94,6 +94,7 @@ class BackupRepository @Inject constructor(
     private val sleepRepo: fr.scanneat.data.repository.sleep.SleepRepository,
     private val moodRepo: fr.scanneat.data.repository.mood.MoodRepository,
     private val nonFoodScanRepo: fr.scanneat.data.repository.nonfood.NonFoodScanRepository,
+    private val misclassificationReportRepo: fr.scanneat.data.repository.report.MisclassificationReportRepository,
     private val moshi: Moshi,
 ) {
     // Internal (not private) so BackupParsing.kt's parseBundle() extension
@@ -171,6 +172,7 @@ class BackupRepository @Inject constructor(
             sleep = sleepRepo.exportAll(),
             mood = moodRepo.exportAll(),
             nonFoodScans = nonFoodScanRepo.exportAll(),
+            misclassificationReports = misclassificationReportRepo.exportAll(),
         )
         val plainJson = bundleAdapter.indent("  ").toJson(bundle)
         // Opt-in - see BackupPassphraseCipher's own doc comment for the file
@@ -358,6 +360,7 @@ class BackupRepository @Inject constructor(
         sleepRepo.importAll(bundle.sleep)
         moodRepo.importAll(bundle.mood)
         nonFoodScanRepo.importAll(bundle.nonFoodScans)
+        misclassificationReportRepo.importAll(bundle.misclassificationReports)
 
         restoreDataStoreData(bundle)
 

@@ -24,7 +24,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +39,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.medication.generateMedicationHints
+import fr.scanneat.presentation.report.ReportMisclassificationDialog
 import fr.scanneat.domain.engine.nonconsumable.CleansingBase
 import fr.scanneat.domain.engine.nonconsumable.CosingMatch
 import fr.scanneat.domain.engine.nonconsumable.FormulaComplexity
@@ -102,6 +106,7 @@ internal fun BoxScope.ScanStateOverlay(
     onDismissFound: () -> Unit,
     onSaveDetectedMedication: (fr.scanneat.domain.engine.medication.MedicationDbEntry) -> Unit,
     onPickMultiFood: (Long) -> Unit,
+    onReportMisclassification: (barcode: String?, productName: String, brand: String, currentClassification: String, correctedClassification: String, note: String) -> Unit = { _, _, _, _, _, _ -> },
     medicationInteractionWarnings: List<InteractionWarning> = emptyList(),
 ) {
     when (val s = state) {
@@ -232,6 +237,10 @@ internal fun BoxScope.ScanStateOverlay(
             val makeupEducationalFacts = remember(s.entry, language) {
                 if (isLikelyMakeup(s.entry.name, s.entry.brand)) generateMakeupEducationalFacts(s.entry.name, language) else null
             }
+            // User-requested: "signaler une erreur de classification" - e.g.
+            // a real food product landing here instead of ResultScreen. See
+            // ReportMisclassificationDialog's own header.
+            var showReportDialog by remember(s.entry) { mutableStateOf(false) }
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -255,7 +264,23 @@ internal fun BoxScope.ScanStateOverlay(
                     }
                 },
                 confirmButton = { TextButton(onClick = onDismissFound) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
+                dismissButton = {
+                    TextButton(onClick = { showReportDialog = true }) {
+                        Text(stringResource(R.string.report_misclassification_action_cd), color = OnBackground.copy(0.6f))
+                    }
+                },
             )
+            if (showReportDialog) {
+                ReportMisclassificationDialog(
+                    productName = s.entry.name,
+                    currentClassificationLabel = s.entry.category.name,
+                    onSubmit = { corrected, note ->
+                        onReportMisclassification(s.entry.barcode, s.entry.name, s.entry.brand, s.entry.category.name, corrected, note)
+                        showReportDialog = false
+                    },
+                    onDismiss = { showReportDialog = false },
+                )
+            }
         }
         is ScanUiState.MultiFoodFound -> {
             MultiFoodFoundDialog(items = s.items, onPick = onPickMultiFood, onDismiss = onDismissFound)

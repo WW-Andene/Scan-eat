@@ -428,6 +428,9 @@ fun ScanScreen(
             // MultiFoodFound would stay current and the picked item's dialog (or a
             // stale photo queue) would still be there on returning to this screen.
             onPickMultiFood = { id -> onResultReady(id); viewModel.resultConsumed() },
+            onReportMisclassification = { barcode, name, brand, current, corrected, note ->
+                viewModel.reportMisclassification(barcode, name, brand, current, corrected, note)
+            },
             medicationInteractionWarnings = medicationInteractionWarnings.value,
         )
     }

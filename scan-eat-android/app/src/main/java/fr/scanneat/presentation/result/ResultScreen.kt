@@ -14,6 +14,7 @@ import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
+import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.generateProductHints
+import fr.scanneat.presentation.report.ReportMisclassificationDialog
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.EmptyListState
 import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
@@ -76,6 +78,7 @@ fun ResultScreen(
     // with zero indication anything happened, rather than restoring them open.
     var showSheet   by rememberSaveable { mutableStateOf(false) }
     var showSaveMenu by rememberSaveable { mutableStateOf(false) }
+    var showReportDialog by rememberSaveable { mutableStateOf(false) }
     val context      = LocalContext.current
     val shareTemplate = stringResource(R.string.result_share_text)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -91,6 +94,7 @@ fun ResultScreen(
     // Diary tab, which would cut off a snackbar mid-display - same precedent
     // ScanScreen already uses for a message that survives its own navigation.
     val loggedDuringFastMessage = stringResource(R.string.result_logged_during_fast)
+    val reportSubmittedMessage = stringResource(R.string.report_misclassification_submitted)
     LaunchedEffect(state.value.logState) {
         when (val logState = state.value.logState) {
             is LogState.Done -> {
@@ -141,6 +145,13 @@ fun ResultScreen(
                     Icon(TablerIcons.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
                 }
                 HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value, activeMedicationNames.value))
+                // User-requested: "signaler une erreur de classification" -
+                // e.g. a shampoo or other non-food item that classifyNonFood
+                // missed and got scored as food. See
+                // ReportMisclassificationDialog's own header.
+                IconButton(onClick = { showReportDialog = true }) {
+                    Icon(Icons.Rounded.Flag, stringResource(R.string.report_misclassification_action_cd), tint = OnBackground.copy(0.6f))
+                }
                 IconButton(onClick = { showSaveMenu = true }) {
                     // This opens SaveDestinationsPopup (a multi-select "save to..." dialog),
                     // not a direct favorite toggle - unlike the star buttons in
@@ -268,6 +279,19 @@ fun ResultScreen(
                     showSaveMenu = false
                 },
                 onDismiss = { showSaveMenu = false },
+            )
+        }
+
+        if (showReportDialog) {
+            ReportMisclassificationDialog(
+                productName = scan.product.name,
+                currentClassificationLabel = stringResource(R.string.report_misclassification_current_food_label),
+                onSubmit = { corrected, note ->
+                    viewModel.reportMisclassification(corrected, note)
+                    showReportDialog = false
+                    scope.launch { snackbarHostState.showSnackbar(reportSubmittedMessage) }
+                },
+                onDismiss = { showReportDialog = false },
             )
         }
 

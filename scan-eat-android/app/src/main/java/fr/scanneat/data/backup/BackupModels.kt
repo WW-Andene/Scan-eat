@@ -8,6 +8,7 @@ import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import fr.scanneat.data.local.db.mood.MoodEntity
 import fr.scanneat.data.local.db.nonfood.NonFoodScanEntity
 import fr.scanneat.data.local.db.pantry.PantryEntity
+import fr.scanneat.data.local.db.report.MisclassificationReportEntity
 import fr.scanneat.data.local.db.sleep.SleepEntity
 import fr.scanneat.data.local.db.price.PriceEntity
 import fr.scanneat.data.local.db.symptom.SymptomEntity
@@ -94,7 +95,10 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // mood/stress ratings, scanned shampoo/cosmetics history) silently lost on
 // every backup/restore, the same class of gap every entity above this line
 // already had fixed for it in turn.
-const val BACKUP_FORMAT_VERSION = 15
+// Since v16: misclassificationReports - the new local "signaler une erreur de
+// classification" log (MisclassificationReportEntity), included from the
+// start rather than as a follow-up audit finding, per the v15 lesson above.
+const val BACKUP_FORMAT_VERSION = 16
 
 data class ProfileBackup(
     val name: String,
@@ -186,6 +190,7 @@ data class BackupBundle(
     val sleep: List<SleepEntity> = emptyList(),
     val mood: List<MoodEntity> = emptyList(),
     val nonFoodScans: List<NonFoodScanEntity> = emptyList(),
+    val misclassificationReports: List<MisclassificationReportEntity> = emptyList(),
 )
 
 data class BackupSummary(
@@ -205,8 +210,9 @@ data class BackupSummary(
     val sleep: Int = 0,
     val mood: Int = 0,
     val nonFoodScans: Int = 0,
+    val misclassificationReports: Int = 0,
 ) {
-    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms + sleep + mood + nonFoodScans
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms + sleep + mood + nonFoodScans + misclassificationReports
 
     companion object {
         fun from(bundle: BackupBundle) = BackupSummary(
@@ -226,6 +232,7 @@ data class BackupSummary(
             sleep         = bundle.sleep.size,
             mood          = bundle.mood.size,
             nonFoodScans  = bundle.nonFoodScans.size,
+            misclassificationReports = bundle.misclassificationReports.size,
         )
     }
 }

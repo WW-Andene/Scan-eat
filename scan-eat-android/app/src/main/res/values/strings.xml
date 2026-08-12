@@ -35,6 +35,14 @@
     <string name="scan_medication_found_add">Ajouter au Traitement</string>
     <string name="scan_nonconsumable_found_title">Produit non alimentaire</string>
     <string name="scan_voice_announce_format">Score %1$d sur 100, note %2$s</string>
+    <string name="report_misclassification_action_cd">Signaler une erreur de classification</string>
+    <string name="report_misclassification_title">Signaler une erreur</string>
+    <string name="report_misclassification_body">« %1$s » est actuellement classé comme : %2$s. Quelle est selon vous la bonne catégorie ?</string>
+    <string name="report_misclassification_corrected_label">Catégorie correcte</string>
+    <string name="report_misclassification_note_label">Remarque (optionnel)</string>
+    <string name="report_misclassification_submit">Envoyer</string>
+    <string name="report_misclassification_current_food_label">aliment</string>
+    <string name="report_misclassification_submitted">Signalement enregistré, merci</string>
     <string name="scan_nonconsumable_found_body">%1$s (%2$s) — ce produit n\'est pas destiné à la consommation.</string>
     <string name="scan_nonconsumable_safety_line">Ne pas ingérer. En cas d\'ingestion ou d\'exposition, contactez immédiatement les urgences (15 ou 112 en Europe) ou un centre antipoison.</string>
     <string name="nonconsumable_transparency_title">Transparence de la formule</string>
