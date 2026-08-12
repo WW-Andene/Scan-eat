@@ -4,7 +4,7 @@ import compose.icons.tablericons.History
 import compose.icons.TablerIcons
 import compose.icons.tablericons.AlertCircle
 import compose.icons.tablericons.ArrowLeft
-import compose.icons.tablericons.Bottle
+import compose.icons.tablericons.Droplet
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -121,7 +121,7 @@ fun ScanHistoryScreen(
             // check button above already follows for its own placement.
             if (!startFavoritesOnly) {
                 IconButton(onClick = onOpenNonFoodHistory) {
-                    Icon(TablerIcons.Bottle, stringResource(R.string.nonfood_history_title), tint = OnBackground)
+                    Icon(TablerIcons.Droplet, stringResource(R.string.nonfood_history_title), tint = OnBackground)
                 }
             }
             HistorySortMenu(

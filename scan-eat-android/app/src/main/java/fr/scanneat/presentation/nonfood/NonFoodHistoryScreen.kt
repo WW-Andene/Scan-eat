@@ -2,7 +2,7 @@ package fr.scanneat.presentation.nonfood
 
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
-import compose.icons.tablericons.Bottle
+import compose.icons.tablericons.Droplet
 import compose.icons.tablericons.Heart
 import compose.icons.tablericons.Trash
 import androidx.compose.foundation.layout.*
@@ -68,7 +68,7 @@ fun NonFoodHistoryScreen(viewModel: NonFoodHistoryViewModel = hiltViewModel(), o
             if (items.value.isEmpty()) {
                 item {
                     EmptyListState(
-                        TablerIcons.Bottle,
+                        TablerIcons.Droplet,
                         stringResource(if (favoritesOnly.value) R.string.nonfood_history_empty_favorites else R.string.nonfood_history_empty),
                     )
                 }
