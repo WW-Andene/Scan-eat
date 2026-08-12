@@ -193,17 +193,17 @@ internal fun BoxScope.ScanStateOverlay(
             // app-audit: étape 3 (per-category functional score, shampoo first) -
             // see ShampooQualityScore.kt's own header for the data source.
             val shampooQuality = remember(s.entry) {
-                if (isLikelyShampoo(s.entry.name)) computeShampooQuality(s.entry.ingredientsText) else null
+                if (isLikelyShampoo(s.entry.name, s.entry.brand)) computeShampooQuality(s.entry.ingredientsText) else null
             }
             // app-audit: étape 3b (per-category functional score, gel douche
             // second) - see ShowerGelQualityScore.kt's own header for the data source.
             val showerGelQuality = remember(s.entry) {
-                if (isLikelyShowerGel(s.entry.name)) computeShowerGelQuality(s.entry.ingredientsText) else null
+                if (isLikelyShowerGel(s.entry.name, s.entry.brand)) computeShowerGelQuality(s.entry.ingredientsText) else null
             }
             // app-audit: étape 3c (per-category functional score, dentifrice
             // third) - see ToothpasteQualityScore.kt's own header for the data source.
             val toothpasteQuality = remember(s.entry) {
-                if (isLikelyToothpaste(s.entry.name)) computeToothpasteQuality(s.entry.ingredientsText) else null
+                if (isLikelyToothpaste(s.entry.name, s.entry.brand)) computeToothpasteQuality(s.entry.ingredientsText) else null
             }
             // app-audit: étape 3d (per-category functional score, cosmétique
             // général fourth) - see CosmeticActivesScore.kt's own header for
@@ -222,15 +222,15 @@ internal fun BoxScope.ScanStateOverlay(
                 if (isLikelyIntimateWipe(s.entry.name)) computeIntimateWipeQuality(s.entry.ingredientsText) else null
             }
             val absorbentHygieneFacts = remember(s.entry, language) {
-                if (isLikelyAbsorbentHygieneProduct(s.entry.name)) generateAbsorbentHygieneFacts(s.entry.name, language) else null
+                if (isLikelyAbsorbentHygieneProduct(s.entry.name, s.entry.brand)) generateAbsorbentHygieneFacts(s.entry.name, language) else null
             }
             // app-audit: étape 3f (per-category functional score, maquillage
             // last) - see MakeupQualityScore.kt's own header for the data source.
             val makeupQuality = remember(s.entry) {
-                if (isLikelyMakeup(s.entry.name)) computeMakeupQuality(s.entry.ingredientsText) else null
+                if (isLikelyMakeup(s.entry.name, s.entry.brand)) computeMakeupQuality(s.entry.ingredientsText) else null
             }
             val makeupEducationalFacts = remember(s.entry, language) {
-                if (isLikelyMakeup(s.entry.name)) generateMakeupEducationalFacts(s.entry.name, language) else null
+                if (isLikelyMakeup(s.entry.name, s.entry.brand)) generateMakeupEducationalFacts(s.entry.name, language) else null
             }
             AlertDialog(
                 onDismissRequest = onDismissFound,

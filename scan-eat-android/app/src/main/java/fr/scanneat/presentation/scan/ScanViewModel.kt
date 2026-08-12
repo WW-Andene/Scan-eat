@@ -408,7 +408,30 @@ class ScanViewModel @Inject constructor(
                         _state.value = ScanUiState.MedicationFound(entry)
                         return@launch
                     }
-                    withContext(Dispatchers.IO) { findNonConsumableByBarcode(appContext, barcode) }?.let { entry ->
+                    withContext(Dispatchers.IO) { findNonConsumableByBarcode(appContext, barcode) }?.let { staticEntry ->
+                        // The bundled nonconsumables_opf.csv (~2000-3000 entries,
+                        // frozen 2026-07-13) was only ever built with barcode/
+                        // name/brand/category columns (see NonConsumableStore.get's
+                        // own CSV read above) - no ingredient text at all. A real
+                        // user-reported gap found 13/08/2026: this static match is
+                        // tried FIRST and, when it hits, was returned as-is with
+                        // ingredientsText permanently null - so every one of the
+                        // six per-category functional scores (and even the generic
+                        // CosmeticTransparencyScore) silently never ran for any
+                        // product this static snapshot covers, no matter how
+                        // recognizable its name/brand was, since they all key off
+                        // ingredientsText. Best-effort enrichment: if online, ask
+                        // the same live OPF endpoint findNonConsumableViaOpf
+                        // already calls for its own fallback path, just to fill in
+                        // ingredientsText - keeps the static match's already-
+                        // trustworthy name/brand/category (see the classifyNonFood
+                        // category-consistency fixes earlier this session) rather
+                        // than replacing them, and silently no-ops on any network
+                        // failure exactly like findNonConsumableViaOpf itself does.
+                        val entry = if (staticEntry.ingredientsText.isNullOrBlank() && isOnline()) {
+                            val liveIngredients = withContext(Dispatchers.IO) { scanRepo.findNonConsumableViaOpf(barcode) }?.ingredientsText
+                            if (liveIngredients.isNullOrBlank()) staticEntry else staticEntry.copy(ingredientsText = liveIngredients)
+                        } else staticEntry
                         _state.value = ScanUiState.NonConsumableFound(entry)
                         logNonConsumableScan(entry)
                         return@launch

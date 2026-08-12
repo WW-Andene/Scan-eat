@@ -109,9 +109,25 @@ data class ShowerGelQualityResult(
 
 /** Product-name keyword gate for "is this specifically a shower gel/body wash" -
  *  same convention as ShampooQualityScore.isLikelyShampoo. */
-fun isLikelyShowerGel(productName: String): Boolean {
+// Shower-gel/body-wash-specific brands - added 13/08/2026, user-requested.
+// Same "single-category brand only" bar as ShampooQualityScore's own list -
+// a genuinely harder category to source cleanly for, since most big brands
+// (Dove, Nivea, Le Petit Marseillais's own wider soap/hand-cream range) also
+// sell shampoo/skincare under the same brand tag. Kept to 8 rather than
+// padded to 10 with brands that are really deodorant-first (Axe, Rexona,
+// Narta) or an unrelated category (Franck Provost is a hairdressing-salon
+// brand, not shower gel) - an inaccurate list would misclassify real
+// products, worse than a shorter accurate one.
+private val SHOWER_GEL_BRANDS = listOf(
+    "sanex", "le petit marseillais", "monsavon", "camay", "lux", "adidas",
+    "zest", "cadum",
+)
+
+fun isLikelyShowerGel(productName: String, brand: String = ""): Boolean {
     val n = normalizeForMatching(productName)
-    return "gel douche" in n || "shower gel" in n || "body wash" in n || "gel de ducha" in n
+    if ("gel douche" in n || "shower gel" in n || "body wash" in n || "gel de ducha" in n) return true
+    val b = normalizeForMatching(brand)
+    return SHOWER_GEL_BRANDS.any { it in b }
 }
 
 /**

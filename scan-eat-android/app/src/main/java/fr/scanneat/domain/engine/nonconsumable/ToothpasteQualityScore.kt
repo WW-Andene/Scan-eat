@@ -89,9 +89,21 @@ data class ToothpasteQualityResult(
 
 /** Product-name keyword gate for "is this specifically a toothpaste" - same
  *  convention as ShampooQualityScore.isLikelyShampoo. */
-fun isLikelyToothpaste(productName: String): Boolean {
+// Top 10 oral-care-only brands - added 13/08/2026, user-requested. Unlike
+// shampoo/shower-gel, toothpaste brands are genuinely, almost always
+// single-category (an oral-care company rarely also sells shampoo under the
+// same brand name), so this list is on much firmer ground than the shower-
+// gel one above.
+private val TOOTHPASTE_BRANDS = listOf(
+    "signal", "colgate", "elmex", "sensodyne", "parodontax", "fluocaril",
+    "aquafresh", "oral-b", "emoform", "arthrodont",
+)
+
+fun isLikelyToothpaste(productName: String, brand: String = ""): Boolean {
     val n = normalizeForMatching(productName)
-    return "dentifrice" in n || "toothpaste" in n
+    if ("dentifrice" in n || "toothpaste" in n) return true
+    val b = normalizeForMatching(brand)
+    return TOOTHPASTE_BRANDS.any { it in b }
 }
 
 /**

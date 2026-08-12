@@ -133,9 +133,19 @@ fun computeIntimateWipeQuality(ingredientsText: String?): IntimateWipeQualityRes
 
 /** Product-name keyword gate for "is this a tampon/pad/menstrual product" -
  *  these products rarely carry a usable ingredient list, see header. */
-fun isLikelyAbsorbentHygieneProduct(productName: String): Boolean {
+// Top 10 feminine-hygiene-only brands - added 13/08/2026, user-requested.
+// Genuinely single-category, like toothpaste - these brands don't also sell
+// shampoo/food under the same name.
+private val ABSORBENT_HYGIENE_BRANDS = listOf(
+    "nana", "always", "vania", "tampax", "o.b.", "saforelle", "natracare",
+    "kotex", "nett", "carefree",
+)
+
+fun isLikelyAbsorbentHygieneProduct(productName: String, brand: String = ""): Boolean {
     val n = normalizeForMatching(productName)
-    return listOf("tampon", "serviette hygienique", "protege-slip", "sanitary pad", "menstrual pad", "coupe menstruelle", "menstrual cup").any { it in n }
+    if (listOf("tampon", "serviette hygienique", "protege-slip", "sanitary pad", "menstrual pad", "coupe menstruelle", "menstrual cup").any { it in n }) return true
+    val b = normalizeForMatching(brand)
+    return ABSORBENT_HYGIENE_BRANDS.any { it in b }
 }
 
 data class AbsorbentHygieneFacts(val facts: List<String>, val notes: List<String>)

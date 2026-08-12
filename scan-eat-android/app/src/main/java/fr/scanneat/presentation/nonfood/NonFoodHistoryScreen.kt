@@ -174,7 +174,7 @@ private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Uni
 @Composable
 private fun functionalBadgeFor(name: String, brand: String, ingredientsText: String?): Pair<String, androidx.compose.ui.graphics.Color>? {
     if (ingredientsText.isNullOrBlank()) return null
-    if (isLikelyShampoo(name)) {
+    if (isLikelyShampoo(name, brand)) {
         computeShampooQuality(ingredientsText)?.let {
             val (label, color) = when (it.cleansingBase) {
                 CleansingBase.GENTLE  -> stringResource(R.string.shampoo_base_gentle) to semanticGreen()
@@ -185,7 +185,7 @@ private fun functionalBadgeFor(name: String, brand: String, ingredientsText: Str
             return stringResource(R.string.shampoo_base_label, label) to color
         }
     }
-    if (isLikelyShowerGel(name)) {
+    if (isLikelyShowerGel(name, brand)) {
         computeShowerGelQuality(ingredientsText)?.let {
             val (label, color) = when (it.cleansingBase) {
                 ShowerGelCleansingBase.GENTLE  -> stringResource(R.string.shampoo_base_gentle) to semanticGreen()
@@ -196,13 +196,13 @@ private fun functionalBadgeFor(name: String, brand: String, ingredientsText: Str
             return stringResource(R.string.shampoo_base_label, label) to color
         }
     }
-    if (isLikelyToothpaste(name)) {
+    if (isLikelyToothpaste(name, brand)) {
         computeToothpasteQuality(ingredientsText)?.let {
             return if (it.hasFluoride) stringResource(R.string.toothpaste_has_fluoride) to semanticGreen()
             else stringResource(R.string.toothpaste_no_fluoride) to semanticAmber()
         }
     }
-    if (isLikelyMakeup(name)) {
+    if (isLikelyMakeup(name, brand)) {
         computeMakeupQuality(ingredientsText)?.let {
             if (it.hasTalc) return stringResource(R.string.makeup_has_talc) to semanticAmber()
             if (it.hasRegulatedPreservative) return stringResource(R.string.makeup_has_regulated_preservative) to semanticGreen()

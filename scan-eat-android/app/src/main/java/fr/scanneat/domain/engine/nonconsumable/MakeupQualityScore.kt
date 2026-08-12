@@ -68,9 +68,21 @@ data class MakeupQualityResult(
 )
 
 /** Product-name keyword gate for "is this specifically makeup". */
-fun isLikelyMakeup(productName: String): Boolean {
+// Top 10 makeup-only brands - added 13/08/2026, user-requested. Dedicated
+// makeup brands are easier to source cleanly than shampoo/shower-gel here -
+// these sell color cosmetics only, not shampoo/skincare/food under the same
+// brand tag (unlike a parent conglomerate name such as L'Oréal Paris, which
+// covers makeup AND shampoo AND skincare, so it's deliberately excluded).
+private val MAKEUP_BRANDS = listOf(
+    "maybelline", "bourjois", "rimmel", "max factor", "nyx", "essence",
+    "catrice", "kiko", "pupa", "sephora collection",
+)
+
+fun isLikelyMakeup(productName: String, brand: String = ""): Boolean {
     val n = normalizeForMatching(productName)
-    return listOf("fond de teint", "mascara", "rouge a levres", "lipstick", "eyeliner", "fard a paupieres", "eyeshadow", "foundation", "concealer", "anti-cernes").any { it in n }
+    if (listOf("fond de teint", "mascara", "rouge a levres", "lipstick", "eyeliner", "fard a paupieres", "eyeshadow", "foundation", "concealer", "anti-cernes").any { it in n }) return true
+    val b = normalizeForMatching(brand)
+    return MAKEUP_BRANDS.any { it in b }
 }
 
 /**

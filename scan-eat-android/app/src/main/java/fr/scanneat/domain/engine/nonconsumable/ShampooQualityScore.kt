@@ -108,9 +108,23 @@ data class ShampooQualityResult(
 
 /** Product-name keyword gate for "is this specifically a shampoo" - same
  *  keyword-based category detection classifyNonFood already uses for OFF tags. */
-fun isLikelyShampoo(productName: String): Boolean {
+// Top 10 shampoo-specific brands - added 13/08/2026, user-requested. Chosen
+// for being hair-care-focused brands whose OPF `brands` field value is
+// unlikely to also cover body wash/skincare/makeup under the same name -
+// unlike a parent conglomerate name (L'Oréal Paris, Nivea, Garnier, Dove all
+// sell shampoo AND makeup/skin-care/body-wash under the same brand tag, so
+// none of those are safe to use as a single-category signal here or in the
+// other per-category brand lists below).
+private val SHAMPOO_BRANDS = listOf(
+    "head & shoulders", "head and shoulders", "herbal essences", "pantene",
+    "tresemme", "aussie", "batiste", "klorane", "john frieda", "ultra doux",
+)
+
+fun isLikelyShampoo(productName: String, brand: String = ""): Boolean {
     val n = normalizeForMatching(productName)
-    return "shampoo" in n || "shampooing" in n
+    if ("shampoo" in n || "shampooing" in n) return true
+    val b = normalizeForMatching(brand)
+    return SHAMPOO_BRANDS.any { it in b }
 }
 
 /**
