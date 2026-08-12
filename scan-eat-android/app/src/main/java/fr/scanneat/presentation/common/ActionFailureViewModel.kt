@@ -26,6 +26,14 @@ abstract class ActionFailureViewModel : ViewModel() {
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
+    /**
+     * app-audit §L2: for a failure path that doesn't fit guardedLaunch/
+     * guardedSuspend's shape (e.g. HydrationViewModel's CSV-export IO failure,
+     * reported from inside an onFailure callback of its own already-running
+     * coroutine rather than as a block this class can wrap).
+     */
+    protected fun flagActionFailed() { _actionFailed.value = true }
+
     /** Fire-and-forget: runs [block] in viewModelScope, flags [actionFailed] on failure. */
     protected fun guardedLaunch(block: suspend () -> Unit): Job = viewModelScope.launch {
         runCatching { block() }.onFailure { e ->

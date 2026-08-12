@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.diary
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -30,6 +29,7 @@ import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.domain.model.ScanSource
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -52,7 +52,7 @@ class DiaryViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
     private val activityRepo: ActivityRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     // Fix 13: selectedDate as a StateFlow — avoids stale data across midnight
     private val _selectedDate = MutableStateFlow(LocalDate.now())
@@ -225,11 +225,6 @@ class DiaryViewModel @Inject constructor(
     // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
     // write failure here wasn't just silent, it was an uncaught exception that would
     // crash the app (e.g. disk-full or a Room constraint violation while deleting an entry).
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed write, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     // R&D audit finding: Fasting and the Diary had zero cross-reference - see
     // ConsumptionRepository.log's own doc comment.
     private val _loggedDuringFast = MutableStateFlow(false)
@@ -238,17 +233,17 @@ class DiaryViewModel @Inject constructor(
 
     // Delete and edit wired to repository
     fun deleteEntry(id: Long) {
-        viewModelScope.launch { runCatching { consumptionRepo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { consumptionRepo.delete(id) }
     }
 
     /** Re-creates a deleted entry (used by the "Undo" snackbar action) - mirrors
      *  WeightViewModel.restore()'s identical pattern for the same delete-recovery gap. */
     fun restore(entry: DiaryEntry) {
-        viewModelScope.launch { runCatching { consumptionRepo.log(entry) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { consumptionRepo.log(entry) }
     }
 
     fun updateEntry(entry: DiaryEntry) {
-        viewModelScope.launch { runCatching { consumptionRepo.update(entry) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { consumptionRepo.update(entry) }
     }
 
     /**
@@ -282,18 +277,16 @@ class DiaryViewModel @Inject constructor(
      */
     fun savePrice(entry: DiaryEntry, priceEuros: Double, weightG: Double?) {
         val barcode = entry.barcode ?: return
-        viewModelScope.launch {
-            runCatching {
-                priceRepo.log(
-                    date = LocalDate.now(),
-                    productName = entry.productName,
-                    barcode = barcode,
-                    category = entry.category,
-                    priceEuros = priceEuros,
-                    weightG = weightG,
-                    profileId = activeProfileId.value,
-                )
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            priceRepo.log(
+                date = LocalDate.now(),
+                productName = entry.productName,
+                barcode = barcode,
+                category = entry.category,
+                priceEuros = priceEuros,
+                weightG = weightG,
+                profileId = activeProfileId.value,
+            )
         }
     }
 
@@ -319,7 +312,7 @@ class DiaryViewModel @Inject constructor(
     }
 
     fun saveNote(text: String) {
-        viewModelScope.launch { runCatching { notesRepo.set(_selectedDate.value, text, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { notesRepo.set(_selectedDate.value, text, activeProfileId.value) }
     }
 
     // ── Manual add: search + log ─────────────────────────────────────────────
@@ -372,7 +365,7 @@ class DiaryViewModel @Inject constructor(
                     )
                 )
             }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -408,7 +401,7 @@ class DiaryViewModel @Inject constructor(
                 }
                 loggedDuringFast
             }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -437,7 +430,7 @@ class DiaryViewModel @Inject constructor(
                     )
                 )
             }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -472,7 +465,7 @@ class DiaryViewModel @Inject constructor(
                 }
                 loggedDuringFast
             }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -493,7 +486,7 @@ class DiaryViewModel @Inject constructor(
             val copies = previous.entries.map { entry ->
                 entry.copy(id = 0, date = _selectedDate.value, loggedAt = LocalDateTime.now())
             }
-            runCatching { consumptionRepo.logAll(copies) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { consumptionRepo.logAll(copies) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 }

@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.history
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -11,6 +10,7 @@ import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.Grade
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -29,7 +29,7 @@ class ScanHistoryViewModel @Inject constructor(
     private val repo: ScanRepository,
     private val prefs: UserPreferences,
     private val recallRepo: RecallRepository,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
@@ -239,14 +239,9 @@ class ScanHistoryViewModel @Inject constructor(
     // unguarded - unlike every sibling tracker ViewModel (Weight/Activity/Dashboard/
     // MealPlan/Templates all wrap theirs in runCatching), so a write failure here
     // wasn't just silent, it was an uncaught exception that would crash the app.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed write, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     fun toggleFavorite(scan: ScanResult) {
         if (scan.dbId <= 0) return
-        viewModelScope.launch {
+        guardedLaunch {
             // Reads the ViewModel's own live caches instead of trusting the
             // `scan` snapshot the composable captured at click time — a rapid
             // double-tap (faster than the DB write's Flow re-emission) could
@@ -259,7 +254,7 @@ class ScanHistoryViewModel @Inject constructor(
             val current = allScans.value.firstOrNull { it.dbId == scan.dbId }?.favorite
                 ?: favoriteScans.value.firstOrNull { it.dbId == scan.dbId }?.favorite
                 ?: scan.favorite
-            runCatching { repo.setFavorite(scan.dbId, !current) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            repo.setFavorite(scan.dbId, !current)
         }
     }
 
@@ -276,15 +271,13 @@ class ScanHistoryViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.delete(id) }
                 .onSuccess { lastDeleted = entry }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
     fun undoDelete() {
         val entry = lastDeleted ?: return
         lastDeleted = null
-        viewModelScope.launch {
-            runCatching { repo.persist(entry, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.persist(entry, activeProfileId.value) }
     }
 }

@@ -1,10 +1,10 @@
 package fr.scanneat.presentation.medication
 
 import android.content.Context
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.data.repository.health.MedicationLogEntry
@@ -19,10 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -157,7 +155,7 @@ class MedicationViewModel @Inject constructor(
     private val weightRepo: WeightRepository,
     private val prefs: fr.scanneat.data.local.prefs.UserPreferences,
     @ApplicationContext private val appContext: Context,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real.
     private val activeProfileId: StateFlow<String> = prefs.activeProfileId
@@ -316,11 +314,6 @@ class MedicationViewModel @Inject constructor(
     // unlike every sibling tracker (Weight/Activity/Dashboard/MealPlan/Templates all
     // wrap theirs in runCatching), so a write failure here wasn't just silent, it
     // was an uncaught exception that would crash the app.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed save, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     // R&D audit finding: Medication had zero cross-reference into Hydration or
     // Weight. Standard medical guidance for most oral medication is to take it
     // with a full glass of water - marking a dose taken now also credits one
@@ -331,23 +324,19 @@ class MedicationViewModel @Inject constructor(
     // actually drunk, same "additive, not reversible" convention already used
     // for Activity's hydration bonus.
     fun markTaken(medication: Medication) {
-        viewModelScope.launch {
-            runCatching {
-                repo.logTaken(medication, profileId = activeProfileId.value)
-                hydrationRepo.addGlass(profileId = activeProfileId.value)
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            repo.logTaken(medication, profileId = activeProfileId.value)
+            hydrationRepo.addGlass(profileId = activeProfileId.value)
         }
     }
 
     fun undoTaken(entry: MedicationLogEntry) {
-        viewModelScope.launch { runCatching { repo.deleteLogEntry(entry.id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { repo.deleteLogEntry(entry.id) }
     }
 
     fun save(name: String, dosage: String, scheduleNote: String, reminderOn: Boolean = false, reminderTime: String = "08:00") {
         if (name.isBlank()) return
-        viewModelScope.launch {
-            runCatching { repo.save(name, dosage, scheduleNote, reminderOn = reminderOn, reminderTime = reminderTime, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.save(name, dosage, scheduleNote, reminderOn = reminderOn, reminderTime = reminderTime, profileId = activeProfileId.value) }
     }
 
     /** Edits an existing medication's name/dosage/schedule note in place — previously the
@@ -357,13 +346,11 @@ class MedicationViewModel @Inject constructor(
      *  by id) and its reminder settings in the process. */
     fun edit(medication: Medication, name: String, dosage: String, scheduleNote: String) {
         if (name.isBlank()) return
-        viewModelScope.launch {
-            runCatching {
-                repo.save(name, dosage, scheduleNote, medication.barcode, medication.active, id = medication.id,
-                    reminderOn = medication.reminderOn, reminderTime = medication.reminderTime, profileId = activeProfileId.value,
-                    deactivatedAt = medication.deactivatedAt,
-                    scheduleDaysMask = medication.scheduleDaysMask, extraReminderTimes = medication.extraReminderTimes)
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            repo.save(name, dosage, scheduleNote, medication.barcode, medication.active, id = medication.id,
+                reminderOn = medication.reminderOn, reminderTime = medication.reminderTime, profileId = activeProfileId.value,
+                deactivatedAt = medication.deactivatedAt,
+                scheduleDaysMask = medication.scheduleDaysMask, extraReminderTimes = medication.extraReminderTimes)
         }
     }
 
@@ -375,17 +362,15 @@ class MedicationViewModel @Inject constructor(
      * every additional dose time beyond [time] itself (slot 0).
      */
     fun setReminder(medication: Medication, on: Boolean, time: String, daysMask: Int = 0, extraTimes: List<String> = emptyList()) {
-        viewModelScope.launch {
-            runCatching {
-                repo.save(medication.name, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
-                    reminderOn = on, reminderTime = time, profileId = activeProfileId.value, deactivatedAt = medication.deactivatedAt,
-                    scheduleDaysMask = daysMask, extraReminderTimes = extraTimes.joinToString(","))
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            repo.save(medication.name, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
+                reminderOn = on, reminderTime = time, profileId = activeProfileId.value, deactivatedAt = medication.deactivatedAt,
+                scheduleDaysMask = daysMask, extraReminderTimes = extraTimes.joinToString(","))
         }
     }
 
     fun setActive(medication: Medication, active: Boolean) {
-        viewModelScope.launch { runCatching { repo.setActive(medication, active, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { repo.setActive(medication, active, activeProfileId.value) }
     }
 
     // Same undo-delete pattern as DiaryViewModel/WeightViewModel/ScanHistoryViewModel -
@@ -399,20 +384,18 @@ class MedicationViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.delete(id) }
                 .onSuccess { lastDeleted = entry }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
     fun undoDelete() {
         val entry = lastDeleted ?: return
         lastDeleted = null
-        viewModelScope.launch {
-            runCatching {
-                repo.save(entry.name, entry.dosage, entry.scheduleNote, entry.barcode, entry.active, id = entry.id,
-                    reminderOn = entry.reminderOn, reminderTime = entry.reminderTime, profileId = activeProfileId.value,
-                    deactivatedAt = entry.deactivatedAt,
-                    scheduleDaysMask = entry.scheduleDaysMask, extraReminderTimes = entry.extraReminderTimes)
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            repo.save(entry.name, entry.dosage, entry.scheduleNote, entry.barcode, entry.active, id = entry.id,
+                reminderOn = entry.reminderOn, reminderTime = entry.reminderTime, profileId = activeProfileId.value,
+                deactivatedAt = entry.deactivatedAt,
+                scheduleDaysMask = entry.scheduleDaysMask, extraReminderTimes = entry.extraReminderTimes)
         }
     }
 }

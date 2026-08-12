@@ -1,11 +1,11 @@
 package fr.scanneat.presentation.biolism.bioProfile
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.domain.engine.biolism.BiolismProfile
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -15,7 +15,7 @@ import javax.inject.Inject
 class BiolismProfileViewModel @Inject constructor(
     private val repo: BiolismRepository,
     private val prefs: UserPreferences,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     val profile: StateFlow<BiolismProfile> = repo.profile
@@ -64,20 +64,11 @@ class BiolismProfileViewModel @Inject constructor(
     // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
     // write failure here wasn't just silent, it was an uncaught exception that would
     // crash the app.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed save, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     fun save(p: BiolismProfile) = viewModelScope.launch {
-        runCatching { repo.saveProfile(p) }.onSuccess { _saved.value = true }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        runCatching { repo.saveProfile(p) }.onSuccess { _saved.value = true }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
     }
     fun clearSaved() { _saved.value = false }
 
-    fun completeOnboarding(p: BiolismProfile) = viewModelScope.launch {
-        runCatching { repo.saveProfile(p); repo.setOnboarded(true) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
-    fun skipOnboarding() = viewModelScope.launch {
-        runCatching { repo.setOnboarded(true) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
+    fun completeOnboarding(p: BiolismProfile) = guardedLaunch { repo.saveProfile(p); repo.setOnboarded(true) }
+    fun skipOnboarding() = guardedLaunch { repo.setOnboarded(true) }
 }

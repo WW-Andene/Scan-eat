@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.activity
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -12,6 +11,7 @@ import fr.scanneat.domain.engine.health.ActivityRelevantDrugClass
 import fr.scanneat.domain.engine.health.OvertrainingWarning
 import fr.scanneat.domain.engine.health.checkDailyOvertraining
 import fr.scanneat.domain.engine.health.detectActivityRelevantDrugClasses
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,7 +30,7 @@ class ActivityViewModel @Inject constructor(
     private val repo: ActivityRepository,
     private val prefs: UserPreferences,
     private val medicationRepo: MedicationRepository,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     // In-app language (Settings) can differ from the device locale - the weekly
     // burn chart's weekday labels/content description previously built off
@@ -195,10 +195,7 @@ class ActivityViewModel @Inject constructor(
     val customWeeklyGoalMinutes: StateFlow<Int?> = prefs.activityWeeklyGoalMinutes
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun setWeeklyGoalMinutes(minutes: Int?) = viewModelScope.launch {
-        runCatching { prefs.setActivityWeeklyGoalMinutes(minutes) }
-            .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
+    fun setWeeklyGoalMinutes(minutes: Int?) = guardedLaunch { prefs.setActivityWeeklyGoalMinutes(minutes) }
 
     // New: weekly active minutes (current week, Mon–today) vs WHO 150 min goal
     val weeklyMinutes: StateFlow<Int> = yearRange
@@ -271,11 +268,6 @@ class ActivityViewModel @Inject constructor(
     // unguarded - unlike every sibling ViewModel's equivalent write (Result/Dashboard/
     // MealPlan/Templates/Weight all wrap theirs in runCatching), so a Room write
     // failure here wasn't just silent, it was an uncaught exception that would crash the app.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed save, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     // User-requested: is the app "aware" of an excessive single-day training
     // volume (e.g. 6h running, 3h strength) and does it warn about it? See
     // checkDailyOvertraining's own doc comment - AddActivityDialog already
@@ -306,7 +298,7 @@ class ActivityViewModel @Inject constructor(
                 val total = entries.value.filter { it.type == type }.sumOf { it.minutes } + minutes
                 checkDailyOvertraining(type, total, ageYears.value, healthConditions.value, activeDrugClasses.value)
                     ?.let { _overtrainingWarning.emit(it) }
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -317,32 +309,26 @@ class ActivityViewModel @Inject constructor(
         subType: String? = null, sets: Int? = null, reps: Int? = null,
         distanceKm: Double? = null, weightUsedKg: Double? = null, wasOutdoors: Boolean = false,
     ) {
-        viewModelScope.launch {
-            runCatching {
-                repo.update(
-                    id, type, minutes, weightKg.value ?: 70.0,
-                    subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
-                    wasOutdoors = wasOutdoors, profileId = activeProfileId.value,
-                )
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            repo.update(
+                id, type, minutes, weightKg.value ?: 70.0,
+                subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
+                wasOutdoors = wasOutdoors, profileId = activeProfileId.value,
+            )
         }
     }
 
-    fun delete(id: String) = viewModelScope.launch {
-        runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
+    fun delete(id: String) = guardedLaunch { repo.delete(id) }
 
     /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original stats. */
     fun restore(entry: ActivityEntry) {
-        viewModelScope.launch {
-            runCatching {
-                repo.log(
-                    entry.type, entry.minutes, weightKg.value ?: 70.0, kcalOverride = entry.kcalBurned, date = entry.date,
-                    subType = entry.subType, sets = entry.sets, reps = entry.reps,
-                    distanceKm = entry.distanceKm, weightUsedKg = entry.weightUsedKg, wasOutdoors = entry.wasOutdoors,
-                    profileId = activeProfileId.value,
-                )
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            repo.log(
+                entry.type, entry.minutes, weightKg.value ?: 70.0, kcalOverride = entry.kcalBurned, date = entry.date,
+                subType = entry.subType, sets = entry.sets, reps = entry.reps,
+                distanceKm = entry.distanceKm, weightUsedKg = entry.weightUsedKg, wasOutdoors = entry.wasOutdoors,
+                profileId = activeProfileId.value,
+            )
         }
     }
 }

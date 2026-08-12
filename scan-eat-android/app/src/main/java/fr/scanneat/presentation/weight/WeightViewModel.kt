@@ -1,9 +1,9 @@
 package fr.scanneat.presentation.weight
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import fr.scanneat.data.repository.health.WeightEntry
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.health.WeightSummary
@@ -22,7 +22,7 @@ import javax.inject.Inject
 class WeightViewModel @Inject constructor(
     private val repo: WeightRepository,
     private val prefs: UserPreferences,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real. Declared before init below so the
     // Health Connect sync call can read its value.
@@ -145,34 +145,26 @@ class WeightViewModel @Inject constructor(
      * Null clears the goal (same "no goal set" state ProfileScreen's blank
      * field already produces).
      */
-    fun setGoalWeightKg(kg: Double?) {
-        viewModelScope.launch {
-            runCatching {
-                val current = prefs.profile.first()
-                prefs.saveProfile(current.copy(goalWeightKg = kg))
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+    fun setGoalWeightKg(kg: Double?) = guardedLaunch {
+        val current = prefs.profile.first()
+        prefs.saveProfile(current.copy(goalWeightKg = kg))
     }
 
-    // log()/restore() previously called repo.log() completely unguarded - unlike
-    // every sibling ViewModel's equivalent write (Result/Dashboard/MealPlan/
-    // Templates all wrap theirs in runCatching), so a Room write failure here
-    // wasn't just silent, it was an uncaught exception that would crash the app.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed save, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
-    fun log(kg: Double, notes: String = "", date: LocalDate = LocalDate.now()) {
-        viewModelScope.launch { runCatching { repo.log(date, kg, notes, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    // app-audit §L2: now extends ActionFailureViewModel (see its own doc comment)
+    // instead of hand-rolling the identical _actionFailed/actionFailed/
+    // clearActionFailed trio - log()/restore() previously called repo.log()
+    // completely unguarded before that trio was first added here, unlike every
+    // sibling ViewModel's equivalent write (Result/Dashboard/MealPlan/Templates
+    // all wrap theirs in runCatching), so a Room write failure here wasn't just
+    // silent, it was an uncaught exception that would crash the app.
+    fun log(kg: Double, notes: String = "", date: LocalDate = LocalDate.now()) = guardedLaunch {
+        repo.log(date, kg, notes, activeProfileId.value)
     }
 
-    fun delete(id: String) {
-        viewModelScope.launch { runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
+    fun delete(id: String) = guardedLaunch { repo.delete(id) }
 
     /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original date/weight/notes. */
-    fun restore(entry: WeightEntry) {
-        viewModelScope.launch { runCatching { repo.log(entry.date, entry.weightKg, entry.notes, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun restore(entry: WeightEntry) = guardedLaunch {
+        repo.log(entry.date, entry.weightKg, entry.notes, activeProfileId.value)
     }
 }

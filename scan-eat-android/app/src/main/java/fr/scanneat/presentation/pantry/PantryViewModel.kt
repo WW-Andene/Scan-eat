@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.pantry
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -8,6 +7,7 @@ import fr.scanneat.data.repository.pantry.PantryItem
 import fr.scanneat.data.repository.pantry.PantryRepository
 import fr.scanneat.data.repository.pantry.PantryUnit
 import fr.scanneat.domain.model.ProductCategory
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +47,7 @@ class PantryViewModel @Inject constructor(
     private val repo: PantryRepository,
     private val recallRepo: fr.scanneat.data.repository.recall.RecallRepository,
     private val prefs: UserPreferences,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     private val activeProfileId: StateFlow<String> = prefs.activeProfileId
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
@@ -83,29 +83,16 @@ class PantryViewModel @Inject constructor(
     val recalledBarcodes: StateFlow<Set<String>> = recallRepo.observeRecalledBarcodes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    private val _actionFailed = MutableStateFlow(false)
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     fun add(name: String, barcode: String?, category: ProductCategory, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?) {
-        viewModelScope.launch {
-            runCatching { repo.addOrUpdate(name.trim(), barcode, category, quantity, unit, expiryDate, activeProfileId.value) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.addOrUpdate(name.trim(), barcode, category, quantity, unit, expiryDate, activeProfileId.value) }
     }
 
     fun updateQuantity(id: String, quantity: Double) {
-        viewModelScope.launch {
-            runCatching { repo.updateQuantity(id, quantity) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.updateQuantity(id, quantity) }
     }
 
     fun updateDetails(id: String, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?, category: ProductCategory) {
-        viewModelScope.launch {
-            runCatching { repo.updateDetails(id, quantity, unit, expiryDate, category) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.updateDetails(id, quantity, unit, expiryDate, category) }
     }
 
     private var lastDeleted: PantryItem? = null
@@ -114,7 +101,7 @@ class PantryViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.delete(item.id) }
                 .onSuccess { lastDeleted = item }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -122,10 +109,8 @@ class PantryViewModel @Inject constructor(
     fun undoDelete() {
         val item = lastDeleted ?: return
         lastDeleted = null
-        viewModelScope.launch {
-            runCatching {
-                repo.add(item.name, item.barcode, item.category, item.quantity, item.unit, item.expiryDate, activeProfileId.value)
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            repo.add(item.name, item.barcode, item.category, item.quantity, item.unit, item.expiryDate, activeProfileId.value)
         }
     }
 }

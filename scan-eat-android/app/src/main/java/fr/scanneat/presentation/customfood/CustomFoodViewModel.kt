@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.customfood
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -13,6 +12,7 @@ import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -27,7 +27,7 @@ class CustomFoodViewModel @Inject constructor(
     private val scanRepo: ScanRepository,
     private val recallRepo: RecallRepository,
     prefs: UserPreferences,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     // Needed so the hint panel can cross-reference health conditions the same way
     // ResultViewModel's identical pair already does for scanned products — the
     // "💡 Bon à savoir" panel was previously reachable only from Result, despite
@@ -96,11 +96,6 @@ class CustomFoodViewModel @Inject constructor(
     // importFromScan previously called repo's Room writes completely unguarded,
     // so an I/O failure (disk full, corrupt row) crashed the app instead of
     // surfacing here as a one-shot snackbar.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed write, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     fun save(
         name: String,
         kcal: Double,
@@ -119,12 +114,10 @@ class CustomFoodViewModel @Inject constructor(
         // until AddFoodDialog gained a barcode field - see that dialog's own comment.
         barcode: String? = null,
     ) {
-        viewModelScope.launch {
-            runCatching {
-                repo.save(name = name, kcal = kcal, proteinG = proteinG,
-                          carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases, barcode = barcode,
-                          profileId = activeProfileId.value)
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            repo.save(name = name, kcal = kcal, proteinG = proteinG,
+                      carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases, barcode = barcode,
+                      profileId = activeProfileId.value)
         }
     }
 
@@ -144,7 +137,7 @@ class CustomFoodViewModel @Inject constructor(
                 repo.delete(id)
                 barcode to entry
             }.onSuccess { (barcode, e) -> if (e != null) lastDeleted = Triple(id, e, barcode) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -153,15 +146,13 @@ class CustomFoodViewModel @Inject constructor(
     fun undoDelete() {
         val (id, food, barcode) = lastDeleted ?: return
         lastDeleted = null
-        viewModelScope.launch {
-            runCatching {
-                repo.save(
-                    id = id, name = food.name, kcal = food.kcal, proteinG = food.proteinG,
-                    carbsG = food.carbsG, fatG = food.fatG, fiberG = food.fiberG, saltG = food.saltG,
-                    ironMg = food.ironMg, calciumMg = food.calciumMg, vitDUg = food.vitDUg, b12Ug = food.b12Ug,
-                    aliases = food.aliases, barcode = barcode, profileId = activeProfileId.value,
-                )
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            repo.save(
+                id = id, name = food.name, kcal = food.kcal, proteinG = food.proteinG,
+                carbsG = food.carbsG, fatG = food.fatG, fiberG = food.fiberG, saltG = food.saltG,
+                ironMg = food.ironMg, calciumMg = food.calciumMg, vitDUg = food.vitDUg, b12Ug = food.b12Ug,
+                aliases = food.aliases, barcode = barcode, profileId = activeProfileId.value,
+            )
         }
     }
 
@@ -188,20 +179,18 @@ class CustomFoodViewModel @Inject constructor(
         aliases: List<String> = emptyList(),
     ) {
         if (name.isBlank()) return
-        viewModelScope.launch {
-            runCatching {
-                val existing = repo.findById(id)
-                repo.save(
-                    id = id, name = name, kcal = kcal, proteinG = proteinG,
-                    carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG,
-                    // Preserved from the existing row, not collected by the edit
-                    // dialog - see CustomFoodRepository.findById's own doc comment
-                    // on why these would otherwise silently zero out.
-                    ironMg = existing?.ironMg ?: 0.0, calciumMg = existing?.calciumMg ?: 0.0,
-                    vitDUg = existing?.vitDUg ?: 0.0, b12Ug = existing?.b12Ug ?: 0.0,
-                    aliases = aliases, barcode = repo.findBarcode(id), profileId = activeProfileId.value,
-                )
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            val existing = repo.findById(id)
+            repo.save(
+                id = id, name = name, kcal = kcal, proteinG = proteinG,
+                carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG,
+                // Preserved from the existing row, not collected by the edit
+                // dialog - see CustomFoodRepository.findById's own doc comment
+                // on why these would otherwise silently zero out.
+                ironMg = existing?.ironMg ?: 0.0, calciumMg = existing?.calciumMg ?: 0.0,
+                vitDUg = existing?.vitDUg ?: 0.0, b12Ug = existing?.b12Ug ?: 0.0,
+                aliases = aliases, barcode = repo.findBarcode(id), profileId = activeProfileId.value,
+            )
         }
     }
 
@@ -213,8 +202,8 @@ class CustomFoodViewModel @Inject constructor(
             // otherwise closes as if the rename had succeeded while the food silently
             // keeps its old name.
             runCatching { repo.rename(id, newName) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-                .onSuccess { renamed -> if (!renamed) _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
+                .onSuccess { renamed -> if (!renamed) flagActionFailed() }
         }
     }
 
@@ -239,8 +228,8 @@ class CustomFoodViewModel @Inject constructor(
 
     fun importFromScan(scan: ScanResult) {
         val n = scan.product.nutrition
-        viewModelScope.launch {
-            runCatching { repo.save(
+        guardedLaunch {
+            repo.save(
                 name     = scan.product.name,
                 kcal     = n.energyKcal,
                 proteinG = n.proteinG,
@@ -264,7 +253,7 @@ class CustomFoodViewModel @Inject constructor(
                 barcode  = scan.barcode,
                 category = scan.product.category,
                 profileId = activeProfileId.value,
-            ) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            )
         }
     }
 }

@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.hydration
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -11,6 +10,7 @@ import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.domain.engine.health.OverhydrationWarning
 import fr.scanneat.domain.engine.health.checkOverhydration
 import fr.scanneat.domain.model.ActivityLevel
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,7 +26,7 @@ class HydrationViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val csvExportRepository: CsvExportRepository,
     private val activityRepo: ActivityRepository,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real. HydrationRepository is DataStore-backed
@@ -101,9 +101,7 @@ class HydrationViewModel @Inject constructor(
         checkOverhydration(ml, goalMl)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun setCustomGoal(ml: Int?) = viewModelScope.launch {
-        runCatching { repo.setCustomGoalMl(ml, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
+    fun setCustomGoal(ml: Int?) = guardedLaunch { repo.setCustomGoalMl(ml, activeProfileId.value) }
 
     // Improvement: consecutive-days streak — counts backwards from yesterday
     // (today is still in progress, so excluding it avoids a misleading "1-day
@@ -153,13 +151,11 @@ class HydrationViewModel @Inject constructor(
     // unguarded - unlike every sibling tracker (Weight/Activity/Dashboard/MealPlan/
     // Templates all wrap theirs in runCatching), so a write failure here wasn't
     // just silent, it was an uncaught exception that would crash the app.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed save, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
-    fun addGlass()    = viewModelScope.launch { runCatching { repo.addGlass(profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    fun removeGlass() = viewModelScope.launch { runCatching { repo.removeGlass(profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    // app-audit §L2: now extends ActionFailureViewModel (see its own doc comment)
+    // instead of hand-rolling the identical _actionFailed/actionFailed/
+    // clearActionFailed trio.
+    fun addGlass()    = guardedLaunch { repo.addGlass(profileId = activeProfileId.value) }
+    fun removeGlass() = guardedLaunch { repo.removeGlass(profileId = activeProfileId.value) }
 
     /**
      * User-requested: "develop the tool" for Hydration - the ring's +/- controls
@@ -173,7 +169,7 @@ class HydrationViewModel @Inject constructor(
      */
     fun addAmount(ml: Int) {
         if (ml <= 0) return
-        viewModelScope.launch { runCatching { repo.add(LocalDate.now(), ml, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { repo.add(LocalDate.now(), ml, activeProfileId.value) }
     }
 
     /**
@@ -191,14 +187,10 @@ class HydrationViewModel @Inject constructor(
 
     /** Corrects a whole day's total - see [history]'s own doc comment on why this
      *  is day-level, not per-glass. */
-    fun editDay(date: LocalDate, ml: Int) = viewModelScope.launch {
-        runCatching { repo.set(date, ml, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
+    fun editDay(date: LocalDate, ml: Int) = guardedLaunch { repo.set(date, ml, activeProfileId.value) }
 
     /** Clears a day's total back to zero (removes it from [history]). */
-    fun deleteDay(date: LocalDate) = viewModelScope.launch {
-        runCatching { repo.set(date, 0, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
+    fun deleteDay(date: LocalDate) = guardedLaunch { repo.set(date, 0, activeProfileId.value) }
 
     // Same CsvExportReady-then-SAF-picker split as ExpensesViewModel's own CSV
     // export - exposed directly on this screen instead of only reachable via
@@ -210,9 +202,9 @@ class HydrationViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { csvExportRepository.exportHydrationCsv() }
                 .onSuccess { _csvExportReady.value = it }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
     fun clearCsvExport() { _csvExportReady.value = null }
-    fun reportCsvExportIoFailed() { _csvExportReady.value = null; _actionFailed.value = true }
+    fun reportCsvExportIoFailed() { _csvExportReady.value = null; flagActionFailed() }
 }

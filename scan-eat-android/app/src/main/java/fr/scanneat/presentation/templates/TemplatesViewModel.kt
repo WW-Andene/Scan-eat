@@ -1,9 +1,9 @@
 package fr.scanneat.presentation.templates
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.MealTemplate
@@ -35,7 +35,7 @@ class TemplatesViewModel @Inject constructor(
     private val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
     private val prefs: UserPreferences,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real.
     private val activeProfileId: StateFlow<String> = prefs.activeProfileId
@@ -69,9 +69,7 @@ class TemplatesViewModel @Inject constructor(
         searched.sortedByDescending { it.favorite }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun toggleFavorite(template: MealTemplate) = viewModelScope.launch {
-        runCatching { repo.setFavorite(template.id, !template.favorite) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
+    fun toggleFavorite(template: MealTemplate) = guardedLaunch { repo.setFavorite(template.id, !template.favorite) }
 
     /** Sum of all items' kcal across every template — shown as a library-level stat, unaffected by the meal-slot filter. */
     val libraryTotalKcal: StateFlow<Int> = _allTemplates.map { list ->
@@ -140,7 +138,7 @@ class TemplatesViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.delete(id) }
                 .onSuccess { lastDeleted = entry }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -148,54 +146,37 @@ class TemplatesViewModel @Inject constructor(
     fun undoDelete() {
         val entry = lastDeleted ?: return
         lastDeleted = null
-        viewModelScope.launch {
-            runCatching { repo.save(entry.name, entry.meal, entry.items, id = entry.id, profileId = activeProfileId.value) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.save(entry.name, entry.meal, entry.items, id = entry.id, profileId = activeProfileId.value) }
     }
 
     /** Templates and Recipes carry near-identical component shapes but had no
      *  way to convert between the two - a "quick weeknight combo" built as a
      *  template couldn't become a proper named Recipe without re-entering
      *  every ingredient by hand, and vice versa. */
-    fun saveAsRecipe(template: MealTemplate) = viewModelScope.launch {
-        runCatching { recipeRepo.save(template.name, template.toRecipeComponents(), servings = 1, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    fun saveAsRecipe(template: MealTemplate) = guardedLaunch {
+        recipeRepo.save(template.name, template.toRecipeComponents(), servings = 1, profileId = activeProfileId.value)
     }
-
-    // logTemplate's runCatching below prevented a crash on Room write failure but had
-    // no failure path at all - a user tapping a template's log icon got zero visible
-    // effect if the write failed, unable to tell whether it had actually logged.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed log, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
 
     fun create(name: String, meal: MealSlot) {
         if (name.isBlank()) return
-        viewModelScope.launch {
-            runCatching { repo.save(name, meal, items = emptyList<TemplateItem>(), profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.save(name, meal, items = emptyList<TemplateItem>(), profileId = activeProfileId.value) }
     }
 
     fun rename(template: MealTemplate, newName: String) {
         if (newName.isBlank()) return
-        viewModelScope.launch {
-            runCatching { repo.save(newName, template.meal, template.items, id = template.id, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.save(newName, template.meal, template.items, id = template.id, profileId = activeProfileId.value) }
     }
 
     fun logTemplate(template: MealTemplate, date: LocalDate = LocalDate.now(), mealOverride: MealSlot? = null, portionScale: Double = 1.0) {
-        viewModelScope.launch {
-            // repo.expand() used to run outside this guard - MealSlot.valueOf() inside it
-            // throws on any item with a malformed/legacy meal slot string, which crashed
-            // the app instead of surfacing the same actionFailed snackbar every other
-            // write failure in this ViewModel already uses.
-            runCatching {
-                val entries = repo.expand(template, date, mealOverride)
-                val scaled = (if (portionScale == 1.0) entries
-                else entries.map { it.copy(portionG = it.portionG * portionScale) }).map { it.copy(profileId = activeProfileId.value) }
-                consumptionRepo.logAll(scaled)
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        // repo.expand() used to run outside this guard - MealSlot.valueOf() inside it
+        // throws on any item with a malformed/legacy meal slot string, which crashed
+        // the app instead of surfacing the same actionFailed snackbar every other
+        // write failure in this ViewModel already uses.
+        guardedLaunch {
+            val entries = repo.expand(template, date, mealOverride)
+            val scaled = (if (portionScale == 1.0) entries
+            else entries.map { it.copy(portionG = it.portionG * portionScale) }).map { it.copy(profileId = activeProfileId.value) }
+            consumptionRepo.logAll(scaled)
         }
     }
 
@@ -205,16 +186,12 @@ class TemplatesViewModel @Inject constructor(
     // stayed a permanent 0-item, 0-kcal template; "Log" just planted nothing.
     // Mirrors Recipes' own add-ingredient pattern (RecipeComponent).
     fun addItem(template: MealTemplate, item: TemplateItem) {
-        viewModelScope.launch {
-            runCatching { repo.save(template.name, template.meal, template.items + item, id = template.id, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.save(template.name, template.meal, template.items + item, id = template.id, profileId = activeProfileId.value) }
     }
 
     fun removeItem(template: MealTemplate, index: Int) {
         val items = template.items.toMutableList().also { if (index in it.indices) it.removeAt(index) }
-        viewModelScope.launch {
-            runCatching { repo.save(template.name, template.meal, items, id = template.id, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.save(template.name, template.meal, items, id = template.id, profileId = activeProfileId.value) }
     }
 
     /** Forks a template into an independent copy (e.g. clone "Breakfast" into
@@ -226,8 +203,6 @@ class TemplatesViewModel @Inject constructor(
      *  RecipesViewModel.duplicate(). */
     fun duplicate(template: MealTemplate) {
         val suffix = if (language.value == "en") " (copy)" else " (copie)"
-        viewModelScope.launch {
-            runCatching { repo.save("${template.name}$suffix", template.meal, template.items, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.save("${template.name}$suffix", template.meal, template.items, profileId = activeProfileId.value) }
     }
 }

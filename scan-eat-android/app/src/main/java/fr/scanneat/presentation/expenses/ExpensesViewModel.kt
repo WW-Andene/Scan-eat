@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.expenses
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -13,6 +12,7 @@ import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.inferCategoryFromName
 import fr.scanneat.domain.model.ProductCategory
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -29,7 +29,7 @@ class ExpensesViewModel @Inject constructor(
     private val csvExportRepository: CsvExportRepository,
     private val groceryRepo: ManualGroceryRepository,
     private val customFoodRepo: CustomFoodRepository,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real.
@@ -59,10 +59,7 @@ class ExpensesViewModel @Inject constructor(
      *  editable afterward like any other grocery item). */
     fun addToGroceryList(entry: PriceEntry) {
         val grams = entry.weightG ?: return
-        viewModelScope.launch {
-            runCatching { groceryRepo.add(entry.productName, grams, activeProfileId.value) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { groceryRepo.add(entry.productName, grams, activeProfileId.value) }
     }
 
     // User-reported: the Expenses "add product" name field had no search-as-
@@ -207,22 +204,17 @@ class ExpensesViewModel @Inject constructor(
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), fr.scanneat.domain.engine.expense.AnnualSpendProjection(0.0, null, false))
 
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed write, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     fun setBudgetWeekly(v: Double?) {
-        viewModelScope.launch { runCatching { prefs.setBudgetWeeklyEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { prefs.setBudgetWeeklyEuros(v) }
     }
     fun setBudgetPerMeal(v: Double?) {
-        viewModelScope.launch { runCatching { prefs.setBudgetPerMealEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { prefs.setBudgetPerMealEuros(v) }
     }
     fun setBudgetDaily(v: Double?) {
-        viewModelScope.launch { runCatching { prefs.setBudgetDailyEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { prefs.setBudgetDailyEuros(v) }
     }
     fun setBudgetMonthly(v: Double?) {
-        viewModelScope.launch { runCatching { prefs.setBudgetMonthlyEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { prefs.setBudgetMonthlyEuros(v) }
     }
     // Same undo-delete pattern as WeightViewModel/MedicationViewModel/DiaryViewModel -
     // snapshots the row right before deleting it so a snackbar "Undo" can restore it.
@@ -235,7 +227,7 @@ class ExpensesViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { priceRepo.delete(id) }
                 .onSuccess { lastDeleted = entry }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -243,10 +235,7 @@ class ExpensesViewModel @Inject constructor(
     fun undoDeleteEntry() {
         val entry = lastDeleted ?: return
         lastDeleted = null
-        viewModelScope.launch {
-            runCatching { priceRepo.log(entry.date, entry.productName, barcode = entry.barcode, category = entry.category, priceEuros = entry.priceEuros, weightG = entry.weightG, profileId = activeProfileId.value) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { priceRepo.log(entry.date, entry.productName, barcode = entry.barcode, category = entry.category, priceEuros = entry.priceEuros, weightG = entry.weightG, profileId = activeProfileId.value) }
     }
 
     /**
@@ -261,10 +250,7 @@ class ExpensesViewModel @Inject constructor(
      */
     fun addEntry(date: LocalDate, productName: String, category: ProductCategory, priceEuros: Double, weightG: Double?) {
         if (productName.isBlank()) return
-        viewModelScope.launch {
-            runCatching { priceRepo.log(date, productName.trim(), barcode = null, category = category, priceEuros = priceEuros, weightG = weightG, profileId = activeProfileId.value) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { priceRepo.log(date, productName.trim(), barcode = null, category = category, priceEuros = priceEuros, weightG = weightG, profileId = activeProfileId.value) }
     }
 
     /** Corrects an already-logged entry - see PriceRepository.update's own doc
@@ -272,10 +258,7 @@ class ExpensesViewModel @Inject constructor(
      *  delete-then-re-add round trip. */
     fun editEntry(id: String, date: LocalDate, productName: String, category: ProductCategory, priceEuros: Double, weightG: Double?) {
         if (productName.isBlank()) return
-        viewModelScope.launch {
-            runCatching { priceRepo.update(id, date, productName.trim(), category, priceEuros, weightG) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { priceRepo.update(id, date, productName.trim(), category, priceEuros, weightG) }
     }
 
     // Same CsvExportReady-then-SAF-picker split as SettingsViewModel's own CSV
@@ -290,11 +273,11 @@ class ExpensesViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { csvExportRepository.exportPricesCsv() }
                 .onSuccess { _csvExportReady.value = it }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
     fun clearCsvExport() { _csvExportReady.value = null }
     /** The SAF "save file" picker succeeded but the write itself failed (disk full,
      *  provider error) - same shape as SettingsViewModel.reportBackupIoFailed(). */
-    fun reportCsvExportIoFailed() { _csvExportReady.value = null; _actionFailed.value = true }
+    fun reportCsvExportIoFailed() { _csvExportReady.value = null; flagActionFailed() }
 }

@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.mealplan
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -15,7 +14,7 @@ import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.MealSlot
-import kotlinx.coroutines.CancellationException
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -32,7 +31,7 @@ class MealPlanViewModel @Inject constructor(
     private val recipeRepo: RecipeRepository,
     private val templateRepo: MealTemplateRepository,
     private val consumptionRepo: ConsumptionRepository,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real. MealPlanRepository's weekly plan
     // grid is now namespaced per profile too, same as every Room-backed tracker.
@@ -190,14 +189,6 @@ class MealPlanViewModel @Inject constructor(
         }
     }
 
-    // logSlot's runCatching below prevented a crash on Room write failure but had no
-    // failure path at all - a user tapping a planned slot's log icon got zero visible
-    // effect if the write failed, unable to tell whether it had actually logged.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed log, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     // setNote/clear/clearDay/duplicateDay/duplicateWeek/setRecipe/setTemplate below
     // previously called repo's Room writes completely unguarded - same F-HIGH-01 bug
     // as every other unguarded ViewModel write, just missed here since logSlot already
@@ -207,53 +198,36 @@ class MealPlanViewModel @Inject constructor(
         // strip any embedded newline (e.g. from pasted clipboard text) so a note can't
         // split across "lines" and corrupt the following entry.
         val sanitized = text.replace("\n", " ")
-        viewModelScope.launch {
-            runCatching { repo.setSlot(date, meal, if (sanitized.isBlank()) null else MealPlanSlot.NoteSlot(sanitized), activeProfileId.value) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.setSlot(date, meal, if (sanitized.isBlank()) null else MealPlanSlot.NoteSlot(sanitized), activeProfileId.value) }
     }
 
     fun clear(date: LocalDate, meal: String) {
-        viewModelScope.launch {
-            runCatching { repo.setSlot(date, meal, null, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.setSlot(date, meal, null, activeProfileId.value) }
     }
 
     /** Clear every slot for a day in one action instead of one tap per meal. */
     fun clearDay(date: LocalDate) {
-        viewModelScope.launch {
-            runCatching { repo.clearDay(date, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.clearDay(date, activeProfileId.value) }
     }
 
     /** Duplicates a day's whole plan onto the same weekday next week - the
      *  common "same as this week" case, without needing a date picker. */
     fun duplicateDay(date: LocalDate) {
-        viewModelScope.launch {
-            runCatching { repo.copyDay(date, date.plusDays(7), activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.copyDay(date, date.plusDays(7), activeProfileId.value) }
     }
 
     /** Duplicates the entire displayed week onto the next 7 days. */
     fun duplicateWeek() {
         val start = weekDates.value.firstOrNull() ?: return
-        viewModelScope.launch {
-            runCatching { repo.copyWeek(start, start.plusDays(7), activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.copyWeek(start, start.plusDays(7), activeProfileId.value) }
     }
 
     fun setRecipe(date: LocalDate, meal: String, recipe: Recipe) {
-        viewModelScope.launch {
-            runCatching { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name), activeProfileId.value) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name), activeProfileId.value) }
     }
 
     fun setTemplate(date: LocalDate, meal: String, template: MealTemplate) {
-        viewModelScope.launch {
-            runCatching { repo.setSlot(date, meal, MealPlanSlot.TemplateSlot(template.id, template.name), activeProfileId.value) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { repo.setSlot(date, meal, MealPlanSlot.TemplateSlot(template.id, template.name), activeProfileId.value) }
     }
 
     // A planned RecipeSlot/TemplateSlot only ever persisted the plan itself -
@@ -264,27 +238,25 @@ class MealPlanViewModel @Inject constructor(
     // rather than re-querying, since both are cheap StateFlows already held here.
     fun logSlot(date: LocalDate, meal: String, slot: MealPlanSlot) {
         val mealSlot = MealSlot.valueOf(meal.uppercase())
-        viewModelScope.launch {
-            // Guarded like DashboardViewModel.logGapSuggestion/ResultViewModel.log -
-            // a Room insert failure (disk-full, constraint violation) here previously
-            // crashed the app instead of just failing to log this one meal.
-            runCatching {
-                when (slot) {
-                    is MealPlanSlot.RecipeSlot -> recipes.value.find { it.id == slot.id }?.let {
-                        // collapse()'s default portionFraction=1.0 logs the entire
-                        // multi-serving batch, not the one meal a planned slot
-                        // represents - RecipesViewModel.log() already divides by
-                        // servings for its own log action; this was the one
-                        // caller that didn't, silently overcounting kcal/macros
-                        // by the servings factor for any recipe with servings > 1.
-                        consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot, portionFraction = 1.0 / it.servings.coerceAtLeast(1)).copy(profileId = activeProfileId.value))
-                    }
-                    is MealPlanSlot.TemplateSlot -> templates.value.find { it.id == slot.id }?.let {
-                        consumptionRepo.logAll(templateRepo.expand(it, date, mealSlot).map { e -> e.copy(profileId = activeProfileId.value) })
-                    }
-                    is MealPlanSlot.NoteSlot -> Unit
+        // Guarded like DashboardViewModel.logGapSuggestion/ResultViewModel.log -
+        // a Room insert failure (disk-full, constraint violation) here previously
+        // crashed the app instead of just failing to log this one meal.
+        guardedLaunch {
+            when (slot) {
+                is MealPlanSlot.RecipeSlot -> recipes.value.find { it.id == slot.id }?.let {
+                    // collapse()'s default portionFraction=1.0 logs the entire
+                    // multi-serving batch, not the one meal a planned slot
+                    // represents - RecipesViewModel.log() already divides by
+                    // servings for its own log action; this was the one
+                    // caller that didn't, silently overcounting kcal/macros
+                    // by the servings factor for any recipe with servings > 1.
+                    consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot, portionFraction = 1.0 / it.servings.coerceAtLeast(1)).copy(profileId = activeProfileId.value))
                 }
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                is MealPlanSlot.TemplateSlot -> templates.value.find { it.id == slot.id }?.let {
+                    consumptionRepo.logAll(templateRepo.expand(it, date, mealSlot).map { e -> e.copy(profileId = activeProfileId.value) })
+                }
+                is MealPlanSlot.NoteSlot -> Unit
+            }
         }
     }
 }

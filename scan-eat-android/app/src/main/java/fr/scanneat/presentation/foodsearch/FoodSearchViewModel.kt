@@ -1,9 +1,9 @@
 package fr.scanneat.presentation.foodsearch
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.scan.ScanRepository
@@ -129,7 +129,7 @@ class FoodSearchViewModel @Inject constructor(
     private val consumptionRepo: ConsumptionRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val prefs: UserPreferences,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real.
@@ -294,11 +294,6 @@ class FoodSearchViewModel @Inject constructor(
     // surfacing as a one-shot snackbar, and this screen had no failure-feedback
     // plumbing at all (no _actionFailed StateFlow, no SnackbarHostState in
     // FoodSearchScreen) to catch it even if it had been guarded.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed write, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     // R&D audit finding: Fasting and the Diary had zero cross-reference - see
     // ConsumptionRepository.log's own doc comment.
     private val _loggedDuringFast = MutableStateFlow(false)
@@ -417,7 +412,7 @@ class FoodSearchViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { scanRepo.persist(raw, activeProfileId.value) }
                 .onSuccess { onOpened(it) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -433,24 +428,22 @@ class FoodSearchViewModel @Inject constructor(
      * section going forward.
      */
     fun toggleFavorite(item: FoodSearchItem) {
-        viewModelScope.launch {
-            runCatching {
-                when {
-                    item.scanId != null -> scanRepo.setFavorite(item.scanId, !item.favorite)
-                    item.barcode != null -> {
-                        val raw = onlineRawCache[item.barcode] ?: return@runCatching
-                        scanRepo.setFavorite(scanRepo.persist(raw, activeProfileId.value), true)
-                    }
-                    else -> {
-                        val entry = customFoods.value.firstOrNull { it.name == item.name }
-                            ?: FOOD_DB.firstOrNull { it.name == item.name } ?: return@runCatching
-                        val product = customFoodRepo.toProduct(entry)
-                        val audit = scoreProduct(product, prefs.language.first())
-                        val id = scanRepo.persist(ScanResult(product = product, audit = audit, warnings = emptyList(), source = ScanSource.MANUAL), activeProfileId.value)
-                        scanRepo.setFavorite(id, true)
-                    }
+        guardedLaunch {
+            when {
+                item.scanId != null -> scanRepo.setFavorite(item.scanId, !item.favorite)
+                item.barcode != null -> {
+                    val raw = onlineRawCache[item.barcode] ?: return@guardedLaunch
+                    scanRepo.setFavorite(scanRepo.persist(raw, activeProfileId.value), true)
                 }
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                else -> {
+                    val entry = customFoods.value.firstOrNull { it.name == item.name }
+                        ?: FOOD_DB.firstOrNull { it.name == item.name } ?: return@guardedLaunch
+                    val product = customFoodRepo.toProduct(entry)
+                    val audit = scoreProduct(product, prefs.language.first())
+                    val id = scanRepo.persist(ScanResult(product = product, audit = audit, warnings = emptyList(), source = ScanSource.MANUAL), activeProfileId.value)
+                    scanRepo.setFavorite(id, true)
+                }
+            }
         }
     }
 
@@ -476,7 +469,7 @@ class FoodSearchViewModel @Inject constructor(
      *  navigating to the full Result screen. */
     fun openLogSheet(item: FoodSearchItem) {
         viewModelScope.launch {
-            _logTarget.value = resolveFood(item) ?: run { _actionFailed.value = true; null }
+            _logTarget.value = resolveFood(item) ?: run { flagActionFailed(); null }
         }
     }
 
@@ -501,7 +494,7 @@ class FoodSearchViewModel @Inject constructor(
                     )
                 )
             }.onSuccess { loggedDuringFast -> _logTarget.value = null; if (loggedDuringFast) _loggedDuringFast.value = true }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -538,7 +531,7 @@ class FoodSearchViewModel @Inject constructor(
                 }
                 loggedDuringFast
             }.onSuccess { loggedDuringFast -> _logTarget.value = null; if (loggedDuringFast) _loggedDuringFast.value = true }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 }

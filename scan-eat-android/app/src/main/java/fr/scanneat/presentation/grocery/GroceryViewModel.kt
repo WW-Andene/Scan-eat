@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.grocery
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -17,6 +16,7 @@ import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.engine.scoring.healthConditionCautions
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -65,7 +65,7 @@ class GroceryViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
     private val scanRepo: fr.scanneat.data.repository.scan.ScanRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real. GroceryCheckedRepository/
     // ManualGroceryRepository/MealPlanRepository have no profileId concept
@@ -101,7 +101,7 @@ class GroceryViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { manualGroceryRepo.createList(name, activeProfileId.value) }
                 .onSuccess { if (name.trim().isNotBlank()) _activeListName.value = name.trim() }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -115,16 +115,13 @@ class GroceryViewModel @Inject constructor(
                         _activeListName.value = trimmed
                     }
                 }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
     /** Deletes a named list and its items, falling back to DEFAULT_LIST if it was the active one. */
     fun deleteList(name: String) {
-        viewModelScope.launch {
-            runCatching { manualGroceryRepo.deleteList(name, activeProfileId.value) }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { manualGroceryRepo.deleteList(name, activeProfileId.value) }
         if (_activeListName.value == name) _activeListName.value = fr.scanneat.data.repository.planning.DEFAULT_LIST
     }
 
@@ -389,11 +386,6 @@ class GroceryViewModel @Inject constructor(
     // Room writes completely unguarded - unlike every sibling tracker ViewModel (Weight/
     // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a write
     // failure here wasn't just silent, it was an uncaught exception that would crash the app.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed write, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
     init {
         viewModelScope.launch {
             // drop(1): allRecipeItems is a StateFlow seeded with emptyList() before the
@@ -401,7 +393,7 @@ class GroceryViewModel @Inject constructor(
             // would prune every persisted checked key away the instant this
             // ViewModel is created, before the real recipe list even loads.
             allRecipeItems.drop(1).collect { items ->
-                runCatching { checkedRepo.pruneToKeys(items.map { it.key }.toSet(), activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                runCatching { checkedRepo.pruneToKeys(items.map { it.key }.toSet(), activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
             }
         }
     }
@@ -412,29 +404,27 @@ class GroceryViewModel @Inject constructor(
         // aggregate to the same item, or a renamed recipe changing which spelling
         // gets picked as `name`, would otherwise silently orphan the persisted
         // checked-state key and un-check a previously-checked item.
-        viewModelScope.launch {
-            runCatching {
-                checkedRepo.setChecked(item.key, checked, activeProfileId.value)
-                // User-requested "connect everything": checking off a bought
-                // item previously had no link to the pantry at all - a
-                // grocery run only ever landed there via a separate scan or
-                // manual add. Un-checking deliberately does NOT reverse this
-                // (the item may already have been partly used), same
-                // one-directional relationship consumption's own pantry
-                // deduction has.
-                if (checked && item.grams > 0) {
-                    pantryRepo.addOrUpdate(
-                        name = item.name, barcode = null, category = fr.scanneat.domain.model.ProductCategory.OTHER,
-                        quantity = item.grams.toDouble(), unit = fr.scanneat.data.repository.pantry.PantryUnit.GRAMS,
-                        expiryDate = null, profileId = activeProfileId.value,
-                    )
-                }
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            checkedRepo.setChecked(item.key, checked, activeProfileId.value)
+            // User-requested "connect everything": checking off a bought
+            // item previously had no link to the pantry at all - a
+            // grocery run only ever landed there via a separate scan or
+            // manual add. Un-checking deliberately does NOT reverse this
+            // (the item may already have been partly used), same
+            // one-directional relationship consumption's own pantry
+            // deduction has.
+            if (checked && item.grams > 0) {
+                pantryRepo.addOrUpdate(
+                    name = item.name, barcode = null, category = fr.scanneat.domain.model.ProductCategory.OTHER,
+                    quantity = item.grams.toDouble(), unit = fr.scanneat.data.repository.pantry.PantryUnit.GRAMS,
+                    expiryDate = null, profileId = activeProfileId.value,
+                )
+            }
         }
     }
 
     fun clearAllChecked() {
-        viewModelScope.launch { runCatching { checkedRepo.clearAll(activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { checkedRepo.clearAll(activeProfileId.value) }
     }
 
     /**
@@ -448,18 +438,16 @@ class GroceryViewModel @Inject constructor(
      */
     fun logPrice(item: GroceryItem, priceEuros: Double) {
         if (priceEuros <= 0.0) return
-        viewModelScope.launch {
-            runCatching {
-                priceRepo.log(
-                    date = LocalDate.now(),
-                    productName = item.name,
-                    barcode = null,
-                    category = fr.scanneat.domain.model.ProductCategory.OTHER,
-                    priceEuros = priceEuros,
-                    weightG = if (item.grams > 0) item.grams.toDouble() else null,
-                    profileId = activeProfileId.value,
-                )
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            priceRepo.log(
+                date = LocalDate.now(),
+                productName = item.name,
+                barcode = null,
+                category = fr.scanneat.domain.model.ProductCategory.OTHER,
+                priceEuros = priceEuros,
+                weightG = if (item.grams > 0) item.grams.toDouble() else null,
+                profileId = activeProfileId.value,
+            )
         }
     }
 
@@ -478,7 +466,7 @@ class GroceryViewModel @Inject constructor(
     /** Add a free-text item directly from the grocery screen's inline input row. */
     fun quickAdd(name: String) {
         if (name.isBlank()) return
-        viewModelScope.launch { runCatching { manualGroceryRepo.add(name.trim(), 0.0, activeProfileId.value, _activeListName.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        guardedLaunch { manualGroceryRepo.add(name.trim(), 0.0, activeProfileId.value, _activeListName.value) }
     }
 
     /**
@@ -492,11 +480,9 @@ class GroceryViewModel @Inject constructor(
      * no forced quantity) when the scanned product declared none.
      */
     fun addScannedProduct(scanId: Long) {
-        viewModelScope.launch {
-            runCatching {
-                val scan = scanRepo.getById(scanId, prefs.language.first()) ?: return@runCatching
-                manualGroceryRepo.add(scan.product.name, scan.product.weightG ?: 0.0, activeProfileId.value, _activeListName.value)
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            val scan = scanRepo.getById(scanId, prefs.language.first()) ?: return@guardedLaunch
+            manualGroceryRepo.add(scan.product.name, scan.product.weightG ?: 0.0, activeProfileId.value, _activeListName.value)
         }
     }
 
@@ -517,7 +503,7 @@ class GroceryViewModel @Inject constructor(
                 toRemove.forEach { manualGroceryRepo.remove(it.id, activeProfileId.value) }
                 toRemove
             }.onSuccess { removed -> lastDeleted = removed }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; flagActionFailed() }
         }
     }
 
@@ -530,22 +516,17 @@ class GroceryViewModel @Inject constructor(
      * manual contributor per name, this simply corrects its grams in place.
      */
     fun editManualQuantity(groceryKey: String, grams: Double) {
-        viewModelScope.launch {
-            runCatching {
-                val existingKeys = rawItems.value.map { it.key }.toSet()
-                manualGroceryRepo.items(activeProfileId.value, _activeListName.value).first()
-                    .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
-                    .forEach { manualGroceryRepo.updateGrams(it.id, grams, activeProfileId.value) }
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        guardedLaunch {
+            val existingKeys = rawItems.value.map { it.key }.toSet()
+            manualGroceryRepo.items(activeProfileId.value, _activeListName.value).first()
+                .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
+                .forEach { manualGroceryRepo.updateGrams(it.id, grams, activeProfileId.value) }
         }
     }
 
     fun undoDeleteManual() {
         val removed = lastDeleted ?: return
         lastDeleted = null
-        viewModelScope.launch {
-            runCatching { removed.forEach { manualGroceryRepo.add(it.name, it.grams, activeProfileId.value, it.listName) } }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-        }
+        guardedLaunch { removed.forEach { manualGroceryRepo.add(it.name, it.grams, activeProfileId.value, it.listName) } }
     }
 }
