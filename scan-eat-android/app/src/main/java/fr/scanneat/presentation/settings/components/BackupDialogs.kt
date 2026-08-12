@@ -25,6 +25,7 @@ import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticRed
 import java.time.Instant
 import java.time.ZoneId
@@ -119,6 +120,17 @@ internal fun BackupExportDialog(onDismiss: () -> Unit, onExport: (String?) -> Un
                     label = { Text(stringResource(R.string.settings_backup_passphrase_field_optional)) },
                     colors = scanEatTextFieldColors(),
                 )
+                // User-requested (app-audit §C5): without a passphrase, the export is
+                // plain JSON containing anything logged - weight, health conditions,
+                // pregnancy status, symptom notes - a real risk if the file is then
+                // shared/uploaded without a second thought. Only shown once the field
+                // is confirmed empty, not as a blanket "encryption exists" hint.
+                if (exportPassphrase.isBlank()) {
+                    Text(
+                        stringResource(R.string.settings_backup_export_unencrypted_warning),
+                        style = MaterialTheme.typography.labelSmall, color = semanticAmber(),
+                    )
+                }
             }
         },
         confirmButton = {

@@ -1243,6 +1243,7 @@
     <string name="settings_backup_export_encrypt_button">Encrypt and export</string>
     <string name="settings_backup_export_dialog_title">Export my data</string>
     <string name="settings_backup_export_dialog_hint">You can protect this file with a passphrase. Without one, it will be exported in plain text (as before).</string>
+    <string name="settings_backup_export_unencrypted_warning">⚠️ Without a passphrase, this file will contain your health data (weight, pregnancy, symptoms…) in plain text. Be careful before sharing it.</string>
     <string name="settings_backup_passphrase_field">Passphrase</string>
     <string name="settings_backup_passphrase_field_optional">Passphrase (optional)</string>
     <string name="settings_backup_passphrase_title">Protected file</string>

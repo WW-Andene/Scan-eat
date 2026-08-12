@@ -1305,6 +1305,7 @@
     <string name="settings_backup_export_encrypt_button">Chiffrer et exporter</string>
     <string name="settings_backup_export_dialog_title">Exporter mes données</string>
     <string name="settings_backup_export_dialog_hint">Vous pouvez protéger ce fichier par un mot de passe. Sans mot de passe, il sera exporté en clair (comme avant).</string>
+    <string name="settings_backup_export_unencrypted_warning">⚠️ Sans mot de passe, ce fichier contiendra vos données de santé (poids, grossesse, symptômes…) en clair. Faites attention avant de le partager.</string>
     <string name="settings_backup_passphrase_field">Mot de passe</string>
     <string name="settings_backup_passphrase_field_optional">Mot de passe (facultatif)</string>
     <string name="settings_backup_passphrase_title">Fichier protégé</string>
