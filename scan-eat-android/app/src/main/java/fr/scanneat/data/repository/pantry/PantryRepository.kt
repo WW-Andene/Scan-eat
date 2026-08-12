@@ -97,6 +97,11 @@ class PantryRepository @Inject constructor(
 
     suspend fun updateQuantity(id: String, quantity: Double) = dao.updateQuantity(id, quantity.coerceAtLeast(0.0))
 
+    /** Full edit (quantity/unit/expiry) - lets a row be corrected directly
+     *  instead of only nudged by the list's +/-1 stepper. */
+    suspend fun updateDetails(id: String, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?) =
+        dao.updateDetails(id, quantity.coerceAtLeast(0.0), unit.key, expiryDate?.toIsoString())
+
     suspend fun delete(id: String) = dao.delete(id)
 
     suspend fun getById(id: String): PantryItem? = dao.getById(id)?.toDomain()

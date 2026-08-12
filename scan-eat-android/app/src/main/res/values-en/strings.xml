@@ -1464,7 +1464,8 @@
     <string name="recipes_suggest_empty">No ideas found for that ingredient.</string>
     <string name="recipes_suggest_mode_ingredient">One ingredient</string>
     <string name="recipes_suggest_mode_pantry">My pantry</string>
-    <string name="recipes_suggest_pantry_hint">List what you have on hand (comma or one item per line), and the AI proposes a few ideas.</string>
+    <string name="recipes_suggest_pantry_hint">Or add anything else (comma or one item per line):</string>
+    <string name="recipes_suggest_pantry_chips_hint">Pick what you want to use from your pantry:</string>
     <string name="recipes_suggest_pantry_placeholder">E.g. chicken, rice, broccoli…</string>
     <string name="recipes_suggest_mode_history">My history</string>
     <string name="recipes_suggest_history_hint">Pick one or more products you\'ve already scanned, and the AI proposes a few ideas.</string>
@@ -1550,6 +1551,7 @@
     <string name="dashboard_safety_center_title">Safety center (%1$d)</string>
     <string name="dashboard_tile_pantry">Pantry</string>
     <string name="pantry_title">Pantry</string>
+    <string name="pantry_edit_dialog_title">Edit item</string>
     <string name="pantry_add_dialog_title">Add to pantry</string>
     <string name="pantry_field_name">Name</string>
     <string name="pantry_field_quantity">Quantity</string>

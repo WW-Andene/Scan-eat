@@ -25,13 +25,17 @@ import java.time.format.DateTimeFormatter
 @Composable
 internal fun AddPantryItemDialog(
     initialName: String = "",
+    initialQuantity: Double = 1.0,
+    initialUnit: PantryUnit = PantryUnit.UNITS,
+    initialExpiryDate: LocalDate? = null,
+    lockName: Boolean = false,
     onDismiss: () -> Unit,
     onAdd: (name: String, quantity: Double, unit: PantryUnit, expiryDate: LocalDate?) -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf(initialName) }
-    var quantityText by rememberSaveable { mutableStateOf("1") }
-    var unit by rememberSaveable { mutableStateOf(PantryUnit.UNITS) }
-    var expiryDate by rememberSaveable { mutableStateOf<LocalDate?>(null) }
+    var quantityText by rememberSaveable { mutableStateOf(formatQtyForEdit(initialQuantity)) }
+    var unit by rememberSaveable { mutableStateOf(initialUnit) }
+    var expiryDate by rememberSaveable { mutableStateOf(initialExpiryDate) }
     var showDatePicker by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val quantity = quantityText.replace(',', '.').toDoubleOrNull()
@@ -50,17 +54,21 @@ internal fun AddPantryItemDialog(
         containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
-        title = { Text(stringResource(R.string.pantry_add_dialog_title), color = OnBackground) },
+        title = { Text(stringResource(if (lockName) R.string.pantry_edit_dialog_title else R.string.pantry_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                OutlinedTextField(
-                    value = name, onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.pantry_field_name)) }, singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) }),
-                    shape = RoundedCornerShape(CardRadius.CONTROL),
-                    colors = scanEatTextFieldColors(),
-                )
+                if (!lockName) {
+                    OutlinedTextField(
+                        value = name, onValueChange = { name = it },
+                        label = { Text(stringResource(R.string.pantry_field_name)) }, singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) }),
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        colors = scanEatTextFieldColors(),
+                    )
+                } else {
+                    Text(name, style = MaterialTheme.typography.titleMedium, color = OnBackground)
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     OutlinedTextField(
                         value = quantityText, onValueChange = { quantityText = it },
@@ -108,11 +116,13 @@ internal fun AddPantryItemDialog(
             TextButton(
                 onClick = { quantity?.let { onAdd(name.trim(), it, unit, expiryDate) } },
                 enabled = isValid,
-            ) { Text(stringResource(R.string.common_add), color = if (isValid) AccentCoral else OnBackground.copy(0.3f)) }
+            ) { Text(stringResource(if (lockName) R.string.common_save else R.string.common_add), color = if (isValid) AccentCoral else OnBackground.copy(0.3f)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )
 }
+
+private fun formatQtyForEdit(q: Double): String = if (q == q.toLong().toDouble()) q.toLong().toString() else "%.1f".format(q)
 
 @Composable
 private fun PantryDatePickerDialog(initialDate: LocalDate, onDateSelected: (LocalDate) -> Unit, onDismiss: () -> Unit) {

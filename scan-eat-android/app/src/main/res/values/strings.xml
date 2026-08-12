@@ -1545,7 +1545,8 @@
     <string name="recipes_suggest_empty">Aucune idée trouvée pour cet ingrédient.</string>
     <string name="recipes_suggest_mode_ingredient">Un ingrédient</string>
     <string name="recipes_suggest_mode_pantry">Mon garde-manger</string>
-    <string name="recipes_suggest_pantry_hint">Listez ce que vous avez sous la main (virgule ou une ligne par ingrédient), et l\'IA propose quelques idées.</string>
+    <string name="recipes_suggest_pantry_hint">Ou complétez avec autre chose (virgule ou une ligne par ingrédient) :</string>
+    <string name="recipes_suggest_pantry_chips_hint">Sélectionnez ce que vous voulez utiliser de votre garde-manger :</string>
     <string name="recipes_suggest_pantry_placeholder">Ex. : poulet, riz, brocolis…</string>
     <string name="recipes_suggest_mode_history">Mon historique</string>
     <string name="recipes_suggest_history_hint">Choisissez un ou plusieurs produits déjà scannés, et l\'IA propose quelques idées.</string>
@@ -1612,6 +1613,7 @@
     <string name="dashboard_safety_center_title">Centre de vigilance (%1$d)</string>
     <string name="dashboard_tile_pantry">Garde-manger</string>
     <string name="pantry_title">Garde-manger</string>
+    <string name="pantry_edit_dialog_title">Modifier l\'article</string>
     <string name="pantry_add_dialog_title">Ajouter au garde-manger</string>
     <string name="pantry_field_name">Nom</string>
     <string name="pantry_field_quantity">Quantité</string>

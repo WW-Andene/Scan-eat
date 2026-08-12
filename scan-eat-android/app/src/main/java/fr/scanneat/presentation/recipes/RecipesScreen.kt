@@ -60,6 +60,7 @@ fun RecipesScreen(
     var sortMenuExpanded by remember { mutableStateOf(false) }
     val totalRecipesCount = viewModel.totalRecipesCount.collectAsStateWithLifecycle()
     val historyItems = viewModel.historyItems.collectAsStateWithLifecycle()
+    val pantryItemNames = viewModel.pantryItemNames.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var filtersExpanded by remember { mutableStateOf(false) }
     var showImportUrl by remember { mutableStateOf(false) }
@@ -239,6 +240,7 @@ fun RecipesScreen(
         showSuggest = showSuggest,
         importState = importState.value,
         historyItems = historyItems.value,
+        pantryItemNames = pantryItemNames.value,
         onDismissImportUrl = { showImportUrl = false; viewModel.clearImportState() },
         onFetchUrl = { url -> viewModel.importRecipeFromUrl(url) },
         onDismissSuggest = { showSuggest = false; viewModel.clearImportState() },

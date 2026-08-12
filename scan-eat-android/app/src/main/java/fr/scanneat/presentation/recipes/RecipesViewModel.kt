@@ -43,6 +43,7 @@ class RecipesViewModel @Inject constructor(
     internal val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
     private val scanRepository: ScanRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
     enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }
@@ -62,12 +63,18 @@ class RecipesViewModel @Inject constructor(
 
     // Distinct product names from scan history, for SuggestRecipesDialog's
     // "from history" mode — lets the user build a suggestFromPantry() list by
-    // picking things they've actually scanned instead of only ever typing
-    // free text (this dialog's own doc comment: "the app has no persisted
-    // pantry inventory feature" — scan history doubles as the closest thing
-    // to one it already has, at no new storage cost).
+    // picking things they've actually scanned rather than only ever typing
+    // free text.
     val historyItems: StateFlow<List<String>> = activeProfileId.flatMapLatest { id -> scanRepository.observeHistory(limit = 50, profileId = id) }
         .map { list -> list.map { it.product.name }.distinct() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Real Garde-manger contents, for SuggestRecipesDialog's "pantry" mode —
+    // now that Pantry is a real persisted inventory (not just scan history),
+    // this replaces that mode's free-text-only input with a pickable chip
+    // list of what's actually on hand, same shape as [historyItems] above.
+    val pantryItemNames: StateFlow<List<String>> = activeProfileId.flatMapLatest { id -> pantryRepo.observeAll(id) }
+        .map { list -> list.map { it.name }.distinct() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _goalFilter = MutableStateFlow(GoalFilter.ALL)

@@ -37,6 +37,7 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
     val items = viewModel.items.collectAsStateWithLifecycle()
     val expiringItems = viewModel.expiringItems.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
+    var editTarget by remember { mutableStateOf<PantryItem?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -75,10 +76,12 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
                 }
             } else {
                 items(items.value, key = { it.id }) { pantryItem ->
+                    val step = if (pantryItem.unit == fr.scanneat.data.repository.pantry.PantryUnit.UNITS) 1.0 else 10.0
                     PantryItemRow(
                         item = pantryItem,
-                        onIncrement = { viewModel.updateQuantity(pantryItem.id, pantryItem.quantity + 1) },
-                        onDecrement = { viewModel.updateQuantity(pantryItem.id, (pantryItem.quantity - 1).coerceAtLeast(0.0)) },
+                        onIncrement = { viewModel.updateQuantity(pantryItem.id, pantryItem.quantity + step) },
+                        onDecrement = { viewModel.updateQuantity(pantryItem.id, (pantryItem.quantity - step).coerceAtLeast(0.0)) },
+                        onEdit = { editTarget = pantryItem },
                         onDelete = {
                             viewModel.delete(pantryItem)
                             scope.launch {
@@ -99,6 +102,21 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
             onAdd = { name, quantity, unit, expiryDate ->
                 viewModel.add(name, barcode = null, category = fr.scanneat.domain.model.ProductCategory.OTHER, quantity = quantity, unit = unit, expiryDate = expiryDate)
                 showAdd = false
+            },
+        )
+    }
+
+    editTarget?.let { target ->
+        AddPantryItemDialog(
+            initialName = target.name,
+            initialQuantity = target.quantity,
+            initialUnit = target.unit,
+            initialExpiryDate = target.expiryDate,
+            lockName = true,
+            onDismiss = { editTarget = null },
+            onAdd = { _, quantity, unit, expiryDate ->
+                viewModel.updateDetails(target.id, quantity, unit, expiryDate)
+                editTarget = null
             },
         )
     }
@@ -127,7 +145,7 @@ private fun pluralStringResourceCompat(count: Int): String =
     androidx.compose.ui.res.pluralStringResource(R.plurals.pantry_expiring_count, count, count)
 
 @Composable
-private fun PantryItemRow(item: PantryItem, onIncrement: () -> Unit, onDecrement: () -> Unit, onDelete: () -> Unit) {
+private fun PantryItemRow(item: PantryItem, onIncrement: () -> Unit, onDecrement: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     val urgency = item.expiryUrgency()
     val urgencyColor = when (urgency) {
         PantryExpiryUrgency.EXPIRED -> semanticRed()
@@ -138,6 +156,7 @@ private fun PantryItemRow(item: PantryItem, onIncrement: () -> Unit, onDecrement
         shape = androidx.compose.foundation.shape.RoundedCornerShape(CardRadius.CONTROL),
         color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
+        onClick = onEdit,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(Spacing.M),

@@ -59,13 +59,11 @@ private enum class SuggestMode { INGREDIENT, PANTRY, HISTORY }
  * directly — tapping one calls [onPick], which feeds the exact same AddRecipeDialog
  * prefill path the other imports use.
  *
- * The app has no persisted "pantry inventory" feature, so the pantry mode below is a
- * free-text input on this same dialog rather than a picker over stored items. The
- * history mode is the closest thing to a real picker this app can offer without one:
- * [historyItems] (distinct scan-history product names) rendered as multi-select
- * chips, feeding the exact same suggestFromPantry(List&lt;String&gt;) call the
- * free-typed pantry mode uses — same backend call, just a different way to build
- * its input list.
+ * Pantry mode shows real Garde-manger contents ([pantryItemNames]) as multi-select
+ * chips, same shape as the history mode's [historyItems] chips, plus a free-text
+ * field for anything on hand that hasn't been added to the pantry. History mode
+ * remains a fallback for users with no pantry data yet — both ultimately feed the
+ * same suggestFromPantry(List&lt;String&gt;) call.
  */
 @Composable
 internal fun SuggestRecipesDialog(
@@ -73,6 +71,7 @@ internal fun SuggestRecipesDialog(
     results: List<FetchedRecipeResult>?,
     errorMessage: String?,
     historyItems: List<String>,
+    pantryItemNames: List<String>,
     onDismiss: () -> Unit,
     onSuggest: (String) -> Unit,
     onSuggestFromPantry: (List<String>) -> Unit,
@@ -82,7 +81,8 @@ internal fun SuggestRecipesDialog(
     var pantryText by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver()) { mutableStateOf(SuggestMode.INGREDIENT) }
     var selectedHistory by remember { mutableStateOf(setOf<String>()) }
-    val pantryItems = pantryText.split(',', '\n').map { it.trim() }.filter { it.isNotBlank() }
+    var selectedPantry by remember { mutableStateOf(setOf<String>()) }
+    val pantryItems = (selectedPantry + pantryText.split(',', '\n').map { it.trim() }.filter { it.isNotBlank() }).toList()
 
     AlertDialog(
         // See ImportRecipeUrlDialog's identical fix: an implicit dismiss (back-press/
@@ -121,11 +121,34 @@ internal fun SuggestRecipesDialog(
                 }
                 when (mode) {
                     SuggestMode.PANTRY -> {
+                        if (pantryItemNames.isNotEmpty()) {
+                            Text(stringResource(R.string.recipes_suggest_pantry_chips_hint), color = OnBackground.copy(0.6f))
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 120.dp),
+                                verticalArrangement = Arrangement.spacedBy(Spacing.S),
+                                contentPadding = PaddingValues(vertical = Spacing.XS),
+                            ) {
+                                items(pantryItemNames, key = { it }) { name ->
+                                    val selected = name in selectedPantry
+                                    FilterChip(
+                                        selected = selected,
+                                        onClick = {
+                                            selectedPantry = if (selected) selectedPantry - name else selectedPantry + name
+                                        },
+                                        label = { Text(name) },
+                                        enabled = !isLoading,
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                        ),
+                                    )
+                                }
+                            }
+                        }
                         Text(stringResource(R.string.recipes_suggest_pantry_hint), color = OnBackground.copy(0.6f))
                         OutlinedTextField(
                             value = pantryText, onValueChange = { pantryText = it },
                             label = { Text(stringResource(R.string.recipes_suggest_pantry_placeholder)) },
-                            singleLine = false, minLines = 3, maxLines = 6,
+                            singleLine = false, minLines = 2, maxLines = 5,
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !isLoading,
                             colors = scanEatTextFieldColors(),

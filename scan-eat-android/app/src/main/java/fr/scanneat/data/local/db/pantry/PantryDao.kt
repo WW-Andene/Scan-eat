@@ -21,6 +21,9 @@ interface PantryDao {
     @Query("UPDATE pantry SET quantity = :quantity WHERE id = :id")
     suspend fun updateQuantity(id: String, quantity: Double)
 
+    @Query("UPDATE pantry SET quantity = :quantity, unit = :unit, expiryDate = :expiryDate WHERE id = :id")
+    suspend fun updateDetails(id: String, quantity: Double, unit: String, expiryDate: String?)
+
     @Query("DELETE FROM pantry WHERE id = :id")
     suspend fun delete(id: String)
 
