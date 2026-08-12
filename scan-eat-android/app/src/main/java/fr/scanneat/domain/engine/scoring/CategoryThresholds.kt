@@ -68,7 +68,17 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // is what med/high (unchanged) already targets.
     ProductCategory.YOGURT           to CategoryThresholds(Triple(3.0,5.0,9.0),   Triple(0.3,1.0,2.0),  Pair(40.0,120.0),  true),
     ProductCategory.CHEESE           to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(200.0,450.0), true,  satFatThresholds = Triple(12.0,20.0,30.0)),
-    ProductCategory.PROCESSED_MEAT   to CategoryThresholds(Triple(10.0,15.0,22.0),Triple(0.0,0.0,1.0),  Pair(100.0,400.0), false,
+    // Fiber reclassified fully unearnable (0,0,0) - same "0.0-as-non-top-tier"
+    // bug already fixed for yogurt/juice/ice-cream/condiment/spread_sweet:
+    // low/med sat at 0.0 meant any cured meat (ham/salami/prosciutto/bacon -
+    // all genuinely ~0g fiber) trivially cleared both tiers for a free 5/7
+    // credit it never earned, since ScoringEngine.kt's unearnable-axis
+    // exclusion only fires when the THIRD tuple element is 0.0 too. Meat is
+    // categorically not a fiber source the way FRESH_MEAT/FISH/CHEESE/EGG
+    // (already (0,0,0)) already reflect - a rare filler-containing sausage
+    // with trace fiber doesn't change that this axis has no real
+    // distinguishing variance for the category as a whole.
+    ProductCategory.PROCESSED_MEAT   to CategoryThresholds(Triple(10.0,15.0,22.0),Triple(0.0,0.0,0.0),  Pair(100.0,400.0), false,
         saltThresholds = Triple(2.5,4.0,6.0)),
     ProductCategory.FRESH_MEAT       to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(100.0,300.0), true),
     ProductCategory.FISH             to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(80.0,250.0),  true),

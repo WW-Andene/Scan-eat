@@ -40,7 +40,16 @@ internal fun computeAgeAdjustments(
         // the hypertension check above (CONDIMENT/PROCESSED_MEAT raised, every
         // other category unchanged), applied consistently to this sibling
         // salt check rather than leaving it as the one flat outlier.
-        val ageSaltBar = maxOf(1.5, catThresholds.saltThresholds.third)
+        // Pass-2 context/logic audit finding: this previously read
+        // .third (the "major" tier, e.g. 6.0g for PROCESSED_MEAT) instead of
+        // .first (the "minor" tier, 2.5g) the hypertension check actually
+        // uses - a typical prosciutto/salami (2.5-6g/100g, entirely normal
+        // for its category) never tripped this age-amplified caution at
+        // all, silently gutting a WHO-2012-cited clinical warning for
+        // exactly the salty categories it exists to catch. Now genuinely
+        // matches the hypertension check's own bar, as this comment already
+        // claimed it did.
+        val ageSaltBar = maxOf(1.5, catThresholds.saltThresholds.first)
         if (age >= 50 && product.nutrition.saltG > ageSaltBar) {
             adjustments += PersonalAdjustment(
                 points   = -3.0,
@@ -169,7 +178,12 @@ internal fun computeGoalAdjustments(
             // catThresholds.satFatThresholds), applied here too so a weight-
             // loss-goal user scoring a completely typical cheese doesn't get
             // this flagged on top of that already-category-aware BMI penalty.
-            val goalSatFatBar = maxOf(10.0, catThresholds.satFatThresholds.second)
+            // Pass-2 context/logic audit finding: this previously read
+            // .second (the "moderate" tier) instead of .first (the
+            // "minor" tier) BmiAdjustments.kt's own sat-fat check actually
+            // uses (see that file) - not real parity with the check this
+            // comment claims to mirror. Now genuinely matches it.
+            val goalSatFatBar = maxOf(10.0, catThresholds.satFatThresholds.first)
             if (product.nutrition.energyKcal >= 400 && product.nutrition.saturatedFatG > goalSatFatBar) {
                 adjustments += PersonalAdjustment(
                     points   = -2.0,

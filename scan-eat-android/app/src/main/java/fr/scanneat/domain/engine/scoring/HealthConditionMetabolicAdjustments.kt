@@ -107,16 +107,21 @@ internal fun checkMetabolicConditions(
             }
         }
     }
-    // maxOf against the original flat 15.0g - never lowers the bar, only raises
-    // it for FRESH_MEAT/FISH/CHEESE/PROCESSED_MEAT etc. whose own category norm
-    // (CategoryThresholds.kt's proteinG "high" tier) is structurally higher.
-    // Without this, every single fresh chicken breast or cod fillet (completely
-    // ordinary protein for meat/fish, ~18-23g/100g) triggered the identical
-    // kidney-disease caution as a genuine outlier like a protein bar spiked
-    // to 3-4x its own category's norm - the warning couldn't distinguish
-    // "ordinary meat" from "unusually protein-dense for what it is," exactly
-    // the same category-blindness class as the mozzarella/sat-fat case.
-    val kidneyProteinBar = maxOf(15.0, catThresholds.proteinG.third)
+    // Reverted to a flat 15.0g bar - pass-2 context/logic audit finding,
+    // verified against French clinical guidance (ameli.fr/Assurance
+    // Maladie, French nephrology sources): chronic kidney disease protein
+    // restriction is a hard DAILY GRAM BUDGET (0.55-1.0 g/kg/day depending
+    // on CKD stage), not a "is this unusually protein-dense for its
+    // category" quality judgment. Category-relativizing this bar (as the
+    // sat-fat/mozzarella-style fix correctly does for genuine quality
+    // axes) was the wrong pattern applied here: raising the bar to
+    // FISH/FRESH_MEAT's own "high" tier (25g) meant an entirely ordinary
+    // 20g-protein salmon fillet - which still counts fully toward a kidney
+    // patient's fixed daily protein allowance regardless of whether 20g is
+    // "typical for fish" - silently stopped triggering the caution at all.
+    // A kidney patient needs to know a product is protein-dense in
+    // absolute terms, not relative to its peers.
+    val kidneyProteinBar = 15.0
     if ("kidney_disease" in conditions && product.nutrition.proteinG >= kidneyProteinBar) {
         adjustments += PersonalAdjustment(
             points = -3.0,
