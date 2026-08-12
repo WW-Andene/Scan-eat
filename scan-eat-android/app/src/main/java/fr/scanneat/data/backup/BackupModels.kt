@@ -5,6 +5,7 @@ import fr.scanneat.data.local.db.consumption.ConsumptionEntity
 import fr.scanneat.data.local.db.customfood.CustomFoodEntity
 import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.pantry.PantryEntity
 import fr.scanneat.data.local.db.price.PriceEntity
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
@@ -72,7 +73,11 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // file (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 11
+// Since v12: pantry (Garde-manger) - a real persisted inventory added this
+// pass, previously with zero presence here despite being real user data
+// (name/quantity/unit/expiry) with no other persistence path, same class of
+// gap every entity above already had fixed for it in turn.
+const val BACKUP_FORMAT_VERSION = 12
 
 data class ProfileBackup(
     val name: String,
@@ -155,6 +160,7 @@ data class BackupBundle(
     // manualGroceryItems/groceryCheckedKeys above were added to close for
     // their own DataStore files.
     val loyaltyCards: List<LoyaltyCard> = emptyList(),
+    val pantryItems: List<PantryEntity> = emptyList(),
 )
 
 data class BackupSummary(
@@ -169,8 +175,9 @@ data class BackupSummary(
     val medicationLog: Int = 0,
     val scanScoreHistory: Int = 0,
     val priceLog: Int = 0,
+    val pantryItems: Int = 0,
 ) {
-    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems
 
     companion object {
         fun from(bundle: BackupBundle) = BackupSummary(
@@ -185,6 +192,7 @@ data class BackupSummary(
             medications   = bundle.medications.size,
             medicationLog = bundle.medicationLog.size,
             priceLog      = bundle.priceLog.size,
+            pantryItems   = bundle.pantryItems.size,
         )
     }
 }

@@ -84,6 +84,7 @@ class BackupRepository @Inject constructor(
     internal val manualGroceryRepo: ManualGroceryRepository,
     internal val loyaltyCardRepo: fr.scanneat.data.repository.loyalty.LoyaltyCardRepository,
     internal val biolismRepo: BiolismRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val moshi: Moshi,
 ) {
     // Internal (not private) so BackupParsing.kt's parseBundle() extension
@@ -155,6 +156,7 @@ class BackupRepository @Inject constructor(
             biolism = biolismRepo.exportForBackup(),
             manualGroceryItems = manualGroceryRepo.exportAll(),
             loyaltyCards = loyaltyCardRepo.exportAll(),
+            pantryItems = pantryRepo.exportAll(),
         )
         val plainJson = bundleAdapter.indent("  ").toJson(bundle)
         // Opt-in - see BackupPassphraseCipher's own doc comment for the file
@@ -328,7 +330,16 @@ class BackupRepository @Inject constructor(
             // REPLACE-on-id insertAll is idempotent for re-importing the same file
             // twice, and two genuinely different entries never collide on a random UUID.
             priceDao.insertAll(bundle.priceLog)
+
         }
+
+        // pantry rows carry a stable UUID id like price_log above - a plain
+        // REPLACE-on-id insertAll (PantryRepository.importAll) is idempotent
+        // for re-importing the same file twice, and two genuinely different
+        // rows never collide on a random UUID. Outside the withTransaction
+        // block above since PantryRepository owns its own DAO call, same as
+        // every DataStore-backed restore call below.
+        pantryRepo.importAll(bundle.pantryItems)
 
         restoreDataStoreData(bundle)
 

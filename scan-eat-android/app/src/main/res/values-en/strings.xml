@@ -1552,6 +1552,8 @@
     <string name="dashboard_tile_pantry">Pantry</string>
     <string name="pantry_title">Pantry</string>
     <string name="pantry_edit_dialog_title">Edit item</string>
+    <string name="pantry_search_placeholder">Search pantry</string>
+    <string name="pantry_search_empty">No item matches this search</string>
     <string name="pantry_add_dialog_title">Add to pantry</string>
     <string name="pantry_field_name">Name</string>
     <string name="pantry_field_quantity">Quantity</string>

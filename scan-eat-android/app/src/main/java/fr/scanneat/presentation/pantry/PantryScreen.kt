@@ -36,6 +36,7 @@ import java.time.format.DateTimeFormatter
 fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Unit) {
     val items = viewModel.items.collectAsStateWithLifecycle()
     val expiringItems = viewModel.expiringItems.collectAsStateWithLifecycle()
+    val query = viewModel.query.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var editTarget by remember { mutableStateOf<PantryItem?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -70,9 +71,20 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
                 item { PantryExpiryBanner(expiringItems.value.size) }
             }
 
+            if (items.value.isNotEmpty() || query.value.isNotBlank()) {
+                item {
+                    ScanEatSearchField(
+                        query = query.value,
+                        onQueryChange = { viewModel.setQuery(it) },
+                        placeholder = stringResource(R.string.pantry_search_placeholder),
+                    )
+                }
+            }
+
             if (items.value.isEmpty()) {
                 item {
-                    EmptyListState(TablerIcons.ShoppingCart, stringResource(R.string.pantry_empty))
+                    val emptyMessage = if (query.value.isNotBlank()) stringResource(R.string.pantry_search_empty) else stringResource(R.string.pantry_empty)
+                    EmptyListState(TablerIcons.ShoppingCart, emptyMessage)
                 }
             } else {
                 items(items.value, key = { it.id }) { pantryItem ->

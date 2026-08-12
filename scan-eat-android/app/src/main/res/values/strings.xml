@@ -1614,6 +1614,8 @@
     <string name="dashboard_tile_pantry">Garde-manger</string>
     <string name="pantry_title">Garde-manger</string>
     <string name="pantry_edit_dialog_title">Modifier l\'article</string>
+    <string name="pantry_search_placeholder">Rechercher dans le garde-manger</string>
+    <string name="pantry_search_empty">Aucun article ne correspond à cette recherche</string>
     <string name="pantry_add_dialog_title">Ajouter au garde-manger</string>
     <string name="pantry_field_name">Nom</string>
     <string name="pantry_field_quantity">Quantité</string>

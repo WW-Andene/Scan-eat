@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -53,13 +54,25 @@ class PantryViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
-    val items: StateFlow<List<PantryItem>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
+    private val allItems: StateFlow<List<PantryItem>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // No way to filter a growing pantry list by name - fine for a handful of
+    // staples, not once it holds dozens of items. Same in-memory contains()
+    // filter as RecipesViewModel's own name search (the list is already fully
+    // loaded from observeAll(), no DAO query needed for this small a dataset).
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query.asStateFlow()
+    fun setQuery(q: String) { _query.value = q }
+
+    val items: StateFlow<List<PantryItem>> = combine(allItems, _query) { list, q ->
+        if (q.isBlank()) list else list.filter { it.name.contains(q, ignoreCase = true) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Expired or expiring within [SOON_DAYS] - surfaced as its own banner/count
      *  above the plain list, same "don't make the user scan every row" pattern
      *  Medication's interaction banner and Activity's overtraining warning use. */
-    val expiringItems: StateFlow<List<PantryItem>> = items
+    val expiringItems: StateFlow<List<PantryItem>> = allItems
         .map { list -> list.filter { it.expiryUrgency() in setOf(PantryExpiryUrgency.SOON, PantryExpiryUrgency.EXPIRED) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
