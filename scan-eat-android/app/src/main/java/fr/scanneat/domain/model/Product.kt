@@ -99,6 +99,13 @@ enum class ProductCategory(val key: String) {
     }
 }
 
+/** Standard sodium→salt conversion factor (NaCl molar mass ratio), used
+ *  wherever a salt value must be derived from a sodium-only source. Shared so
+ *  every fallback site (OffMapper's OFF-specific mapping, NegativeNutrients
+ *  Pillar's own defensive fallback for any other entry path) applies the same
+ *  factor instead of each hand-retyping the literal 2.5. */
+const val SODIUM_TO_SALT_FACTOR = 2.5
+
 /**
  * Per-100 g nutrition values.
  * Null means "not declared" — distinct from 0 (declared as zero).

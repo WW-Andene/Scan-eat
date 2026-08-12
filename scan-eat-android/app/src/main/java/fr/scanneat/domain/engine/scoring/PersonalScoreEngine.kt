@@ -45,13 +45,13 @@ fun computePersonalScore(
     }
 
     val catThresholds = getThresholds(product.category)
-    // Matches checkVeto's own already-established SSB definition exactly
-    // (BEVERAGE_SOFT, sugar>5g, protein<1g, fiber<1g) - see checkHealthConditions'
-    // own parameter doc for why every condition/BMI check needs to agree on
-    // this instead of re-deriving a subtly different bar each time.
-    val isSugarSweetenedBeverage = product.category == ProductCategory.BEVERAGE_SOFT &&
-        (product.nutrition.addedSugarsG ?: product.nutrition.sugarsG) > 5.0 &&
-        product.nutrition.proteinG < 1.0 && product.nutrition.fiberG < 1.0
+    // Shared with checkVeto's own SSB definition (ScoringEngine.kt) via
+    // isSugarSweetenedBeverage() - see checkHealthConditions' own parameter doc
+    // for why every condition/BMI check needs to agree on this instead of
+    // re-deriving a subtly different bar each time. Previously duplicated
+    // independently in both files; extracted to a single function so tuning
+    // the bar can't desync the veto from the personal-score adjustments.
+    val isSugarSweetenedBeverage = isSugarSweetenedBeverage(product.category, product.nutrition)
 
     val adjustments = mutableListOf<PersonalAdjustment>()
     var veto = false

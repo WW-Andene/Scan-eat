@@ -52,9 +52,9 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // Defensive fallback lives here too, not just in OffMapper.kt's OFF-specific
     // conversion — any other entry path (LLM extraction, manual entry, a future
     // parser) that populates sodiumMg without saltG would otherwise silently
-    // score as salt-free. 2.5 is the standard sodium→salt conversion factor
-    // (NaCl molar mass ratio), same as OffMapper.kt's own fallback.
-    val salt = if (n.saltG > 0.0) n.saltG else (n.sodiumMg?.let { it / 1000.0 * 2.5 } ?: 0.0)
+    // score as salt-free. Shares SODIUM_TO_SALT_FACTOR with OffMapper.kt's own
+    // fallback so the two independent guard sites can't drift apart.
+    val salt = if (n.saltG > 0.0) n.saltG else (n.sodiumMg?.let { it / 1000.0 * SODIUM_TO_SALT_FACTOR } ?: 0.0)
     val (saltMinor, saltMod, saltMaj) = thresholds.saltThresholds
     val saltLabel = if (en) "Salt" else "Sel"
     when {
