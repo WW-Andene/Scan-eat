@@ -122,6 +122,17 @@ internal class ScanOffLookup(
     private val resultCache = java.util.concurrent.ConcurrentHashMap<String, CachedResult>()
     private val resultCacheTtlMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(30)
 
+    // Same size-cap-plus-clear safety valve as AdditivesDb.kt's additiveLookupCache
+    // (and the server's own OffService.kt result cache) - the TTL above bounds how
+    // long an entry survives, but nothing previously bounded how many distinct
+    // barcodes could accumulate within one 30-minute window. A long scanning session
+    // (a whole pantry, a large shopping trip) scanning many distinct barcodes back to
+    // back grew this map without limit for the app process's lifetime. The lock
+    // guards the check-then-clear sequence itself, since ConcurrentHashMap only makes
+    // each individual get/put atomic, not "if size >= max then clear" as a whole.
+    private val resultCacheEvictionLock = Any()
+    private val maxResultCacheEntries = 20_000
+
     /**
      * User-requested: the ENGINE_VERSION staleness rescore (see
      * ScanRepositoryHistory.getById/getCachedByBarcode) only reruns scoring
@@ -264,7 +275,12 @@ internal class ScanOffLookup(
         // Cache only the plain OFF-only path - a photo-augmented result (MERGED/LLM
         // source) reflects photos this specific user just took, not a stable
         // barcode-keyed answer safe to hand back for someone else's rescan.
-        if (images.isEmpty() && source == ScanSource.OPEN_FOOD_FACTS) resultCache["$barcode|$lang"] = CachedResult(result, System.currentTimeMillis())
+        if (images.isEmpty() && source == ScanSource.OPEN_FOOD_FACTS) {
+            synchronized(resultCacheEvictionLock) {
+                if (resultCache.size >= maxResultCacheEntries) resultCache.clear()
+            }
+            resultCache["$barcode|$lang"] = CachedResult(result, System.currentTimeMillis())
+        }
         return result
     }
 

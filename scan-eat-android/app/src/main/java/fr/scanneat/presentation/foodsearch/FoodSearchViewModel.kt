@@ -250,6 +250,26 @@ class FoodSearchViewModel @Inject constructor(
     // instantCacheMatches below has a growing pool to filter instantly.
     private val onlineRawCache: MutableMap<String, ScanResult> = mutableMapOf()
     private val onlineItemCache: MutableMap<String, FoodSearchItem> = mutableMapOf()
+    // Safety valve, same pattern as AdditivesDb.kt's additiveLookupCache /
+    // ScanOffLookup's resultCache - the two maps above are otherwise never
+    // cleared for the ViewModel's lifetime (see the comment above), so a very
+    // heavy single-session search habit could grow them without bound. Bounds
+    // both together since every write below inserts into both maps for the
+    // same barcode key.
+    private val maxOnlineCacheEntries = 20_000
+
+    /** Inserts [raw]/its FoodSearchItem into both online caches for [barcode],
+     *  evicting (clearing) both together once either would grow past the cap -
+     *  keeps the two maps' key sets identical, matching every reader's
+     *  assumption that a barcode present in one is present in the other. */
+    private fun cacheOnlineResult(barcode: String, raw: ScanResult, item: FoodSearchItem) {
+        if (onlineRawCache.size >= maxOnlineCacheEntries || onlineItemCache.size >= maxOnlineCacheEntries) {
+            onlineRawCache.clear()
+            onlineItemCache.clear()
+        }
+        onlineRawCache[barcode] = raw
+        onlineItemCache[barcode] = item
+    }
 
     /** Every cached online item whose name matches [q] - recomputed straight
      *  from the in-memory cache, no debounce/network, so it can run on every
@@ -303,8 +323,7 @@ class FoodSearchViewModel @Inject constructor(
         viewModelScope.launch {
             scanRepo.loadOnlineSearchCache().forEach { raw ->
                 val barcode = raw.barcode ?: return@forEach
-                onlineRawCache[barcode] = raw
-                onlineItemCache[barcode] = raw.toItem().copy(scanId = null, barcode = barcode)
+                cacheOnlineResult(barcode, raw, raw.toItem().copy(scanId = null, barcode = barcode))
             }
             _onlineResults.value = instantCacheMatches(_query.value)
         }
@@ -355,14 +374,13 @@ class FoodSearchViewModel @Inject constructor(
         // would otherwise have pushed it out.
         deduped.forEach { raw ->
             val barcode = raw.barcode ?: return@forEach
-            onlineRawCache[barcode] = raw
             // toItem() sets scanId = dbId, which defaults to 0 (not null) for a
             // ScanResult that was never persisted - left as-is, FoodSearchRow's
             // `item.scanId != null` check would treat 0 as "already in this
             // user's history" and call onOpenResult(0) instead of the
             // online-persist path below. Forced back to null here since these
             // results are never actually in scan_history yet.
-            onlineItemCache[barcode] = raw.toItem().copy(scanId = null, barcode = barcode)
+            cacheOnlineResult(barcode, raw, raw.toItem().copy(scanId = null, barcode = barcode))
         }
         // User-requested: persist to online_search_cache too, not just the
         // in-memory maps above - fire-and-forget, doesn't block the UI update
