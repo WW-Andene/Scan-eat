@@ -34,7 +34,7 @@ internal fun computeProteinPriAdjustments(product: Product, profile: Profile, la
 // otherwise eliminated everywhere else.
 internal fun computeDailyTargetAdjustments(product: Product, profile: Profile, lang: String, bioTdeeKcal: Double? = null): List<PersonalAdjustment> {
     val adjustments = mutableListOf<PersonalAdjustment>()
-    val targets = dailyTargets(profile)?.let { t -> bioTdeeKcal?.let { t.withKcalOverride(it, profile.goal) } ?: t }
+    val targets = dailyTargets(profile)?.let { t -> bioTdeeKcal?.let { t.withKcalOverride(it, profile.goal, currentPregnancyTrimester(profile)) } ?: t }
     if (targets != null) {
         val satFatPct = (product.nutrition.saturatedFatG / targets.satFatGMax.coerceAtLeast(1.0)) * 100.0
         if (satFatPct >= 50) {

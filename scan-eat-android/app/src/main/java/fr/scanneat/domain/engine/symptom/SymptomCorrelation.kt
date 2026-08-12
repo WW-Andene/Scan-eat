@@ -2,6 +2,7 @@ package fr.scanneat.domain.engine.symptom
 
 import fr.scanneat.domain.model.DiaryEntry
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 // ============================================================================
 // symptomFoodCorrelations — user-requested: correlate a symptom journal
@@ -49,8 +50,13 @@ fun symptomFoodCorrelations(
         val symptomDaysWithFood = (datesWithFood intersect symptomDates).size
         if (symptomDaysWithFood < MIN_SYMPTOM_DAY_OCCURRENCES) return@mapNotNull null
         val nonSymptomDaysWithFood = (datesWithFood intersect nonSymptomDates).size
-        val symptomPct = symptomDaysWithFood * 100 / symptomDates.size
-        val nonSymptomPct = nonSymptomDaysWithFood * 100 / nonSymptomDates.size
+        // Rounded, not truncated - plain integer division here previously let
+        // symptomPct/nonSymptomPct each drift up to ~1 point toward zero
+        // independently (different denominators), which could shift their
+        // difference across MIN_DIFFERENCE_PCT and silently hide a real
+        // correlation this function exists to surface.
+        val symptomPct = (symptomDaysWithFood * 100.0 / symptomDates.size).roundToInt()
+        val nonSymptomPct = (nonSymptomDaysWithFood * 100.0 / nonSymptomDates.size).roundToInt()
         val diff = symptomPct - nonSymptomPct
         if (diff < MIN_DIFFERENCE_PCT) return@mapNotNull null
         FoodCorrelation(displayName, diff, symptomDaysWithFood, symptomDates.size)

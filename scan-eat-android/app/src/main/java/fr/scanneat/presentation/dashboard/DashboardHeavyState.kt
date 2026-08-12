@@ -16,6 +16,7 @@ import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 /**
  * The full per-tick computation behind [DashboardViewModel.heavyState] - split out of the
@@ -49,7 +50,7 @@ internal suspend fun buildHeavyDashboardState(
     // a plain kcal swap left TodayMacroCard's macro rings computed from the
     // stale profile-only kcal, so they no longer summed to the balance above.
     val targets = (if (hasMinimalProfile(profile)) dailyTargets(profile) else null)
-        ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.goal) else it }
+        ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.goal, currentPregnancyTrimester(profile)) else it }
     val thisWeek  = weeklyRollup(allEntries, date)
     val priorWeek = weeklyRollup(allEntries, date.minusDays(7))
     val thisMonth = monthlyRollup(allEntries, date)
@@ -101,12 +102,16 @@ internal suspend fun buildHeavyDashboardState(
     val weeklyFastCompletions = fastingRepo.history(profileId).first().filter { c ->
         runCatching { LocalDate.parse(c.date) }.getOrNull()?.let { it in weekStart..date } == true
     }
+    // Rounded, not truncated - plain integer division previously biased both
+    // adherence percentages down, which could hide a real caveat right at
+    // the LOW_FASTING_ADHERENCE_PCT/LOW_HYDRATION_ADHERENCE_PCT boundary
+    // (see weeklyCrossTrackerInsight's own thresholds).
     val weeklyFastingAdherencePct = weeklyFastCompletions.takeIf { it.isNotEmpty() }
-        ?.let { it.count { c -> c.reached } * 100 / it.size }
+        ?.let { (it.count { c -> c.reached } * 100.0 / it.size).roundToInt() }
     val weeklyHydrationEntries = hydrationRepo.observeAll(profileId).first().filter { (d, _) -> d in weekStart..date }
     val hydrationGoal = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, weightKg = profile.weightKg)
     val weeklyHydrationAdherencePct = weeklyHydrationEntries.takeIf { it.isNotEmpty() && hydrationGoal > 0 }
-        ?.let { entries -> entries.count { (_, ml) -> ml >= hydrationGoal } * 100 / 7 }
+        ?.let { entries -> (entries.count { (_, ml) -> ml >= hydrationGoal } * 100.0 / 7).roundToInt() }
     val crossInsight = weeklyCrossTrackerInsight(
         weeklyAvgKcal         = thisWeek.avg.kcal,
         kcalTarget            = targets?.kcal ?: 0.0,

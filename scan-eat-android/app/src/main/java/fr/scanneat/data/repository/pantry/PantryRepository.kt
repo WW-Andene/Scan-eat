@@ -101,11 +101,17 @@ class PantryRepository @Inject constructor(
      * Best-effort stock deduction when a logged diary entry matches something in the
      * pantry - mirrors PriceRepository.deductStock's own barcode-keyed drawdown, which
      * ConsumptionRepository.log()/logAll() already call on every "Repas" log. Only
-     * meaningful for weight/volume units (GRAMS/MILLILITERS): portionG has no direct
-     * mapping to a UNITS-counted item's stock (e.g. "150 g eaten" doesn't say how many
-     * eggs that was), so a UNITS row is left untouched rather than guessed at. Without
-     * this, Pantry stayed purely additive - eating something you'd stocked never
-     * reduced its tracked quantity, silently drifting from what's actually on hand.
+     * meaningful for GRAMS-unit rows: [portionG] is a weight, and subtracting it
+     * directly is only valid when the pantry row's own unit is also a weight.
+     * MILLILITERS rows are deliberately excluded too, not just UNITS - portionG≈mL is
+     * only a safe assumption for something water-density (~1 g/mL), and this function
+     * has no idea whether the matched row is water, oil (~0.92 g/mL), honey (~1.42
+     * g/mL), or anything else; applying that assumption to arbitrary liquids silently
+     * drifted the tracked quantity from reality, worse the further the item's real
+     * density sits from water's. A UNITS-counted item is left untouched for the same
+     * reason (see [PantryUnit]) - "150 g eaten" doesn't say how many eggs that was.
+     * Without any deduction at all, Pantry stayed purely additive - eating something
+     * you'd stocked never reduced its tracked quantity.
      */
     suspend fun deductStock(barcode: String?, name: String, portionG: Double, profileId: String = "default") {
         if (portionG <= 0.0) return
@@ -113,7 +119,7 @@ class PantryRepository @Inject constructor(
             if (barcode != null && entry.barcode != null) entry.barcode == barcode
             else entry.name.equals(name, ignoreCase = true)
         } ?: return
-        if (match.unit != PantryUnit.GRAMS.key && match.unit != PantryUnit.MILLILITERS.key) return
+        if (match.unit != PantryUnit.GRAMS.key) return
         dao.updateQuantity(match.id, (match.quantity - portionG).coerceAtLeast(0.0))
     }
 

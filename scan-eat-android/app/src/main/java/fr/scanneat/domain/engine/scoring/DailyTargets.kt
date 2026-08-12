@@ -116,10 +116,15 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     // floor, not a per-profile clinical calculation - this app doesn't
     // attempt medical weight-loss supervision, so a hard floor here is the
     // right kind of guardrail rather than a fake precision figure.
+    // 1200 kcal floor now applies to every goal, not just LOSE - a MAINTAIN
+    // profile can hit the exact same implausible-TDEE edge case the LOSE
+    // branch was patched for (BMR floored at 500, PAL 1.40 -> TDEE ~700),
+    // and previously showed that figure as a legitimate maintenance target
+    // with every downstream budget scaled to it.
     val goalAdjustedKcalBase = when (p.goal) {
         Goal.LOSE     -> (tdee - GOAL_KCAL_ADJUSTMENT).coerceAtLeast(1200.0)
         Goal.GAIN     -> tdee + GOAL_KCAL_ADJUSTMENT
-        Goal.MAINTAIN -> tdee
+        Goal.MAINTAIN -> tdee.coerceAtLeast(1200.0)
     }
     // Only when the profile has both explicitly opted into "pregnancy" as a
     // health condition AND entered a start date (ProfileScreen only shows the
@@ -225,18 +230,34 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
  * sex/age/height/weight exist, no Biolism screen visit required) was shown
  * maintenance calories as their "target", not the deficit dailyTargets()
  * itself would have computed.
+ *
+ * [pregnancyTrimesterOverride] closes a real gap found after the trimester-
+ * adapted pregnancy targets shipped: dailyTargets() deliberately skips the
+ * LOSE-goal deficit/floor entirely during pregnancy (adds a kcal bonus
+ * instead - see its own doc comment), but every one of this function's 4
+ * call sites passed `profile.goal` straight through with no pregnancy
+ * awareness, so a pregnant user with a LOSE goal still saved from before
+ * pregnancy (nothing clears it automatically) saw a straight caloric-
+ * deficit target on every Biolism/premium-linked screen (Dashboard, Diary,
+ * Widget) - exactly what the pregnancy branch exists to prevent. Callers
+ * pass `currentPregnancyTrimester(profile)` here instead of threading Goal
+ * directly, so this function can apply the identical bonus-not-deficit rule
+ * dailyTargets() already does.
  */
-fun DailyTargets.withKcalOverride(rawKcal: Double, goal: Goal): DailyTargets {
+fun DailyTargets.withKcalOverride(rawKcal: Double, goal: Goal, pregnancyTrimesterOverride: PregnancyTrimester? = null): DailyTargets {
     if (rawKcal <= 0.0 || kcal <= 0.0) return this
-    // Same 1200 kcal safe-minimum floor as dailyTargets()'s own LOSE branch -
-    // a rich Biolism TDEE for a very light/short profile is just as capable
-    // of driving the post-deficit figure implausibly low, and this function
-    // is the one place that number can reach the UI without ever passing
-    // back through dailyTargets()'s own floor.
-    val newKcal = when (goal) {
+    // Same 1200 kcal safe-minimum floor as dailyTargets()'s own floor (now
+    // applied to every goal, not just LOSE - see that function's own updated
+    // comment) - a rich Biolism TDEE for a very light/short profile is just
+    // as capable of driving the post-deficit figure implausibly low, and
+    // this function is the one place that number can reach the UI without
+    // ever passing back through dailyTargets()'s own floor.
+    val newKcal = if (pregnancyTrimesterOverride != null) {
+        rawKcal + pregnancyKcalBonus(pregnancyTrimesterOverride)
+    } else when (goal) {
         Goal.LOSE     -> (rawKcal - GOAL_KCAL_ADJUSTMENT).coerceAtLeast(1200.0)
         Goal.GAIN     -> rawKcal + GOAL_KCAL_ADJUSTMENT
-        Goal.MAINTAIN -> rawKcal
+        Goal.MAINTAIN -> rawKcal.coerceAtLeast(1200.0)
     }
     val ratio = newKcal / kcal
     val newFatTarget = fatGTarget * ratio
