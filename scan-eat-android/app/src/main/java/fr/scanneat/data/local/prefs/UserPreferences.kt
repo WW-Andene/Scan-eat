@@ -67,6 +67,11 @@ class UserPreferences @Inject constructor(
         val KEY_SCAN_INSTANT_MODE    = booleanPreferencesKey("scan_instant_mode")
         val KEY_ACTIVITY_BEST_STREAK = intPreferencesKey("activity_best_streak_days")
         val KEY_ACTIVITY_WEEKLY_GOAL_MIN = intPreferencesKey("activity_weekly_goal_minutes")
+        // User-requested: a real sleep tracker with a configurable nightly-hours
+        // goal - same "null means use the default" pattern as
+        // activityWeeklyGoalMinutes above. 8.0h is the commonly-cited adult
+        // recommendation (CDC/NIH) used as the fallback.
+        val KEY_SLEEP_GOAL_HOURS = floatPreferencesKey("sleep_goal_hours")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
         // R&D audit finding: profileId was threaded through every tracker
         // repository (Diary/Weight/Activity/...) but nothing in the app ever
@@ -209,6 +214,11 @@ class UserPreferences @Inject constructor(
     val activityWeeklyGoalMinutes: Flow<Int?> = storeData.map { it[KEY_ACTIVITY_WEEKLY_GOAL_MIN] }.distinctUntilChanged()
     suspend fun setActivityWeeklyGoalMinutes(minutes: Int?) = store.edit { prefs ->
         if (minutes == null) prefs.remove(KEY_ACTIVITY_WEEKLY_GOAL_MIN) else prefs[KEY_ACTIVITY_WEEKLY_GOAL_MIN] = minutes.coerceAtLeast(1)
+    }
+
+    val sleepGoalHours: Flow<Double> = storeData.map { (it[KEY_SLEEP_GOAL_HOURS] ?: 8.0f).toDouble() }.distinctUntilChanged()
+    suspend fun setSleepGoalHours(hours: Double) = store.edit { prefs ->
+        prefs[KEY_SLEEP_GOAL_HOURS] = hours.coerceIn(1.0, 16.0).toFloat()
     }
 
     suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = SecureFieldCipher.encrypt(key) }

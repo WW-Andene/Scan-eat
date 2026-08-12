@@ -28,6 +28,7 @@ import fr.scanneat.presentation.expenses.ExpensesScreen
 import fr.scanneat.presentation.fasting.FastingScreen
 import fr.scanneat.presentation.hydration.HydrationScreen
 import fr.scanneat.presentation.medication.MedicationScreen
+import fr.scanneat.presentation.sleep.SleepScreen
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.weight.WeightScreen
 
@@ -148,6 +149,7 @@ fun DiaryScreen(
                 DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.EXPENSES -> ExpensesScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar, onScanReceipt = onScanReceipt)
+                DiaryTab.SLEEP    -> SleepScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
             }
         }
 

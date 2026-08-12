@@ -25,6 +25,8 @@ import fr.scanneat.data.local.db.recall.RecallDao
 import fr.scanneat.data.local.db.recall.RecallEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.recipe.RecipeEntity
+import fr.scanneat.data.local.db.sleep.SleepDao
+import fr.scanneat.data.local.db.sleep.SleepEntity
 import fr.scanneat.data.local.db.scan.OnlineSearchCacheDao
 import fr.scanneat.data.local.db.scan.OnlineSearchCacheEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
@@ -56,8 +58,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         PantryEntity::class,
         SymptomEntity::class,
         NonFoodScanEntity::class,
+        SleepEntity::class,
     ],
-    version = 36,
+    version = 37,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -77,6 +80,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun pantryDao(): PantryDao
     abstract fun symptomDao(): SymptomDao
     abstract fun nonFoodScanDao(): NonFoodScanDao
+    abstract fun sleepDao(): SleepDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -611,5 +615,24 @@ val MIGRATION_35_36 = object : Migration(35, 36) {
                 "`favorite` INTEGER NOT NULL)"
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_nonfood_scans_profileId_scannedAt` ON `nonfood_scans` (`profileId`, `scannedAt`)")
+    }
+}
+
+val MIGRATION_36_37 = object : Migration(36, 37) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v36 → v37: new `sleep_log` table - see SleepEntity's own doc comment.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `sleep_log` (" +
+                "`id` TEXT NOT NULL, " +
+                "`date` TEXT NOT NULL, " +
+                "`bedtimeMs` INTEGER NOT NULL, " +
+                "`wakeMs` INTEGER NOT NULL, " +
+                "`quality` INTEGER NOT NULL, " +
+                "`notes` TEXT NOT NULL, " +
+                "`loggedAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, " +
+                "PRIMARY KEY(`id`))"
+        )
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_sleep_log_date_profileId` ON `sleep_log` (`date`, `profileId`)")
     }
 }

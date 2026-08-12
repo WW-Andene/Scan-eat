@@ -941,6 +941,7 @@
     <string name="diary_tab_water">Hydratation</string>
     <string name="diary_tab_activity">Activité</string>
     <string name="diary_tab_fasting">Jeûne</string>
+    <string name="diary_tab_sleep">Sommeil</string>
     <string name="diary_tab_treatment">Traitement</string>
     <string name="diary_tab_expenses">Dépenses</string>
     <string name="diary_tab_more">Plus</string>
@@ -1213,6 +1214,26 @@
     <string name="fasting_custom_chip">Personnalisé</string>
     <string name="fasting_custom_start_label">Début</string>
     <string name="fasting_custom_time_error">Format 24h attendu, ex. 18:00</string>
+
+    <!-- ── Suivi du sommeil ──────────────────────────────────────────────── -->
+    <string name="sleep_title">Sommeil</string>
+    <string name="sleep_cd_calendar">Ouvrir le calendrier</string>
+    <string name="sleep_last_night_hours">%.1fh</string>
+    <string name="sleep_quality_stars">Qualité : %1$d/5</string>
+    <string name="sleep_no_entry_today">Aucune nuit enregistrée pour l\'instant.</string>
+    <string name="sleep_log_button">Enregistrer une nuit</string>
+    <string name="sleep_goal_label">Objectif : %.1fh/nuit</string>
+    <string name="sleep_avg_label">Moyenne sur 7 nuits</string>
+    <string name="sleep_hours_value">%.1fh</string>
+    <string name="sleep_record_label">Record</string>
+    <string name="sleep_empty">Aucune nuit enregistrée pour l\'instant.</string>
+    <string name="sleep_add_dialog_title">Enregistrer une nuit</string>
+    <string name="sleep_bedtime_label">Coucher</string>
+    <string name="sleep_wake_label">Réveil</string>
+    <string name="sleep_quality_label">Qualité : %1$d/5</string>
+    <string name="sleep_notes_label">Notes (optionnel)</string>
+    <string name="sleep_goal_field_label">Objectif par nuit (heures)</string>
+    <string name="sleep_7day_chart_title">7 dernières nuits</string>
     <string name="fasting_custom_end_label">Fin</string>
     <string name="fasting_history_title">Historique</string>
     <string name="fasting_history_entry">%1$sh / %2$dh</string>

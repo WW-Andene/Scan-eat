@@ -937,6 +937,7 @@
     <string name="diary_tab_water">Hydration</string>
     <string name="diary_tab_activity">Activity</string>
     <string name="diary_tab_fasting">Fasting</string>
+    <string name="diary_tab_sleep">Sleep</string>
     <string name="diary_tab_treatment">Treatment</string>
     <string name="diary_tab_expenses">Expenses</string>
     <string name="diary_tab_more">More</string>
@@ -1151,6 +1152,26 @@
     <string name="fasting_custom_chip">Custom</string>
     <string name="fasting_custom_start_label">Start</string>
     <string name="fasting_custom_time_error">Use 24h format, e.g. 18:00</string>
+
+    <!-- ── Sleep tracker ─────────────────────────────────────────────────── -->
+    <string name="sleep_title">Sleep</string>
+    <string name="sleep_cd_calendar">Open calendar</string>
+    <string name="sleep_last_night_hours">%.1fh</string>
+    <string name="sleep_quality_stars">Quality: %1$d/5</string>
+    <string name="sleep_no_entry_today">No sleep logged for last night yet.</string>
+    <string name="sleep_log_button">Log sleep</string>
+    <string name="sleep_goal_label">Goal: %.1fh/night</string>
+    <string name="sleep_avg_label">7-night average</string>
+    <string name="sleep_hours_value">%.1fh</string>
+    <string name="sleep_record_label">Record</string>
+    <string name="sleep_empty">No sleep logged yet.</string>
+    <string name="sleep_add_dialog_title">Log sleep</string>
+    <string name="sleep_bedtime_label">Bedtime</string>
+    <string name="sleep_wake_label">Wake time</string>
+    <string name="sleep_quality_label">Quality: %1$d/5</string>
+    <string name="sleep_notes_label">Notes (optional)</string>
+    <string name="sleep_goal_field_label">Nightly goal (hours)</string>
+    <string name="sleep_7day_chart_title">Last 7 nights</string>
     <string name="fasting_custom_end_label">End</string>
     <string name="fasting_history_title">History</string>
     <string name="fasting_history_entry">%1$sh / %2$dh</string>
