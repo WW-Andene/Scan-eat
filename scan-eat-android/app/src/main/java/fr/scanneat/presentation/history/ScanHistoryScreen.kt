@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.expenses.components.displayLabel
+import fr.scanneat.presentation.history.components.CompareScansDialog
 import fr.scanneat.presentation.history.components.HistoryAvgScoreBanner
 import fr.scanneat.presentation.history.components.HistoryFilterChipsRow
 import fr.scanneat.presentation.history.components.HistoryGradeDistributionSection
@@ -58,6 +59,7 @@ fun ScanHistoryScreen(
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
     var filtersExpanded by remember { mutableStateOf(false) }
+    var showCompareDialog by remember { mutableStateOf(false) }
     // Same pattern as WeightScreen - toggleFavorite()/delete() previously called
     // repo's Room writes completely unguarded; a failed write now surfaces here
     // as a one-shot snackbar instead of going back to silent.
@@ -123,6 +125,13 @@ fun ScanHistoryScreen(
                 IconButton(onClick = onOpenNonFoodHistory) {
                     Icon(TablerIcons.Droplet, stringResource(R.string.nonfood_history_title), tint = OnBackground)
                 }
+            }
+            // User-requested: "comparer 2 scans côte à côte" - unlike the
+            // existing arm()/compare() sequential flow (Result screen), this
+            // picks any two already-scanned products from the currently
+            // loaded History list, see CompareScansDialog's own header.
+            IconButton(onClick = { showCompareDialog = true }) {
+                Icon(Icons.Rounded.CompareArrows, stringResource(R.string.history_cd_compare), tint = OnBackground)
             }
             HistorySortMenu(
                 expanded = sortMenuExpanded,
@@ -239,6 +248,10 @@ fun ScanHistoryScreen(
             },
             onDismiss = { deleteTarget = null },
         )
+    }
+
+    if (showCompareDialog) {
+        CompareScansDialog(items = scans.value, onDismiss = { showCompareDialog = false })
     }
 }
 

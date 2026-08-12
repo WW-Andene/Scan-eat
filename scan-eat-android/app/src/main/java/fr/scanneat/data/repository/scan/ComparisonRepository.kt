@@ -56,6 +56,29 @@ data class ComparisonResult(
     val removedGreenFlags: List<String>,
 )
 
+/** Pure diff between two already-computed snapshots - shared by the arm/
+ *  compare() flow below (two consecutive live scans) and CompareViewModel
+ *  (any two picks from History, see that file's own header). */
+fun diffSnapshots(prev: ScoreSnapshot, next: ScoreSnapshot): ComparisonResult = ComparisonResult(
+    prev              = prev,
+    next              = next,
+    scoreDelta        = next.score - prev.score,
+    addedRedFlags     = next.redFlags - prev.redFlags.toSet(),
+    removedRedFlags   = prev.redFlags - next.redFlags.toSet(),
+    addedGreenFlags   = next.greenFlags - prev.greenFlags.toSet(),
+    removedGreenFlags = prev.greenFlags - next.greenFlags.toSet(),
+)
+
+fun ScanResult.toScoreSnapshot() = ScoreSnapshot(
+    name       = product.name,
+    score      = audit.score,
+    grade      = audit.grade.label,
+    category   = product.category.key,
+    redFlags   = audit.redFlags,
+    greenFlags = audit.greenFlags,
+    barcode    = barcode,
+)
+
 @Singleton
 class ComparisonRepository @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -80,7 +103,7 @@ class ComparisonRepository @Inject constructor(
 
     /** Arm: snapshot the current scan result as Product A. */
     suspend fun arm(result: ScanResult) {
-        val snapshot = result.toSnapshot()
+        val snapshot = result.toScoreSnapshot()
         store.edit { prefs ->
             prefs[KEY_ARMED]     = true
             prefs[KEY_ARMED_AT]  = System.currentTimeMillis()
@@ -105,7 +128,7 @@ class ComparisonRepository @Inject constructor(
         val prevJson = prefs[KEY_PREV_JSON] ?: return null
         val prev = runCatching { snapshotAdapter.fromJson(prevJson) }.getOrNull() ?: return null
 
-        val nextSnapshot = next.toSnapshot()
+        val nextSnapshot = next.toScoreSnapshot()
         // Previously compared any two consecutive scans regardless of product
         // type — scanning a shampoo then a yogurt (or a medication then a
         // snack) produced a misleading "score delta / added issues" banner
@@ -120,16 +143,7 @@ class ComparisonRepository @Inject constructor(
         }
 
         disarm()
-
-        return ComparisonResult(
-            prev              = prev,
-            next              = nextSnapshot,
-            scoreDelta        = nextSnapshot.score - prev.score,
-            addedRedFlags     = nextSnapshot.redFlags - prev.redFlags.toSet(),
-            removedRedFlags   = prev.redFlags - nextSnapshot.redFlags.toSet(),
-            addedGreenFlags   = nextSnapshot.greenFlags - prev.greenFlags.toSet(),
-            removedGreenFlags = prev.greenFlags - nextSnapshot.greenFlags.toSet(),
-        )
+        return diffSnapshots(prev, nextSnapshot)
     }
 
     /** Disarm without comparing (user navigates away, TTL expired, etc.). */
@@ -140,14 +154,4 @@ class ComparisonRepository @Inject constructor(
             prefs.remove(KEY_PREV_JSON)
         }
     }
-
-    private fun ScanResult.toSnapshot() = ScoreSnapshot(
-        name       = product.name,
-        score      = audit.score,
-        grade      = audit.grade.label,
-        category   = product.category.key,
-        redFlags   = audit.redFlags,
-        greenFlags = audit.greenFlags,
-        barcode    = barcode,
-    )
 }
