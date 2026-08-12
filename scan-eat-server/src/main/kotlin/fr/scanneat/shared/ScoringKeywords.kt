@@ -33,6 +33,10 @@ internal val WHOLE_FOOD_KEYWORDS = listOf(
     "mûre","mure","clémentine","clementine","asperge","champignon","radis",
     "céleri","celeri","artichaut","patate","maïs","mais","crevette","moules",
     "cabillaud","tofu","edamame","cacahuète","cacahuete",
+    // Mirrors the identical fix on the Android client (see Scoring Drift
+    // Check) - carbonation gas is sparkling water's literal 2nd ingredient
+    // and wasn't recognized as a whole/natural ingredient.
+    "dioxyde de carbone","gaz carbonique","carbon dioxide",
 )
 
 internal val GENERIC_OIL_TERMS = listOf(

@@ -468,31 +468,37 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
                     additiveRisk.score + ingredientIntegrity.score
 
     // User-reported: plain sparkling water (NOVA 1, Nutri-Score A, zero
-    // negatives) still landed at Grade B/A rather than A+, because
-    // NutritionalDensityPillar structurally CANNOT earn any of its 25 points
-    // for water/alcohol/oil categories - protein and fiber aren't a
-    // meaningful axis for them (CategoryThresholds' own proteinG/fiberG ==
-    // (0,0,0) signal, already the documented reason that pillar correctly
-    // avoids narrating a "lacks protein" deduction for these categories -
-    // see NutritionalDensityPillar.kt's own comments) and none of them are
-    // expected to carry micronutrients either (expectMicronutrients=false).
-    // Leaving the pillar's 25-point share in a flat /100 denominator meant
-    // every such product was structurally capped at 75/100 (Grade A at
-    // best) no matter how clean everything else scored - not a real health
-    // finding, just an unearnable axis silently dragging the total down.
-    // Rescaling the achievable total to exclude it when it's genuinely
-    // inapplicable (not just scored 0 on merit - a candy in a category that
-    // DOES expect protein/fiber and still has none stays scored out of the
-    // full /100) restores the headroom these categories were always missing,
-    // without touching how real health negatives are weighted: sugar/
-    // alcohol/caffeine still go through NegativeNutrients at full weight,
-    // additives through AdditiveRisk at full weight - this only removes an
-    // axis that was never earnable in the first place.
+    // negatives) still landed at Grade B/A rather than A+, because the
+    // Protein/Fiber sub-axes inside NutritionalDensityPillar (0-7 each, 14
+    // of its 25 points) structurally CANNOT be earned for water/alcohol/oil
+    // categories - protein and fiber aren't a meaningful axis for them
+    // (CategoryThresholds' own proteinG/fiberG == (0,0,0) signal, already
+    // the documented reason that pillar correctly avoids narrating a "lacks
+    // protein" deduction for these categories - see
+    // NutritionalDensityPillar.kt's own comments). Leaving that 14-point
+    // share in a flat /100 denominator meant every such product was
+    // structurally capped at 86/100 (Grade A at best, never A+) no matter
+    // how clean everything else scored - not a real health finding, just an
+    // unearnable sub-axis silently dragging the total down. Only the
+    // protein/fiber share is excluded, NOT the pillar's remaining 11 points
+    // (micronutrient NRV bonus up to +8, omega-3 bonus +3) - those stay
+    // fully earnable and fully counted at their real weight, e.g. a mineral
+    // water genuinely declaring calcium/magnesium still earns real credit
+    // for it rather than having that credit diluted by an unrelated rescale.
+    // Real health negatives for these categories are unaffected by this at
+    // all: alcohol content is penalized through NegativeNutrientsPillar's
+    // tiered deduction AND separately hard-capped by checkVeto's alcohol
+    // veto (any ABV > 1.2% caps the final grade well below A regardless of
+    // this rescale), and saturated fat for oils is penalized through
+    // NegativeNutrientsPillar's own tiered deduction at full weight - this
+    // only removes the two sub-axes that were never earnable in the first
+    // place, not the pillar's other real, still-fully-weighted signals.
     val thresholds = getThresholds(product.category)
     val densityInapplicable = !thresholds.expectMicronutrients &&
         thresholds.proteinG.third == 0.0 && thresholds.fiberG.third == 0.0
     val baseScore = if (densityInapplicable) {
-        val achievableMax = 100.0 - nutritionalDensity.max
+        val unearnableProteinFiberPoints = 14.0 // 7 (protein) + 7 (fiber), see NutritionalDensityPillar.kt
+        val achievableMax = 100.0 - unearnableProteinFiberPoints
         (rawBaseScore / achievableMax) * 100.0
     } else rawBaseScore
 
