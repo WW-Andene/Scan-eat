@@ -498,7 +498,26 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
         thresholds.proteinG.third == 0.0 && thresholds.fiberG.third == 0.0
     val baseScore = if (densityInapplicable) {
         val unearnableProteinFiberPoints = 14.0 // 7 (protein) + 7 (fiber), see NutritionalDensityPillar.kt
-        val achievableMax = 100.0 - unearnableProteinFiberPoints
+        // User-verified by hand-computing the actual pillar math for a
+        // single-ingredient still water: even with a perfect Processing/
+        // NegativeNutrients/AdditiveRisk score and the protein/fiber
+        // exclusion above, plain water still landed at 84/100 (Grade A, one
+        // point short of A+) - IngredientIntegrityPillar's "Named oils (+3)"
+        // sub-check (see that file) is neutral (neither bonus nor penalty)
+        // for any product with zero oil ingredients, which water always is
+        // by definition - same unearnable-sub-axis shape as protein/fiber
+        // above, just one pillar over. Water categorically can never
+        // legitimately contain a "specifically named oil" the way it
+        // categorically can never carry meaningful protein/fiber, so this
+        // 3-point share is excluded from the denominator the same way, but
+        // ONLY for water: alcohol/oil don't get this extra exclusion -
+        // OIL_FAT products trivially DO earn this bonus (it's literally an
+        // oil), and alcohol is separately hard-capped by checkVeto's veto
+        // regardless of pillar totals, so extending this to alcohol would
+        // change nothing there but could be wrong in principle (some
+        // liqueurs genuinely do name an oil/butter ingredient).
+        val unearnableOilPoints = if (product.category == ProductCategory.BEVERAGE_WATER) 3.0 else 0.0
+        val achievableMax = 100.0 - unearnableProteinFiberPoints - unearnableOilPoints
         (rawBaseScore / achievableMax) * 100.0
     } else rawBaseScore
 
