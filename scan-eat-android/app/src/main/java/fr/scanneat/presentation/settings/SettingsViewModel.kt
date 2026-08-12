@@ -157,11 +157,19 @@ class SettingsViewModel @Inject constructor(
      * ExportReady. [passphrase], when non-blank, encrypts the file (opt-in - see
      * BackupPassphraseCipher's own doc comment).
      */
+    // app-audit §I3: was a bare viewModelScope.launch with no guard, unlike
+    // previewImport/confirmImport right below it (which already use .fold on
+    // the repo's Result) and preparePdfReport further down (which already uses
+    // runCatching{}.fold). A backup-generation failure here crashed this
+    // ViewModel's coroutine instead of surfacing BackupUiState.Error, leaving
+    // the screen stuck on Working with no feedback.
     fun prepareExport(passphrase: String? = null) {
         _backupState.value = BackupUiState.Working
         viewModelScope.launch {
-            val json = backupRepository.exportToJson(passphrase?.takeIf { it.isNotBlank() })
-            _backupState.value = BackupUiState.ExportReady(json)
+            runCatching { backupRepository.exportToJson(passphrase?.takeIf { it.isNotBlank() }) }.fold(
+                onSuccess = { json -> _backupState.value = BackupUiState.ExportReady(json) },
+                onFailure = { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) },
+            )
         }
     }
 
@@ -221,73 +229,54 @@ class SettingsViewModel @Inject constructor(
         else                                    -> BackupErrorKey.IO
     }
 
-    fun prepareCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch {
-            val csv = csvExportRepository.exportDiaryCsv()
-            _backupState.value = BackupUiState.CsvExportReady(csv)
-        }
-    }
+    // app-audit §I3: every prepare*CsvExport() below previously called its
+    // csvExportRepository export function inside a bare viewModelScope.launch
+    // with no guard - the same unguarded-write/read class of bug this file
+    // already fixed for saveApiKey/saveServerUrl (see saveField's own comment)
+    // and for preparePdfReport (runCatching{}.fold below), but never ported to
+    // this batch. ExpensesViewModel.prepareCsvExport() already uses the guarded
+    // pattern for the identical case, confirming this was an omission, not a
+    // deliberate choice. A DB read failure here (disk full, corrupt row) now
+    // surfaces BackupUiState.Error instead of silently crashing the coroutine
+    // and leaving the screen stuck on Working.
+    fun prepareCsvExport() = launchCsvExport { csvExportRepository.exportDiaryCsv() }
 
     /** Same CSV export pattern as [prepareCsvExport], for Biolism workout sessions. */
-    fun prepareBiolismCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch {
-            val csv = csvExportRepository.exportBiolismSessionsCsv()
-            _backupState.value = BackupUiState.CsvExportReady(csv, filenamePrefix = "biolism")
-        }
-    }
+    fun prepareBiolismCsvExport() = launchCsvExport(filenamePrefix = "biolism") { csvExportRepository.exportBiolismSessionsCsv() }
 
     // Diary/Biolism previously were the only two trackers with a CSV export -
     // Weight/Activity/Hydration/Medication/Fasting each already expose an
     // equivalent JSON-backup dataset with no lightweight spreadsheet path.
-    fun prepareWeightCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportWeightCsv(), filenamePrefix = "poids") }
-    }
-    fun prepareActivityCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportActivityCsv(), filenamePrefix = "activite") }
-    }
-    fun prepareHydrationCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportHydrationCsv(), filenamePrefix = "hydratation") }
-    }
-    fun prepareMedicationCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportMedicationCsv(), filenamePrefix = "traitement") }
-    }
-    fun prepareFastingCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportFastingCsv(), filenamePrefix = "jeune") }
-    }
-    fun preparePricesCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportPricesCsv(), filenamePrefix = "depenses") }
-    }
+    fun prepareWeightCsvExport() = launchCsvExport(filenamePrefix = "poids") { csvExportRepository.exportWeightCsv() }
+    fun prepareActivityCsvExport() = launchCsvExport(filenamePrefix = "activite") { csvExportRepository.exportActivityCsv() }
+    fun prepareHydrationCsvExport() = launchCsvExport(filenamePrefix = "hydratation") { csvExportRepository.exportHydrationCsv() }
+    fun prepareMedicationCsvExport() = launchCsvExport(filenamePrefix = "traitement") { csvExportRepository.exportMedicationCsv() }
+    fun prepareFastingCsvExport() = launchCsvExport(filenamePrefix = "jeune") { csvExportRepository.exportFastingCsv() }
+    fun preparePricesCsvExport() = launchCsvExport(filenamePrefix = "depenses") { csvExportRepository.exportPricesCsv() }
 
     // CustomFoods/MealTemplates/Recipes/ScanHistory/Medications (definitions) were
     // the last domains with JSON-backup coverage but no CSV equivalent - same
     // pattern as the Weight/Activity/etc. batch above.
-    fun prepareCustomFoodsCsvExport() {
+    fun prepareCustomFoodsCsvExport() = launchCsvExport(filenamePrefix = "mes_aliments") { csvExportRepository.exportCustomFoodsCsv() }
+    fun prepareMealTemplatesCsvExport() = launchCsvExport(filenamePrefix = "modeles_repas") { csvExportRepository.exportMealTemplatesCsv() }
+    fun prepareRecipesCsvExport() = launchCsvExport(filenamePrefix = "recettes") { csvExportRepository.exportRecipesCsv() }
+    fun prepareScanHistoryCsvExport() = launchCsvExport(filenamePrefix = "historique_scans") { csvExportRepository.exportScanHistoryCsv() }
+    fun prepareMedicationsCsvExport() = launchCsvExport(filenamePrefix = "medicaments") { csvExportRepository.exportMedicationsCsv() }
+
+    /** Shared guarded launch for every prepare*CsvExport() above - see their own comment.
+     *  [filenamePrefix] null keeps CsvExportReady's own default ("journal"), matching
+     *  prepareCsvExport()'s previous no-arg call. */
+    private fun launchCsvExport(filenamePrefix: String? = null, export: suspend () -> String) {
         _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportCustomFoodsCsv(), filenamePrefix = "mes_aliments") }
-    }
-    fun prepareMealTemplatesCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportMealTemplatesCsv(), filenamePrefix = "modeles_repas") }
-    }
-    fun prepareRecipesCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportRecipesCsv(), filenamePrefix = "recettes") }
-    }
-    fun prepareScanHistoryCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportScanHistoryCsv(), filenamePrefix = "historique_scans") }
-    }
-    fun prepareMedicationsCsvExport() {
-        _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportMedicationsCsv(), filenamePrefix = "medicaments") }
+        viewModelScope.launch {
+            runCatching { export() }.fold(
+                onSuccess = { csv ->
+                    _backupState.value = if (filenamePrefix != null) BackupUiState.CsvExportReady(csv, filenamePrefix)
+                        else BackupUiState.CsvExportReady(csv)
+                },
+                onFailure = { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) },
+            )
+        }
     }
 
     /** Settings > "Rapport PDF" — builds the multi-page evolution report (see PdfReportRepository's own doc comment) and hands it to the screen to write via SAF, same flow as the JSON/CSV exports above. */
