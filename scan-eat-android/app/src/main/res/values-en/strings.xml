@@ -1556,6 +1556,7 @@
     <string name="pantry_search_placeholder">Search pantry</string>
     <string name="pantry_search_empty">No item matches this search</string>
     <string name="pantry_field_category">Category</string>
+    <string name="result_pantry_stock">%1$s %2$s already in stock in your pantry</string>
     <string name="pantry_add_dialog_title">Add to pantry</string>
     <string name="pantry_field_name">Name</string>
     <string name="pantry_field_quantity">Quantity</string>

@@ -128,6 +128,17 @@ fun RecipesViewModel.log(recipe: Recipe, mealSlot: MealSlot, portionFraction: Do
     viewModelScope.launch {
         runCatching {
             consumptionRepo.log(repo.collapse(recipe, LocalDate.now(), mealSlot, portionFraction).copy(profileId = activeProfileId.value))
+            // User-requested "connect everything": logging a recipe only ever
+            // deducted stock for the recipe's own collapsed name (rarely a
+            // pantry match) - a recipe is really several ingredients, each
+            // individually stocked, so deduct each one by its own name/grams
+            // instead. Best-effort per component: pantryRepo.deductStock()
+            // already no-ops silently on no match / a UNITS-counted row (see
+            // its own doc comment), so an ingredient not tracked in the
+            // pantry simply doesn't affect anything, same as today.
+            recipe.components.forEach { c ->
+                pantryRepo.deductStock(barcode = null, name = c.productName, portionG = c.grams * portionFraction, profileId = activeProfileId.value)
+            }
         }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 }

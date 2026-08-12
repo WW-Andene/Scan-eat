@@ -43,7 +43,10 @@ class RecipesViewModel @Inject constructor(
     internal val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
     private val scanRepository: ScanRepository,
-    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
+    // Widened from private to internal - RecipesOperationsExt.kt's log()
+    // extension function needs this too, to deduct a logged recipe's
+    // ingredients from the pantry (same reasoning as repo/templateRepo above).
+    internal val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
     enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }

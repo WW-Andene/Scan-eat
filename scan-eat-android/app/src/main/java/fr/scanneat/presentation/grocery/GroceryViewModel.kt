@@ -64,6 +64,7 @@ class GroceryViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val priceRepo: PriceRepository,
     private val scanRepo: fr.scanneat.data.repository.scan.ScanRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
 ) : ViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real. GroceryCheckedRepository/
@@ -411,7 +412,25 @@ class GroceryViewModel @Inject constructor(
         // aggregate to the same item, or a renamed recipe changing which spelling
         // gets picked as `name`, would otherwise silently orphan the persisted
         // checked-state key and un-check a previously-checked item.
-        viewModelScope.launch { runCatching { checkedRepo.setChecked(item.key, checked, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch {
+            runCatching {
+                checkedRepo.setChecked(item.key, checked, activeProfileId.value)
+                // User-requested "connect everything": checking off a bought
+                // item previously had no link to the pantry at all - a
+                // grocery run only ever landed there via a separate scan or
+                // manual add. Un-checking deliberately does NOT reverse this
+                // (the item may already have been partly used), same
+                // one-directional relationship consumption's own pantry
+                // deduction has.
+                if (checked && item.grams > 0) {
+                    pantryRepo.addOrUpdate(
+                        name = item.name, barcode = null, category = fr.scanneat.domain.model.ProductCategory.OTHER,
+                        quantity = item.grams.toDouble(), unit = fr.scanneat.data.repository.pantry.PantryUnit.GRAMS,
+                        expiryDate = null, profileId = activeProfileId.value,
+                    )
+                }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     fun clearAllChecked() {

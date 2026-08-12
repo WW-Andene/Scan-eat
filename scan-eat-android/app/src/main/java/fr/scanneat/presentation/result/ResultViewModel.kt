@@ -164,6 +164,22 @@ class ResultViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ResultUiState())
 
+    // User-requested "connect everything": scanning a product already in the
+    // pantry showed no indication of that anywhere on the Result screen - the
+    // user had no way to tell "I already have this at home" without leaving
+    // the scan flow to check Garde-manger separately.
+    val pantryStock: StateFlow<fr.scanneat.data.repository.pantry.PantryItem?> = state
+        .flatMapLatest { s ->
+            val scan = s.scanResult
+            if (scan == null) flowOf(null)
+            else prefs.activeProfileId.flatMapLatest { id -> pantryRepo.observeAll(id) }.map { items ->
+                items.firstOrNull { item ->
+                    if (scan.barcode != null && item.barcode != null) item.barcode == scan.barcode
+                    else item.name.equals(scan.product.name, ignoreCase = true)
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     fun log(portionG: Double, mealSlot: MealSlot) {
         if (_logState.value is LogState.Loading) return   // guard against double-tap double-logging
         val scan = state.value.scanResult ?: return

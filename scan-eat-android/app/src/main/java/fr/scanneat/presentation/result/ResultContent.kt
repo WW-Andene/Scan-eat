@@ -31,6 +31,7 @@ import fr.scanneat.domain.model.ScanSource
 import fr.scanneat.presentation.expenses.components.displayLabel
 import fr.scanneat.presentation.result.cards.*
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
 import kotlin.math.roundToInt
 
 // Assembles the sections that make up a scan result. Each section lives in
@@ -47,6 +48,7 @@ internal fun ResultContent(
     scoreDelta: Int? = null,
     scoreHistory: List<Int> = emptyList(),
     recall: fr.scanneat.data.repository.recall.RecallEntry? = null,
+    pantryStock: fr.scanneat.data.repository.pantry.PantryItem? = null,
     priceEntries: List<fr.scanneat.data.repository.expense.PriceEntry> = emptyList(),
     currencySymbol: String = "€",
     improvementTips: List<ImprovementTip> = emptyList(),
@@ -104,6 +106,17 @@ internal fun ResultContent(
             // FOOD_DB placeholder fixed earlier this round.
             Text(stringResource(scan.source.labelRes()),
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
+        }
+
+        // User-requested "connect everything": scanning a product already
+        // tracked in the pantry previously gave no indication of that here -
+        // the user had no way to tell "I already have this at home" without
+        // leaving the scan flow to check Garde-manger separately.
+        pantryStock?.let { stock ->
+            Text(
+                stringResource(R.string.result_pantry_stock, stock.quantity.formatDecimal(), stock.unit.key),
+                style = MaterialTheme.typography.labelMedium, color = AccentCoral,
+            )
         }
 
         // User-requested: see RecallBanner's own doc comment - the live-scan
