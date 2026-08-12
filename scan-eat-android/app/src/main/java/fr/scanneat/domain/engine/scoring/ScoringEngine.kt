@@ -464,8 +464,37 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
     val additiveRisk        = scoreAdditiveRisk(product, lang)
     val ingredientIntegrity = scoreIngredientIntegrity(product, lang)
 
-    val baseScore = processing.score + nutritionalDensity.score + negativeNutrients.score +
+    val rawBaseScore = processing.score + nutritionalDensity.score + negativeNutrients.score +
                     additiveRisk.score + ingredientIntegrity.score
+
+    // User-reported: plain sparkling water (NOVA 1, Nutri-Score A, zero
+    // negatives) still landed at Grade B/A rather than A+, because
+    // NutritionalDensityPillar structurally CANNOT earn any of its 25 points
+    // for water/alcohol/oil categories - protein and fiber aren't a
+    // meaningful axis for them (CategoryThresholds' own proteinG/fiberG ==
+    // (0,0,0) signal, already the documented reason that pillar correctly
+    // avoids narrating a "lacks protein" deduction for these categories -
+    // see NutritionalDensityPillar.kt's own comments) and none of them are
+    // expected to carry micronutrients either (expectMicronutrients=false).
+    // Leaving the pillar's 25-point share in a flat /100 denominator meant
+    // every such product was structurally capped at 75/100 (Grade A at
+    // best) no matter how clean everything else scored - not a real health
+    // finding, just an unearnable axis silently dragging the total down.
+    // Rescaling the achievable total to exclude it when it's genuinely
+    // inapplicable (not just scored 0 on merit - a candy in a category that
+    // DOES expect protein/fiber and still has none stays scored out of the
+    // full /100) restores the headroom these categories were always missing,
+    // without touching how real health negatives are weighted: sugar/
+    // alcohol/caffeine still go through NegativeNutrients at full weight,
+    // additives through AdditiveRisk at full weight - this only removes an
+    // axis that was never earnable in the first place.
+    val thresholds = getThresholds(product.category)
+    val densityInapplicable = !thresholds.expectMicronutrients &&
+        thresholds.proteinG.third == 0.0 && thresholds.fiberG.third == 0.0
+    val baseScore = if (densityInapplicable) {
+        val achievableMax = 100.0 - nutritionalDensity.max
+        (rawBaseScore / achievableMax) * 100.0
+    } else rawBaseScore
 
     val severeFlagCount = listOf(processing, nutritionalDensity, negativeNutrients, additiveRisk, ingredientIntegrity)
         .sumOf { pillar -> pillar.deductions.count { it.severity == Severity.CRITICAL || it.severity == Severity.MAJOR } }

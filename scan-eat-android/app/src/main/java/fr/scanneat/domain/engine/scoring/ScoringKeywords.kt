@@ -34,6 +34,14 @@ internal val WHOLE_FOOD_KEYWORDS = listOf(
     "mûre","mure","clémentine","clementine","asperge","champignon","radis",
     "céleri","celeri","artichaut","patate","maïs","mais","crevette","moules",
     "cabillaud","tofu","edamame","cacahuète","cacahuete",
+    // Confirmed via OpenFoodFacts (barcode 3254380008430, Cristaline Eau De
+    // Source Pétillante): carbonation gas is the product's literal 2nd
+    // ingredient, and "eau" was already whitelisted above but this wasn't -
+    // every sparkling water lost the "first 3 ingredients are whole foods"
+    // bonus for naming the natural gas that makes it sparkling, treated the
+    // same as an unrecognized industrial additive despite being about as
+    // minimally processed as an ingredient can be.
+    "dioxyde de carbone","gaz carbonique","carbon dioxide",
 )
 
 internal val GENERIC_OIL_TERMS = listOf(
