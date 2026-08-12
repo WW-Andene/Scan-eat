@@ -39,6 +39,18 @@ internal fun checkMetabolicConditions(
         // where sugar-severity gradation matters most clinically, even
         // though the base pillar directly below it already draws that
         // distinction for every user.
+        //
+        // Pass-3 audit finding: deliberately uses TOTAL sugars
+        // (product.nutrition.sugarsG), not NegativeNutrientsPillar's
+        // added-sugars-if-declared figure (n.addedSugarsG ?: n.sugarsG) -
+        // a prior comment here claimed to "mirror" that pillar without
+        // flagging this difference. This is intentional, not a bug: added-
+        // vs-natural sugar is a meaningful distinction for general product-
+        // quality scoring, but for diabetes specifically the acute glycemic
+        // response depends on total carbohydrate/sugar reaching the
+        // bloodstream regardless of source - a fruit compote's "natural"
+        // sugar raises blood glucose the same way added sugar does. Kept as
+        // total sugars; only the false "mirrors" wording was corrected.
         } else if (sugars >= catThresholds.sugarThresholds.fourth) {
             adjustments += PersonalAdjustment(
                 points = -6.0,

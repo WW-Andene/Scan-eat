@@ -31,8 +31,8 @@ internal fun computeAgeAdjustments(
             adjustments += PersonalAdjustment(
                 points   = 3.0,
                 reason   = if (lang == "en")
-                    "High protein (${product.nutrition.proteinG} g/100 g) — helps prevent sarcopenia (PROT-AGE 1.0 g/kg/day for ≥65)"
-                else "Protéines élevées (${product.nutrition.proteinG} g/100 g) — prévention de la sarcopénie (PROT-AGE 1,0 g/kg/j après 65 ans)",
+                    "High protein (${product.nutrition.proteinG} g/100 g) — helps prevent sarcopenia (PROT-AGE 1.0–1.2 g/kg/day for ≥65)"
+                else "Protéines élevées (${product.nutrition.proteinG} g/100 g) — prévention de la sarcopénie (PROT-AGE 1,0–1,2 g/kg/j après 65 ans)",
                 category = AdjustmentCategory.AGE,
             )
         }
@@ -183,8 +183,25 @@ internal fun computeGoalAdjustments(
             // "minor" tier) BmiAdjustments.kt's own sat-fat check actually
             // uses (see that file) - not real parity with the check this
             // comment claims to mirror. Now genuinely matches it.
+            // Pass-3 context/logic audit finding: an overweight/obese-BMI
+            // profile with Goal.LOSE set (the typical reason someone sets
+            // that goal) previously got the SAME elevated-sat-fat fact
+            // penalized twice under two different AdjustmentCategory names -
+            // BmiAdjustments.kt's own overweight/obese check (-4, using the
+            // identical catThresholds.satFatThresholds.first bar) AND this
+            // one (-2) for one scanned product. Unlike the BMI file's own
+            // internal sub-check stacking (explicitly documented there as
+            // targeting genuinely distinct obesity-risk pathways), this was
+            // the identical nutrient signal counted twice with no such
+            // justification - skip this check when the BMI section's own
+            // sat-fat check already covers the same profile+product
+            // combination, so the two only stack when they're flagging
+            // genuinely different things (sugar via BMI, sat-fat via goal).
+            val bmiCat = bmiCategory(bmi(profile))
+            val bmiSatFatAlreadyFlagged = (bmiCat == BmiCategory.OVERWEIGHT || bmiCat?.name?.startsWith("OBESE") == true) &&
+                product.nutrition.saturatedFatG > catThresholds.satFatThresholds.first
             val goalSatFatBar = maxOf(10.0, catThresholds.satFatThresholds.first)
-            if (product.nutrition.energyKcal >= 400 && product.nutrition.saturatedFatG > goalSatFatBar) {
+            if (!bmiSatFatAlreadyFlagged && product.nutrition.energyKcal >= 400 && product.nutrition.saturatedFatG > goalSatFatBar) {
                 adjustments += PersonalAdjustment(
                     points   = -2.0,
                     reason   = if (lang == "en")
