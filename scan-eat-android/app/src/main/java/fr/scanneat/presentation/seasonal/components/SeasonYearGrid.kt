@@ -15,8 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -93,13 +99,23 @@ private fun SeasonMonthCell(
         isSelected -> BorderStroke(1.5.dp, AccentCoral)
         else -> null
     }
+    // app-audit §G2: isSelected/isHighlighted were purely color/border-coded with no
+    // textual equivalent - a TalkBack user heard only the month name, missing the same
+    // "selected"/"in season" context a sighted user gets for free from the ring/fill.
+    val monthLabel = Month.of(month).getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() } +
+        (if (isHighlighted) stringResource(R.string.seasonal_cd_in_season_suffix) else "") +
+        (if (isCurrent) stringResource(R.string.seasonal_cd_current_month_suffix) else "")
     Box(
         modifier = modifier
             .aspectRatio(1.3f)
             .clip(RoundedCornerShape(CardRadius.CONTROL))
             .background(fill)
             .let { if (border != null) it.border(border, RoundedCornerShape(CardRadius.CONTROL)) else it }
-            .clickable(onClick = onClick),
+            .clickable(role = Role.Button, onClickLabel = monthLabel, onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                contentDescription = monthLabel
+                selected = isSelected
+            },
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {

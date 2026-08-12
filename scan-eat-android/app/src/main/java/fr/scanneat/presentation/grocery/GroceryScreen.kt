@@ -220,12 +220,16 @@ fun GroceryScreen(
                             label = { Text(list) },
                             trailingIcon = if (list != DEFAULT_LIST) {
                                 {
+                                    // Left at IconButton's default 48dp touch target (Material/WCAG
+                                    // minimum) - was previously forced to 16dp, well under the
+                                    // minimum and a real mis-tap risk given rename/delete sit
+                                    // immediately adjacent (same class of fix already applied to
+                                    // DiaryEntryCard.kt's edit/delete pair).
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        IconButton(onClick = { renameListTarget = list; renameListText = list }, modifier = Modifier.size(16.dp)) {
+                                        IconButton(onClick = { renameListTarget = list; renameListText = list }) {
                                             Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnBackground.copy(0.6f))
                                         }
-                                        Spacer(Modifier.width(Spacing.XS))
-                                        IconButton(onClick = { listPendingDelete = list }, modifier = Modifier.size(16.dp)) {
+                                        IconButton(onClick = { listPendingDelete = list }) {
                                             Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.6f))
                                         }
                                     }

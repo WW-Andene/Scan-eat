@@ -864,6 +864,7 @@
     <string name="calendar_cd_next_month">Next month</string>
     <string name="calendar_cd_marked_suffix">, has an entry</string>
     <string name="calendar_cd_week_summary">Week %1$d summary</string>
+    <string name="calendar_cd_sources_count">, %1$d source(s) logged</string>
     <string name="weight_calendar_day_summary">%1$s: %2$s</string>
     <string name="weight_calendar_day_empty">%1$s: no entry</string>
     <string name="weight_delta_kg">%1$s (30d)</string>
@@ -984,6 +985,8 @@
     <string name="seasonal_pairings_title">Pairs well with</string>
     <string name="seasonal_pairings_empty">No pairing suggestion for this item.</string>
     <string name="seasonal_pairings_hint">Tap again to see pairings</string>
+    <string name="seasonal_cd_in_season_suffix">, in season for the selected product</string>
+    <string name="seasonal_cd_current_month_suffix">, current month</string>
     <string name="diary_note_label">Note of the day</string>
     <string name="diary_cd_save_note">Save</string>
     <string name="diary_empty_body">Nothing logged yet. Scan a product and tap \'Log it\'.</string>

@@ -3,7 +3,6 @@ package fr.scanneat.presentation.profile.components
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Plus
 import compose.icons.tablericons.X
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -13,6 +12,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -74,11 +74,17 @@ internal fun ProfileSwitcherCard(
                     // onSwitch.
                     trailingIcon = if (p.id != "default") {
                         {
-                            Icon(
-                                TablerIcons.X, stringResource(R.string.common_delete),
-                                modifier = Modifier.size(IconSize.Tiny).clickable { deleteTarget = p },
-                                tint = OnBackground.copy(0.5f),
-                            )
+                            // IconButton's own footprint kept at minTouchTarget()'s 48dp floor for
+                            // a real tap target (previously a bare clickable Icon at IconSize.Tiny,
+                            // 14dp, well under the WCAG/Material minimum) - the visible glyph stays
+                            // small via the inner Modifier.size() so the chip row isn't overrun.
+                            IconButton(onClick = { deleteTarget = p }, modifier = Modifier.minTouchTarget()) {
+                                Icon(
+                                    TablerIcons.X, stringResource(R.string.common_delete),
+                                    modifier = Modifier.size(IconSize.Tiny),
+                                    tint = OnBackground.copy(0.5f),
+                                )
+                            }
                         }
                     } else null,
                     colors = FilterChipDefaults.filterChipColors(

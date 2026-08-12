@@ -868,6 +868,7 @@
     <string name="calendar_cd_next_month">Mois suivant</string>
     <string name="calendar_cd_marked_suffix">, avec entrée</string>
     <string name="calendar_cd_week_summary">Résumé de la semaine %1$d</string>
+    <string name="calendar_cd_sources_count">, %1$d source(s) enregistrée(s)</string>
     <string name="weight_calendar_day_summary">%1$s : %2$s</string>
     <string name="weight_calendar_day_empty">%1$s : aucune pesée</string>
     <string name="weight_delta_kg">%1$s (30j)</string>
@@ -988,6 +989,8 @@
     <string name="seasonal_pairings_title">S\'associe bien avec</string>
     <string name="seasonal_pairings_empty">Pas de suggestion d\'association pour ce produit.</string>
     <string name="seasonal_pairings_hint">Appuyez à nouveau pour voir les associations</string>
+    <string name="seasonal_cd_in_season_suffix">, produit sélectionné en saison</string>
+    <string name="seasonal_cd_current_month_suffix">, mois en cours</string>
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
     <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Logger\'.</string>

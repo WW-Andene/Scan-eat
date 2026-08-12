@@ -27,7 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import fr.scanneat.presentation.ui.theme.Spacing
 import androidx.compose.ui.text.font.FontWeight
@@ -153,10 +155,21 @@ internal fun MultiMarkerMonthGrid(
                             // Adherence color-coding: shade day by how many sources logged data.
                             val adherenceAlpha = when (sources.size) { 0 -> 0f; 1, 2 -> 0.07f; 3, 4 -> 0.13f; else -> 0.22f }
                             val adherenceColor = semanticGreen().copy(adherenceAlpha)
+                            // app-audit §G2: this cell previously had no contentDescription/role -
+                            // TalkBack read only the bare day number ("12"), with neither the
+                            // date/selected context MonthCalendar.kt's sibling grid already gets,
+                            // nor any textual equivalent of the adherence-shading color signal
+                            // (sources.size) that has no other representation on screen.
+                            val dayLabel = date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", locale)) +
+                                (if (sources.isNotEmpty()) stringResource(R.string.calendar_cd_sources_count, sources.size) else "")
                             Box(
                                 modifier = Modifier.fillMaxSize().padding(Spacing.T2).clip(CircleShape)
                                     .background(if (isSelected) AccentCoral.copy(0.2f) else adherenceColor)
-                                    .clickable { onDayClick(date) },
+                                    .clickable(role = Role.Button, onClickLabel = dayLabel) { onDayClick(date) }
+                                    .semantics(mergeDescendants = true) {
+                                        contentDescription = dayLabel
+                                        selected = isSelected
+                                    },
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

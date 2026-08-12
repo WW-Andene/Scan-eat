@@ -3,7 +3,6 @@ package fr.scanneat.presentation.scan
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -92,6 +91,11 @@ fun ScanScreen(
     // above for NoCameraFallback) - so a decoded barcode here scores exactly
     // like a manually typed or recent-barcode-chip one would.
     val noBarcodeInPhotoMessage = stringResource(R.string.scan_import_photo_not_found)
+    // app-audit §G2: routed through ScanViewModel's ScanUiState.Error (an announced,
+    // TalkBack-visible banner) rather than a bare Toast, same fix already applied to
+    // the capture-error path below (see reportCaptureError()'s own doc comment) - a
+    // Toast isn't reliably announced by TalkBack, so a screen-reader user importing
+    // a photo with no detectable barcode previously got no accessible feedback at all.
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         runCatching { InputImage.fromFilePath(context, uri) }.getOrNull()?.let { image ->
@@ -99,14 +103,16 @@ fun ScanScreen(
                 .addOnSuccessListener { barcodes ->
                     val value = barcodes.firstNotNullOfOrNull { it.rawValue }
                     if (value != null) viewModel.quickScan(value)
-                    else Toast.makeText(context, noBarcodeInPhotoMessage, Toast.LENGTH_SHORT).show()
+                    else viewModel.reportCaptureError(noBarcodeInPhotoMessage)
                 }
-                .addOnFailureListener { Toast.makeText(context, noBarcodeInPhotoMessage, Toast.LENGTH_SHORT).show() }
-        } ?: Toast.makeText(context, noBarcodeInPhotoMessage, Toast.LENGTH_SHORT).show()
+                .addOnFailureListener { viewModel.reportCaptureError(noBarcodeInPhotoMessage) }
+        } ?: viewModel.reportCaptureError(noBarcodeInPhotoMessage)
     }
 
+    // Same §G2 fix as above - a Premium-gate tap is otherwise silent for a
+    // screen-reader user beyond the (also non-announced) settings navigation.
     val onPremiumBlocked: () -> Unit = {
-        android.widget.Toast.makeText(context, premiumRequiredMessage, android.widget.Toast.LENGTH_SHORT).show()
+        viewModel.reportCaptureError(premiumRequiredMessage)
         onOpenSettings()
     }
 
