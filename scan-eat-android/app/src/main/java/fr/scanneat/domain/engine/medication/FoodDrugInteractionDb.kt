@@ -59,7 +59,12 @@ private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
         // no clinically significant grapefruit interaction (confirmed
         // against multiple pharmacology sources) - the CCB members
         // (amlodipine/felodipine/nifedipine) ARE all genuinely CYP3A4-
-        // metabolized and do carry the interaction.
+        // metabolized, but the magnitude differs sharply: felodipine and
+        // nifedipine show >2-fold AUC increases with grapefruit (clinically
+        // significant), while amlodipine's is only ~15% (much weaker) - kept
+        // in this list since the interaction is real, not absent, but the
+        // caution text below is worded to reflect that difference rather
+        // than implying equal severity across all three.
         listOf("atorvastatine", "simvastatine", "amlodipine", "felodipine", "nifedipine"),
     ),
 ).map { it.copy(keywords = it.keywords.map(::normalizeForMatching)) }
@@ -87,8 +92,8 @@ private val FOOD_CAUTIONS: List<FoodCaution> = listOf(
     FoodCaution(
         FoodInteractionDrugClass.STATIN_OR_CCB,
         listOf("pamplemousse", "grapefruit"),
-        "Le pamplemousse peut augmenter la concentration sanguine de votre statine/inhibiteur calcique (interaction bien documentée), avec un risque accru d'effets indésirables — évitez de les associer sans avis médical.",
-        "Grapefruit can raise your statin's/calcium channel blocker's blood concentration (a well-documented interaction), increasing the risk of side effects — avoid combining them without medical advice.",
+        "Le pamplemousse peut augmenter la concentration sanguine de votre statine/inhibiteur calcique (interaction bien documentée pour la félodipine et la nifédipine ; nettement plus faible pour l'amlodipine), avec un risque accru d'effets indésirables — évitez de les associer sans avis médical.",
+        "Grapefruit can raise your statin's/calcium channel blocker's blood concentration (a well-documented interaction for felodipine and nifedipine; markedly weaker for amlodipine), increasing the risk of side effects — avoid combining them without medical advice.",
     ),
 ).map { it.copy(foodKeywords = it.foodKeywords.map(::normalizeForMatching)) }
 
