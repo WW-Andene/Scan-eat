@@ -332,12 +332,12 @@ private fun ShampooQualitySection(result: ShampooQualityResult) {
             style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
         )
         val (baseLabel, baseColor) = when (result.cleansingBase) {
-            CleansingBase.GENTLE  -> stringResource(R.string.shampoo_base_gentle) to semanticGreen()
-            CleansingBase.MIXED   -> stringResource(R.string.shampoo_base_mixed) to semanticAmber()
-            CleansingBase.HARSH   -> stringResource(R.string.shampoo_base_harsh) to semanticAmber()
+            CleansingBase.GENTLE  -> stringResource(R.string.cleansing_base_gentle) to semanticGreen()
+            CleansingBase.MIXED   -> stringResource(R.string.cleansing_base_mixed) to semanticAmber()
+            CleansingBase.HARSH   -> stringResource(R.string.cleansing_base_harsh) to semanticAmber()
             CleansingBase.UNKNOWN -> stringResource(R.string.nonconsumable_transparency_no_data) to OnBackground.copy(0.5f)
         }
-        Text(stringResource(R.string.shampoo_base_label, baseLabel), style = MaterialTheme.typography.bodySmall, color = baseColor)
+        Text(stringResource(R.string.cleansing_base_label, baseLabel), style = MaterialTheme.typography.bodySmall, color = baseColor)
         if (result.siliconeCount > 0) {
             Text(stringResource(R.string.shampoo_contains_silicone, result.siliconeCount), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
         }
@@ -362,12 +362,12 @@ private fun ShowerGelQualitySection(result: ShowerGelQualityResult) {
             style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = OnBackground,
         )
         val (baseLabel, baseColor) = when (result.cleansingBase) {
-            ShowerGelCleansingBase.GENTLE  -> stringResource(R.string.shampoo_base_gentle) to semanticGreen()
-            ShowerGelCleansingBase.MIXED   -> stringResource(R.string.shampoo_base_mixed) to semanticAmber()
-            ShowerGelCleansingBase.HARSH   -> stringResource(R.string.shampoo_base_harsh) to semanticAmber()
+            ShowerGelCleansingBase.GENTLE  -> stringResource(R.string.cleansing_base_gentle) to semanticGreen()
+            ShowerGelCleansingBase.MIXED   -> stringResource(R.string.cleansing_base_mixed) to semanticAmber()
+            ShowerGelCleansingBase.HARSH   -> stringResource(R.string.cleansing_base_harsh) to semanticAmber()
             ShowerGelCleansingBase.UNKNOWN -> stringResource(R.string.nonconsumable_transparency_no_data) to OnBackground.copy(0.5f)
         }
-        Text(stringResource(R.string.shampoo_base_label, baseLabel), style = MaterialTheme.typography.bodySmall, color = baseColor)
+        Text(stringResource(R.string.cleansing_base_label, baseLabel), style = MaterialTheme.typography.bodySmall, color = baseColor)
         if (result.soapBasedCount > 0) {
             Text(stringResource(R.string.shower_gel_contains_soap, result.soapBasedCount), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
         }

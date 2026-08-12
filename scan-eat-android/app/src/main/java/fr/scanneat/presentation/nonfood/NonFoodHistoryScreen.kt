@@ -182,23 +182,23 @@ private fun functionalBadgeFor(name: String, brand: String, ingredientsText: Str
     if (isLikelyShampoo(name, brand)) {
         computeShampooQuality(ingredientsText)?.let {
             val (label, color) = when (it.cleansingBase) {
-                CleansingBase.GENTLE  -> stringResource(R.string.shampoo_base_gentle) to semanticGreen()
-                CleansingBase.MIXED   -> stringResource(R.string.shampoo_base_mixed) to semanticAmber()
-                CleansingBase.HARSH   -> stringResource(R.string.shampoo_base_harsh) to semanticAmber()
+                CleansingBase.GENTLE  -> stringResource(R.string.cleansing_base_gentle) to semanticGreen()
+                CleansingBase.MIXED   -> stringResource(R.string.cleansing_base_mixed) to semanticAmber()
+                CleansingBase.HARSH   -> stringResource(R.string.cleansing_base_harsh) to semanticAmber()
                 CleansingBase.UNKNOWN -> return@let
             }
-            return stringResource(R.string.shampoo_base_label, label) to color
+            return stringResource(R.string.cleansing_base_label, label) to color
         }
     }
     if (isLikelyShowerGel(name, brand)) {
         computeShowerGelQuality(ingredientsText)?.let {
             val (label, color) = when (it.cleansingBase) {
-                ShowerGelCleansingBase.GENTLE  -> stringResource(R.string.shampoo_base_gentle) to semanticGreen()
-                ShowerGelCleansingBase.MIXED   -> stringResource(R.string.shampoo_base_mixed) to semanticAmber()
-                ShowerGelCleansingBase.HARSH   -> stringResource(R.string.shampoo_base_harsh) to semanticAmber()
+                ShowerGelCleansingBase.GENTLE  -> stringResource(R.string.cleansing_base_gentle) to semanticGreen()
+                ShowerGelCleansingBase.MIXED   -> stringResource(R.string.cleansing_base_mixed) to semanticAmber()
+                ShowerGelCleansingBase.HARSH   -> stringResource(R.string.cleansing_base_harsh) to semanticAmber()
                 ShowerGelCleansingBase.UNKNOWN -> return@let
             }
-            return stringResource(R.string.shampoo_base_label, label) to color
+            return stringResource(R.string.cleansing_base_label, label) to color
         }
     }
     if (isLikelyToothpaste(name, brand)) {

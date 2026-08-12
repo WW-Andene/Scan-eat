@@ -43,10 +43,10 @@
     <string name="nonconsumable_prohibited_detected">⚠ %1$d ingrédient(s) déclaré(s) correspondent à l\'Annexe II de l\'UE (substances INTERDITES dans les produits cosmétiques) : %2$s. Cela peut indiquer une erreur d\'étiquetage/de données — vérifiez sur le produit physique avant d\'en tirer une conclusion.</string>
     <string name="nonconsumable_restricted_detected">%1$d ingrédient(s) déclaré(s) figurent à l\'Annexe III de l\'UE (substances réglementées sous conditions, légales dans une limite fixée, pas un signal de danger) : %2$s</string>
     <string name="shampoo_quality_title">Profil du shampoing</string>
-    <string name="shampoo_base_label">Base nettoyante : %1$s</string>
-    <string name="shampoo_base_gentle">douce (tensioactifs sans sulfate)</string>
-    <string name="shampoo_base_mixed">mixte (sulfates + tensioactifs plus doux)</string>
-    <string name="shampoo_base_harsh">moussante forte (à base de sulfates)</string>
+    <string name="cleansing_base_label">Base nettoyante : %1$s</string>
+    <string name="cleansing_base_gentle">douce (tensioactifs sans sulfate)</string>
+    <string name="cleansing_base_mixed">mixte (sulfates + tensioactifs plus doux)</string>
+    <string name="cleansing_base_harsh">moussante forte (à base de sulfates)</string>
     <string name="shampoo_contains_silicone">Contient %1$d silicone(s) — lisse les cheveux mais peut s\'accumuler avec un usage fréquent.</string>
     <string name="shampoo_contains_gentle_conditioner">Contient %1$d ingrédient(s) conditionneur/hydratant sans silicone.</string>
     <string name="shampoo_quality_disclaimer">Profil de base nettoyante uniquement, basé sur une liste restreinte et évolutive d\'ingrédients courants de shampoing — non exhaustif, pas un verdict de danger (sulfates et silicones sont tous deux des ingrédients légaux et courants).</string>
