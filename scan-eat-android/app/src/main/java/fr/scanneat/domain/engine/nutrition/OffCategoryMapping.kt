@@ -194,6 +194,26 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "laundry" in tag || "lessive" in tag -> "LAUNDRY"
             "cleaning-product" in tag || "detergent" in tag || "nettoyant" in tag -> "CLEANING_PRODUCT"
             "household-chemical" in tag || "solvent" in tag -> "HOUSEHOLD_CHEMICAL"
+            // Added 13/08/2026: hair-care/shampoo, shower-gel/body-wash,
+            // toothpaste/oral-care, and make-up tags - a real gap that made
+            // shampoo, gel douche, dentifrice, and makeup barcodes fall
+            // through to "product not found" even when OPF had the product,
+            // because OPF's own category tags for these (e.g.
+            // "en:hair-care-products", "en:shampoos", "en:toothpastes")
+            // don't contain the generic "cosmetic"/"beauty"/"personal-care"/
+            // "hygiene" substrings already matched below - reported directly
+            // by a user hitting this on real L'Oréal shampoo and Elmex
+            // toothpaste barcodes. This is exactly the per-category
+            // functional-score series (ShampooQualityScore,
+            // ShowerGelQualityScore, ToothpasteQualityScore,
+            // CosmeticActivesScore, MakeupQualityScore) built this session -
+            // none of those scores can ever run if the product is never
+            // even classified as non-food in the first place.
+            "hair-care" in tag || "shampoo" in tag || "shampooing" in tag -> "PERSONAL_CARE"
+            "shower-gel" in tag || "gel-douche" in tag || "body-wash" in tag || "bath-and-shower" in tag -> "PERSONAL_CARE"
+            "toothpaste" in tag || "dentifrice" in tag || "oral-hygiene" in tag || "oral-care" in tag -> "PERSONAL_CARE"
+            "make-up" in tag || "makeup" in tag || "maquillage" in tag || "cosmetics" in tag -> "PERSONAL_CARE"
+            "skin-care" in tag || "creme" in tag || "moisturi" in tag -> "PERSONAL_CARE"
             "cosmetic" in tag || "beauty" in tag || "personal-care" in tag || "hygiene" in tag -> "PERSONAL_CARE"
             "non-food" in tag -> "OTHER"
             else -> null
@@ -206,6 +226,16 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
         "durex" in nameAndBrand || "glijmiddel" in nameAndBrand || "lubrifiant" in nameAndBrand ||
             "lubricant" in nameAndBrand || "preservatif" in nameAndBrand || "préservatif" in nameAndBrand ||
             "condom" in nameAndBrand -> "PERSONAL_CARE"
+        // Added 13/08/2026 alongside the tag-based additions above - same
+        // "unambiguous in any context" bar every existing entry in this list
+        // already holds to (a real food product would never legitimately
+        // contain "shampooing" or "dentifrice" in its name), for the same
+        // OPF-tags-are-sparse-or-missing case this fallback exists for.
+        "shampooing" in nameAndBrand || "shampoo" in nameAndBrand ||
+            "gel douche" in nameAndBrand || "gel de douche" in nameAndBrand || "shower gel" in nameAndBrand ||
+            "dentifrice" in nameAndBrand || "toothpaste" in nameAndBrand ||
+            "mascara" in nameAndBrand || "rouge à lèvres" in nameAndBrand || "rouge a levres" in nameAndBrand ||
+            "fond de teint" in nameAndBrand || "eyeliner" in nameAndBrand -> "PERSONAL_CARE"
         else -> null
     }
 }

@@ -156,6 +156,17 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "laundry" in tag || "lessive" in tag -> "LAUNDRY"
             "cleaning-product" in tag || "detergent" in tag || "nettoyant" in tag -> "CLEANING_PRODUCT"
             "household-chemical" in tag || "solvent" in tag -> "HOUSEHOLD_CHEMICAL"
+            // Mirrors the 13/08/2026 fix on the Android OffMapper.kt copy -
+            // see that copy's own doc comment for the full rationale
+            // (reported gap: shampoo/gel-douche/dentifrice/makeup barcodes
+            // fell through to "product not found" because OPF's own tags
+            // for these don't contain the generic cosmetic/beauty/personal-
+            // care/hygiene substrings already matched below).
+            "hair-care" in tag || "shampoo" in tag || "shampooing" in tag -> "PERSONAL_CARE"
+            "shower-gel" in tag || "gel-douche" in tag || "body-wash" in tag || "bath-and-shower" in tag -> "PERSONAL_CARE"
+            "toothpaste" in tag || "dentifrice" in tag || "oral-hygiene" in tag || "oral-care" in tag -> "PERSONAL_CARE"
+            "make-up" in tag || "makeup" in tag || "maquillage" in tag || "cosmetics" in tag -> "PERSONAL_CARE"
+            "skin-care" in tag || "creme" in tag || "moisturi" in tag -> "PERSONAL_CARE"
             "cosmetic" in tag || "beauty" in tag || "personal-care" in tag || "hygiene" in tag -> "PERSONAL_CARE"
             "non-food" in tag -> "OTHER"
             else -> null
@@ -168,6 +179,12 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
         "durex" in nameAndBrand || "glijmiddel" in nameAndBrand || "lubrifiant" in nameAndBrand ||
             "lubricant" in nameAndBrand || "preservatif" in nameAndBrand || "préservatif" in nameAndBrand ||
             "condom" in nameAndBrand -> "PERSONAL_CARE"
+        // Mirrors the Android copy's 13/08/2026 addition - see its doc comment.
+        "shampooing" in nameAndBrand || "shampoo" in nameAndBrand ||
+            "gel douche" in nameAndBrand || "gel de douche" in nameAndBrand || "shower gel" in nameAndBrand ||
+            "dentifrice" in nameAndBrand || "toothpaste" in nameAndBrand ||
+            "mascara" in nameAndBrand || "rouge à lèvres" in nameAndBrand || "rouge a levres" in nameAndBrand ||
+            "fond de teint" in nameAndBrand || "eyeliner" in nameAndBrand -> "PERSONAL_CARE"
         else -> null
     }
 }
