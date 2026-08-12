@@ -35,24 +35,31 @@ import fr.scanneat.domain.engine.scoring.normalizeForMatching
 //   - Abrasivity: ISO 11609 sets RDA ≤ 250 as the daily-use safety ceiling
 //     (ADA guidance aligns). Comparative data (PubMed 11413496) found silica
 //     generally more abrasive than calcium carbonate at similar particle
-//     size, though both range widely (RDA ~19-136) depending on formulation
-//     - so this file marks silica as the higher-abrasivity ingredient
-//     relative to calcium carbonate, not as "harsh" in absolute terms; no
-//     authoritative source was found ranking sodium bicarbonate or dicalcium
-//     phosphate on the same scale, so neither is included here.
+//     size (independently verified 13/08/2026: this paper is on-topic but is
+//     a niche radiometric-abrasivity method study - the "RDA ~19-136" figure
+//     an earlier draft attributed to it is not something this specific paper
+//     is known to establish and has been dropped; only the qualitative
+//     "silica generally more abrasive" ranking is kept) - so this file marks
+//     silica as the higher-abrasivity ingredient relative to calcium
+//     carbonate, not as "harsh" in absolute terms; no authoritative source
+//     was found ranking sodium bicarbonate or dicalcium phosphate on the
+//     same scale, so neither is included here.
 //   - SLS and mouth ulcers: Alli et al., systematic review/meta-analysis
 //     (PubMed 30839136, J Oral Pathol Med 2019) found SLS-free dentifrice
-//     significantly reduced recurrent aphthous ulcer count vs SLS-containing
-//     in a meta-analysis of 2 small trials (n=66) - graded low-certainty
-//     evidence, not proof SLS causes ulcers in the general population. Kasi
-//     et al., scoping review of SLS oral side effects (PubMed 35506963,
-//     2022). Presented here as a modest, low-certainty association, not a
-//     hazard verdict.
+//     significantly reduced recurrent aphthous ulcer count/duration/pain vs
+//     SLS-containing, from a meta-analysis subset of the reviewed trials -
+//     graded low-certainty evidence, not proof SLS causes ulcers in the
+//     general population. Kasi et al., scoping review of SLS oral side
+//     effects (PubMed 35506963, Am J Dent 2022). Presented here as a
+//     modest, low-certainty association, not a hazard verdict.
 //   - Sensitivity relief: Cochrane review, Poulsen et al., "Potassium
-//     containing toothpastes for dentine hypersensitivity" (PubMed 11405992,
-//     CD001476) - found a statistically significant reduction in
-//     sensitivity scores but authors judged evidence insufficient to
-//     confirm clinical efficacy overall; presented as weak/mixed evidence.
+//     nitrate toothpaste for dentine hypersensitivity" (PubMed 11405992,
+//     CD001476 - corrected 13/08/2026: an earlier draft used this review's
+//     later-update title "Potassium containing toothpastes..."; the PMID
+//     itself was independently verified correct) - found a statistically
+//     significant reduction in sensitivity scores but authors judged
+//     evidence insufficient to confirm clinical efficacy overall; presented
+//     as weak/mixed evidence.
 // ============================================================================
 
 enum class ToothpasteIngredientRole { FLUORIDE, HIGHER_ABRASIVE, LOWER_ABRASIVE, ORAL_IRRITANT, SENSITIVITY_CARE }
