@@ -8,6 +8,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.domain.engine.biolism.BiolismProfile
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.presentation.dashboard.cards.WhatsNewContent
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
