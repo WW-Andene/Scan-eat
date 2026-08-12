@@ -109,8 +109,12 @@ fun LogSheet(
     val kcalPreview = portionG?.let {
         (product.nutrition.energyKcal * it / 100.0).roundToInt()
     }
-    val priceEuros = priceText.replace(',', '.').toDoubleOrNull()
-    val weightG = weightText.replace(',', '.').toDoubleOrNull()
+    // Same bounds as PriceEntryCard.kt's own price entry dialog - unbounded here
+    // let a pasted/mistyped value (e.g. "999999999") flow straight into
+    // PriceRepository.log()'s pricePerKg computation and value-score comparison,
+    // which the sibling entry point already guards against.
+    val priceEuros = priceText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.01..9999.99 }
+    val weightG = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
     // At least one destination checked, and each checked destination's own
     // required field(s) filled in - REPAS needs nothing beyond the portion
     // already required below; DEPENSES needs a valid price.

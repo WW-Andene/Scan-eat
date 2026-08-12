@@ -58,7 +58,12 @@ private val componentsListAdapter = Moshi.Builder().add(KotlinJsonAdapterFactory
     .adapter<List<RecipeComponent>>(Types.newParameterizedType(List::class.java, RecipeComponent::class.java))
 private val componentsSaver = Saver<List<RecipeComponent>, String>(
     save = { componentsListAdapter.toJson(it) },
-    restore = { componentsListAdapter.fromJson(it) ?: emptyList() },
+    // Bundle-backed saved state can be truncated or otherwise corrupted (Android
+    // has documented cases of oversized/garbled Bundle round-trips across process
+    // death) - fromJson() throwing here previously crashed dialog restoration
+    // instead of just losing the in-progress ingredient list, which is what
+    // every other malformed-JSON path in this app already degrades to.
+    restore = { runCatching { componentsListAdapter.fromJson(it) }.getOrNull() ?: emptyList() },
 )
 
 @Composable

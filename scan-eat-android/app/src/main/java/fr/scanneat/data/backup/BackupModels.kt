@@ -274,4 +274,11 @@ sealed class BackupImportError : Exception() {
     data object PassphraseRequired : BackupImportError()
     /** A passphrase was supplied but didn't decrypt the file (wrong passphrase or corrupted file - indistinguishable). */
     data object WrongPassphrase : BackupImportError()
+    /** The file exceeds [MAX_BACKUP_JSON_BYTES] - rejected before Moshi parses it in full. */
+    data class TooLarge(val actualBytes: Int, val maxBytes: Int) : BackupImportError()
 }
+
+/** No real backup this app produces should ever approach this - a generous ceiling
+ *  meant only to reject a corrupted/malicious file before parseBundle()'s
+ *  bundleAdapter.fromJson() allocates a full object graph for it. */
+const val MAX_BACKUP_JSON_BYTES = 200 * 1024 * 1024

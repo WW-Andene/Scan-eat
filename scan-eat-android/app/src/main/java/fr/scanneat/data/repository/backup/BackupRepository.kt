@@ -287,7 +287,24 @@ class BackupRepository @Inject constructor(
             weightDao.insertAll(bundle.weights.map {
                 it.encryptedFromBackup().copy(weightKg = it.weightKg.coerceIn(0.1, 400.0))
             })
-            activityDao.insertAll(bundle.activities)
+            // Bounds mirror ActivityScreen.kt's own entry-form clamps
+            // (minutes 1..1440, sets/reps 0..999, distance/weight 0..500) - a raw
+            // insertAll() previously let a hand-edited/corrupted backup insert
+            // negative or absurd values that a live entry could never produce,
+            // silently corrupting DashboardAggregator's weekly totals and
+            // ActivityMetabolismLink's kcal-burned math. kcalBurned has no UI
+            // bound to mirror, only floored at 0 - "burned negative calories"
+            // is never physically meaningful regardless of activity type/duration.
+            activityDao.insertAll(bundle.activities.map {
+                it.copy(
+                    minutes       = it.minutes.coerceIn(1, 1440),
+                    kcalBurned    = it.kcalBurned.coerceAtLeast(0),
+                    sets          = it.sets?.coerceIn(0, 999),
+                    reps          = it.reps?.coerceIn(0, 999),
+                    distanceKm    = it.distanceKm?.coerceIn(0.0, 500.0),
+                    weightUsedKg  = it.weightUsedKg?.coerceIn(0.0, 500.0),
+                )
+            })
             mealTemplateDao.insertAll(bundle.mealTemplates)
             recipeDao.insertAll(bundle.recipes)
 
@@ -342,12 +359,31 @@ class BackupRepository @Inject constructor(
             val existingScoreKeys = scanScoreHistoryDao.getAllForBackup()
                 .map { it.matchKey to it.scannedAt }.toSet()
             val newScores = bundle.scanScoreHistory.filter { it.matchKey to it.scannedAt !in existingScoreKeys }
-            scanScoreHistoryDao.insertAll(newScores.map { it.copy(id = 0) })
+            // score mirrors ScoringEngine.computeScore()'s own coerceIn(0.0, 100.0)
+            // bound (see ScoringEngine.kt) - a raw insertAll() previously let an
+            // out-of-range score from a hand-edited backup corrupt
+            // ResultViewModel's scoreDelta/scoreHistory sparkline with a value the
+            // live scoring engine could never itself produce.
+            scanScoreHistoryDao.insertAll(newScores.map { it.copy(id = 0, score = it.score.coerceIn(0, 100)) })
 
             // price_log rows carry a stable UUID id like weights/medications - a plain
             // REPLACE-on-id insertAll is idempotent for re-importing the same file
             // twice, and two genuinely different entries never collide on a random UUID.
-            priceDao.insertAll(bundle.priceLog)
+            // priceEuros/weightG bounds mirror PriceEntryCard.kt's own entry-form
+            // clamps - pricePerKg is re-derived from the clamped pair rather than
+            // trusted as-is, since it's a precomputed value that could otherwise
+            // disagree with the now-clamped priceEuros/weightG it's supposed to
+            // reflect (see PriceEntity's own doc comment on why it's precomputed).
+            priceDao.insertAll(bundle.priceLog.map { row ->
+                val price  = row.priceEuros.coerceIn(0.01, 9999.99)
+                val weight = row.weightG?.coerceIn(0.1, 50000.0)
+                row.copy(
+                    priceEuros  = price,
+                    weightG     = weight,
+                    pricePerKg  = weight?.let { price / (it / 1000.0) },
+                    remainingG  = row.remainingG?.coerceIn(0.0, weight ?: Double.MAX_VALUE),
+                )
+            })
 
         }
 

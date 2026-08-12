@@ -3,6 +3,7 @@ package fr.scanneat.data.repository.backup
 import fr.scanneat.data.backup.BACKUP_FORMAT_VERSION
 import fr.scanneat.data.backup.BackupBundle
 import fr.scanneat.data.backup.BackupImportError
+import fr.scanneat.data.backup.MAX_BACKUP_JSON_BYTES
 
 // ============================================================================
 // BACKUP JSON PARSING/VALIDATION — extracted verbatim out of
@@ -25,6 +26,15 @@ internal fun BackupRepository.parseBundle(json: String, passphrase: String? = nu
         if (passphrase.isNullOrEmpty()) throw BackupImportError.PassphraseRequired
         BackupPassphraseCipher.decryptOrNull(json, passphrase) ?: throw BackupImportError.WrongPassphrase
     } else json
+    // Rejected before Moshi ever runs - fromJson() allocates the entire decoded
+    // object graph in one shot with no incremental/streaming size cap, so a
+    // corrupted or maliciously huge file previously ran unbounded parsing (and
+    // the OOM/ANR risk that comes with it) before any other check in this
+    // function had a chance to reject it.
+    val sizeBytes = plainJson.toByteArray(Charsets.UTF_8).size
+    if (sizeBytes > MAX_BACKUP_JSON_BYTES) {
+        throw BackupImportError.TooLarge(sizeBytes, MAX_BACKUP_JSON_BYTES)
+    }
     val bundle = try {
         bundleAdapter.fromJson(plainJson)
     } catch (e: Exception) {

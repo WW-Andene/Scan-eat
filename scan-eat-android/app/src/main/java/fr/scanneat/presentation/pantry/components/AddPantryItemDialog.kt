@@ -47,7 +47,11 @@ internal fun AddPantryItemDialog(
     var showCategoryPicker by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-    val quantity = quantityText.replace(',', '.').toDoubleOrNull()
+    // Upper bound only (lower bound already enforced by the `> 0` check below) -
+    // generous enough for a genuinely large home-pantry quantity in any unit
+    // (units/g/mL) while still catching a typo like an extra trailing zero from
+    // silently sitting in PantryViewModel's health-conflict/expiry math forever.
+    val quantity = quantityText.replace(',', '.').toDoubleOrNull()?.takeIf { it <= 1_000_000.0 }
     val isValid = name.isNotBlank() && quantity != null && quantity > 0
 
     if (showDatePicker) {
