@@ -29,7 +29,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.selected
+// Aliased - the semantics DSL's `selected` property setter would otherwise be
+// shadowed by this function's own `selected: LocalDate` parameter, matching
+// MonthCalendar.kt's identical fix for the same collision.
+import androidx.compose.ui.semantics.selected as semanticsSelected
 import androidx.compose.ui.semantics.semantics
 import fr.scanneat.presentation.ui.theme.Spacing
 import androidx.compose.ui.text.font.FontWeight
@@ -168,7 +171,7 @@ internal fun MultiMarkerMonthGrid(
                                     .clickable(role = Role.Button, onClickLabel = dayLabel) { onDayClick(date) }
                                     .semantics(mergeDescendants = true) {
                                         contentDescription = dayLabel
-                                        selected = isSelected
+                                        semanticsSelected = isSelected
                                     },
                                 contentAlignment = Alignment.Center,
                             ) {
