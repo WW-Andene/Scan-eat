@@ -199,7 +199,13 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             // IntimateHygieneScore.kt's own header on why that was left out
             // rather than asserted unsourced), so recognition alone is the
             // honest fix here, not a fabricated fact.
-            "toilet-paper" in tag || "toilet-tissue" in tag || "papier-toilette" in tag || "papier-hygienique" in tag -> "HYGIENE_PRODUCT"
+            // OTHER, not HYGIENE_PRODUCT - correctness fix 13/08/2026 caught
+            // during a category-consistency audit: NonConsumableHints.kt's
+            // HYGIENE_PRODUCT fact says "superabsorbent polymers", true for
+            // diapers/tampons/pads but FALSE for plain toilet paper - would
+            // have shown users an inaccurate claim about the very product
+            // this fix was meant to correctly recognize.
+            "toilet-paper" in tag || "toilet-tissue" in tag || "papier-toilette" in tag || "papier-hygienique" in tag -> "OTHER"
             "tobacco" in tag || "cigarette" in tag || "e-cigarette" in tag -> "TOBACCO"
             "battery" in tag || "batteries" in tag -> "BATTERY"
             "bleach" in tag || "javel" in tag -> "BLEACH"
@@ -259,17 +265,25 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
         // the CosmeticActivesScore category) had no name-fallback either.
         "creme" in nameAndBrand || "cream" in nameAndBrand || "lotion" in nameAndBrand ||
             "serum" in nameAndBrand || "sérum" in nameAndBrand -> "PERSONAL_CARE"
-        // Added 13/08/2026 - tampons/pads/wipes (IntimateHygieneScore's other
-        // half) had no name fallback, only sparse OPF tags above. Kept in
-        // sync with isLikelyAbsorbentHygieneProduct/isLikelyIntimateWipe's
-        // own keyword lists for the same reason as the makeup list above.
+        // Added 13/08/2026 - tampons/pads (IntimateHygieneScore's other half)
+        // had no name fallback, only sparse OPF tags above. Kept in sync
+        // with isLikelyAbsorbentHygieneProduct's own keyword list. Genuinely
+        // HYGIENE_PRODUCT - these ARE superabsorbent-polymer disposables,
+        // matching that category's fact text.
         "tampon" in nameAndBrand || "serviette hygienique" in nameAndBrand || "serviette hygiénique" in nameAndBrand ||
-            "protege-slip" in nameAndBrand || "coupe menstruelle" in nameAndBrand || "menstrual cup" in nameAndBrand ||
+            "protege-slip" in nameAndBrand -> "HYGIENE_PRODUCT"
+        // OTHER, not HYGIENE_PRODUCT - correctness fix caught in the same
+        // category-consistency audit as toilet paper above: a menstrual cup
+        // is reusable silicone and a wet wipe is a moistened tissue, neither
+        // is a "superabsorbent polymer" disposable the way tampons/pads
+        // genuinely are, so HYGIENE_PRODUCT's fact text would misdescribe
+        // them (same false-claim issue as toilet paper).
+        "coupe menstruelle" in nameAndBrand || "menstrual cup" in nameAndBrand ||
             "lingette intime" in nameAndBrand || "toilette intime" in nameAndBrand ||
-            "intimate wipe" in nameAndBrand || "feminine wipe" in nameAndBrand -> "HYGIENE_PRODUCT"
+            "intimate wipe" in nameAndBrand || "feminine wipe" in nameAndBrand -> "OTHER"
         // Added 13/08/2026 - toilet paper, see the tag-based addition above for why.
         "papier toilette" in nameAndBrand || "papier hygienique" in nameAndBrand || "papier hygiénique" in nameAndBrand ||
-            "toilet paper" in nameAndBrand -> "HYGIENE_PRODUCT"
+            "toilet paper" in nameAndBrand -> "OTHER"
         else -> null
     }
 }

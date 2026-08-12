@@ -151,7 +151,10 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "feminine-hygiene" in tag || "sanitary-protection" in tag ||
                 "diaper" in tag || "baby-hygiene" in tag -> "HYGIENE_PRODUCT"
             // Mirrors the Android copy's 13/08/2026 toilet-paper addition - see its doc comment.
-            "toilet-paper" in tag || "toilet-tissue" in tag || "papier-toilette" in tag || "papier-hygienique" in tag -> "HYGIENE_PRODUCT"
+            // OTHER, not HYGIENE_PRODUCT - see the Android copy's 13/08/2026
+            // correctness-fix comment (its HYGIENE_PRODUCT fact text is
+            // false for plain toilet paper).
+            "toilet-paper" in tag || "toilet-tissue" in tag || "papier-toilette" in tag || "papier-hygienique" in tag -> "OTHER"
             "tobacco" in tag || "cigarette" in tag || "e-cigarette" in tag -> "TOBACCO"
             "battery" in tag || "batteries" in tag -> "BATTERY"
             "bleach" in tag || "javel" in tag -> "BLEACH"
@@ -193,11 +196,14 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
         "creme" in nameAndBrand || "cream" in nameAndBrand || "lotion" in nameAndBrand ||
             "serum" in nameAndBrand || "sérum" in nameAndBrand -> "PERSONAL_CARE"
         "tampon" in nameAndBrand || "serviette hygienique" in nameAndBrand || "serviette hygiénique" in nameAndBrand ||
-            "protege-slip" in nameAndBrand || "coupe menstruelle" in nameAndBrand || "menstrual cup" in nameAndBrand ||
+            "protege-slip" in nameAndBrand -> "HYGIENE_PRODUCT"
+        // See the Android copy's correctness-fix comment (menstrual cups
+        // and wipes aren't superabsorbent-polymer disposables).
+        "coupe menstruelle" in nameAndBrand || "menstrual cup" in nameAndBrand ||
             "lingette intime" in nameAndBrand || "toilette intime" in nameAndBrand ||
-            "intimate wipe" in nameAndBrand || "feminine wipe" in nameAndBrand -> "HYGIENE_PRODUCT"
+            "intimate wipe" in nameAndBrand || "feminine wipe" in nameAndBrand -> "OTHER"
         "papier toilette" in nameAndBrand || "papier hygienique" in nameAndBrand || "papier hygiénique" in nameAndBrand ||
-            "toilet paper" in nameAndBrand -> "HYGIENE_PRODUCT"
+            "toilet paper" in nameAndBrand -> "OTHER"
         else -> null
     }
 }
