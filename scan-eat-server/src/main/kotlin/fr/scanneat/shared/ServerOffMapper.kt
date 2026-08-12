@@ -186,13 +186,16 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
             "gel douche" in nameAndBrand || "gel de douche" in nameAndBrand || "shower gel" in nameAndBrand ||
             "dentifrice" in nameAndBrand || "toothpaste" in nameAndBrand ||
             "mascara" in nameAndBrand || "rouge à lèvres" in nameAndBrand || "rouge a levres" in nameAndBrand ||
-            "fond de teint" in nameAndBrand || "eyeliner" in nameAndBrand -> "PERSONAL_CARE"
+            "fond de teint" in nameAndBrand || "eyeliner" in nameAndBrand ||
+            "lipstick" in nameAndBrand || "fard a paupieres" in nameAndBrand || "eyeshadow" in nameAndBrand ||
+            "foundation" in nameAndBrand || "concealer" in nameAndBrand || "anti-cernes" in nameAndBrand -> "PERSONAL_CARE"
         // Mirrors the Android copy's 13/08/2026 additions - see its doc comments.
         "creme" in nameAndBrand || "cream" in nameAndBrand || "lotion" in nameAndBrand ||
             "serum" in nameAndBrand || "sérum" in nameAndBrand -> "PERSONAL_CARE"
         "tampon" in nameAndBrand || "serviette hygienique" in nameAndBrand || "serviette hygiénique" in nameAndBrand ||
             "protege-slip" in nameAndBrand || "coupe menstruelle" in nameAndBrand || "menstrual cup" in nameAndBrand ||
-            "lingette intime" in nameAndBrand || "toilette intime" in nameAndBrand -> "HYGIENE_PRODUCT"
+            "lingette intime" in nameAndBrand || "toilette intime" in nameAndBrand ||
+            "intimate wipe" in nameAndBrand || "feminine wipe" in nameAndBrand -> "HYGIENE_PRODUCT"
         "papier toilette" in nameAndBrand || "papier hygienique" in nameAndBrand || "papier hygiénique" in nameAndBrand ||
             "toilet paper" in nameAndBrand -> "HYGIENE_PRODUCT"
         else -> null

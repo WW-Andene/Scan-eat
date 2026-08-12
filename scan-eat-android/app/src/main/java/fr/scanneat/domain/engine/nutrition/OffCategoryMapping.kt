@@ -246,17 +246,27 @@ fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: Str
         "shampooing" in nameAndBrand || "shampoo" in nameAndBrand ||
             "gel douche" in nameAndBrand || "gel de douche" in nameAndBrand || "shower gel" in nameAndBrand ||
             "dentifrice" in nameAndBrand || "toothpaste" in nameAndBrand ||
+            // Kept in sync with MakeupQualityScore.isLikelyMakeup's own keyword
+            // list (fixed 13/08/2026: fond-de-teint/mascara/eyeliner were
+            // already here, but foundation/concealer/anti-cernes/lipstick/
+            // fard-à-paupières/eyeshadow were not, so classifyNonFood and the
+            // score gate it feeds could disagree on the same product).
             "mascara" in nameAndBrand || "rouge à lèvres" in nameAndBrand || "rouge a levres" in nameAndBrand ||
-            "fond de teint" in nameAndBrand || "eyeliner" in nameAndBrand -> "PERSONAL_CARE"
+            "fond de teint" in nameAndBrand || "eyeliner" in nameAndBrand ||
+            "lipstick" in nameAndBrand || "fard a paupieres" in nameAndBrand || "eyeshadow" in nameAndBrand ||
+            "foundation" in nameAndBrand || "concealer" in nameAndBrand || "anti-cernes" in nameAndBrand -> "PERSONAL_CARE"
         // Added 13/08/2026 - general cosmetics/skincare (crème/lotion/sérum,
         // the CosmeticActivesScore category) had no name-fallback either.
         "creme" in nameAndBrand || "cream" in nameAndBrand || "lotion" in nameAndBrand ||
             "serum" in nameAndBrand || "sérum" in nameAndBrand -> "PERSONAL_CARE"
         // Added 13/08/2026 - tampons/pads/wipes (IntimateHygieneScore's other
-        // half) had no name fallback, only sparse OPF tags above.
+        // half) had no name fallback, only sparse OPF tags above. Kept in
+        // sync with isLikelyAbsorbentHygieneProduct/isLikelyIntimateWipe's
+        // own keyword lists for the same reason as the makeup list above.
         "tampon" in nameAndBrand || "serviette hygienique" in nameAndBrand || "serviette hygiénique" in nameAndBrand ||
             "protege-slip" in nameAndBrand || "coupe menstruelle" in nameAndBrand || "menstrual cup" in nameAndBrand ||
-            "lingette intime" in nameAndBrand || "toilette intime" in nameAndBrand -> "HYGIENE_PRODUCT"
+            "lingette intime" in nameAndBrand || "toilette intime" in nameAndBrand ||
+            "intimate wipe" in nameAndBrand || "feminine wipe" in nameAndBrand -> "HYGIENE_PRODUCT"
         // Added 13/08/2026 - toilet paper, see the tag-based addition above for why.
         "papier toilette" in nameAndBrand || "papier hygienique" in nameAndBrand || "papier hygiénique" in nameAndBrand ||
             "toilet paper" in nameAndBrand -> "HYGIENE_PRODUCT"
