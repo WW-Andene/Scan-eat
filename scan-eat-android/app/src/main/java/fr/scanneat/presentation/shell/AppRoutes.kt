@@ -32,6 +32,7 @@ object AppRoutes {
     const val SCAN_FOR_GROCERY = "scan_for_grocery"
     const val RECEIPT_SCAN = "receipt_scan"
     const val PANTRY = "pantry"
+    const val SYMPTOMS = "symptoms"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }

@@ -85,6 +85,7 @@ class BackupRepository @Inject constructor(
     internal val loyaltyCardRepo: fr.scanneat.data.repository.loyalty.LoyaltyCardRepository,
     internal val biolismRepo: BiolismRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
+    private val symptomRepo: fr.scanneat.data.repository.symptom.SymptomRepository,
     private val moshi: Moshi,
 ) {
     // Internal (not private) so BackupParsing.kt's parseBundle() extension
@@ -157,6 +158,7 @@ class BackupRepository @Inject constructor(
             manualGroceryItems = manualGroceryRepo.exportAll(),
             loyaltyCards = loyaltyCardRepo.exportAll(),
             pantryItems = pantryRepo.exportAll(),
+            symptoms = symptomRepo.exportAll(),
         )
         val plainJson = bundleAdapter.indent("  ").toJson(bundle)
         // Opt-in - see BackupPassphraseCipher's own doc comment for the file
@@ -340,6 +342,7 @@ class BackupRepository @Inject constructor(
         // block above since PantryRepository owns its own DAO call, same as
         // every DataStore-backed restore call below.
         pantryRepo.importAll(bundle.pantryItems)
+        symptomRepo.importAll(bundle.symptoms)
 
         restoreDataStoreData(bundle)
 

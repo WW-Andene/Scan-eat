@@ -164,6 +164,7 @@ fun AppNavGraph(
                 onOpenCalendar       = { navController.navigate(AppRoutes.CALENDAR) },
                 onOpenFoodSearch     = { navController.navigate(AppRoutes.FOOD_SEARCH) },
                 onOpenPantry         = { navController.navigate(AppRoutes.PANTRY) },
+                onOpenSymptoms       = { navController.navigate(AppRoutes.SYMPTOMS) },
                 // Restructuration audit (§XI): generalized from the previous
                 // Expenses-only onOpenExpenses - now also drives
                 // OtherTrackersCard's tappable Water/Fasting/Treatment glance
@@ -211,6 +212,12 @@ fun AppNavGraph(
         // PantryScreen/PantryViewModel's own doc comments.
         composable(AppRoutes.PANTRY) {
             fr.scanneat.presentation.pantry.PantryScreen(onBack = { navController.popBackStack() })
+        }
+
+        // User-requested: a symptom journal correlated against the diary -
+        // see SymptomScreen/SymptomViewModel's own doc comments.
+        composable(AppRoutes.SYMPTOMS) {
+            fr.scanneat.presentation.symptom.SymptomScreen(onBack = { navController.popBackStack() })
         }
 
         composable(TopTab.Settings.route) {

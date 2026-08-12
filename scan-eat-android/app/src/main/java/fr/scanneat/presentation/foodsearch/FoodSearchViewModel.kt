@@ -139,6 +139,19 @@ class FoodSearchViewModel @Inject constructor(
     private val customFoods: StateFlow<List<FoodEntry>> = activeProfileId.flatMapLatest { id -> customFoodRepo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // User-requested: "what have I never tried" - product categories this
+    // profile has never once scanned, so a user stuck on the same handful of
+    // categories can see what's missing from their own history instead of
+    // only ever comparing one product's score in isolation.
+    val neverTriedCategories: StateFlow<List<fr.scanneat.domain.model.ProductCategory>> = activeProfileId
+        .flatMapLatest { id -> scanRepo.observeDistinctCategories(id) }
+        .map { scanned ->
+            fr.scanneat.domain.model.ProductCategory.entries.filter {
+                it != fr.scanneat.domain.model.ProductCategory.OTHER && it !in scanned
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
     fun setQuery(q: String) { _query.value = q }

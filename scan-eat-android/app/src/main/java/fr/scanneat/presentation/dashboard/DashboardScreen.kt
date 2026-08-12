@@ -70,6 +70,7 @@ fun DashboardScreen(
     onOpenCalendar: () -> Unit = {},
     onOpenFoodSearch: () -> Unit = {},
     onOpenPantry: () -> Unit = {},
+    onOpenSymptoms: () -> Unit = {},
     // Restructuration audit (§XI): generalized from the previous single-purpose
     // onOpenExpenses (which hardcoded "EXPENSES") - OtherTrackersCard's
     // Water/Fasting/Treatment glance stats now deep-link the same way
@@ -201,6 +202,14 @@ fun DashboardScreen(
                 item { WeeklyValueScoreCard(weeklyValueScoreCounts.value) }
             }
 
+            // ---- Food diversity: distinct foods eaten this week, independent
+            // of any single product's own score ----
+            s.foodDiversity?.let { diversity ->
+                if (diversity.distinctCount > 0) {
+                    item { fr.scanneat.presentation.dashboard.cards.FoodDiversityCard(diversity) }
+                }
+            }
+
             // ---- Weight summary ----
             s.weightSummary?.let { ws ->
                 item { WeightCard(summary = ws, forecast = s.weightForecast, useImperial = useImperialWeight.value) }
@@ -248,6 +257,7 @@ fun DashboardScreen(
                     onOpenFoodSearch = onOpenFoodSearch,
                     onOpenSeasonalProduce = onOpenSeasonalProduce,
                     onOpenPantry = onOpenPantry,
+                    onOpenSymptoms = onOpenSymptoms,
                 )
             }
 

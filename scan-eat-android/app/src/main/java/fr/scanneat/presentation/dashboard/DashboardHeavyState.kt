@@ -160,5 +160,6 @@ internal suspend fun buildHeavyDashboardState(
         chronicGaps    = chronic,
         todayEntries   = todayData.entries,
         crossInsight   = crossInsight,
+        foodDiversity  = foodDiversityScore(allEntries, since = date.minusDays(6), until = date),
     )
 }

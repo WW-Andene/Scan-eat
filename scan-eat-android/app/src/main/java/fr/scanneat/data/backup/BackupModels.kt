@@ -7,6 +7,7 @@ import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import fr.scanneat.data.local.db.pantry.PantryEntity
 import fr.scanneat.data.local.db.price.PriceEntity
+import fr.scanneat.data.local.db.symptom.SymptomEntity
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
@@ -77,7 +78,10 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // pass, previously with zero presence here despite being real user data
 // (name/quantity/unit/expiry) with no other persistence path, same class of
 // gap every entity above already had fixed for it in turn.
-const val BACKUP_FORMAT_VERSION = 12
+// Since v13: symptoms - a symptom journal added alongside Pantry's own
+// backup fix, included from the start this time rather than as a follow-up
+// audit finding.
+const val BACKUP_FORMAT_VERSION = 13
 
 data class ProfileBackup(
     val name: String,
@@ -161,6 +165,7 @@ data class BackupBundle(
     // their own DataStore files.
     val loyaltyCards: List<LoyaltyCard> = emptyList(),
     val pantryItems: List<PantryEntity> = emptyList(),
+    val symptoms: List<SymptomEntity> = emptyList(),
 )
 
 data class BackupSummary(
@@ -176,8 +181,9 @@ data class BackupSummary(
     val scanScoreHistory: Int = 0,
     val priceLog: Int = 0,
     val pantryItems: Int = 0,
+    val symptoms: Int = 0,
 ) {
-    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms
 
     companion object {
         fun from(bundle: BackupBundle) = BackupSummary(
@@ -193,6 +199,7 @@ data class BackupSummary(
             medicationLog = bundle.medicationLog.size,
             priceLog      = bundle.priceLog.size,
             pantryItems   = bundle.pantryItems.size,
+            symptoms      = bundle.symptoms.size,
         )
     }
 }

@@ -82,6 +82,10 @@ data class DashboardUiState(
     // several products at the store and only logs some of them got no signal
     // that the rest were never actually recorded to their diary.
     val neverLoggedScans: List<ScanResult> = emptyList(),
+    // User-requested: a count of distinct foods eaten over the trailing 7
+    // days - see foodDiversityScore()'s own doc comment on why per-product
+    // score alone never measured this.
+    val foodDiversity: FoodDiversityResult? = null,
 )
 
 /** Today-only glance snapshot of the trackers Dashboard otherwise never surfaces - see [DashboardViewModel.otherTrackers]. */

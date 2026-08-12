@@ -42,6 +42,7 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
     val onlineState   = viewModel.onlineSearchState.collectAsStateWithLifecycle()
     val displayMode   = viewModel.displayMode.collectAsStateWithLifecycle()
     val sourceLinks   = viewModel.sourceLinks.collectAsStateWithLifecycle()
+    val neverTriedCategories = viewModel.neverTriedCategories.collectAsStateWithLifecycle()
     var filtersExpanded by remember { mutableStateOf(false) }
     var gradeFilterExpanded by remember { mutableStateOf(false) }
     // SCANNED starts expanded - a user's own scanned products are the most
@@ -115,6 +116,12 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
             }
             item {
                 DisplayModeButton(mode = displayMode.value, onClick = viewModel::cycleDisplayMode)
+            }
+            // User-requested: "what have I never tried" - only shown with no
+            // active search (a discovery prompt, not something that should
+            // compete with actual search results).
+            if (query.value.isBlank() && neverTriedCategories.value.isNotEmpty()) {
+                item { fr.scanneat.presentation.foodsearch.components.NeverTriedBanner(neverTriedCategories.value) }
             }
             val showProducts = displayMode.value != SearchDisplayMode.LINKS
             val showLinks = displayMode.value != SearchDisplayMode.PRODUCTS

@@ -24,6 +24,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import fr.scanneat.util.ioCatching
 import fr.scanneat.util.serverUrlMissingMessage
 import javax.inject.Inject
@@ -102,6 +103,12 @@ class ScanRepository @Inject constructor(
 
     fun observeHistoryChecked(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
         historyQueries.observeHistoryChecked(limit, profileId)
+
+    /** Distinct [fr.scanneat.domain.model.ProductCategory] values ever scanned
+     *  by this profile - see ScanHistoryDao.observeDistinctCategories's own
+     *  doc comment. */
+    fun observeDistinctCategories(profileId: String = "default"): Flow<List<fr.scanneat.domain.model.ProductCategory>> =
+        dao.observeDistinctCategories(profileId).map { keys -> keys.map { fr.scanneat.domain.model.ProductCategory.fromKey(it) } }
 
     suspend fun getById(id: Long, lang: String = "en"): ScanResult? =
         historyQueries.getById(id, lang)

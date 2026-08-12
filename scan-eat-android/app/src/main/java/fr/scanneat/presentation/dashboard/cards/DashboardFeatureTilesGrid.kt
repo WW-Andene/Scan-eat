@@ -3,7 +3,6 @@ package fr.scanneat.presentation.dashboard.cards
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
@@ -17,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Calendar
 import compose.icons.tablericons.ClipboardList
+import compose.icons.tablericons.Heart
 import compose.icons.tablericons.History
 import compose.icons.tablericons.Search
 import compose.icons.tablericons.ShoppingCart
@@ -43,6 +43,7 @@ fun DashboardFeatureTilesGrid(
     onOpenFoodSearch: () -> Unit,
     onOpenSeasonalProduce: () -> Unit,
     onOpenPantry: () -> Unit,
+    onOpenSymptoms: () -> Unit,
 ) {
     // Column, not bare sibling Rows - a LazyColumn `item {}` slot has no implicit
     // vertical-stack layout of its own (unlike the LazyColumn itself), so multiple
@@ -86,9 +87,10 @@ fun DashboardFeatureTilesGrid(
         // User-requested: a real persisted pantry inventory - see
         // PantryScreen's own doc comment. Was an empty weighted spacer slot.
         FeatureTile(Icons.Rounded.Kitchen, stringResource(R.string.dashboard_tile_pantry), Modifier.weight(1f), onClick = onOpenPantry)
-        // One remaining empty weighted slot keeps this tile the same size as
-        // every other 3-per-row tile above instead of stretching to full width.
-        Spacer(Modifier.weight(1f))
+        // User-requested: a symptom journal correlated against the diary -
+        // see SymptomScreen's own doc comment. Was the last empty weighted
+        // spacer slot in this grid.
+        FeatureTile(TablerIcons.Heart, stringResource(R.string.dashboard_tile_symptoms), Modifier.weight(1f), onClick = onOpenSymptoms)
     }
     }
 }

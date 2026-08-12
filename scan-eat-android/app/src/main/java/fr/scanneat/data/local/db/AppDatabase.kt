@@ -29,6 +29,8 @@ import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
+import fr.scanneat.data.local.db.symptom.SymptomDao
+import fr.scanneat.data.local.db.symptom.SymptomEntity
 import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.template.MealTemplateEntity
 import fr.scanneat.data.local.db.weight.WeightDao
@@ -50,8 +52,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         OnlineSearchCacheEntity::class,
         RecallEntity::class,
         PantryEntity::class,
+        SymptomEntity::class,
     ],
-    version = 34,
+    version = 35,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -69,6 +72,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun onlineSearchCacheDao(): OnlineSearchCacheDao
     abstract fun recallDao(): RecallDao
     abstract fun pantryDao(): PantryDao
+    abstract fun symptomDao(): SymptomDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -559,5 +563,25 @@ val MIGRATION_33_34 = object : Migration(33, 34) {
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_pantry_profileId_expiryDate` ON `pantry` (`profileId`, `expiryDate`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_pantry_barcode_profileId` ON `pantry` (`barcode`, `profileId`)")
+    }
+}
+
+val MIGRATION_34_35 = object : Migration(34, 35) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v34 → v35: new `symptoms` table - a free-form symptom journal
+        // (bloating, energy, sleep...) correlated against the diary, see
+        // SymptomEntity's own doc comment.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `symptoms` (" +
+                "`id` TEXT NOT NULL, " +
+                "`date` TEXT NOT NULL, " +
+                "`type` TEXT NOT NULL, " +
+                "`severity` INTEGER NOT NULL, " +
+                "`notes` TEXT NOT NULL, " +
+                "`loggedAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, " +
+                "PRIMARY KEY(`id`))"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_symptoms_profileId_date` ON `symptoms` (`profileId`, `date`)")
     }
 }

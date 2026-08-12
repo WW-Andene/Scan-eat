@@ -15,6 +15,14 @@ interface ScanHistoryDao {
     @Query("SELECT * FROM scan_history WHERE profileId = :profileId ORDER BY scannedAt DESC LIMIT :limit")
     fun observeRecent(profileId: String = "default", limit: Int = 50): Flow<List<ScanHistoryEntity>>
 
+    /** Distinct product categories ever scanned by this profile - a cheap
+     *  column-only query (no row hydration) for "what has this user never
+     *  tried" (see FoodSearchViewModel.neverTriedCategories), which would
+     *  otherwise need the full scan_history table fetched and mapped just to
+     *  read one column off each row. */
+    @Query("SELECT DISTINCT category FROM scan_history WHERE profileId = :profileId")
+    fun observeDistinctCategories(profileId: String = "default"): Flow<List<String>>
+
     /**
      * Same as [observeRecent] but excludes a legacy pre-classifyNonFood() row the
      * user hasn't personally rescanned yet - for CustomFoodViewModel.latestScan,
