@@ -27,9 +27,16 @@ fun annualSpendProjection(monthTotalEuros: Double, dayOfMonth: Int, daysInMonth:
     val monthRate = if (effectiveDays > 0) monthTotalEuros / effectiveDays * daysInMonth else monthTotalEuros
     val projectedAnnual = monthRate * 12
     val budgetAnnual = budgetMonthlyEuros?.let { it * 12 }
+    // app-audit §O/§K1: cent-rounded comparison, same fix ExpensesSummaryCard's
+    // own centsOf() already applies to its week/day/month over-budget checks -
+    // a projection landing exactly on budget could otherwise flip this flag
+    // non-deterministically from sub-cent float drift in the *12/ /effectiveDays
+    // chain above.
+    val projectedAnnualCents = Math.round(projectedAnnual * 100)
+    val budgetAnnualCents = budgetAnnual?.let { Math.round(it * 100) }
     return AnnualSpendProjection(
         projectedAnnualEuros = projectedAnnual,
         budgetAnnualEuros = budgetAnnual,
-        overBudget = budgetAnnual != null && projectedAnnual > budgetAnnual,
+        overBudget = budgetAnnualCents != null && projectedAnnualCents > budgetAnnualCents,
     )
 }
