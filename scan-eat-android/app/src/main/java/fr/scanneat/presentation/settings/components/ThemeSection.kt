@@ -102,6 +102,8 @@ internal fun ColorSection(colorAccent: String, onColorAccentChange: (String) -> 
                 "rose" to stringResource(R.string.settings_theme_rose),
                 "arlequin" to stringResource(R.string.settings_theme_arlequin),
                 "cyberpunk" to stringResource(R.string.settings_theme_cyberpunk),
+                "elite" to stringResource(R.string.settings_theme_elite),
+                "noble" to stringResource(R.string.settings_theme_noble),
             ).forEach { (key, label) ->
                 FilterChip(
                     selected = colorAccent == key,

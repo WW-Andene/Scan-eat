@@ -1351,6 +1351,8 @@
     <string name="settings_theme_rose">Rose</string>
     <string name="settings_theme_arlequin">Harlequin</string>
     <string name="settings_theme_cyberpunk">Cyberpunk</string>
+    <string name="settings_theme_elite">Elite</string>
+    <string name="settings_theme_noble">Noble</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
     <string name="settings_section_reminders">Reminders</string>

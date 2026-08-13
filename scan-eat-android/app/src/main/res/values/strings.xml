@@ -1400,6 +1400,8 @@
     <string name="settings_theme_rose">Rose</string>
     <string name="settings_theme_arlequin">Arlequin</string>
     <string name="settings_theme_cyberpunk">Cyberpunk</string>
+    <string name="settings_theme_elite">Élite</string>
+    <string name="settings_theme_noble">Noble</string>
     <string name="settings_section_units">Unités</string>
     <string name="settings_section_biolism_display">Affichage Métabolisme</string>
     <string name="settings_biolism_advanced">Vue avancée</string>

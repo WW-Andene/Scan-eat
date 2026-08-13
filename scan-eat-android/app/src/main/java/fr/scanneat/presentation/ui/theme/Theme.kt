@@ -292,6 +292,31 @@ private val CyberpunkAccent = ColorAccent(
     background = Color(0xFF0A0A14), surface = Color(0xFF14121F), surfaceVariant = Color(0xFF211D33),
     outline = Color(0xFF3D2F5C),
 )
+// Elite: gold on ebony - warm, deep 24k-gold-on-black-wood register. Primary
+// is classic gold leaf, secondary a pale champagne highlight (the light
+// catching a gold edge), tertiary a deep bronze shadow tone - one hue
+// family with real light/shadow range, not three unrelated golds. Backdrop
+// stays warm-black (brown undertone, not neutral gray) to read as ebony
+// specifically.
+private val EliteAccent = ColorAccent(
+    primary = Color(0xFFD4AF37), secondary = Color(0xFFF0D889), tertiary = Color(0xFF8B6914),
+    background = Color(0xFF0C0805), surface = Color(0xFF180F09), surfaceVariant = Color(0xFF2E2013),
+    outline = Color(0xFF5C4425),
+)
+// Noble: gold on marble - a cooler, paler gilt (not Elite's deep warm
+// bronze) against a neutral gray-veined backdrop instead of Elite's warm
+// ebony-brown, so the two golds stay visually distinct rather than reading
+// as the same accent twice. Secondary leans toward ivory/marble-white
+// (as bright as this system's dark-panel-legibility ceiling allows - see
+// ScanEatTheme's own accent-application branches: background/surface must
+// stay dark enough for the base theme's light text tokens, so "marble" is
+// carried by the cooler gray undertone and pale gilt, not a literal white
+// fill) rather than Elite's warm champagne.
+private val NobleAccent = ColorAccent(
+    primary = Color(0xFFD4C08C), secondary = Color(0xFFF5EFE0), tertiary = Color(0xFFB08D3F),
+    background = Color(0xFF121212), surface = Color(0xFF1E1E20), surfaceVariant = Color(0xFF333336),
+    outline = Color(0xFF4A4A4E),
+)
 
 // ── Colorblind-safe decorative/brand accent override ──────────────────────────
 // User-reported: colorblind mode adjusted every meaning-bearing signal
@@ -468,6 +493,8 @@ fun ScanEatTheme(
         "rose"      -> RoseAccent
         "arlequin"  -> ArlequinAccent
         "cyberpunk" -> CyberpunkAccent
+        "elite"     -> EliteAccent
+        "noble"     -> NobleAccent
         else        -> null
     } else null
     val colorScheme = if (accent != null) {
