@@ -130,6 +130,12 @@ fun Modifier.ambientGloom(
     // vestibular disorders) still got the continuous drift+ripple effect if
     // they'd also opted into the app's own toggle.
     val animated = LocalAnimatedGloom.current && !rememberReducedMotion()
+    // Notebook theme: paper + ruled horizontal lines + a left-edge spiral
+    // binding replace the radial "gloom" blobs entirely - a glowing light
+    // pool doesn't belong on a sheet of paper, and every screen already
+    // calls this one function for its outermost background, so gating here
+    // is what makes the paper look apply app-wide with no per-screen change.
+    val isNotebook = LocalThemeName.current == "notebook"
 
     // Blob drift phase - rememberInfiniteTransition suits this one on its
     // own (a single float looping 0..2π), unlike the ripple clock below
@@ -214,7 +220,38 @@ fun Modifier.ambientGloom(
         )
         val t = timeSec
         val maxRadius = size.minDimension * 0.32f
+        // Ruled-paper line spacing/geometry precomputed here (drawWithCache,
+        // not per-frame) since it only depends on `size`, same reasoning the
+        // brushes above are hoisted out of onDrawBehind.
+        val ringColumnWidth = 28.dp.toPx()
+        val lineSpacing = 32.dp.toPx()
+        val lineStartX = ringColumnWidth + 12.dp.toPx()
+        val ringSpacing = 44.dp.toPx()
+        val ringRadius = 5.dp.toPx()
         onDrawBehind {
+            if (isNotebook) {
+                drawRect(NotebookPaper)
+                // Horizontal ruled lines, offset past the spiral-ring column
+                // on the left so lines don't run through the rings.
+                var y = lineSpacing
+                while (y < size.height) {
+                    drawLine(
+                        color = NotebookLine, strokeWidth = 1.dp.toPx(),
+                        start = Offset(lineStartX, y), end = Offset(size.width, y),
+                    )
+                    y += lineSpacing
+                }
+                // Left-edge spiral binding: a column of small ring circles,
+                // each with a thin darker "wire" arc so it reads as metal
+                // coil rather than a flat dot.
+                var ringY = ringSpacing / 2f
+                while (ringY < size.height) {
+                    drawCircle(color = NotebookRing.copy(alpha = 0.35f), radius = ringRadius + 2.dp.toPx(), center = Offset(ringColumnWidth / 2f, ringY))
+                    drawCircle(color = NotebookRing, radius = ringRadius, center = Offset(ringColumnWidth / 2f, ringY), style = Stroke(width = 2.dp.toPx()))
+                    ringY += ringSpacing
+                }
+                return@onDrawBehind
+            }
             drawRect(base)
             drawRect(primaryBrush)
             drawRect(secondaryBrush)

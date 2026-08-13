@@ -136,6 +136,13 @@ private val OSS_LIBRARIES = listOf(
     "Guava" to "Apache License 2.0",
     "Haze (Chris Banes)" to "Apache License 2.0",
     "Google ML Kit — Barcode Scanning" to "Google APIs Terms of Service (proprietary)",
+    // Bundled font resources (res/font/) - shipped in the APK like any other
+    // asset, so they belong on this same attribution list. OpenDyslexic was
+    // already shipped (Settings > Accessibility > dyslexic font) but missing
+    // here; Caveat (Google Fonts, SIL OFL) added alongside it for the
+    // Notebook theme's handwritten accent typeface.
+    "OpenDyslexic" to "SIL Open Font License 1.1",
+    "Caveat (Google Fonts)" to "SIL Open Font License 1.1",
 )
 
 @Composable

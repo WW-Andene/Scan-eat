@@ -16,11 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.random.Random
 
 /**
  * How strongly a card should announce itself relative to its neighbors —
@@ -76,6 +78,19 @@ internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val el
 internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, elevation = 10.dp)
 private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, elevation = 6.dp)
 private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 3.dp)
+
+// User-requested (Notebook theme): "card become post it with slight variation
+// in position and rotation for natural look" - a real sticky note is never
+// perfectly axis-aligned once stuck down by hand, so every ScanEatCard
+// instance under this theme independently rolls a small rotation and one of
+// four post-it colors, rather than every card sharing one identical flat
+// tilt (which would just look like a rendering bug, not "natural"). `remember`
+// (no key) picks the value once per call-site instance and holds it stable
+// across recomposition, so a card doesn't visibly jitter or re-roll its own
+// tilt/color on every recompose - only a fresh composition (e.g. scrolling a
+// LazyColumn item back into existence) rerolls it, same as a sticky note
+// doesn't move once placed.
+private val NotebookPostItColors = listOf(NotebookPostItPink, NotebookPostItGold, NotebookPostItSky, NotebookPostItGreen)
 
 /**
  * The app's one card primitive — glassSheen() top-light + hairline edge over
@@ -141,13 +156,24 @@ fun ScanEatCard(
     }
     val interactionSource = remember { MutableInteractionSource() }
     val indication = LocalIndication.current
+    val isNotebook = LocalThemeName.current == "notebook"
+    // Rolled once per card instance (see NotebookPostItColors' own doc
+    // comment above) - a real sticky note's tilt is a few degrees at most;
+    // anything wider would read as "falling off the page" rather than
+    // "hand-placed."
+    val postItColor = if (isNotebook) remember { NotebookPostItColors.random() } else Color.Unspecified
+    val postItRotation = if (isNotebook) remember { Random.nextFloat() * 5f - 2.5f } else 0f
+    val postItShape = if (isNotebook) RoundedCornerShape(3.dp) else shape
+    val effectiveColor = if (isNotebook) postItColor.copy(alpha = 0.96f) else color
     Box(
-        modifier.fillMaxWidth().glassSheen(
-            edgeAlpha = spec.edgeAlpha,
-            shape = shape,
-            glowTint = accent,
-            glowAlpha = spec.glowAlpha,
-        ),
+        modifier.fillMaxWidth()
+            .then(if (isNotebook) Modifier.rotate(postItRotation) else Modifier)
+            .glassSheen(
+                edgeAlpha = if (isNotebook) 0f else spec.edgeAlpha,
+                shape = postItShape,
+                glowTint = accent,
+                glowAlpha = if (isNotebook) 0f else spec.glowAlpha,
+            ),
     ) {
         // Simplified to match FloatingTopBar/FloatingBars' structure exactly
         // (single Surface, plain untinted .shadow(), .clip(), fill via the
@@ -160,18 +186,25 @@ fun ScanEatCard(
         // because they never carried those extra layers; cards now don't
         // either. Trade-off: cards lose the directional-shadow/vignette look
         // and always show a neutral shadow, same as the header chrome.
+        //
+        // Notebook theme overrides shape/color/elevation to a flat, near-
+        // square, solid-fill post-it look (glassSheen disabled above via
+        // alpha=0f - a frosted-glass sheen doesn't belong on paper) with a
+        // slightly heavier shadow than the base PRIMARY/SECONDARY specs so
+        // it reads as a note sitting ON TOP of the page rather than glass
+        // floating over an ambient wash.
         Surface(
             modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = spec.elevation, shape = shape)
-                .clip(shape)
+                .shadow(elevation = if (isNotebook) 4.dp else spec.elevation, shape = postItShape)
+                .clip(postItShape)
                 .then(
                     if (onClick != null)
                         Modifier.pressScale(interactionSource)
                             .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
                     else Modifier
                 ),
-            shape = shape,
-            color = color,
+            shape = postItShape,
+            color = effectiveColor,
             shadowElevation = 0.dp,
         ) {
             Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)

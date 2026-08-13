@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.Canvas
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -29,10 +30,15 @@ import androidx.compose.material.icons.rounded.FlashOff
 import androidx.compose.material.icons.rounded.FlashOn
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import fr.scanneat.presentation.ui.theme.LocalThemeName
+import fr.scanneat.presentation.ui.theme.NotebookInk
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -274,7 +280,35 @@ fun CameraPreview(
             modifier       = Modifier.align(Alignment.BottomCenter).padding(bottom = bottomNavClearance + Spacing.L),
             containerColor = SurfaceVariant,
         ) {
-            Icon(TablerIcons.Camera, stringResource(R.string.scan_capture), tint = OnSurface)
+            if (LocalThemeName.current == "notebook") {
+                CameraLensIcon(contentDescription = stringResource(R.string.scan_capture))
+            } else {
+                Icon(TablerIcons.Camera, stringResource(R.string.scan_capture), tint = OnSurface)
+            }
         }
+    }
+}
+
+/**
+ * User-requested (Notebook theme): "camera UI become camera lens like" -
+ * concentric rings (outer barrel, mid aperture ring, small corner
+ * highlight) rather than the flat camera-body glyph used by every other
+ * theme. Drawn directly with Canvas instead of picking a stock icon from
+ * the TablerIcons set above: this app's version of that library may not
+ * ship a lens/aperture glyph, and hand-drawing three circles is simpler
+ * and more certain to compile than guessing an icon name that might not
+ * exist in this dependency version.
+ */
+@Composable
+private fun CameraLensIcon(contentDescription: String) {
+    Canvas(
+        Modifier
+            .size(28.dp)
+            .semantics { this.contentDescription = contentDescription },
+    ) {
+        val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
+        drawCircle(color = NotebookInk, radius = size.minDimension / 2f, style = Stroke(width = 2.5.dp.toPx()), center = center)
+        drawCircle(color = NotebookInk, radius = size.minDimension / 2f * 0.55f, style = Stroke(width = 1.5.dp.toPx()), center = center)
+        drawCircle(color = NotebookInk, radius = size.minDimension / 2f * 0.18f, center = center)
     }
 }

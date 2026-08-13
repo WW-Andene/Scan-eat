@@ -129,6 +129,40 @@ private val HighContrastColors = darkColorScheme(
     outline          = HighContrastOutlineRaw,
 )
 
+// User-requested "Notebook" theme: cream paper background, navy "ink" text,
+// and a post-it/sticky-note palette (coral, sunflower, sky) standing in for
+// primary/secondary/tertiary - unlike every other scheme above this one is a
+// LIGHT scheme (paper is bright), so it's built on lightColorScheme, not
+// darkColorScheme. See ScanEatCard.kt's own notebook post-it rendering path
+// and Glass.kt's notebookPaperBackground()/notebookSpiralBinding() for the
+// rest of this theme's visual identity - this file only owns the palette.
+val NotebookPaper       = Color(0xFFFBF6E9)
+val NotebookInk         = Color(0xFF2E2A22)
+val NotebookLine        = Color(0xFFCFC6A8)
+val NotebookRing        = Color(0xFF8A8478)
+val NotebookPostItPink  = Color(0xFFE85D75)
+val NotebookPostItGold  = Color(0xFFE8B23D)
+val NotebookPostItSky   = Color(0xFF4FA3C4)
+val NotebookPostItGreen = Color(0xFF7FB069)
+private val NotebookColors = lightColorScheme(
+    primary          = Color(0xFFC4425A),
+    onPrimary        = Color.White,
+    secondary        = Color(0xFFB8811F),
+    onSecondary      = Color.White,
+    tertiary         = Color(0xFF2E7D96),
+    background       = NotebookPaper,
+    onBackground     = NotebookInk,
+    surface          = Color(0xFFFFFDF5),
+    onSurface        = NotebookInk,
+    surfaceVariant   = Color(0xFFF3ECD4),
+    onSurfaceVariant = NotebookInk.copy(alpha = 0.85f),
+    error            = Color(0xFFC0392B),
+    onError          = Color.White,
+    errorContainer   = Color(0xFFFFD9D2),
+    onErrorContainer = Color(0xFF7A1F14),
+    outline          = NotebookLine,
+)
+
 private val LowContrastColors = darkColorScheme(
     primary          = Gold,
     onPrimary        = Color.Black,
@@ -274,6 +308,17 @@ val LocalColorblindMode = staticCompositionLocalOf { "none" }
  */
 val LocalAnimatedGloom = staticCompositionLocalOf { false }
 
+/**
+ * The resolved theme string ("system" already collapsed to "dark"/"light" -
+ * see [ScanEatTheme]'s own doc comment), exposed so a component several
+ * layers deep (ScanEatCard's notebook post-it rendering, Glass.kt's
+ * notebook paper background/spiral binding) can react to "notebook" being
+ * active without every call site threading a `theme: String` parameter
+ * through, the same reasoning [LocalAnimatedGloom] above already applies to
+ * the animated-background toggle.
+ */
+val LocalThemeName = staticCompositionLocalOf { "dark" }
+
 // OpenDyslexic (SIL OFL 1.1, https://opendyslexic.org) — the actual dyslexia
 // typeface, not just a spacing tweak on the default font. Weighted-bottom
 // letterforms are the whole point: switching it on must look like a different
@@ -281,6 +326,31 @@ val LocalAnimatedGloom = staticCompositionLocalOf { false }
 private val OpenDyslexicFontFamily = FontFamily(
     Font(R.font.open_dyslexic_regular, FontWeight.Normal),
     Font(R.font.open_dyslexic_bold, FontWeight.Bold),
+)
+
+// Caveat (Google Fonts, SIL OFL 1.1) — the Notebook theme's handwritten
+// accent typeface. Variable font (single weight axis, no separate bold
+// instance shipped upstream), used as-is at its default weight.
+//
+// Applied to display/headline/title roles ONLY, not body/label - a script
+// typeface at small sizes is measurably harder to read (this app's own
+// standing "irréprochable"/user-trust bar rules out trading legibility for
+// theming on the roles that actually carry information), so body copy stays
+// on the default typeface regardless of theme. This mirrors the same
+// display-font/body-font split any print notebook/planner uses: a
+// handwritten-style title over typeset body text, not handwriting
+// throughout.
+private val CaveatFontFamily = FontFamily(Font(R.font.caveat, FontWeight.Normal))
+private fun Typography.withNotebookDisplayFont(): Typography = copy(
+    displayLarge   = displayLarge.copy(fontFamily = CaveatFontFamily, fontSize = displayLarge.fontSize * 1.15f),
+    displayMedium  = displayMedium.copy(fontFamily = CaveatFontFamily, fontSize = displayMedium.fontSize * 1.15f),
+    displaySmall   = displaySmall.copy(fontFamily = CaveatFontFamily, fontSize = displaySmall.fontSize * 1.15f),
+    headlineLarge  = headlineLarge.copy(fontFamily = CaveatFontFamily, fontSize = headlineLarge.fontSize * 1.15f),
+    headlineMedium = headlineMedium.copy(fontFamily = CaveatFontFamily, fontSize = headlineMedium.fontSize * 1.15f),
+    headlineSmall  = headlineSmall.copy(fontFamily = CaveatFontFamily, fontSize = headlineSmall.fontSize * 1.15f),
+    titleLarge     = titleLarge.copy(fontFamily = CaveatFontFamily, fontSize = titleLarge.fontSize * 1.1f),
+    titleMedium    = titleMedium.copy(fontFamily = CaveatFontFamily, fontSize = titleMedium.fontSize * 1.1f),
+    titleSmall     = titleSmall.copy(fontFamily = CaveatFontFamily, fontSize = titleSmall.fontSize * 1.1f),
 )
 
 /**
@@ -313,7 +383,8 @@ private fun Typography.withDyslexicSpacing(): Typography = copy(
 
 /**
  * Root theme. Pass [theme] from UserPreferences
- * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "system") -
+ * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "notebook" |
+ * "system") -
  * brightness/contrast only. [colorAccent] ("none" | "matcha" | "lavande" |
  * "sunflower" | "lazulite") is the independent color-accent axis - see
  * [ColorAccent]'s own doc comment on why these are separate params rather
@@ -345,14 +416,18 @@ fun ScanEatTheme(
         "light"          -> LightColors
         "high_contrast"  -> HighContrastColors
         "low_contrast"   -> LowContrastColors
+        "notebook"       -> NotebookColors
         else             -> OledColors
     }
     // High Contrast's own primary/secondary/tertiary are deliberately
     // maximal-contrast hand-picked values (see HighContrastColors above) for
     // that theme's own accessibility purpose - an accent's hue would fight
     // that same purpose, so High Contrast never takes one regardless of what
-    // colorAccent Settings currently has stored.
-    val accent = if (resolvedTheme != "high_contrast") when (colorAccent) {
+    // colorAccent Settings currently has stored. Notebook excluded the same
+    // way: its post-it palette (NotebookColors' primary/secondary/tertiary)
+    // IS the theme's own considered accent - a Matcha/Lavande/etc. hue swap
+    // on top would fight the paper/ink/sticky-note identity, not complement it.
+    val accent = if (resolvedTheme != "high_contrast" && resolvedTheme != "notebook") when (colorAccent) {
         "matcha"    -> MatchaAccent
         "lavande"   -> LavandeAccent
         "sunflower" -> SunflowerAccent
@@ -410,12 +485,23 @@ fun ScanEatTheme(
         resolvedTheme == "light"  -> LightGoldAccent
         else                      -> Gold
     }
-    val typography = if (dyslexicFont) ScanEatTypography.withDyslexicSpacing() else ScanEatTypography
+    // Notebook's handwritten display font takes priority when both a
+    // dyslexic-font accessibility need AND the Notebook theme are active at
+    // once - OpenDyslexic's own accommodation (real dyslexia-tested
+    // letterforms, applied to every text role including body) matters more
+    // than a decorative theme font, same reasoning Theme.kt already applies
+    // to High Contrast/colorblind mode overriding decorative choices.
+    val typography = when {
+        dyslexicFont             -> ScanEatTypography.withDyslexicSpacing()
+        resolvedTheme == "notebook" -> ScanEatTypography.withNotebookDisplayFont()
+        else                      -> ScanEatTypography
+    }
     CompositionLocalProvider(
         LocalGoldAccent provides goldAccent,
         LocalColorblindMode provides colorblindMode,
         LocalAnimatedGloom provides animatedBackground,
         LocalAccentCoralOverride provides (if (resolvedTheme == "high_contrast") AccentCoralRaw else null),
+        LocalThemeName provides resolvedTheme,
     ) {
         // The 5 schemes above bake `error` in as a plain val at construction
         // time, so it can't itself read LocalColorblindMode - every isError

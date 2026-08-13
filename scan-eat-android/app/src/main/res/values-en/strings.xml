@@ -1336,6 +1336,7 @@
     <string name="settings_currency_convert_confirm">Convert</string>
     <string name="settings_currency_convert_relabel_only">Change symbol only</string>
     <string name="settings_theme_low_contrast">Low contrast</string>
+    <string name="settings_theme_notebook">Notebook</string>
     <string name="settings_theme_matcha">Matcha</string>
     <string name="settings_theme_lavande">Lavender</string>
     <string name="settings_theme_sunflower">Sunflower</string>
