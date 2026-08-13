@@ -274,68 +274,41 @@ private val RoseAccent = ColorAccent(
     background = Color(0xFF16070E), surface = Color(0xFF25121B), surfaceVariant = Color(0xFF3D1D2C),
     outline = Color(0xFF5C2E42),
 )
-// Harlequin/jester's actual identity is the OPPOSITE of a matched gradient -
-// a motley of clashing, fully-saturated colors (the diamond patchwork
-// costume), not a tasteful single-hue family. User-requested round 4,
-// web-sourced this time (historyrepeating.se / textileglossary.com, both
-// on the traditional harlequin/diamond pattern): the historically accurate
-// jester palette is red, yellow, and blue (sometimes green) - primary
-// colors clashing against each other, not a red/gold/purple "regal" triad,
-// which read closer to a royal costume than a clown/jester's. Swapped to
-// a saturated red/golden-yellow/royal-blue triad - the actual "primary
-// colors clashing" identity the pattern is known for.
+// Arlequin: user-specified round 5 palette - "Carmin-Lemon-Roi" (carmine
+// red / lemon yellow / bleu roi royal blue - the three clashing primaries),
+// "Olive accent" (surfaceVariant) and "Charcoal tint" (background) - a full
+// specific spec, not a web-sourced approximation this time.
 private val ArlequinAccent = ColorAccent(
-    primary = Color(0xFFE4002B), secondary = Color(0xFFFFC72C), tertiary = Color(0xFF1E3A8A),
-    background = Color(0xFF120A16), surface = Color(0xFF1F1526), surfaceVariant = Color(0xFF34223E),
-    outline = Color(0xFF54326A),
+    primary = Color(0xFFB01E3C), secondary = Color(0xFFFCE100), tertiary = Color(0xFF14209E),
+    background = Color(0xFF17171A), surface = Color(0xFF202024), surfaceVariant = Color(0xFF4B4D24),
+    outline = Color(0xFF5C5E30),
 )
-// Neon magenta/cyan/acid-yellow - Cyberpunk 2077's own signature triad.
-// User-requested round 4, web-sourced this time (color-hex.com's Cyberpunk
-// 2077 title-card palette and community-collected in-game HUD swatches):
-// the game's own key/HUD colors are closer to #ED1E79 (magenta/pink),
-// #25E1ED (cyan) and #FFEB0B (a purer, more saturated yellow than the
-// previous acid-green-leaning D4FF00) over a near-black navy background
-// (#00060E in the title card) - primary/secondary/tertiary retuned to
-// those three references directly instead of hand-picked neon guesses.
+// Cyberpunk: user-specified round 5 palette - "Paint yellow" (primary),
+// "Neon sky" (secondary) and "Ink tint" (background) - tertiary keeps the
+// prior sourced magenta/pink (Cyberpunk 2077's own HUD accent) for the
+// full 3-hue triad, since the spec only named two hues plus the background.
 private val CyberpunkAccent = ColorAccent(
-    primary = Color(0xFFED1E79), secondary = Color(0xFF25E1ED), tertiary = Color(0xFFFFEB0B),
-    background = Color(0xFF06060E), surface = Color(0xFF161233), surfaceVariant = Color(0xFF241A48),
-    outline = Color(0xFF4A2F8C),
+    primary = Color(0xFFF5D000), secondary = Color(0xFF29D3FF), tertiary = Color(0xFFED1E79),
+    background = Color(0xFF05060C), surface = Color(0xFF12121F), surfaceVariant = Color(0xFF1E1E30),
+    outline = Color(0xFF2F4C8C),
 )
-// Elite: gold on ebony - warm, deep 24k-gold-on-black-wood register.
-// User-requested round 4, web-sourced this time (color-name.com's "24K
-// Gold" reference swatch, #F3BD12) - primary retuned to that exact
-// reference instead of a hand-picked approximation, secondary stays a pale
-// champagne highlight (the light catching a gold edge) and tertiary a
-// deep antique-bronze shadow tone, so the accent has real light/shadow
-// range built from one sourced hue rather than three independently
-// guessed golds. Backdrop stays warm-black (brown undertone) to read as
-// ebony specifically.
+// Elite: user-specified round 5 palette - "Satin black" (background),
+// "Ebony accent" (surfaceVariant) and "melted gold tint" (primary) - a
+// warmer, more liquid gold than the prior flat 24K-gold reference, on a
+// smoother, less brown-leaning near-black than before.
 private val EliteAccent = ColorAccent(
-    primary = Color(0xFFF3BD12), secondary = Color(0xFFF6DD8F), tertiary = Color(0xFF7A5710),
-    background = Color(0xFF0C0805), surface = Color(0xFF180F09), surfaceVariant = Color(0xFF2E2013),
+    primary = Color(0xFFE0A72E), secondary = Color(0xFFF6DD8F), tertiary = Color(0xFF7A5710),
+    background = Color(0xFF0B0906), surface = Color(0xFF16110C), surfaceVariant = Color(0xFF241C13),
     outline = Color(0xFF6B4E22),
 )
-// Noble: gold on marble - a cooler, paler gilt (not Elite's deep warm
-// bronze) against a neutral gray-veined backdrop instead of Elite's warm
-// ebony-brown, so the two golds stay visually distinct rather than reading
-// as the same accent twice. Secondary leans toward ivory/marble-white
-// (as bright as this system's dark-panel-legibility ceiling allows - see
-// ScanEatTheme's own accent-application branches: background/surface must
-// stay dark enough for the base theme's light text tokens, so "marble" is
-// carried by the cooler gray undertone and pale gilt, not a literal white
-// fill) rather than Elite's warm champagne. User-requested round 4,
-// web-sourced this time (color-name.com's "White Marble" #E7E9EA and
-// "Marble Grey" #BABABA reference swatches) - surface/surfaceVariant/outline
-// retuned as darkened steps along that same cool blue-gray family (scaled
-// down to this system's dark-panel legibility ceiling, not the literal
-// near-white reference values) instead of a hand-picked neutral gray, and
-// primary cooled toward a true white-gold so it stays clearly distinct from
-// Elite's warmer 24k-gold primary above.
+// Noble: user-specified round 5 palette - "Marble" (background), "Chalk
+// accent" (surfaceVariant) and "Frozen Gold tint" (primary) - a cooler,
+// icier gold than Elite's warm melted gold, and a cooler chalky-gray
+// undertone (vs. Elite's warm ebony-brown) so the two stay clearly distinct.
 private val NobleAccent = ColorAccent(
-    primary = Color(0xFFC9BB9A), secondary = Color(0xFFF5EFE0), tertiary = Color(0xFFA6883F),
-    background = Color(0xFF141416), surface = Color(0xFF232326), surfaceVariant = Color(0xFF39393E),
-    outline = Color(0xFF56565C),
+    primary = Color(0xFFC8C095), secondary = Color(0xFFEFEFEA), tertiary = Color(0xFF9C9470),
+    background = Color(0xFF131316), surface = Color(0xFF1F2023), surfaceVariant = Color(0xFF35363A),
+    outline = Color(0xFF55565C),
 )
 
 // ── Colorblind-safe decorative/brand accent override ──────────────────────────
