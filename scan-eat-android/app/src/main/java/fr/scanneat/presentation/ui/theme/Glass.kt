@@ -235,15 +235,17 @@ fun Modifier.ambientGloom(
                 // horizontal ruled lines this used to draw are gone; plain
                 // paper fill plus the spiral binding only.
                 drawRect(NotebookPaper)
-                // User-reported: "les spirale n'existe pas, seulement les
-                // trou" - no metal-coil ring stroke, just a plain punched
-                // hole (a solid dark circle, blurred shadow for depth) left
-                // edge column.
+                // Left-edge spiral binding: a punched hole (blurred shadow
+                // for depth) plus a thin metal-coil ring stroke around it -
+                // user-clarified this should stay (an earlier pass removed
+                // it per a since-revised instruction, before it had ever
+                // actually reached a successful build to be seen).
                 var ringY = ringSpacing / 2f
                 while (ringY < size.height) {
                     val ringCenter = Offset(ringColumnWidth / 2f, ringY)
-                    drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius, 4.dp.toPx(), ShadowTint.copy(alpha = 0.5f))
+                    drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius + 2.dp.toPx(), 4.dp.toPx(), ShadowTint.copy(alpha = 0.5f))
                     drawCircle(color = NotebookInk.copy(alpha = 0.55f), radius = ringRadius, center = ringCenter)
+                    drawCircle(color = NotebookRing, radius = ringRadius + 2.dp.toPx(), center = ringCenter, style = Stroke(width = 2.dp.toPx()))
                     ringY += ringSpacing
                 }
                 return@onDrawBehind
@@ -292,8 +294,9 @@ fun Modifier.notebookSpiralBinding(): Modifier = this.drawWithCache {
         var ringY = ringSpacing / 2f
         while (ringY < size.height) {
             val ringCenter = Offset(ringColumnWidth / 2f, ringY)
-            drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius, 4.dp.toPx(), Color.Black.copy(alpha = 0.5f))
+            drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius + 2.dp.toPx(), 4.dp.toPx(), Color.Black.copy(alpha = 0.5f))
             drawCircle(color = Color.Black.copy(alpha = 0.6f), radius = ringRadius, center = ringCenter)
+            drawCircle(color = NotebookRing, radius = ringRadius + 2.dp.toPx(), center = ringCenter, style = Stroke(width = 2.dp.toPx()))
             ringY += ringSpacing
         }
     }

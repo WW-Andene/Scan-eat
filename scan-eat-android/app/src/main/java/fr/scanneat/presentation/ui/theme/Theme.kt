@@ -358,7 +358,13 @@ private val IEatCrayonsFontFamily = FontFamily(Font(R.font.i_eat_crayons, FontWe
 // User-requested: "augmente un peu la taille général des texte de 4dp" - a
 // flat +4sp added on top of the existing per-role multiplier (not instead
 // of it), on every role including body/label.
-private val NOTEBOOK_SIZE_BUMP = 4.sp
+private const val NOTEBOOK_SIZE_BUMP_SP = 4f
+// TextUnit has no `+` operator between two TextUnits (CI-breaking build
+// error the first version of this function hit: "Unresolved reference
+// 'plus'") - resolved to a raw Float via .value, added, then rewrapped as
+// .sp, instead of trying to add TextUnits directly.
+private fun bumpedSp(base: androidx.compose.ui.unit.TextUnit, multiplier: Float): androidx.compose.ui.unit.TextUnit =
+    (base.value * multiplier + NOTEBOOK_SIZE_BUMP_SP).sp
 private fun Typography.withNotebookDisplayFont(fontChoice: String): Typography {
     val family = when (fontChoice) {
         "mayonice"      -> MayoniceFontFamily
@@ -367,21 +373,21 @@ private fun Typography.withNotebookDisplayFont(fontChoice: String): Typography {
         else            -> CaveatFontFamily
     }
     return copy(
-        displayLarge   = displayLarge.copy(fontFamily = family, fontSize = displayLarge.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
-        displayMedium  = displayMedium.copy(fontFamily = family, fontSize = displayMedium.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
-        displaySmall   = displaySmall.copy(fontFamily = family, fontSize = displaySmall.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
-        headlineLarge  = headlineLarge.copy(fontFamily = family, fontSize = headlineLarge.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
-        headlineMedium = headlineMedium.copy(fontFamily = family, fontSize = headlineMedium.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
-        headlineSmall  = headlineSmall.copy(fontFamily = family, fontSize = headlineSmall.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
-        titleLarge     = titleLarge.copy(fontFamily = family, fontSize = titleLarge.fontSize * 1.1f + NOTEBOOK_SIZE_BUMP),
-        titleMedium    = titleMedium.copy(fontFamily = family, fontSize = titleMedium.fontSize * 1.1f + NOTEBOOK_SIZE_BUMP),
-        titleSmall     = titleSmall.copy(fontFamily = family, fontSize = titleSmall.fontSize * 1.1f + NOTEBOOK_SIZE_BUMP),
-        bodyLarge      = bodyLarge.copy(fontFamily = family, fontSize = bodyLarge.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
-        bodyMedium     = bodyMedium.copy(fontFamily = family, fontSize = bodyMedium.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
-        bodySmall      = bodySmall.copy(fontFamily = family, fontSize = bodySmall.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
-        labelLarge     = labelLarge.copy(fontFamily = family, fontSize = labelLarge.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
-        labelMedium    = labelMedium.copy(fontFamily = family, fontSize = labelMedium.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
-        labelSmall     = labelSmall.copy(fontFamily = family, fontSize = labelSmall.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
+        displayLarge   = displayLarge.copy(fontFamily = family, fontSize = bumpedSp(displayLarge.fontSize, 1.15f)),
+        displayMedium  = displayMedium.copy(fontFamily = family, fontSize = bumpedSp(displayMedium.fontSize, 1.15f)),
+        displaySmall   = displaySmall.copy(fontFamily = family, fontSize = bumpedSp(displaySmall.fontSize, 1.15f)),
+        headlineLarge  = headlineLarge.copy(fontFamily = family, fontSize = bumpedSp(headlineLarge.fontSize, 1.15f)),
+        headlineMedium = headlineMedium.copy(fontFamily = family, fontSize = bumpedSp(headlineMedium.fontSize, 1.15f)),
+        headlineSmall  = headlineSmall.copy(fontFamily = family, fontSize = bumpedSp(headlineSmall.fontSize, 1.15f)),
+        titleLarge     = titleLarge.copy(fontFamily = family, fontSize = bumpedSp(titleLarge.fontSize, 1.1f)),
+        titleMedium    = titleMedium.copy(fontFamily = family, fontSize = bumpedSp(titleMedium.fontSize, 1.1f)),
+        titleSmall     = titleSmall.copy(fontFamily = family, fontSize = bumpedSp(titleSmall.fontSize, 1.1f)),
+        bodyLarge      = bodyLarge.copy(fontFamily = family, fontSize = bumpedSp(bodyLarge.fontSize, 1.05f)),
+        bodyMedium     = bodyMedium.copy(fontFamily = family, fontSize = bumpedSp(bodyMedium.fontSize, 1.05f)),
+        bodySmall      = bodySmall.copy(fontFamily = family, fontSize = bumpedSp(bodySmall.fontSize, 1.05f)),
+        labelLarge     = labelLarge.copy(fontFamily = family, fontSize = bumpedSp(labelLarge.fontSize, 1.05f)),
+        labelMedium    = labelMedium.copy(fontFamily = family, fontSize = bumpedSp(labelMedium.fontSize, 1.05f)),
+        labelSmall     = labelSmall.copy(fontFamily = family, fontSize = bumpedSp(labelSmall.fontSize, 1.05f)),
     )
 }
 
