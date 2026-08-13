@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -10,6 +11,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
@@ -187,6 +189,21 @@ fun FloatingTopBar(
             .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
             .then(if (isNotebook) Modifier else Modifier.glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = accent)),
     ) {
+        // User-requested: "ajoute une ombre blur en dessous du header" - a
+        // real Modifier.blur() soft shadow, same recipe CalorieBalanceCard.kt
+        // already uses for its own directional shadow, rather than relying
+        // only on Modifier.shadow's elevation shadow below (native elevation
+        // shadows render inconsistently soft across OEM skins - see the
+        // MIUI-observed-bug comment on the Surface itself).
+        if (isNotebook) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .offset(y = 6.dp)
+                    .blur(12.dp)
+                    .background(ShadowTint.copy(alpha = 0.35f), headerShape),
+            )
+        }
         Surface(
             shape           = headerShape,
             color           = if (isNotebook) NotebookPostItGold.copy(alpha = 0.95f) else Color.Transparent,

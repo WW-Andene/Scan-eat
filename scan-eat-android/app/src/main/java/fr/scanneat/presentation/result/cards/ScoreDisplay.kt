@@ -114,6 +114,7 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
     // freezing static — this ring is the "second skin" pulse's home.
     val breathingPulse = rememberBreathingPulse()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        NotebookPolaroidFrame {
         Box(modifier = Modifier.fillMaxWidth().height(232.dp), contentAlignment = Alignment.Center) {
             // User-reported regression: the OrganicBlobShape aura layer here read as a
             // rendering bug ("un cercle un peu déformé derrière"), not a deliberate
@@ -134,8 +135,15 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
             // instead of Material's smooth CircularProgressIndicator arc for
             // this theme; every other theme is unaffected.
             if (LocalThemeName.current == "notebook") {
+                // SurfaceVariant is a @Composable property (reads
+                // MaterialTheme.colorScheme) - resolved here, in composable
+                // scope, since Canvas's draw lambda below is a plain
+                // DrawScope, not a composable context (the CI-breaking
+                // compile error this fixes: "@Composable invocations can
+                // only happen from the context of a @Composable function").
+                val trackColor = SurfaceVariant
                 Canvas(Modifier.size(178.dp)) {
-                    drawCrayonRing(progress = animatedProgress, color = color, trackColor = SurfaceVariant, strokeWidthPx = 14.dp.toPx())
+                    drawCrayonRing(progress = animatedProgress, color = color, trackColor = trackColor, strokeWidthPx = 14.dp.toPx())
                 }
             } else {
                 CircularProgressIndicator(
@@ -164,6 +172,7 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
                     style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f), modifier = Modifier.notebookTextJitter())
             }
         }
+        }
         if (scoreDelta != null) {
             ScoreDeltaChip(scoreDelta)
         }
@@ -180,6 +189,7 @@ internal fun DualScoreRing(
     val vetoDescription = stringResource(R.string.result_veto_description)
     val vetoShortLabel = stringResource(R.string.result_veto_short_label)
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    NotebookPolaroidFrame {
     Row(
         modifier              = Modifier.fillMaxWidth().padding(vertical = Spacing.S),
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -199,13 +209,20 @@ internal fun DualScoreRing(
                             CircleShape,
                         ),
                 )
-                CircularProgressIndicator(
-                    progress    = { classicAnimated },
-                    modifier    = Modifier.fillMaxSize(),
-                    color       = classicColor,
-                    strokeWidth = 8.dp,
-                    trackColor  = SurfaceVariant,
-                )
+                if (LocalThemeName.current == "notebook") {
+                    val trackColor = SurfaceVariant
+                    Canvas(Modifier.fillMaxSize()) {
+                        drawCrayonRing(progress = classicAnimated, color = classicColor, trackColor = trackColor, strokeWidthPx = 8.dp.toPx())
+                    }
+                } else {
+                    CircularProgressIndicator(
+                        progress    = { classicAnimated },
+                        modifier    = Modifier.fillMaxSize(),
+                        color       = classicColor,
+                        strokeWidth = 8.dp,
+                        trackColor  = SurfaceVariant,
+                    )
+                }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(classicGrade.label, style = HeroNumberStyle.copy(fontSize = 26.sp), color = classicColor)
                     Text(stringResource(R.string.result_score_out_of_100, classicScore), style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
@@ -228,13 +245,20 @@ internal fun DualScoreRing(
                             CircleShape,
                         ),
                 )
-                CircularProgressIndicator(
-                    progress    = { personalAnimated },
-                    modifier    = Modifier.fillMaxSize(),
-                    color       = personalColor,
-                    strokeWidth = 8.dp,
-                    trackColor  = SurfaceVariant,
-                )
+                if (LocalThemeName.current == "notebook") {
+                    val trackColor = SurfaceVariant
+                    Canvas(Modifier.fillMaxSize()) {
+                        drawCrayonRing(progress = personalAnimated, color = personalColor, trackColor = trackColor, strokeWidthPx = 8.dp.toPx())
+                    }
+                } else {
+                    CircularProgressIndicator(
+                        progress    = { personalAnimated },
+                        modifier    = Modifier.fillMaxSize(),
+                        color       = personalColor,
+                        strokeWidth = 8.dp,
+                        trackColor  = SurfaceVariant,
+                    )
+                }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = if (veto) Modifier.clearAndSetSemantics { contentDescription = vetoDescription } else Modifier,
@@ -255,6 +279,7 @@ internal fun DualScoreRing(
             }
         }
     } // end Row
+    } // end NotebookPolaroidFrame
     if (scoreDelta != null) {
         Spacer(Modifier.height(Spacing.XS))
         ScoreDeltaChip(scoreDelta)

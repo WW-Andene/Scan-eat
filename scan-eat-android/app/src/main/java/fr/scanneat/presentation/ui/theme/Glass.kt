@@ -25,6 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import kotlin.math.cos
 import kotlin.math.sin
@@ -238,8 +240,10 @@ fun Modifier.ambientGloom(
                 // coil rather than a flat dot.
                 var ringY = ringSpacing / 2f
                 while (ringY < size.height) {
-                    drawCircle(color = NotebookRing.copy(alpha = 0.35f), radius = ringRadius + 2.dp.toPx(), center = Offset(ringColumnWidth / 2f, ringY))
-                    drawCircle(color = NotebookRing, radius = ringRadius, center = Offset(ringColumnWidth / 2f, ringY), style = Stroke(width = 2.dp.toPx()))
+                    val ringCenter = Offset(ringColumnWidth / 2f, ringY)
+                    drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius + 2.dp.toPx(), 4.dp.toPx(), ShadowTint.copy(alpha = 0.5f))
+                    drawCircle(color = NotebookRing.copy(alpha = 0.35f), radius = ringRadius + 2.dp.toPx(), center = ringCenter)
+                    drawCircle(color = NotebookRing, radius = ringRadius, center = ringCenter, style = Stroke(width = 2.dp.toPx()))
                     ringY += ringSpacing
                 }
                 return@onDrawBehind
@@ -285,8 +289,10 @@ fun Modifier.notebookSpiralBinding(): Modifier = this.drawWithCache {
         drawContent()
         var ringY = ringSpacing / 2f
         while (ringY < size.height) {
-            drawCircle(color = Color.White.copy(alpha = 0.55f), radius = ringRadius + 2.dp.toPx(), center = Offset(ringColumnWidth / 2f, ringY))
-            drawCircle(color = NotebookRing, radius = ringRadius, center = Offset(ringColumnWidth / 2f, ringY), style = Stroke(width = 2.dp.toPx()))
+            val ringCenter = Offset(ringColumnWidth / 2f, ringY)
+            drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius + 2.dp.toPx(), 4.dp.toPx(), Color.Black.copy(alpha = 0.4f))
+            drawCircle(color = Color.White.copy(alpha = 0.55f), radius = ringRadius + 2.dp.toPx(), center = ringCenter)
+            drawCircle(color = NotebookRing, radius = ringRadius, center = ringCenter, style = Stroke(width = 2.dp.toPx()))
             ringY += ringSpacing
         }
     }
@@ -395,4 +401,27 @@ fun Modifier.notebookTextJitter(): Modifier = composed {
     val dx = remember { (Random.nextFloat() - 0.5f) * 2f }
     val dy = remember { (Random.nextFloat() - 0.5f) * 2f }
     this.offset(dx.dp, dy.dp)
+}
+
+/**
+ * User-requested: "ajoutes les ombres... pour les spirales" - a soft
+ * blurred drop shadow behind each spiral-binding ring, since a plain
+ * offset circle (Compose's `drawCircle` has no blur of its own) would just
+ * look like a second flat ring rather than a shadow. Uses the platform
+ * Canvas's real `BlurMaskFilter` (via `nativeCanvas`) rather than Compose's
+ * `Modifier.blur()` - this is a raw draw call inside an existing
+ * DrawScope (ambientGloom's background layer, notebookSpiralBinding's
+ * foreground overlay), not a composable with its own layout node, so
+ * `Modifier.blur()` isn't applicable here the way it is for
+ * FloatingTopBar's header shadow.
+ */
+private fun DrawScope.drawBlurredShadowCircle(center: Offset, radius: Float, blurRadiusPx: Float, color: Color) {
+    drawContext.canvas.nativeCanvas.drawCircle(
+        center.x, center.y, radius,
+        android.graphics.Paint().apply {
+            this.color = color.toArgb()
+            isAntiAlias = true
+            maskFilter = android.graphics.BlurMaskFilter(blurRadiusPx, android.graphics.BlurMaskFilter.Blur.NORMAL)
+        },
+    )
 }

@@ -3,10 +3,14 @@ package fr.scanneat.presentation.shell
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -143,26 +147,47 @@ fun MainShell(
                         val isArmed = armedNavTab == tab
                         val isReplaceTarget = armedNavTab != null && !isArmed
                         val tabColor = tabColors[i % tabColors.size]
+                        // User-requested: "animation de développer/rétracté
+                        // pour les marque page des onglet quand dessus" - a
+                        // touch device has no real hover, so "dessus" is
+                        // read as "pressed" (the closest touch equivalent):
+                        // the tab widens to reveal its label while actively
+                        // pressed, not just when it's the selected tab, and
+                        // animates back with the same spring rather than
+                        // snapping.
+                        val tabInteractionSource = remember { MutableInteractionSource() }
+                        val isPressed by tabInteractionSource.collectIsPressedAsState()
+                        val expanded = isSelected || isPressed
+                        val tabWidth by animateDpAsState(if (expanded) 88.dp else 72.dp, label = "notebookTabWidth")
+                        val tabShape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .height(56.dp)
-                                .width(if (isSelected) 88.dp else 72.dp)
-                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp))
-                                .clip(RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp))
+                                .width(tabWidth)
+                                // User-requested: "ajoutes les ombres pour
+                                // les marque page" - each tab already had a
+                                // flat elevation shadow; bumped slightly and
+                                // left as-is otherwise (same tinted-shadow
+                                // approach as every other card in this
+                                // theme, not a special case).
+                                .shadow(elevation = 4.dp, shape = tabShape)
+                                .clip(tabShape)
                                 .background(
                                     if (isArmed) tabColor.copy(alpha = 0.95f)
                                     else if (isReplaceTarget) tabColor.copy(alpha = 0.5f)
                                     else tabColor.copy(alpha = if (isSelected) 0.9f else 0.65f),
                                 )
                                 .combinedClickable(
+                                    interactionSource = tabInteractionSource,
+                                    indication = LocalIndication.current,
                                     onClick = { navTabClickHandler(tab) },
                                     onLongClick = { navTabLongClickHandler(tab) },
                                 )
                                 .padding(start = Spacing.S),
                         ) {
                             Icon(tab.icon, stringResource(tab.labelRes), tint = NotebookInk, modifier = Modifier.size(IconSize.Nav))
-                            if (isSelected) {
+                            if (expanded) {
                                 Spacer(Modifier.width(Spacing.XS))
                                 Text(
                                     stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
