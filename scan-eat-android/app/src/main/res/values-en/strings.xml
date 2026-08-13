@@ -1348,6 +1348,9 @@
     <string name="settings_theme_lavande">Lavender</string>
     <string name="settings_theme_sunflower">Sunflower</string>
     <string name="settings_theme_lazulite">Lazulite</string>
+    <string name="settings_theme_rose">Rose</string>
+    <string name="settings_theme_arlequin">Harlequin</string>
+    <string name="settings_theme_cyberpunk">Cyberpunk</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
     <string name="settings_section_reminders">Reminders</string>

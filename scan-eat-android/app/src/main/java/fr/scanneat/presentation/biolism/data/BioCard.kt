@@ -54,10 +54,6 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.isLightBackground
-import fr.scanneat.presentation.ui.theme.NotebookPaper
-import fr.scanneat.presentation.ui.theme.notebookPenBorder
-import fr.scanneat.presentation.ui.theme.rememberNotebookPostItStyle
-import kotlin.random.Random
 import fr.scanneat.presentation.ui.theme.rememberReducedMotion
 
 /** Shared expand/collapse card shell for the Biolism Data screen's ~15 cards. */
@@ -83,27 +79,14 @@ internal fun BioCard(
     // the expanded/collapsed state and a Button role, mirroring HydrationScreen's
     // goal-editor row (see HydrationScreen.kt ~line 171).
     val openStateDescription = stringResource(if (open) R.string.common_expanded else R.string.common_collapsed)
-    // User-reported: "toutes les cartes n'ont pas été remplacées" - this card
-    // is the shared shell for all ~15 Biolism Data cards, hand-rolled as its
-    // own Surface() rather than ScanEatCard() (see this function's own doc
-    // comment for why), so it was one of the biggest gaps left when only
-    // ScanEatCard itself got the post-it treatment. rememberNotebookPostItStyle
-    // returns null for every other theme, so this changes nothing outside
-    // Notebook.
-    // No rotation (see ScanEatCard.kt's own doc comment on why that caused
-    // "certaine carte ce touche et ce superpose") and a sketched pen border
-    // instead of a solid post-it fill, matching ScanEatCard's own current
-    // Notebook treatment.
-    val postIt = rememberNotebookPostItStyle(RoundedCornerShape(CardRadius.CARD))
-    val cardShape = postIt?.shape ?: RoundedCornerShape(CardRadius.CARD)
-    val sketchSeed = if (postIt != null) remember { Random.nextInt() } else 0
+    val cardShape = RoundedCornerShape(CardRadius.CARD)
     Box(
         Modifier.fillMaxWidth()
             .glassSheen(
-                edgeAlpha = if (postIt != null) 0f else if (emphasized) 0.34f else 0.16f,
+                edgeAlpha = if (emphasized) 0.34f else 0.16f,
                 shape = cardShape,
                 glowTint = if (emphasized) Gold else Color.White,
-                glowAlpha = if (postIt != null) 0f else if (emphasized) 0.12f else 0.06f,
+                glowAlpha = if (emphasized) 0.12f else 0.06f,
             ),
     ) {
         Surface(
@@ -112,19 +95,15 @@ internal fun BioCard(
             // only ~1-3 RGB units from Background in Light theme, so this fill was
             // imperceptible there, leaving only the shadow visible as a disconnected
             // rectangle instead of a filled card.
-            color = if (postIt != null) Color.Transparent else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
-            border = if (postIt == null && emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
+            color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
+            border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
             // same fix as ScanEatCard.kt: force the fill to hard-clip to its own shape
             // instead of relying on Surface's implicit clip, which doesn't reliably
             // match the shadow's rounded outline on every rendering path. Shadow also
             // now tinted (Modifier.shadow) instead of Surface's untinted shadowElevation.
-            // Notebook (postIt != null): no shadow/clip silhouette at all - see
-            // ScanEatCard.kt's own doc comment on why that plain box and the
-            // hand-drawn ink box never lined up (offset "les card et les box
-            // existe en même temps" bug); the sketch is the only visible shape.
             modifier = Modifier.fillMaxWidth()
-                .then(if (postIt != null) Modifier else Modifier.shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = cardShape).clip(cardShape))
-                .then(if (postIt != null) Modifier.notebookPenBorder(postIt.color, sketchSeed) else Modifier),
+                .shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = cardShape)
+                .clip(cardShape),
             shadowElevation = 0.dp,
         ) {
             Column(Modifier.padding(Spacing.L)) {

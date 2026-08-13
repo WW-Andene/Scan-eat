@@ -21,11 +21,10 @@ import fr.scanneat.presentation.ui.theme.*
 /**
  * User-reported hard correction: "thème et affichage sont deux choses
  * séparées" - this used to be one [SettingsSection] mixing the theme
- * picker (which theme, incl. "carnet"/notebook) with the "Fond animé"
- * switch (a display preference, not a theme choice) under a single
- * mislabeled header. They're now two real sections: this one is only the
- * theme picker; [DisplaySection] below is only the animated-background
- * toggle.
+ * picker with the "Fond animé" switch (a display preference, not a theme
+ * choice) under a single mislabeled header. They're now two real
+ * sections: this one is only the theme picker; [DisplaySection] below is
+ * only the animated-background toggle.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -45,7 +44,6 @@ internal fun ThemeSection(theme: String, onThemeChange: (String) -> Unit) {
                 "light" to stringResource(R.string.settings_theme_light),
                 "high_contrast" to stringResource(R.string.settings_theme_high_contrast),
                 "low_contrast" to stringResource(R.string.settings_theme_low_contrast),
-                "notebook" to stringResource(R.string.settings_theme_notebook),
                 "prism" to stringResource(R.string.settings_theme_prism),
             ).forEach { (key, label) ->
                 FilterChip(
@@ -86,41 +84,6 @@ internal fun DisplaySection(animatedBackground: Boolean, onAnimatedBackgroundCha
 }
 
 /**
- * Notebook theme's own display-font choice - only rendered by the caller
- * when `theme == "notebook"` (this section is meaningless for every other
- * theme, which doesn't use a decorative display font at all). Kept to fonts
- * with a confirmed, unambiguous commercial license (Caveat: Google Fonts/
- * SIL OFL; Mayonice and Foxlite Script: Khurasan, "free for personal &
- * commercial use" confirmed in writing) - several other candidate
- * handwriting fonts the user supplied were excluded pending a license
- * decision (see Theme.kt's own history/commit notes), so this list is
- * deliberately short rather than including every font on hand.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-internal fun NotebookFontSection(notebookFont: String, onNotebookFontChange: (String) -> Unit) {
-    SettingsSection(stringResource(R.string.settings_section_notebook_font), icon = Icons.Default.Palette) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            listOf(
-                "caveat" to stringResource(R.string.settings_notebook_font_caveat),
-                "mayonice" to stringResource(R.string.settings_notebook_font_mayonice),
-                "foxlite" to stringResource(R.string.settings_notebook_font_foxlite),
-                "i_eat_crayons" to stringResource(R.string.settings_notebook_font_i_eat_crayons),
-            ).forEach { (key, label) ->
-                FilterChip(
-                    selected = notebookFont == key,
-                    onClick  = { onNotebookFontChange(key) },
-                    label    = { Text(label, maxLines = 1) },
-                    colors   = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                    ),
-                )
-            }
-        }
-    }
-}
-
-/**
  * Color accent — independent from [ThemeSection]'s brightness/contrast choice
  * above (see Theme.kt's ColorAccent doc comment for why). Any accent can be
  * combined with any theme, including OLED's true-black background.
@@ -136,6 +99,9 @@ internal fun ColorSection(colorAccent: String, onColorAccentChange: (String) -> 
                 "lavande" to stringResource(R.string.settings_theme_lavande),
                 "sunflower" to stringResource(R.string.settings_theme_sunflower),
                 "lazulite" to stringResource(R.string.settings_theme_lazulite),
+                "rose" to stringResource(R.string.settings_theme_rose),
+                "arlequin" to stringResource(R.string.settings_theme_arlequin),
+                "cyberpunk" to stringResource(R.string.settings_theme_cyberpunk),
             ).forEach { (key, label) ->
                 FilterChip(
                     selected = colorAccent == key,

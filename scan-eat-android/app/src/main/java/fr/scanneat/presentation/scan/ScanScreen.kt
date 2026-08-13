@@ -176,12 +176,7 @@ fun ScanScreen(
 
         if (hasCamera && !cameraUnavailable) {
             // User-reported: "quand scanner, background et [nav] ne devrait
-            // pas être visible" - the Notebook decor (paper/spiral overlay)
-            // should NOT show over the live camera view at all; a previous
-            // pass had added a spiral overlay here specifically because it
-            // was otherwise invisible behind the full-bleed camera, but the
-            // user now wants a clean, undecorated camera view during
-            // scanning instead - reverted.
+            // pas être visible" - no decorative overlay over the live camera view.
             Box(Modifier.fillMaxSize()) {
             CameraPreview(
                 onBarcodeDetected = { viewModel.onBarcodeDetected(it) },

@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.ui.theme
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -13,17 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -132,40 +123,6 @@ val LocalBottomNavHazeState = compositionLocalOf { HazeState() }
  * with [glassSheen]'s gradient/edge-highlight layered on top for the "light
  * catching a glass edge" finish.
  */
-/**
- * A simple metal-gray paperclip silhouette (two nested elongated loops),
- * drawn clipping over the note's top-left corner - the classic "paperclip
- * holding a sticky note to the page" look the user's reference mockups
- * show. Position is in absolute pixels off the draw scope's own origin
- * (negative Y so it visually overhangs the note's top edge), not
- * parameterized - this is a one-off decoration for [FloatingTopBar]
- * specifically, not a general reusable shape.
- */
-private fun DrawScope.drawNotebookPaperclip() {
-    val clipColor = Color(0xFFB0B0B8)
-    val originX = 28.dp.toPx()
-    val originY = -6.dp.toPx()
-    val loopW = 14.dp.toPx()
-    val loopH = 34.dp.toPx()
-    fun loopPath(inset: Float): Path = Path().apply {
-        moveTo(originX - loopW / 2f + inset, originY)
-        cubicTo(
-            originX - loopW / 2f - 2.dp.toPx() + inset, originY + loopH * 0.15f,
-            originX - loopW / 2f - 2.dp.toPx() + inset, originY + loopH * 0.85f,
-            originX - loopW / 2f + inset, originY + loopH,
-        )
-        cubicTo(
-            originX - loopW / 2f + 4.dp.toPx() + inset, originY + loopH + 6.dp.toPx(),
-            originX + loopW / 2f - inset, originY + loopH + 6.dp.toPx(),
-            originX + loopW / 2f - inset, originY + loopH - 2.dp.toPx(),
-        )
-        lineTo(originX + loopW / 2f - inset, originY + 10.dp.toPx())
-    }
-    val strokeWidth = 2.5.dp.toPx()
-    drawPath(loopPath(0f), color = clipColor, style = Stroke(width = strokeWidth))
-    drawPath(loopPath(4.dp.toPx()), color = clipColor, style = Stroke(width = strokeWidth))
-}
-
 @Composable
 fun FloatingTopBar(
     title: @Composable () -> Unit,
@@ -176,11 +133,6 @@ fun FloatingTopBar(
     actions: @Composable RowScope.() -> Unit = {},
     accent: Color = Color.White,
 ) {
-    val isNotebook = LocalThemeName.current == "notebook"
-    if (isNotebook) {
-        NotebookCornerHeader(title, modifier, navigationIcon, hasNavigationIcon, actions)
-        return
-    }
     val headerShape = RoundedCornerShape(CardRadius.PROMINENT)
     Box(
         modifier
@@ -230,80 +182,6 @@ fun FloatingTopBar(
                     ProvideTextStyle(MaterialTheme.typography.titleLarge) { title() }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, content = actions)
-            }
-        }
-    }
-}
-
-/**
- * Notebook theme's real header redesign. User-reported: "le header doit
- * vraiment être un post-it en coin, pas juste un skin de l'ancien" - the
- * previous version kept the full-width pill layout and only reskinned its
- * fill/shadow, which never reads as an actual sticky note, just a bar
- * wearing post-it colors. This instead shrinks the note to wrap only its
- * title text, anchors it to the top-end corner (matching the reference
- * mockup's corner-stuck note), rotates it a few degrees, and keeps the
- * paperclip. A back arrow, when present, is a separate plain round button
- * at the top-start corner - it was never part of the post-it in the
- * reference either - and trailing actions render as their own small
- * cluster next to the note rather than being squeezed inside it.
- */
-@Composable
-private fun NotebookCornerHeader(
-    title: @Composable () -> Unit,
-    modifier: Modifier,
-    navigationIcon: @Composable () -> Unit,
-    hasNavigationIcon: Boolean,
-    actions: @Composable RowScope.() -> Unit,
-) {
-    val noteShape = RoundedCornerShape(2.dp)
-    val rotation = remember { (-4..4).random().toFloat() }
-    // User-supplied real sticky-note artwork (a red peeled-corner note from
-    // a stock doodle pack, hue-shifted to the app's NotebookPostItGold) -
-    // "utilise le post-it rouge mais change le en couleur jaune". Replaces
-    // the flat-fill rounded rect below: a real curled-corner note reads as
-    // an actual sticky note, not a plain colored box.
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val postItBitmap = remember {
-        android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.notebook_postit_yellow)
-            .asImageBitmap()
-    }
-    Box(
-        modifier
-            .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
-            .height(56.dp),
-    ) {
-        if (hasNavigationIcon) {
-            Box(
-                Modifier.align(Alignment.CenterStart).size(44.dp)
-                    .shadow(elevation = 2.dp, shape = androidx.compose.foundation.shape.CircleShape)
-                    .clip(androidx.compose.foundation.shape.CircleShape)
-                    .background(NotebookPaper),
-                contentAlignment = Alignment.Center,
-            ) { navigationIcon() }
-        }
-        Row(
-            modifier          = Modifier.align(Alignment.CenterEnd),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(content = actions)
-            Spacer(Modifier.width(Spacing.XS))
-            Box(
-                Modifier
-                    .graphicsLayer { rotationZ = rotation }
-                    .shadow(elevation = 3.dp, shape = noteShape)
-                    .clip(noteShape)
-                    .drawWithContent {
-                        drawImage(image = postItBitmap, dstOffset = IntOffset.Zero, dstSize = IntSize(size.width.toInt(), size.height.toInt()))
-                        drawContent()
-                        drawNotebookPaperclip()
-                    }
-                    .padding(horizontal = Spacing.M, vertical = Spacing.S + 4.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                ProvideTextStyle(MaterialTheme.typography.titleMedium) { title() }
             }
         }
     }
@@ -368,20 +246,8 @@ fun FloatingScreenScaffold(
             if (showBottomNavClearance) Modifier.fillMaxSize().hazeSource(bottomNavHazeState) else Modifier.fillMaxSize(),
         ) {
             Box(Modifier.fillMaxSize().hazeSource(headerHazeState)) {
-                // User-reported: "les card ne doivent pas être au dessus des
-                // trou de spirale" - ambientGloom()'s spiral-binding column
-                // (ringColumnWidth = 30.dp) sits at the screen's left edge
-                // as a background wash; content padded only for the header/
-                // nav previously started flush against that same edge, so
-                // cards drew straight over the holes/coil. Reserving that
-                // same width as a start inset here - the one place nearly
-                // every screen's content padding is computed - treats the
-                // spiral column as real page margin instead of decoration
-                // floating under the content.
-                val isNotebook = LocalThemeName.current == "notebook"
                 content(
                     PaddingValues(
-                        start  = if (isNotebook) 30.dp else 0.dp,
                         top    = topInset + FloatingTopBarHeight,
                         bottom = bottomInset + if (showBottomNavClearance) FloatingBottomNavHeight else 0.dp,
                     ),

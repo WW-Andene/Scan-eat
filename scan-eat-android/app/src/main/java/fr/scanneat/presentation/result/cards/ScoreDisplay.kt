@@ -7,7 +7,6 @@ import compose.icons.tablericons.ChevronUp
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -129,30 +128,13 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
                         CircleShape,
                     ),
             )
-            // User-requested (Notebook theme): "les cercle et gauge doivent
-            // être en trait de crayon de couleur" - drawCrayonRing (Glass.kt)
-            // instead of Material's smooth CircularProgressIndicator arc for
-            // this theme; every other theme is unaffected.
-            if (LocalThemeName.current == "notebook") {
-                // SurfaceVariant is a @Composable property (reads
-                // MaterialTheme.colorScheme) - resolved here, in composable
-                // scope, since Canvas's draw lambda below is a plain
-                // DrawScope, not a composable context (the CI-breaking
-                // compile error this fixes: "@Composable invocations can
-                // only happen from the context of a @Composable function").
-                val trackColor = SurfaceVariant
-                Canvas(Modifier.size(178.dp)) {
-                    drawCrayonRing(progress = animatedProgress, color = color, trackColor = trackColor, strokeWidthPx = 14.dp.toPx())
-                }
-            } else {
-                CircularProgressIndicator(
-                    progress    = { animatedProgress },
-                    modifier    = Modifier.size(178.dp),
-                    color       = color,
-                    strokeWidth = 14.dp,
-                    trackColor  = SurfaceVariant,
-                )
-            }
+            CircularProgressIndicator(
+                progress    = { animatedProgress },
+                modifier    = Modifier.size(178.dp),
+                color       = color,
+                strokeWidth = 14.dp,
+                trackColor  = SurfaceVariant,
+            )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // Nutritionist/public-bench audit: unlike DualScoreRing (which labels
                 // its classic score "Score classique"), this single-ring view showed
@@ -163,12 +145,12 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
                 // way two different exams both grading A-F don't need new letters just
                 // because they measure different things - but only if each is actually
                 // named. This one wasn't.
-                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), modifier = Modifier.notebookTextJitter())
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                 // User-reported: 56sp read as too large for a single-score display
                 // (DualScoreRing's 26sp comparison view was unaffected/correctly sized).
-                Text(grade.label, style = HeroNumberStyle.copy(fontSize = 44.sp), color = color, modifier = Modifier.notebookTextJitter())
+                Text(grade.label, style = HeroNumberStyle.copy(fontSize = 44.sp), color = color)
                 Text(stringResource(R.string.result_score_out_of_100, score),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f), modifier = Modifier.notebookTextJitter())
+                    style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
             }
         }
         if (scoreDelta != null) {
@@ -206,20 +188,13 @@ internal fun DualScoreRing(
                             CircleShape,
                         ),
                 )
-                if (LocalThemeName.current == "notebook") {
-                    val trackColor = SurfaceVariant
-                    Canvas(Modifier.fillMaxSize()) {
-                        drawCrayonRing(progress = classicAnimated, color = classicColor, trackColor = trackColor, strokeWidthPx = 8.dp.toPx())
-                    }
-                } else {
-                    CircularProgressIndicator(
-                        progress    = { classicAnimated },
-                        modifier    = Modifier.fillMaxSize(),
-                        color       = classicColor,
-                        strokeWidth = 8.dp,
-                        trackColor  = SurfaceVariant,
-                    )
-                }
+                CircularProgressIndicator(
+                    progress    = { classicAnimated },
+                    modifier    = Modifier.fillMaxSize(),
+                    color       = classicColor,
+                    strokeWidth = 8.dp,
+                    trackColor  = SurfaceVariant,
+                )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(classicGrade.label, style = HeroNumberStyle.copy(fontSize = 26.sp), color = classicColor)
                     Text(stringResource(R.string.result_score_out_of_100, classicScore), style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
@@ -242,20 +217,13 @@ internal fun DualScoreRing(
                             CircleShape,
                         ),
                 )
-                if (LocalThemeName.current == "notebook") {
-                    val trackColor = SurfaceVariant
-                    Canvas(Modifier.fillMaxSize()) {
-                        drawCrayonRing(progress = personalAnimated, color = personalColor, trackColor = trackColor, strokeWidthPx = 8.dp.toPx())
-                    }
-                } else {
-                    CircularProgressIndicator(
-                        progress    = { personalAnimated },
-                        modifier    = Modifier.fillMaxSize(),
-                        color       = personalColor,
-                        strokeWidth = 8.dp,
-                        trackColor  = SurfaceVariant,
-                    )
-                }
+                CircularProgressIndicator(
+                    progress    = { personalAnimated },
+                    modifier    = Modifier.fillMaxSize(),
+                    color       = personalColor,
+                    strokeWidth = 8.dp,
+                    trackColor  = SurfaceVariant,
+                )
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = if (veto) Modifier.clearAndSetSemantics { contentDescription = vetoDescription } else Modifier,

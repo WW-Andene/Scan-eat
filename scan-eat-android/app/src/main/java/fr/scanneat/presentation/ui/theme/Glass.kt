@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.shadow
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +26,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -134,20 +132,13 @@ fun Modifier.ambientGloom(
     primary: Color,
     secondary: Color = primary,
 ): Modifier = composed {
-    // app-audit §G4/§IV: every other continuous/prominent animation in the app
-    // (rememberBreathingPulse, MainShell's tab transitions, expand/collapse
-    // sections) is gated on rememberReducedMotion() - this one only checked
-    // the user's own "Animated background" Settings toggle, so a user with
-    // the system-level "remove animations" accessibility setting on (e.g. for
-    // vestibular disorders) still got the continuous drift+ripple effect if
-    // they'd also opted into the app's own toggle.
-    val animated = LocalAnimatedGloom.current && !rememberReducedMotion()
-    // Notebook theme: paper + ruled horizontal lines + a left-edge spiral
-    // binding replace the radial "gloom" blobs entirely - a glowing light
-    // pool doesn't belong on a sheet of paper, and every screen already
-    // calls this one function for its outermost background, so gating here
-    // is what makes the paper look apply app-wide with no per-screen change.
-    val isNotebook = LocalThemeName.current == "notebook"
+    // User-explicit: "ignore le réglage de téléphone pour animation" - this
+    // is a decorative background the user opts into directly inside the
+    // app (Settings > Affichage > "Fond animé"), not an app-initiated
+    // motion effect the OS-level "remove animations" a11y setting should
+    // veto - unlike every other rememberReducedMotion()-gated animation in
+    // the app (hero entrance, score reveal, press-scale), which stay gated.
+    val animated = LocalAnimatedGloom.current
     // "Prism" theme: replaces the radial gloom blobs with a static wash of
     // translucent low-poly triangles, echoing the faceted-polygon reference
     // image the theme's own palette (PrismRose/Blue/Gold/Mint) was pulled
@@ -169,18 +160,6 @@ fun Modifier.ambientGloom(
             }
         }
     } else emptyList()
-    // User-supplied real notebook-page artwork ("utilise celui pour les
-    // background") - a two-ring-tall crop of an actual spiral-bound page's
-    // left edge (holes + coil, cream paper matching NotebookPaper closely
-    // enough not to seam), tiled down the ring column instead of drawing
-    // the coil/holes procedurally.
-    val coilTileBitmap = if (isNotebook) {
-        val context = androidx.compose.ui.platform.LocalContext.current
-        remember {
-            android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.notebook_coil_tile)
-                .asImageBitmap()
-        }
-    } else null
 
     // Blob drift phase - rememberInfiniteTransition suits this one on its
     // own (a single float looping 0..2π), unlike the ripple clock below
@@ -265,15 +244,6 @@ fun Modifier.ambientGloom(
         )
         val t = timeSec
         val maxRadius = size.minDimension * 0.32f
-        // Ring geometry precomputed here (drawWithCache, not per-frame) since
-        // it only depends on `size`, same reasoning the brushes above are
-        // hoisted out of onDrawBehind.
-        val ringColumnWidth = 30.dp.toPx()
-        // Real asset's own aspect ratio (70x59px source crop = two ring
-        // periods) preserved at this column width, so the holes/coil don't
-        // stretch out of proportion.
-        val coilTileWidthPx = ringColumnWidth
-        val coilTileHeightPx = ringColumnWidth * (59f / 70f)
         // User-reported: "fond animé ne fonctionne pas" for Prism - the
         // facets were always static regardless of the Settings toggle,
         // because unlike primaryCenter/secondaryCenter above (which read
@@ -285,26 +255,6 @@ fun Modifier.ambientGloom(
         // re-run on every driftPhase tick the same way the blobs' does.
         val prismDriftPx = size.width * 0.015f
         onDrawBehind {
-            if (isNotebook && coilTileBitmap != null) {
-                // User-requested: "enlever les ligne du background" - the
-                // horizontal ruled lines this used to draw are gone; plain
-                // paper fill plus the spiral binding only.
-                drawRect(NotebookPaper)
-                // Left-edge spiral binding: real scanned notebook artwork
-                // tiled down the column instead of a procedural draw -
-                // user-supplied reference and asked for it directly ("utilise
-                // celui pour les background").
-                var tileY = 0f
-                while (tileY < size.height) {
-                    drawImage(
-                        image = coilTileBitmap,
-                        dstOffset = IntOffset(0, tileY.toInt()),
-                        dstSize = IntSize(coilTileWidthPx.toInt(), coilTileHeightPx.toInt()),
-                    )
-                    tileY += coilTileHeightPx
-                }
-                return@onDrawBehind
-            }
             if (isPrism) {
                 drawRect(PrismBackground)
                 prismFacets.forEachIndexed { i, facet ->
@@ -339,46 +289,6 @@ fun Modifier.ambientGloom(
                     drawRippleRing(cycle, center, maxRadius, tint)
                     drawRippleRing(cycle - 0.3f, center, maxRadius, tint)
                 }
-            }
-        }
-    }
-}
-
-/**
- * Foreground hole-punch overlay - draws the same ring column
- * [ambientGloom]'s notebook branch draws as a BACKGROUND layer, but usable
- * as a plain `Modifier` on top of arbitrary content (a `drawWithContent`
- * overlay, not `drawBehind`). Needed because [ambientGloom] is a
- * background wash - on the Scan screen the live camera preview is a
- * full-bleed `AndroidView` that completely covers whatever's drawn behind
- * it, so [ambientGloom]'s own column there was coded but literally
- * invisible (user-reported: "pas de spirale dans le décors"). Applying
- * this instead, on top of the camera preview, matches the notebook
- * mockups the user supplied - a photo taped into a notebook still shows
- * the binding holes sitting on top of it at the page edge, not hidden
- * behind it. User-reported follow-up: "les spirale n'existe pas, seulement
- * les trou" - no metal-coil ring stroke, just a plain punched hole.
- */
-fun Modifier.notebookSpiralBinding(): Modifier = composed {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val coilTileBitmap = remember {
-        android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.notebook_coil_tile)
-            .asImageBitmap()
-    }
-    this.drawWithCache {
-        val ringColumnWidth = 24.dp.toPx()
-        val coilTileWidthPx = ringColumnWidth
-        val coilTileHeightPx = ringColumnWidth * (59f / 70f)
-        onDrawWithContent {
-            drawContent()
-            var tileY = 0f
-            while (tileY < size.height) {
-                drawImage(
-                    image = coilTileBitmap,
-                    dstOffset = IntOffset(0, tileY.toInt()),
-                    dstSize = IntSize(coilTileWidthPx.toInt(), coilTileHeightPx.toInt()),
-                )
-                tileY += coilTileHeightPx
             }
         }
     }
@@ -421,78 +331,4 @@ private fun DrawScope.drawRippleRing(cycle: Float, center: Offset, maxRadius: Fl
     )
 }
 
-/**
- * User-requested (Notebook theme): "les cercle et gauge doivent être en
- * trait de crayon de couleur" - a colored-pencil/crayon-textured circular
- * progress ring instead of Material's smooth [androidx.compose.material3.CircularProgressIndicator]
- * arc. Drawn as many short, alpha-jittered radial strokes packed along the
- * progress arc (same "visible individual strokes, not a perfectly even
- * line" idea as [WeeklyBarsCard]'s crayon bars), rather than one continuous
- * stroke - a single arc with `pathEffect` dashing reads as "dashed line,"
- * not "hand-colored," which is why this hand-draws each short segment
- * instead. `trackColor` (the unfilled remainder of the ring) is drawn the
- * same way at low alpha so the two read as one continuous hand-drawn
- * circle rather than a smooth track behind a textured fill.
- *
- * Deliberately covers only the app's most prominent single ring (Result's
- * ScoreRing/DualScoreRing) in this pass, not all ~13 CircularProgressIndicator
- * call sites app-wide (Hydration, TodayMacroCard, ActiveFastCard, etc.) -
- * same "flag the remaining scope honestly" approach as the post-it card
- * conversion.
- */
-fun DrawScope.drawCrayonRing(progress: Float, color: Color, trackColor: Color, strokeWidthPx: Float) {
-    val radius = (size.minDimension - strokeWidthPx) / 2f
-    val center = Offset(size.width / 2f, size.height / 2f)
-    val segmentDeg = 3f
-    val totalSegments = (360f / segmentDeg).toInt()
-    val filledSegments = (totalSegments * progress).toInt().coerceIn(0, totalSegments)
-    val rng = Random(center.x.toInt() * 31 + center.y.toInt())
-    for (i in 0 until totalSegments) {
-        val startAngle = -90f + i * segmentDeg
-        val isFilled = i < filledSegments
-        val jitterWidth = strokeWidthPx * (0.85f + rng.nextFloat() * 0.3f)
-        val jitterRadius = radius + (rng.nextFloat() - 0.5f) * strokeWidthPx * 0.15f
-        drawArc(
-            color = if (isFilled) color else trackColor,
-            startAngle = startAngle,
-            sweepAngle = segmentDeg * 0.8f,
-            useCenter = false,
-            topLeft = Offset(center.x - jitterRadius, center.y - jitterRadius),
-            size = androidx.compose.ui.geometry.Size(jitterRadius * 2, jitterRadius * 2),
-            style = Stroke(width = jitterWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round),
-            alpha = if (isFilled) 0.75f + rng.nextFloat() * 0.25f else 0.4f,
-        )
-    }
-}
-
-/**
- * User-requested (Notebook theme): "fait en sorte que tout les texte es des
- * offset variable de 1dp pour un rendu naturel" - a small per-instance
- * random x/y nudge (±1dp), rolled once via `remember` and held stable
- * across recomposition (same reasoning [rememberNotebookPostItStyle]'s own
- * doc comment gives), so text doesn't sit on a perfectly mechanical grid -
- * closer to how handwriting/pasted notes never land pixel-perfectly
- * aligned. Opt-in per `Text()` call via `.notebookTextJitter()`.
- *
- * NOT applied to every `Text()` call in the app - Compose's `Text()` is
- * called directly (via Material3, not through a single shared wrapper) at
- * several hundred call sites app-wide, so making literally all of them
- * jitter would mean touching every one individually. Applied instead to
- * the most prominent, highest-visibility text under Notebook theme
- * (header title, score grade/number) as a representative implementation -
- * broader coverage is a larger, separate follow-up.
- */
-fun Modifier.notebookTextJitter(): Modifier = composed {
-    if (LocalThemeName.current != "notebook") return@composed this
-    // User-reported: "le Offset des textes et tailles n'es pas assez
-    // aléatoire" - widened from +/-1dp to +/-3dp and added a small rotation
-    // jitter (none existed before), so jittered text reads as hand-placed
-    // rather than a barely-perceptible nudge.
-    val dx = remember { (Random.nextFloat() - 0.5f) * 6f }
-    val dy = remember { (Random.nextFloat() - 0.5f) * 6f }
-    val rotation = remember { (Random.nextFloat() - 0.5f) * 6f }
-    this
-        .offset(dx.dp, dy.dp)
-        .graphicsLayer { rotationZ = rotation }
-}
 

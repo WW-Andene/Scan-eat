@@ -3,15 +3,10 @@ package fr.scanneat.presentation.shell
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -97,145 +92,6 @@ fun MainShell(
         // in the app (see Motion.kt's own doc comment) - this one was added
         // without the check, unlike ambientGloom/pressScale/rememberHeroEntrance.
         val reduceMotion = rememberReducedMotion()
-        // User-requested (Notebook theme): "nav bar become page reminder on
-        // right side, become longer and on the said tab" - a vertical column
-        // of colored index-tab bookmarks along the right edge (the mockups
-        // the user provided show exactly this: small colored square tabs
-        // stacked down a notebook's right edge), replacing the floating
-        // bottom-center pill this app uses for every other theme. The
-        // click/long-press-to-reorder behavior is identical either way -
-        // only the layout/visual treatment branches on theme, factored into
-        // navTabClickHandler below so that logic isn't duplicated between
-        // the two layouts.
-        val haptics = LocalHapticFeedback.current
-        val navTabClickHandler: (TopTab) -> Unit = { tab ->
-            val armed = armedNavTab
-            if (armed != null) {
-                if (armed != tab) {
-                    val fromIdx = navTabs.indexOf(armed)
-                    val toIdx = navTabs.indexOf(tab)
-                    val newOrder = navTabs.toMutableList()
-                    newOrder[fromIdx] = tab
-                    newOrder[toIdx] = armed
-                    shellViewModel.setNavTabOrder(serializeTopTabOrder(newOrder))
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                }
-                armedNavTab = null
-            } else {
-                navController.navigate(tab.route) {
-                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                    launchSingleTop = true
-                    restoreState    = true
-                }
-            }
-        }
-        val navTabLongClickHandler: (TopTab) -> Unit = { tab ->
-            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-            armedNavTab = if (armedNavTab == tab) null else tab
-        }
-        if (LocalThemeName.current == "notebook") {
-            AnimatedVisibility(
-                visible  = showNav,
-                enter    = if (reduceMotion) EnterTransition.None else fadeIn(),
-                exit     = if (reduceMotion) ExitTransition.None else fadeOut(),
-                modifier = Modifier.align(Alignment.CenterEnd).windowInsetsPadding(WindowInsets.navigationBars),
-            ) {
-                val hierarchy = backStack.value?.destination?.hierarchy
-                val tabColors = NotebookPostItColors
-                // User-reported: tabs weren't flush against the screen edge
-                // and grew the wrong direction when expanding - both caused
-                // by the same root cause. Column had no horizontalAlignment
-                // (defaults to Start), so its width was set by its WIDEST
-                // child (the expanded 88dp tab) and every other, narrower
-                // tab sat flush to that width's LEFT edge - leaving a gap
-                // between the narrower tabs and the true screen edge on the
-                // right, and making an expanding tab grow further right
-                // (away from the edge) instead of left (into the screen,
-                // staying flush). Alignment.End anchors every tab's own
-                // right edge to the column's (and thus the screen's) right
-                // edge regardless of its current width, so growth is always
-                // leftward and every tab - expanded or not - stays flush.
-                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    navTabs.forEachIndexed { i, tab ->
-                        val isSelected = hierarchy?.any { it.route == tab.route } == true
-                        val isArmed = armedNavTab == tab
-                        val isReplaceTarget = armedNavTab != null && !isArmed
-                        val tabColor = tabColors[i % tabColors.size]
-                        // User-requested: "animation de développer/rétracté
-                        // pour les marque page des onglet quand dessus" - a
-                        // touch device has no true hover, so "dessus" is
-                        // read as "pressed" (the closest touch equivalent):
-                        // the tab widens to reveal its label while actively
-                        // pressed, not just when it's the selected tab, and
-                        // animates back with the same spring rather than
-                        // snapping.
-                        val tabInteractionSource = remember { MutableInteractionSource() }
-                        val isPressed by tabInteractionSource.collectIsPressedAsState()
-                        val expanded = isSelected || isPressed
-                        // User-requested: "plus espacé et un peu plus gros",
-                        // then "les marques page doivent être un peu plus
-                        // rentré lorspas sélectionné" - the resting
-                        // (unselected/unpressed) width was pulled back in
-                        // further (80dp -> 64dp) so tabs read as tucked into
-                        // the edge at rest, only sticking out fully once
-                        // selected or pressed.
-                        val tabWidth by animateDpAsState(if (expanded) 104.dp else 64.dp, label = "notebookTabWidth")
-                        val tabShape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp)
-                        // User-requested: "espacement aléatoire pour les
-                        // marques page, comme un vrai notebook" - each tab's
-                        // own top spacing rolled once (a real stack of index
-                        // tabs isn't machine-uniform), on top of the
-                        // Column's own 10dp spacedBy baseline.
-                        val extraSpacing = remember { (0..8).random().dp }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .padding(top = extraSpacing)
-                                .height(64.dp)
-                                .width(tabWidth)
-                                // User-requested: "ajoutes les ombres pour
-                                // les marque page" - each tab already had a
-                                // flat elevation shadow; bumped slightly and
-                                // left as-is otherwise (same tinted-shadow
-                                // approach as every other card in this
-                                // theme, not a special case).
-                                .shadow(elevation = 4.dp, shape = tabShape)
-                                .clip(tabShape)
-                                // User-requested: "sensé être opaque pas
-                                // transparent" - flat fully-opaque fill for
-                                // every state (previously 0.65-0.95f alpha).
-                                // Armed/replace-target feedback (previously
-                                // carried by alpha) now uses a border
-                                // instead, so it stays visible without
-                                // reintroducing transparency.
-                                .background(tabColor)
-                                .then(
-                                    if (isArmed) Modifier.border(2.dp, NotebookInk, tabShape)
-                                    else if (isReplaceTarget) Modifier.border(1.dp, NotebookInk.copy(alpha = 0.4f), tabShape)
-                                    else Modifier
-                                )
-                                .combinedClickable(
-                                    interactionSource = tabInteractionSource,
-                                    indication = LocalIndication.current,
-                                    onClick = { navTabClickHandler(tab) },
-                                    onLongClick = { navTabLongClickHandler(tab) },
-                                )
-                                .padding(start = Spacing.S),
-                        ) {
-                            Icon(tab.icon, stringResource(tab.labelRes), tint = NotebookInk, modifier = Modifier.size(IconSize.Nav))
-                            if (expanded) {
-                                Spacer(Modifier.width(Spacing.XS))
-                                Text(
-                                    stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
-                                    color = NotebookInk, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            return@Box
-        }
         AnimatedVisibility(
             visible  = showNav,
             enter    = if (reduceMotion) EnterTransition.None else fadeIn(),

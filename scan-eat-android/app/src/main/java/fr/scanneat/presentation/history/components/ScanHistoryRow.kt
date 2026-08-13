@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -119,23 +118,12 @@ internal fun ScanHistoryRow(
                 // Tabler's outline-only icon set has no filled/outline Star pair like
                 // Material's Star/StarBorder — the on/off favorite state is carried by
                 // tint alone now (already partly the case here) rather than a shape swap.
-                // Notebook theme: user-supplied doodle star (Vecteezy, Free
-                // License - attribution in Settings > About > Licenses).
-                if (LocalThemeName.current == "notebook") {
-                    Icon(
-                        painterResource(R.drawable.doodle_star),
-                        stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
-                        tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
-                        modifier = Modifier.size(18.dp),
-                    )
-                } else {
-                    Icon(
-                        TablerIcons.Star,
-                        stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
-                        tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
+                Icon(
+                    TablerIcons.Star,
+                    stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                    tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
+                    modifier = Modifier.size(18.dp),
+                )
             }
             IconButton(onClick = onDelete) {
                 Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(18.dp))

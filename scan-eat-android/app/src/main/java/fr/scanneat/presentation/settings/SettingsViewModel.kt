@@ -70,7 +70,6 @@ class SettingsViewModel @Inject constructor(
     val language  = prefs.language.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     val theme     = prefs.theme.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "dark")
     val colorAccent = prefs.colorAccent.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
-    val notebookFont = prefs.notebookFont.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "caveat")
     val dyslexicFont   = prefs.dyslexicFont.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val colorblindMode = prefs.colorblindMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
     val voiceScoreAnnounce = prefs.voiceScoreAnnounce.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
@@ -132,7 +131,6 @@ class SettingsViewModel @Inject constructor(
     // with no snackbar, the one inconsistency left in this file's write paths.
     fun setTheme(t: String)        = guardedLaunch { prefs.setTheme(t) }
     fun setColorAccent(a: String)  = guardedLaunch { prefs.setColorAccent(a) }
-    fun setNotebookFont(f: String) = guardedLaunch { prefs.setNotebookFont(f) }
     fun setDyslexicFont(v: Boolean)     = guardedLaunch { prefs.setDyslexicFont(v) }
     fun setColorblindMode(mode: String) = guardedLaunch { prefs.setColorblindMode(mode) }
     fun setVoiceScoreAnnounce(v: Boolean) = guardedLaunch { prefs.setVoiceScoreAnnounce(v) }

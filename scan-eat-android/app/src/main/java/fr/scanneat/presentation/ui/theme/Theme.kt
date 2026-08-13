@@ -129,48 +129,13 @@ private val HighContrastColors = darkColorScheme(
     outline          = HighContrastOutlineRaw,
 )
 
-// User-requested "Notebook" theme: cream paper background, navy "ink" text,
-// and a post-it/sticky-note palette (coral, sunflower, sky) standing in for
-// primary/secondary/tertiary - unlike every other scheme above this one is a
-// LIGHT scheme (paper is bright), so it's built on lightColorScheme, not
-// darkColorScheme. See ScanEatCard.kt's own notebook post-it rendering path
-// and Glass.kt's notebookPaperBackground()/notebookSpiralBinding() for the
-// rest of this theme's visual identity - this file only owns the palette.
-val NotebookPaper       = Color(0xFFFBF6E9)
-val NotebookInk         = Color(0xFF2E2A22)
-val NotebookLine        = Color(0xFFCFC6A8)
-val NotebookRing        = Color(0xFF8A8478)
-val NotebookPostItPink  = Color(0xFFE85D75)
-val NotebookPostItGold  = Color(0xFFE8B23D)
-val NotebookPostItSky   = Color(0xFF4FA3C4)
-val NotebookPostItGreen = Color(0xFF7FB069)
-private val NotebookColors = lightColorScheme(
-    primary          = Color(0xFFC4425A),
-    onPrimary        = Color.White,
-    secondary        = Color(0xFFB8811F),
-    onSecondary      = Color.White,
-    tertiary         = Color(0xFF2E7D96),
-    background       = NotebookPaper,
-    onBackground     = NotebookInk,
-    surface          = Color(0xFFFFFDF5),
-    onSurface        = NotebookInk,
-    surfaceVariant   = Color(0xFFF3ECD4),
-    onSurfaceVariant = NotebookInk.copy(alpha = 0.85f),
-    error            = Color(0xFFC0392B),
-    onError          = Color.White,
-    errorContainer   = Color(0xFFFFD9D2),
-    onErrorContainer = Color(0xFF7A1F14),
-    outline          = NotebookLine,
-)
-
 // User-supplied reference ("utilise cette base pour créé un nouveau
 // thème"): a light, airy low-poly/faceted gradient - blush pink into sky
-// blue into cream into soft gold, overlapping translucent triangles. Like
-// Notebook above, this is a LIGHT scheme with its own considered palette
-// (rose/blue/gold standing in for primary/secondary/tertiary) rather than
-// a hue applied on top of a neutral base - see Glass.kt's ambientGloom()
-// isPrism branch for the faceted-triangle background that carries the
-// rest of this theme's identity.
+// blue into cream into soft gold, overlapping translucent triangles. A
+// LIGHT scheme with its own considered palette (rose/blue/gold standing in
+// for primary/secondary/tertiary) rather than a hue applied on top of a
+// neutral base - see Glass.kt's ambientGloom() isPrism branch for the
+// faceted-triangle background that carries the rest of this theme's identity.
 val PrismBackground     = Color(0xFFFBF3F0)
 val PrismOnBackground   = Color(0xFF2C2430)
 val PrismRose           = Color(0xFFC24A6B)
@@ -266,6 +231,26 @@ private val LazuliteAccent = ColorAccent(
     background = Color(0xFF0A0F16), surface = Color(0xFF161F2B), surfaceVariant = Color(0xFF283246),
     outline = Color(0xFF3C4A60),
 )
+// User-requested: Rose, Arlequin, Cyberpunk - three new colorAccent presets
+// alongside the four above, same shape (a background/surface/surfaceVariant/
+// outline neighborhood plus a 3-hue primary/secondary/tertiary).
+private val RoseAccent = ColorAccent(
+    primary = Color(0xFFE85D9E), secondary = Color(0xFFF48FB1), tertiary = Color(0xFFB23A6B),
+    background = Color(0xFF150F13), surface = Color(0xFF241820), surfaceVariant = Color(0xFF3A2530),
+    outline = Color(0xFF5C3B48),
+)
+// Harlequin's classic jester-diamond palette - red/gold/purple against near-black.
+private val ArlequinAccent = ColorAccent(
+    primary = Color(0xFFE63946), secondary = Color(0xFFF4A300), tertiary = Color(0xFF6A4C93),
+    background = Color(0xFF120A10), surface = Color(0xFF1F1420), surfaceVariant = Color(0xFF362336),
+    outline = Color(0xFF4A3048),
+)
+// Neon magenta/cyan/yellow on near-black - the genre's signature high-saturation triad.
+private val CyberpunkAccent = ColorAccent(
+    primary = Color(0xFFFF2E63), secondary = Color(0xFF00F0FF), tertiary = Color(0xFFFFE156),
+    background = Color(0xFF0B0B14), surface = Color(0xFF14141F), surfaceVariant = Color(0xFF241F35),
+    outline = Color(0xFF3A3550),
+)
 
 // ── Colorblind-safe decorative/brand accent override ──────────────────────────
 // User-reported: colorblind mode adjusted every meaning-bearing signal
@@ -344,11 +329,10 @@ val LocalAnimatedGloom = staticCompositionLocalOf { false }
 /**
  * The resolved theme string ("system" already collapsed to "dark"/"light" -
  * see [ScanEatTheme]'s own doc comment), exposed so a component several
- * layers deep (ScanEatCard's notebook post-it rendering, Glass.kt's
- * notebook paper background/spiral binding) can react to "notebook" being
- * active without every call site threading a `theme: String` parameter
- * through, the same reasoning [LocalAnimatedGloom] above already applies to
- * the animated-background toggle.
+ * layers deep can react to which theme is active (e.g. Glass.kt's Prism
+ * facet background) without every call site threading a `theme: String`
+ * parameter through, the same reasoning [LocalAnimatedGloom] above already
+ * applies to the animated-background toggle.
  */
 val LocalThemeName = staticCompositionLocalOf { "dark" }
 
@@ -360,71 +344,6 @@ private val OpenDyslexicFontFamily = FontFamily(
     Font(R.font.open_dyslexic_regular, FontWeight.Normal),
     Font(R.font.open_dyslexic_bold, FontWeight.Bold),
 )
-
-// Caveat (Google Fonts, SIL OFL 1.1) — the Notebook theme's handwritten
-// accent typeface. Variable font (single weight axis, no separate bold
-// instance shipped upstream), used as-is at its default weight.
-//
-// Applied to display/headline/title roles ONLY, not body/label - a script
-// typeface at small sizes is measurably harder to read - originally kept off
-// body/label text for that reason. User-reported: "tout les texte n'ont pas
-// été mis à la police correctement" - explicit instruction to cover every
-// text role, overriding that earlier restraint. Now applied everywhere,
-// with a smaller size bump on body/label (1.05x vs display/headline/title's
-// 1.1-1.15x) as a partial legibility compensation rather than skipping
-// those roles entirely.
-private val CaveatFontFamily = FontFamily(Font(R.font.caveat, FontWeight.Normal))
-// Both confirmed free for personal AND commercial use in writing by their
-// author (Khurasan) at download time - see AboutSection.kt's OSS_LIBRARIES
-// entries for these two. Several other candidate handwriting fonts the user
-// supplied were deliberately excluded (no confirmed commercial license),
-// same reasoning "Rainy Calm" was excluded for earlier in this theme's
-// history.
-private val MayoniceFontFamily = FontFamily(Font(R.font.mayonice, FontWeight.Normal))
-private val FoxliteFontFamily  = FontFamily(Font(R.font.foxlite_script, FontWeight.Normal))
-// I eat crayons (FontPanda) - added per explicit user instruction after the
-// commercial-license status was flagged as unconfirmed (dafont shows a €
-// badge next to it, not their "100% Free" tag, and dafont.com/fontget.com
-// aren't reachable from this environment's network egress proxy to check
-// the exact license text directly) - the user chose to proceed anyway.
-private val IEatCrayonsFontFamily = FontFamily(Font(R.font.i_eat_crayons, FontWeight.Normal))
-// User-requested: "augmente un peu la taille général des texte de 4dp" - a
-// flat +4sp added on top of the existing per-role multiplier (not instead
-// of it), on every role including body/label.
-// User-requested a further +2dp on top of the original +4dp bump ("augmente
-// taille général police de 2dp"), cumulative: 4f -> 6f.
-private const val NOTEBOOK_SIZE_BUMP_SP = 6f
-// TextUnit has no `+` operator between two TextUnits (CI-breaking build
-// error the first version of this function hit: "Unresolved reference
-// 'plus'") - resolved to a raw Float via .value, added, then rewrapped as
-// .sp, instead of trying to add TextUnits directly.
-private fun bumpedSp(base: androidx.compose.ui.unit.TextUnit, multiplier: Float): androidx.compose.ui.unit.TextUnit =
-    (base.value * multiplier + NOTEBOOK_SIZE_BUMP_SP).sp
-private fun Typography.withNotebookDisplayFont(fontChoice: String): Typography {
-    val family = when (fontChoice) {
-        "mayonice"      -> MayoniceFontFamily
-        "foxlite"       -> FoxliteFontFamily
-        "i_eat_crayons" -> IEatCrayonsFontFamily
-        else            -> CaveatFontFamily
-    }
-    return copy(
-        displayLarge   = displayLarge.copy(fontFamily = family, fontSize = bumpedSp(displayLarge.fontSize, 1.15f)),
-        displayMedium  = displayMedium.copy(fontFamily = family, fontSize = bumpedSp(displayMedium.fontSize, 1.15f)),
-        displaySmall   = displaySmall.copy(fontFamily = family, fontSize = bumpedSp(displaySmall.fontSize, 1.15f)),
-        headlineLarge  = headlineLarge.copy(fontFamily = family, fontSize = bumpedSp(headlineLarge.fontSize, 1.15f)),
-        headlineMedium = headlineMedium.copy(fontFamily = family, fontSize = bumpedSp(headlineMedium.fontSize, 1.15f)),
-        headlineSmall  = headlineSmall.copy(fontFamily = family, fontSize = bumpedSp(headlineSmall.fontSize, 1.15f)),
-        titleLarge     = titleLarge.copy(fontFamily = family, fontSize = bumpedSp(titleLarge.fontSize, 1.1f)),
-        titleMedium    = titleMedium.copy(fontFamily = family, fontSize = bumpedSp(titleMedium.fontSize, 1.1f)),
-        titleSmall     = titleSmall.copy(fontFamily = family, fontSize = bumpedSp(titleSmall.fontSize, 1.1f)),
-        bodyLarge      = bodyLarge.copy(fontFamily = family, fontSize = bumpedSp(bodyLarge.fontSize, 1.05f)),
-        bodyMedium     = bodyMedium.copy(fontFamily = family, fontSize = bumpedSp(bodyMedium.fontSize, 1.05f)),
-        bodySmall      = bodySmall.copy(fontFamily = family, fontSize = bumpedSp(bodySmall.fontSize, 1.05f)),
-        labelLarge     = labelLarge.copy(fontFamily = family, fontSize = bumpedSp(labelLarge.fontSize, 1.05f)),
-        labelMedium    = labelMedium.copy(fontFamily = family, fontSize = bumpedSp(labelMedium.fontSize, 1.05f)),
-        labelSmall     = labelSmall.copy(fontFamily = family, fontSize = bumpedSp(labelSmall.fontSize, 1.05f)),
-    )
-}
 
 /**
  * Real typeface swap plus wider letter/word spacing and taller lines — all
@@ -456,8 +375,8 @@ private fun Typography.withDyslexicSpacing(): Typography = copy(
 
 /**
  * Root theme. Pass [theme] from UserPreferences
- * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "notebook" |
- * "prism" | "system") -
+ * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "prism" |
+ * "system") -
  * brightness/contrast only. [colorAccent] ("none" | "matcha" | "lavande" |
  * "sunflower" | "lazulite") is the independent color-accent axis - see
  * [ColorAccent]'s own doc comment on why these are separate params rather
@@ -479,10 +398,6 @@ fun ScanEatTheme(
     dyslexicFont: Boolean = false,
     colorblindMode: String = "none",
     animatedBackground: Boolean = false,
-    // "caveat" | "mayonice" | "foxlite" - only read when theme == "notebook";
-    // ignored otherwise. See NotebookFontSection.kt's own doc comment for why
-    // the option list is this short.
-    notebookFont: String = "caveat",
     content: @Composable () -> Unit,
 ) {
     val resolvedTheme = if (theme == "system") {
@@ -493,25 +408,25 @@ fun ScanEatTheme(
         "light"          -> LightColors
         "high_contrast"  -> HighContrastColors
         "low_contrast"   -> LowContrastColors
-        "notebook"       -> NotebookColors
         "prism"          -> PrismColors
         else             -> OledColors
     }
-    // High Contrast's own primary/secondary/tertiary are deliberately
-    // maximal-contrast hand-picked values (see HighContrastColors above) for
-    // that theme's own accessibility purpose - an accent's hue would fight
-    // that same purpose, so High Contrast never takes one regardless of what
-    // colorAccent Settings currently has stored. Notebook excluded the same
-    // way: its post-it palette (NotebookColors' primary/secondary/tertiary)
-    // IS the theme's own considered accent - a Matcha/Lavande/etc. hue swap
-    // on top would fight the paper/ink/sticky-note identity, not complement it.
-    // Prism excluded for the same reason: its rose/blue/gold palette IS the
-    // point of the theme (matches the faceted background it's drawn from).
-    val accent = if (resolvedTheme != "high_contrast" && resolvedTheme != "notebook" && resolvedTheme != "prism") when (colorAccent) {
+    // User-reported: High Contrast is supposed to take colorAccent (Matcha
+    // etc.) into account and previously didn't - it now does, on the same
+    // background-preserving path OLED uses just below (background stays
+    // pure black, since HighContrastBackgroundRaw IS 0x000000 for the same
+    // max-contrast reason OLED's is - only primary/secondary/tertiary/
+    // surface/surfaceVariant/outline take the accent's hue).
+    // Prism excluded: its rose/blue/gold palette IS the point of the theme -
+    // a Matcha/Lavande/etc. hue swap on top would fight that identity.
+    val accent = if (resolvedTheme != "prism") when (colorAccent) {
         "matcha"    -> MatchaAccent
         "lavande"   -> LavandeAccent
         "sunflower" -> SunflowerAccent
         "lazulite"  -> LazuliteAccent
+        "rose"      -> RoseAccent
+        "arlequin"  -> ArlequinAccent
+        "cyberpunk" -> CyberpunkAccent
         else        -> null
     } else null
     val colorScheme = if (accent != null) {
@@ -530,7 +445,7 @@ fun ScanEatTheme(
         // untinted OLED background would. Both now take only the accent's
         // hue (primary/secondary/tertiary), the same restriction OLED's own
         // branch already applies to background alone.
-        if (resolvedTheme == "oled") {
+        if (resolvedTheme == "oled" || resolvedTheme == "high_contrast") {
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
                 surface = accent.surface, surfaceVariant = accent.surfaceVariant, outline = accent.outline,
@@ -565,17 +480,7 @@ fun ScanEatTheme(
         resolvedTheme == "light" || resolvedTheme == "prism" -> LightGoldAccent
         else                      -> Gold
     }
-    // Notebook's handwritten display font takes priority when both a
-    // dyslexic-font accessibility need AND the Notebook theme are active at
-    // once - OpenDyslexic's own accommodation (real dyslexia-tested
-    // letterforms, applied to every text role including body) matters more
-    // than a decorative theme font, same reasoning Theme.kt already applies
-    // to High Contrast/colorblind mode overriding decorative choices.
-    val typography = when {
-        dyslexicFont             -> ScanEatTypography.withDyslexicSpacing()
-        resolvedTheme == "notebook" -> ScanEatTypography.withNotebookDisplayFont(notebookFont)
-        else                      -> ScanEatTypography
-    }
+    val typography = if (dyslexicFont) ScanEatTypography.withDyslexicSpacing() else ScanEatTypography
     CompositionLocalProvider(
         LocalGoldAccent provides goldAccent,
         LocalColorblindMode provides colorblindMode,

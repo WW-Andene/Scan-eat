@@ -28,7 +28,6 @@ import fr.scanneat.presentation.ui.theme.*
 import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 @Composable
 internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, language: String) {
@@ -76,40 +75,15 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                         isOnTarget     -> stringResource(R.string.dashboard_week_bar_on_target, dayName, day.kcal.roundToInt())
                         else           -> stringResource(R.string.dashboard_week_bar_default, dayName, day.kcal.roundToInt())
                     }
-                    val isNotebook = LocalThemeName.current == "notebook"
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(if (day.count == 0) 0.05f else frac.coerceAtLeast(0.05f))
                             .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                            .then(if (isNotebook) Modifier else Modifier.background(color))
+                            .background(color)
                             .semantics { contentDescription = barDescription },
                         contentAlignment = Alignment.TopCenter,
                     ) {
-                        // User-requested (Notebook theme): "graph bar crayon line" -
-                        // a flat solid fill doesn't read as crayon, so this bar's
-                        // fill is instead a stack of short, slightly-jittered
-                        // horizontal strokes packed edge to edge, the same way a
-                        // kid colors in a bar chart with a wax crayon (visible
-                        // individual strokes, not a perfectly even fill).
-                        if (isNotebook) {
-                            Canvas(Modifier.fillMaxSize()) {
-                                val strokeH = 3.dp.toPx()
-                                val jitterSeed = Random(day.date.toEpochDay())
-                                var y = strokeH / 2f
-                                while (y < size.height) {
-                                    val jitter = (jitterSeed.nextFloat() - 0.5f) * 3.dp.toPx()
-                                    drawLine(
-                                        color = color,
-                                        start = Offset(jitter.coerceAtLeast(0f), y),
-                                        end   = Offset(size.width + jitter.coerceAtMost(0f), y),
-                                        strokeWidth = strokeH,
-                                        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                                    )
-                                    y += strokeH * 0.85f
-                                }
-                            }
-                        }
                         // Over/on-target status previously relied on red-vs-green color
                         // alone (the single hardest confusion pair for colorblind
                         // viewers) - a small glyph gives the same signal without color.

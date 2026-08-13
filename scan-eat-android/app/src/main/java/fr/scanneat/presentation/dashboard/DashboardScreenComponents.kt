@@ -10,12 +10,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.AccentCoral
@@ -26,34 +24,22 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.glassSheen
-import fr.scanneat.presentation.ui.theme.notebookPenBorder
-import fr.scanneat.presentation.ui.theme.rememberNotebookPostItStyle
-import kotlin.random.Random
 
 // Shared helper used repeatedly by the orchestrator's feature-tile rows.
 @Composable
 internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     // User-reported "rectangle" bug: untinted shadowElevation + no forced .clip(),
     // same fix as ScanEatCard/CalorieBalanceCard.
-    // Notebook theme: sketched pen border, paper-toned interior, no
-    // rotation - matches ScanEatCard's own current Notebook treatment (see
-    // its doc comment on why rotation was dropped: it caused adjacent
-    // cards to visually touch/overlap).
-    val postIt = rememberNotebookPostItStyle(RoundedCornerShape(CardRadius.CONTROL))
-    val tileShape = postIt?.shape ?: RoundedCornerShape(CardRadius.CONTROL)
-    val sketchSeed = if (postIt != null) remember { Random.nextInt() } else 0
+    val tileShape = RoundedCornerShape(CardRadius.CONTROL)
     Surface(
         onClick = onClick,
         modifier = modifier
-            .glassSheen(edgeAlpha = if (postIt != null) 0f else 0.16f, shape = tileShape, glowAlpha = if (postIt != null) 0f else 0.06f)
-            // Notebook (postIt != null): no shadow/clip silhouette - see
-            // ScanEatCard.kt's doc comment on why that plain box and the
-            // hand-drawn ink box read as two offset shapes at once.
-            .then(if (postIt != null) Modifier else Modifier.shadow(elevation = 3.dp, shape = tileShape).clip(tileShape))
-            .then(if (postIt != null) Modifier.notebookPenBorder(postIt.color, sketchSeed, asset = fr.scanneat.presentation.ui.theme.NotebookBoxAsset.SMALL) else Modifier),
+            .glassSheen(edgeAlpha = 0.16f, shape = tileShape, glowAlpha = 0.06f)
+            .shadow(elevation = 3.dp, shape = tileShape)
+            .clip(tileShape),
         shape = tileShape,
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = if (postIt != null) Color.Transparent else SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         shadowElevation = 0.dp,
     ) {
         Column(

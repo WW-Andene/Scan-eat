@@ -265,19 +265,8 @@ val TextSecondary: Color @Composable get() = OnBackground.copy(alpha = 0.65f)
 // 3.69:1 on Light (below 4.5:1 AA). Split per isLightBackground() so the same
 // "muted"/"label" role reads at the same real contrast in every theme instead
 // of silently failing accessibility only in Light.
-// User-reported: "beaucoup de texte non visible car gris" on the Notebook
-// theme - the alpha-blended muted/label tokens above are tuned to still
-// read as legibly "secondary" against a plain surface, but Notebook's
-// whole page is one bright cream wash (NotebookPaper) rather than a
-// surface with real elevation contrast, so the same alpha reads as a
-// washed-out gray instead of muted ink. Notebook forces these near-opaque
-// ink instead of participating in the alpha-blend scale.
-val TextMuted: Color @Composable get() =
-    if (LocalThemeName.current == "notebook") NotebookInk.copy(alpha = 0.9f)
-    else OnBackground.copy(alpha = if (isLightBackground()) 0.50f else 0.40f)
-val TextLabel: Color @Composable get() =
-    if (LocalThemeName.current == "notebook") NotebookInk
-    else OnBackground.copy(alpha = if (isLightBackground()) 0.68f else 0.55f)
+val TextMuted: Color @Composable get() = OnBackground.copy(alpha = if (isLightBackground()) 0.50f else 0.40f)
+val TextLabel: Color @Composable get() = OnBackground.copy(alpha = if (isLightBackground()) 0.68f else 0.55f)
 
 // ── Feature accents outside the Scan'eat/Biolism systems ──────────────────────
 val HydrationBlue   = Color(0xFF29B6F6)
