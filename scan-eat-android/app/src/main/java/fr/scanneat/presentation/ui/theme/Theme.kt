@@ -292,14 +292,21 @@ private val CyberpunkAccent = ColorAccent(
     background = Color(0xFF05060C), surface = Color(0xFF12121F), surfaceVariant = Color(0xFF1E1E30),
     outline = Color(0xFF2F4C8C),
 )
-// Elite: user-specified round 5 palette - "Satin black" (background),
-// "Ebony accent" (surfaceVariant) and "melted gold tint" (primary) - a
-// warmer, more liquid gold than the prior flat 24K-gold reference, on a
-// smoother, less brown-leaning near-black than before.
+// Elite: user-specified round 6 palette, this time with explicit functional
+// roles (not just hue names): "Primary=Satin black" -> this app's background
+// (the base tone), "Secondary=Ebony (outline, Shadow, Blur)" -> this app's
+// outline/surfaceVariant (the dark structural tone), "Tertiary=Hot gold
+// (Button, Logo, text)" -> this app's [primary] field specifically, since
+// that's the one ColorAccent field that actually drives MaterialTheme.
+// colorScheme.primary (buttons/active states/text accents app-wide - see
+// this file's own accent-application block below). Hot gold is a punchier,
+// more saturated amber-gold than the prior "melted gold" - secondary/
+// tertiary are a lighter highlight and a deeper shadow step of that same
+// hue, so the accent still has real light/shadow range from one sourced hue.
 private val EliteAccent = ColorAccent(
-    primary = Color(0xFFE0A72E), secondary = Color(0xFFF6DD8F), tertiary = Color(0xFF7A5710),
-    background = Color(0xFF0B0906), surface = Color(0xFF16110C), surfaceVariant = Color(0xFF241C13),
-    outline = Color(0xFF6B4E22),
+    primary = Color(0xFFF5A623), secondary = Color(0xFFFFD180), tertiary = Color(0xFFB8860B),
+    background = Color(0xFF0A0A0A), surface = Color(0xFF141310), surfaceVariant = Color(0xFF241C15),
+    outline = Color(0xFF4A3728),
 )
 // Noble: user-specified round 5 palette - "Marble" (background), "Chalk
 // accent" (surfaceVariant) and "Frozen Gold tint" (primary) - a cooler,
