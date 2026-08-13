@@ -220,23 +220,44 @@ private fun Color.boostedForHighContrast(): Color {
     hsv[2] = 1f
     return Color(android.graphics.Color.HSVToColor(hsv))
 }
+// User-requested: "pareil pour les autre thème de couleur" - same
+// one-by-one review pass as Rose/Arlequin/Cyberpunk above, applied to the
+// original four.
+//
+// Matcha: was yellow-green + a mustard-leaning pale tan + dark green -
+// recognizable but the secondary read more "mustard" than "matcha latte."
+// Vivid whisked-matcha green, a cream/latte foam tan, and a deep tea-leaf
+// green reads more specifically as the drink/powder, not just "green
+// theme."
 private val MatchaAccent = ColorAccent(
-    primary = Color(0xFF9BC53D), secondary = Color(0xFFD8CB7A), tertiary = Color(0xFF4E7A51),
-    background = Color(0xFF10130E), surface = Color(0xFF1C2117), surfaceVariant = Color(0xFF313A2A),
-    outline = Color(0xFF4C5A3E),
+    primary = Color(0xFF7CB518), secondary = Color(0xFFE8DCB5), tertiary = Color(0xFF3A5311),
+    background = Color(0xFF0F130B), surface = Color(0xFF1B2114), surfaceVariant = Color(0xFF2E3A20),
+    outline = Color(0xFF485C34),
 )
+// Lavande: previous values were Material's own pastel lavender defaults -
+// correct hue family but soft enough to read as generic "light purple"
+// rather than lavender specifically. A clearer light->medium->deep bloom
+// gradient (actual lavender-flower purple as the primary, not the
+// palest tone) reads more like a lavender field.
 private val LavandeAccent = ColorAccent(
-    primary = Color(0xFFB39DDB), secondary = Color(0xFFCE93D8), tertiary = Color(0xFF7986CB),
+    primary = Color(0xFF9575CD), secondary = Color(0xFFB39DDB), tertiary = Color(0xFF5C4B99),
     background = Color(0xFF120F16), surface = Color(0xFF201B26), surfaceVariant = Color(0xFF362E40),
     outline = Color(0xFF4E4560),
 )
+// Sunflower: petal yellow + orange were already right; tertiary warmed
+// from a fairly neutral gold toward a huskier burnt-amber, closer to the
+// actual seed-head center's tone instead of just "darker yellow."
 private val SunflowerAccent = ColorAccent(
-    primary = Color(0xFFFFC940), secondary = Color(0xFFFF9E40), tertiary = Color(0xFFE0A800),
+    primary = Color(0xFFFFC940), secondary = Color(0xFFFF9E40), tertiary = Color(0xFFC9820A),
     background = Color(0xFF141008), surface = Color(0xFF231C10), surfaceVariant = Color(0xFF423420),
     outline = Color(0xFF5C4A2E),
 )
+// Lazulite (lapis lazuli, the mineral): gold tertiary for the stone's
+// characteristic pyrite flecks was already right; primary deepened from a
+// medium sky-blue to the mineral's actual deep ultramarine, promoting the
+// old primary to secondary - lapis is a DEEP blue stone, not a light one.
 private val LazuliteAccent = ColorAccent(
-    primary = Color(0xFF4C82E0), secondary = Color(0xFF6FA8DC), tertiary = Color(0xFFC9A84C),
+    primary = Color(0xFF1F4E8C), secondary = Color(0xFF4C82E0), tertiary = Color(0xFFC9A84C),
     background = Color(0xFF0A0F16), surface = Color(0xFF161F2B), surfaceVariant = Color(0xFF283246),
     outline = Color(0xFF3C4A60),
 )
