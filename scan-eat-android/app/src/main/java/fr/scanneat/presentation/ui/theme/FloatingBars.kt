@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -172,13 +173,12 @@ fun FloatingTopBar(
     actions: @Composable RowScope.() -> Unit = {},
     accent: Color = Color.White,
 ) {
-    // User-requested (Notebook theme): "remplace le header par un post-it
-    // avec trombone" - a yellow sticky note (near-square corners, opaque
-    // paper-note fill, no real backdrop blur - a post-it isn't glass) with
-    // a drawn paperclip overlapping its top-left corner, instead of the
-    // frosted-glass pill every other theme uses here.
     val isNotebook = LocalThemeName.current == "notebook"
-    val headerShape = if (isNotebook) RoundedCornerShape(4.dp) else RoundedCornerShape(CardRadius.PROMINENT)
+    if (isNotebook) {
+        NotebookCornerHeader(title, modifier, navigationIcon, hasNavigationIcon, actions)
+        return
+    }
+    val headerShape = RoundedCornerShape(CardRadius.PROMINENT)
     Box(
         modifier
             .fillMaxWidth()
@@ -187,38 +187,17 @@ fun FloatingTopBar(
             // and match MainShell's bottom nav margin exactly so the header's top
             // gap and the nav's bottom gap read as the same size.
             .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
-            .then(if (isNotebook) Modifier else Modifier.glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = accent)),
+            .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = accent),
     ) {
-        // User-requested: "ajoute une ombre blur en dessous du header" - a
-        // real Modifier.blur() soft shadow, same recipe CalorieBalanceCard.kt
-        // already uses for its own directional shadow, rather than relying
-        // only on Modifier.shadow's elevation shadow below (native elevation
-        // shadows render inconsistently soft across OEM skins - see the
-        // MIUI-observed-bug comment on the Surface itself).
-        if (isNotebook) {
-            Box(
-                Modifier
-                    .matchParentSize()
-                    .offset(y = 6.dp)
-                    .blur(12.dp)
-                    .background(ShadowTint.copy(alpha = 0.35f), headerShape),
-            )
-        }
         Surface(
             shape           = headerShape,
-            color           = if (isNotebook) NotebookPostItGold.copy(alpha = 0.95f) else Color.Transparent,
-            // MIUI-observed bug (see ScanEatCard.kt): ambientColor/spotColor-tinted
-            // Modifier.shadow renders as a solid, hard-edged grey rectangle instead
-            // of a soft shadow on some OEM skins. Reverted to the neutral default
-            // shadow color — Surface's own shadowElevation stays 0 so the two don't
-            // stack.
+            color           = Color.Transparent,
             shadowElevation = 0.dp,
             modifier        = Modifier
                 .fillMaxWidth()
-                .shadow(elevation = if (isNotebook) 3.dp else 8.dp, shape = headerShape)
+                .shadow(elevation = 8.dp, shape = headerShape)
                 .clip(headerShape)
-                .then(if (isNotebook) Modifier else Modifier.hazeEffect(state = hazeState, style = FrostedGlassStyle))
-                .then(if (isNotebook) Modifier.drawWithContent { drawContent(); drawNotebookPaperclip() } else Modifier),
+                .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {
             Row(
                 // User-reported: on tab-root screens (no back arrow), the leading
@@ -244,10 +223,71 @@ fun FloatingTopBar(
                     // pixel-for-pixel instead of approximating it.
                     Spacer(Modifier.width(Spacing.L))
                 }
-                Box(Modifier.weight(1f).notebookTextJitter()) {
+                Box(Modifier.weight(1f)) {
                     ProvideTextStyle(MaterialTheme.typography.titleLarge) { title() }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, content = actions)
+            }
+        }
+    }
+}
+
+/**
+ * Notebook theme's real header redesign. User-reported: "le header doit
+ * vraiment être un post-it en coin, pas juste un skin de l'ancien" - the
+ * previous version kept the full-width pill layout and only reskinned its
+ * fill/shadow, which never reads as an actual sticky note, just a bar
+ * wearing post-it colors. This instead shrinks the note to wrap only its
+ * title text, anchors it to the top-end corner (matching the reference
+ * mockup's corner-stuck note), rotates it a few degrees, and keeps the
+ * paperclip. A back arrow, when present, is a separate plain round button
+ * at the top-start corner - it was never part of the post-it in the
+ * reference either - and trailing actions render as their own small
+ * cluster next to the note rather than being squeezed inside it.
+ */
+@Composable
+private fun NotebookCornerHeader(
+    title: @Composable () -> Unit,
+    modifier: Modifier,
+    navigationIcon: @Composable () -> Unit,
+    hasNavigationIcon: Boolean,
+    actions: @Composable RowScope.() -> Unit,
+) {
+    val noteShape = RoundedCornerShape(2.dp)
+    val rotation = remember { (-4..4).random().toFloat() }
+    Box(
+        modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
+            .height(56.dp),
+    ) {
+        if (hasNavigationIcon) {
+            Box(
+                Modifier.align(Alignment.CenterStart).size(44.dp)
+                    .shadow(elevation = 2.dp, shape = androidx.compose.foundation.shape.CircleShape)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(NotebookPaper),
+                contentAlignment = Alignment.Center,
+            ) { navigationIcon() }
+        }
+        Row(
+            modifier          = Modifier.align(Alignment.CenterEnd),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(content = actions)
+            Spacer(Modifier.width(Spacing.XS))
+            Box(
+                Modifier
+                    .graphicsLayer { rotationZ = rotation }
+                    .shadow(elevation = 3.dp, shape = noteShape)
+                    .clip(noteShape)
+                    .background(NotebookPostItGold.copy(alpha = 0.97f))
+                    .drawWithContent { drawContent(); drawNotebookPaperclip() }
+                    .padding(horizontal = Spacing.M, vertical = Spacing.S),
+                contentAlignment = Alignment.Center,
+            ) {
+                ProvideTextStyle(MaterialTheme.typography.titleMedium) { title() }
             }
         }
     }
@@ -312,8 +352,20 @@ fun FloatingScreenScaffold(
             if (showBottomNavClearance) Modifier.fillMaxSize().hazeSource(bottomNavHazeState) else Modifier.fillMaxSize(),
         ) {
             Box(Modifier.fillMaxSize().hazeSource(headerHazeState)) {
+                // User-reported: "les card ne doivent pas être au dessus des
+                // trou de spirale" - ambientGloom()'s spiral-binding column
+                // (ringColumnWidth = 30.dp) sits at the screen's left edge
+                // as a background wash; content padded only for the header/
+                // nav previously started flush against that same edge, so
+                // cards drew straight over the holes/coil. Reserving that
+                // same width as a start inset here - the one place nearly
+                // every screen's content padding is computed - treats the
+                // spiral column as real page margin instead of decoration
+                // floating under the content.
+                val isNotebook = LocalThemeName.current == "notebook"
                 content(
                     PaddingValues(
+                        start  = if (isNotebook) 30.dp else 0.dp,
                         top    = topInset + FloatingTopBarHeight,
                         bottom = bottomInset + if (showBottomNavClearance) FloatingBottomNavHeight else 0.dp,
                     ),
