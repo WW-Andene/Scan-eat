@@ -4,6 +4,8 @@ import compose.icons.tablericons.History
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Search
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -105,25 +107,27 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(0.75f),
         )
-        Box(modifier = Modifier.glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f)) {
-            Surface(
-                shape = RoundedCornerShape(CardRadius.PROMINENT),
-                color = SurfaceVariant.copy(alpha = StandardCardAlpha),
-                modifier = Modifier
-                    .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
-                    .clip(RoundedCornerShape(CardRadius.PROMINENT))
-                    .combinedClickable(
-                        onClick = onClick,
-                        onLongClick = onLongClick,
-                        onLongClickLabel = multiHint,
-                    ),
-                shadowElevation = 0.dp,
-            ) {
-                Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Small))
-                    Spacer(Modifier.width(Spacing.S))
-                    Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
-                }
+        // User-reported: this used to be an outer Box(glassSheen's own clip)
+        // wrapping an inner Surface (its own separate shadow/clip) - two
+        // independently-clipped objects, the exact construction already fixed
+        // on ScanEatCard/FloatingTopBar/MainShell's nav/DiaryHeader/BioCard
+        // (see their own doc comments). Collapsed into one Box.
+        Box(
+            Modifier
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
+                .clip(RoundedCornerShape(CardRadius.PROMINENT))
+                .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(CardRadius.PROMINENT))
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                    onLongClickLabel = multiHint,
+                )
+                .glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f),
+        ) {
+            Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Small))
+                Spacer(Modifier.width(Spacing.S))
+                Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
             }
         }
     }
@@ -137,20 +141,19 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         recentBarcodes.takeLast(3).reversed().forEach { bc ->
-            Box(Modifier.glassSheen(edgeAlpha = 0.12f, shape = RoundedCornerShape(20.dp), glowAlpha = 0f, reliefAlpha = 0f)) {
-                Surface(
-                    onClick = { onQuickScan(bc) },
-                    shape = RoundedCornerShape(20.dp),
-                    color = SurfaceVariant.copy(alpha = StandardCardAlpha),
-                    modifier = Modifier
-                        .shadow(elevation = 3.dp, shape = RoundedCornerShape(20.dp))
-                        .clip(RoundedCornerShape(20.dp)),
-                    shadowElevation = 0.dp,
-                ) {
-                    Row(Modifier.padding(horizontal = Spacing.SM, vertical = Spacing.XS), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        Icon(TablerIcons.History, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Micro))
-                        Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
-                    }
+            // User-reported: same two-layer construction already fixed elsewhere
+            // (see ScanIdentifyFoodAction's own comment above) - collapsed into one Box.
+            Box(
+                Modifier
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(20.dp))
+                    .clickable { onQuickScan(bc) }
+                    .glassSheen(edgeAlpha = 0.12f, shape = RoundedCornerShape(20.dp), glowAlpha = 0f, reliefAlpha = 0f),
+            ) {
+                Row(Modifier.padding(horizontal = Spacing.SM, vertical = Spacing.XS), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    Icon(TablerIcons.History, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Micro))
+                    Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
                 }
             }
         }

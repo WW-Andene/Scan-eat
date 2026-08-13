@@ -34,7 +34,10 @@ internal fun HistoryTopScannedRow(topScanned: List<Triple<String, Int, Long>>, o
                 shadowElevation = 0.dp,
             ) {
                 Column(
-                    modifier = Modifier.padding(Spacing.S),
+                    // fillMaxWidth() - without it this Column only wraps its widest
+                    // child, so horizontalAlignment had nothing to actually center
+                    // against (same bug class as ScanEatCard's FeatureTile fix).
+                    modifier = Modifier.fillMaxWidth().padding(Spacing.S),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(

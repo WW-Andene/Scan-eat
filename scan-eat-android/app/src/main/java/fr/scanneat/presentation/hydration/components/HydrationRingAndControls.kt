@@ -110,18 +110,19 @@ internal fun HydrationRingAndControls(
     }
 
     if (pct >= 1f) {
-        Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
-            Surface(
-                shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticGreen().copy(0.15f),
-                modifier = Modifier
-                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
-                    .clip(RoundedCornerShape(CardRadius.CONTROL)),
-                shadowElevation = 0.dp,
-            ) {
-                Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
-                    Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())
-                }
+        // User-reported: same two-layer Box(glassSheen)+Surface(shadow/clip)
+        // construction already fixed elsewhere (see ScanActionControls.kt's
+        // own comment) - collapsed into one Box.
+        Box(
+            Modifier
+                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                .clip(RoundedCornerShape(CardRadius.CONTROL))
+                .background(semanticGreen().copy(0.15f), RoundedCornerShape(CardRadius.CONTROL))
+                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL)),
+        ) {
+            Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
+                Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())
             }
         }
     }

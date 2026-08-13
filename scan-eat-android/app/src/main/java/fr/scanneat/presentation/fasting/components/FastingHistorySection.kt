@@ -155,7 +155,10 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: St
         color = SurfaceVariant.copy(alpha = StandardCardAlpha),
                 shadowElevation = 0.dp,
             ) {
-                Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
+                // fillMaxWidth() - without it this Column only wraps its widest
+                // child, so horizontalAlignment had nothing to actually center
+                // against (same bug class as ScanEatCard's FeatureTile fix).
+                Column(modifier = Modifier.fillMaxWidth().padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(value, style = MaterialTheme.typography.titleSmall, color = AccentCoral, fontWeight = FontWeight.Bold)
                     Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 }

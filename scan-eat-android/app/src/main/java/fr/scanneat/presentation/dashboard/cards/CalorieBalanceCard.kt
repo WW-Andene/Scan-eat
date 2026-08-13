@@ -50,23 +50,32 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
     LaunchedEffect(Unit) { started = true }
     val entrance = rememberHeroEntrance(visible = started)
 
-    // Outer wrapper carries NO clip of its own — glassSheen()'s clip(shape) is
-    // scoped to the inner Box below, so the streak badge (a sibling of that
-    // inner Box, not a child inside it) can poke above the card's top edge via
-    // its negative Y offset instead of being clipped off at the card boundary
-    // it used to sit inside of.
+    // Outer wrapper carries NO clip of its own — the inner Box below owns the
+    // one real clip, so the streak badge (a sibling of that inner Box, not a
+    // child inside it) can poke above the card's top edge via its negative Y
+    // offset instead of being clipped off at the card boundary it used to sit
+    // inside of.
     Box {
+    // User-reported: this used to be an outer Box(glassSheen's own clip) wrapping
+    // an inner Surface (its own separate shadow/clip) - two independently-clipped
+    // objects, the exact construction already fixed on ScanEatCard/FloatingTopBar/
+    // MainShell's nav/DiaryHeader (see their own doc comments). Collapsed into one
+    // Box carrying shadow, clip, and the glassSheen hairline in a single chain.
     Box(
-        modifier = Modifier.fillMaxWidth().glassSheen(
-            edgeAlpha = HeroGlassSpec.edgeAlpha,
-            shape     = RoundedCornerShape(CardRadius.PROMINENT),
-            glowTint  = balColor,
-            glowAlpha = HeroGlassSpec.glowAlpha,
-        ),
+        modifier = Modifier.fillMaxWidth()
+            .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
+            .clip(RoundedCornerShape(CardRadius.PROMINENT))
+            .glassSheen(
+                edgeAlpha = HeroGlassSpec.edgeAlpha,
+                shape     = RoundedCornerShape(CardRadius.PROMINENT),
+                glowTint  = balColor,
+                glowAlpha = HeroGlassSpec.glowAlpha,
+            ),
     ) {
         // Same directional shadow treatment as ScanEatCard (see its own doc
-        // comment) - offset toward the bottom-left, drawn behind the Surface
-        // rather than Modifier.shadow's symmetric elevation shadow below.
+        // comment) - offset toward the bottom-left, drawn behind the rest of
+        // this Box's content rather than Modifier.shadow's symmetric elevation
+        // shadow above.
         Box(
             Modifier
                 .matchParentSize()
@@ -78,24 +87,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         // fix: a soft radial light-pool in the balance color, at Haze-level
         // intensity (~10% alpha), rendered on top of the flat surface fill
         // rather than left flat. Reserved for this card alone, not every card.
-        Surface(
-            // User-reported "rectangle" bug: this Surface had no explicit .clip() and
-            // an untinted shadowElevation — the same MIUI/Xiaomi flat-square-corner
-            // bug ScanEatCard.kt's own comment documents and fixes. Matched here:
-            // tinted Modifier.shadow + forced .clip() + shadowElevation = 0.dp.
-            modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
-                .clip(RoundedCornerShape(CardRadius.PROMINENT)),
-            shape = RoundedCornerShape(CardRadius.PROMINENT),
-            color = Color.Transparent,
-            // design-aesthetic-audit §DH: this card already declares itself
-            // HERO tier via HeroGlassSpec's edge/glow/border above (it's the
-            // Dashboard's one focal metric per the doc comment below). 10dp matches
-            // HeroGlassSpec's own elevation tier from ScanEatCard, so this card
-            // actually reads as more prominent than an ordinary card, not equal to
-            // or flatter than one — now drawn via the tinted Modifier.shadow above.
-            shadowElevation = 0.dp,
-        ) {
+        run {
             // Wrapping Box (not fillMaxSize/matchParentSize on its own) so it
             // sizes to its content like Surface previously did directly, while
             // giving the nested blurred-fill Box below a BoxScope to resolve

@@ -119,18 +119,16 @@ internal fun BoxScope.ScanHeaderBar(
 
 @Composable
 internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPreview: ScanResult?, warning: String? = null) {
+    // User-reported: same two-layer Box(glassSheen)+Surface(shadow/clip)
+    // construction already fixed elsewhere (see ScanActionControls.kt's own
+    // comment) - collapsed into one Box.
     Box(
         modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + Spacing.XXL * 3)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(24.dp))
+            .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(24.dp))
             .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
     ) {
-        Surface(
-            modifier = Modifier
-                .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp))
-                .clip(RoundedCornerShape(24.dp)),
-            shape = RoundedCornerShape(24.dp),
-            color = SurfaceVariant.copy(alpha = StandardCardAlpha),
-            shadowElevation = 0.dp,
-        ) {
             Column {
                 Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                     Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
@@ -174,7 +172,6 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
                     }
                 }
             }
-        }
     }
 }
 

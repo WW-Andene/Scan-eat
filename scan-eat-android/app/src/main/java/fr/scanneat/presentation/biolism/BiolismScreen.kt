@@ -105,7 +105,12 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
         // chrome (FloatingTopBar/MainShell's nav), in Biolism's own Gold accent
         // rather than the shared AccentCoral, so it stays recognizably Biolism's
         // own header instead of borrowing Scan'eat's exact component. ──
-        Box(
+        // User-reported: matches DiaryHeader's identical fix - this used to be
+        // an outer Box(glassSheen's own clip) wrapping an inner Surface (its
+        // own separate shadow/clip/hazeEffect), the exact construction already
+        // fixed on FloatingTopBar/ScanEatCard/MainShell's nav/DiaryHeader (see
+        // their own doc comments). Collapsed into a single Column.
+        Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
@@ -116,23 +121,10 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                 // Spacing.S margin, the inverse of the 1(sides):2(top/bottom) ratio
                 // FloatingTopBar's own doc comment establishes as this app's standard.
                 .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
-                .glassSheen(edgeAlpha = 0.26f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = Gold, glowAlpha = 0.06f),
-        ) {
-        Surface(
-            shape           = RoundedCornerShape(CardRadius.PROMINENT),
-            color           = Color.Transparent,
-            // User-reported: this header used an untinted shadowElevation while
-            // FloatingTopBar/ScanEatCard/MainShell's nav all moved to a tinted
-            // Modifier.shadow — standardized here too.
-            shadowElevation = 0.dp,
-            modifier        = Modifier
-                .fillMaxWidth()
                 .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
-                .hazeEffect(state = hazeState, style = FrostedGlassStyle),
-        ) {
-        Column(
-            modifier = Modifier
+                .hazeEffect(state = hazeState, style = FrostedGlassStyle)
+                .glassSheen(edgeAlpha = 0.26f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = Gold, glowAlpha = 0.06f)
                 .padding(horizontal = Spacing.L)
                 .padding(top = Spacing.M, bottom = Spacing.S),
         ) {
@@ -174,8 +166,6 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                     }
                 }
             }
-        }
-        }
         }
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -85,8 +86,26 @@ internal fun BioCard(
     // User-reported: "pourquoi les carte ne sont pas transparentes" (Prism
     // theme) - see ScanEatCard.kt's own doc comment on the same fix.
     val isPrism = LocalThemeName.current == "prism"
+    // User-reported: this used to be an outer Box(glassSheen's own clip) wrapping
+    // an inner Surface (its own separate shadow/clip/background/border) - two
+    // independently-clipped objects, the exact construction already fixed on
+    // ScanEatCard/FloatingTopBar/MainShell's nav/DiaryHeader/CalorieBalanceCard
+    // (see their own doc comments). Collapsed into one Box carrying shadow,
+    // clip, background, border, and the glassSheen hairline in a single chain.
     Box(
         Modifier.fillMaxWidth()
+            .shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = cardShape)
+            .clip(cardShape)
+            // design-aesthetic-audit: same fix as ScanEatCard.kt - SurfaceVariant sits
+            // only ~1-3 RGB units from Background in Light theme, so this fill was
+            // imperceptible there, leaving only the shadow visible as a disconnected
+            // rectangle instead of a filled card.
+            // User-requested: same card-glass style app-wide - PrismFillColor
+            // instead of a separately-tuned Color.Transparent here.
+            .background(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f), cardShape)
+            .then(
+                if (emphasized) Modifier.border(BorderStroke(1.dp, Gold.copy(alpha = 0.22f)), cardShape) else Modifier
+            )
             .glassSheen(
                 edgeAlpha = if (emphasized) 0.34f else 0.16f,
                 shape = cardShape,
@@ -94,25 +113,6 @@ internal fun BioCard(
                 glowAlpha = if (emphasized) 0.12f else 0.06f,
             ),
     ) {
-        Surface(
-            shape = cardShape,
-            // design-aesthetic-audit: same fix as ScanEatCard.kt - SurfaceVariant sits
-            // only ~1-3 RGB units from Background in Light theme, so this fill was
-            // imperceptible there, leaving only the shadow visible as a disconnected
-            // rectangle instead of a filled card.
-            // User-requested: same card-glass style app-wide - PrismFillColor
-            // instead of a separately-tuned Color.Transparent here.
-            color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
-            border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
-            // same fix as ScanEatCard.kt: force the fill to hard-clip to its own shape
-            // instead of relying on Surface's implicit clip, which doesn't reliably
-            // match the shadow's rounded outline on every rendering path. Shadow also
-            // now tinted (Modifier.shadow) instead of Surface's untinted shadowElevation.
-            modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = cardShape)
-                .clip(cardShape),
-            shadowElevation = 0.dp,
-        ) {
             Column(Modifier.padding(Spacing.L)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable { open = !open }
@@ -141,6 +141,5 @@ internal fun BioCard(
                     Column(Modifier.padding(top = Spacing.S), content = content)
                 }
             }
-        }
     }
 }
