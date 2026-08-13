@@ -1376,7 +1376,7 @@
     <string name="settings_section_language">Langue</string>
     <string name="settings_lang_fr">Français</string>
     <string name="settings_lang_en">English</string>
-    <string name="settings_section_theme">Affichage</string>
+    <string name="settings_section_theme">Thème</string>
     <string name="settings_section_color">Couleur</string>
     <string name="settings_section_notebook_font">Police du thème Carnet</string>
     <string name="settings_notebook_font_caveat">Caveat</string>
