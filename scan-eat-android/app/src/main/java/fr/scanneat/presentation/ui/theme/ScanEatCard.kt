@@ -16,16 +16,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
 
@@ -120,39 +120,49 @@ internal fun rememberNotebookPostItStyle(baseShape: Shape): NotebookPostItStyle?
 internal data class NotebookPostItStyle(val color: Color, val shape: Shape, val rotationDegrees: Float)
 
 /**
- * Draws a hand-sketched rounded-rectangle outline instead of a filled
- * shape - two slightly-offset overlapping passes of a jittered path, the
- * same "visible individual strokes, not a perfectly clean line" idea
- * [WeeklyBarsCard]'s crayon bars and [drawCrayonRing] use elsewhere in this
- * theme. `seed` should be stable across recompositions for the same card
- * instance (pass a `remember`-ed value) so the sketch doesn't redraw itself
- * differently on every frame.
+ * Draws a hand-sketched rounded-rectangle outline using a real scanned
+ * pen-drawn box asset (`R.drawable.notebook_pen_box`, cropped from a
+ * user-supplied hand-drawn doodle pack and thresholded to an ink-alpha
+ * PNG) instead of a procedurally-jittered path. User-reported: "le stylo
+ * n'a aucune texture, aucune irrégularités, et les case trop parfaite" -
+ * the old two-pass whole-path-translate sketch moved the same perfectly
+ * smooth rounded-rect outline a pixel or two, which reads as jittered but
+ * never as an actual pen stroke (no varying line weight, no real wobble). This
+ * stretches the real asset - which has genuine pressure variation and
+ * hand wobble baked in - to the card's bounds and tints it per-card via
+ * [color], with a second smaller/rotated copy layered underneath for
+ * depth. `seed` picks the second copy's jitter/rotation so it stays
+ * stable across recompositions for the same card instance.
  */
-fun Modifier.notebookPenBorder(color: Color, seed: Int, strokeWidth: Dp = 2.dp): Modifier = this.drawWithCache {
-    // Resolved against this draw scope's own density (not a hardcoded
-    // Density elsewhere) so the stroke is the same physical width on every
-    // device rather than a fixed raw-pixel count.
-    val strokeWidthPx = strokeWidth.toPx()
-    val cornerPx = 6.dp.toPx()
-    fun sketchPath(rng: Random, jitter: Float): Path {
-        val rect = Rect(0f, 0f, size.width, size.height)
-        return Path().apply {
-            addRoundRect(androidx.compose.ui.geometry.RoundRect(rect, CornerRadius(cornerPx, cornerPx)))
-        }.let { base ->
-            // Slight whole-path jitter (translate a hair) rather than a true
-            // per-point wobble - cheap, and reads as a second pen pass at
-            // this stroke width/card size.
-            Path().apply {
-                addPath(base, Offset((rng.nextFloat() - 0.5f) * jitter, (rng.nextFloat() - 0.5f) * jitter))
-            }
-        }
+@Composable
+fun Modifier.notebookPenBorder(color: Color, seed: Int, strokeWidth: Dp = 2.dp): Modifier {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val boxBitmap = remember {
+        android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.notebook_pen_box)
+            .asImageBitmap()
     }
-    onDrawWithContent {
+    val rng = remember(seed) { Random(seed) }
+    val backRotation = remember(seed) { (rng.nextFloat() - 0.5f) * 3f }
+    val backInsetPx = with(androidx.compose.ui.platform.LocalDensity.current) { 3.dp.toPx() }
+    return this.drawWithContent {
         drawContent()
-        val rng1 = Random(seed)
-        val rng2 = Random(seed * 31 + 7)
-        drawPath(sketchPath(rng1, strokeWidthPx * 0.6f), color = color.copy(alpha = 0.8f), style = Stroke(width = strokeWidthPx))
-        drawPath(sketchPath(rng2, strokeWidthPx * 0.6f), color = color.copy(alpha = 0.5f), style = Stroke(width = strokeWidthPx * 0.8f))
+        // Second, slightly smaller/rotated pass underneath reads as a
+        // "second pen pass" the same way the old two-path version did,
+        // now carrying real ink texture instead of a clean line twice.
+        rotate(degrees = backRotation, pivot = center) {
+            drawImage(
+                image = boxBitmap,
+                dstOffset = IntOffset(backInsetPx.toInt(), backInsetPx.toInt()),
+                dstSize = IntSize((size.width - backInsetPx * 2).toInt().coerceAtLeast(1), (size.height - backInsetPx * 2).toInt().coerceAtLeast(1)),
+                colorFilter = ColorFilter.tint(color.copy(alpha = 0.35f), BlendMode.SrcIn),
+            )
+        }
+        drawImage(
+            image = boxBitmap,
+            dstOffset = IntOffset.Zero,
+            dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+            colorFilter = ColorFilter.tint(color.copy(alpha = 0.85f), BlendMode.SrcIn),
+        )
     }
 }
 
