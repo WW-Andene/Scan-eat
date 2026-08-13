@@ -34,16 +34,25 @@ class ServerScanApiProvider @Inject constructor(
             "Server URL must use https:// for non-local hosts: $baseUrl"
         }
         val normUrl = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
-        if (api == null || url != normUrl) {
-            api = Retrofit.Builder()
-                .baseUrl(normUrl)
-                .client(okHttpClient)          // safe: directly injected OkHttpClient
-                .addConverterFactory(MoshiConverterFactory.create(moshi))
-                .build()
-                .create(ServerScanApi::class.java)
-            url = normUrl
+        // code-audit §D6: this check-then-act was unsynchronized - two
+        // concurrent get() calls racing a just-changed base URL (e.g. the
+        // user edits the server URL in Settings while a request is in
+        // flight) could both pass the null/mismatch check and both build a
+        // Retrofit instance, with the loser's write silently discarded.
+        // Synchronized since this is a rarely-called singleton - negligible
+        // cost, removes the race entirely.
+        synchronized(this) {
+            if (api == null || url != normUrl) {
+                api = Retrofit.Builder()
+                    .baseUrl(normUrl)
+                    .client(okHttpClient)          // safe: directly injected OkHttpClient
+                    .addConverterFactory(MoshiConverterFactory.create(moshi))
+                    .build()
+                    .create(ServerScanApi::class.java)
+                url = normUrl
+            }
+            return api!!
         }
-        return api!!
     }
 
     private fun isPrivateOrLocalHttp(baseUrl: String): Boolean {

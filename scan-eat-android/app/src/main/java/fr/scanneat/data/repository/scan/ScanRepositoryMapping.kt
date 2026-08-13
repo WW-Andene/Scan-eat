@@ -20,8 +20,11 @@ internal fun mapScanHistoryEntity(
     warningsAdapter: JsonAdapter<List<String>>,
 ): ScanResult? = runCatching {
     ScanResult(
-        product  = productAdapter.fromJson(entity.productJson)!!,
-        audit    = auditAdapter.fromJson(entity.auditJson)!!,
+        // code-audit §D5/D6: was bare !! - both failures were already caught
+        // and logged by the .onFailure below either way, but a bare NPE gave
+        // no hint which field was corrupt; error() names it explicitly.
+        product  = productAdapter.fromJson(entity.productJson) ?: error("productJson corrupt for id=${entity.id}"),
+        audit    = auditAdapter.fromJson(entity.auditJson) ?: error("auditJson corrupt for id=${entity.id}"),
         warnings = warningsAdapter.fromJson(entity.warningsJson) ?: emptyList(),
         source   = ScanSource.valueOf(entity.sourceJson),
         barcode   = entity.barcode,
