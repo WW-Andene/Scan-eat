@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -138,6 +139,7 @@ fun ScanEatCard(
     color: Color = SurfaceVariant.copy(alpha = StandardCardAlpha),
     contentPadding: PaddingValues = PaddingValues(Spacing.L),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,
     accent: Color = Color.White,
     onClick: (() -> Unit)? = null,
@@ -205,6 +207,7 @@ fun ScanEatCard(
         Column(
             Modifier.padding(contentPadding),
             verticalArrangement = verticalArrangement,
+            horizontalAlignment = horizontalAlignment,
             content = content,
         )
     }

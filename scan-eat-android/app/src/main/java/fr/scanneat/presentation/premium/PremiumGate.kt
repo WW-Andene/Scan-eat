@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,11 +56,16 @@ fun PremiumGate(
         // never picked up the "Fond animé" setting either. Also registers
         // MainShell's bottomNavHazeState (same fix as BiolismScreen/ScanScreen)
         // so the floating bottom nav's glass chrome has something to blur here too.
+        // User-reported: the message lost its vertical centering once wrapped in
+        // this Box - Box defaults to top-start alignment for its children, and
+        // EmptyListState only fills its own content width/height (it doesn't
+        // fillMaxSize itself), so it pinned to the top instead.
         val bottomNavHazeState = LocalBottomNavHazeState.current
         Box(
             Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
                 .hazeSource(bottomNavHazeState),
+            contentAlignment = Alignment.Center,
         ) {
             EmptyListState(
                 icon = Icons.Default.WorkspacePremium,
