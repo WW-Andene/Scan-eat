@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -119,26 +120,41 @@ internal fun rememberNotebookPostItStyle(baseShape: Shape): NotebookPostItStyle?
 }
 internal data class NotebookPostItStyle(val color: Color, val shape: Shape, val rotationDegrees: Float)
 
+/** Which real pen-drawn box asset [Modifier.notebookPenBorder] stretches over a card. */
+enum class NotebookBoxAsset { LARGE, SMALL }
+
 /**
  * Draws a hand-sketched rounded-rectangle outline using a real scanned
- * pen-drawn box asset (`R.drawable.notebook_pen_box`, cropped from a
- * user-supplied hand-drawn doodle pack and thresholded to an ink-alpha
- * PNG) instead of a procedurally-jittered path. User-reported: "le stylo
- * n'a aucune texture, aucune irrégularités, et les case trop parfaite" -
- * the old two-pass whole-path-translate sketch moved the same perfectly
- * smooth rounded-rect outline a pixel or two, which reads as jittered but
- * never as an actual pen stroke (no varying line weight, no real wobble). This
- * stretches the real asset - which has genuine pressure variation and
- * hand wobble baked in - to the card's bounds and tints it per-card via
- * [color], with a second smaller/rotated copy layered underneath for
- * depth. `seed` picks the second copy's jitter/rotation so it stays
- * stable across recompositions for the same card instance.
+ * pen-drawn box asset (cropped from a user-supplied hand-drawn doodle pack
+ * and thresholded to an ink-alpha PNG) instead of a procedurally-jittered
+ * path. User-reported: "le stylo n'a aucune texture, aucune irrégularités,
+ * et les case trop parfaite" - the old two-pass whole-path-translate
+ * sketch moved the same perfectly smooth rounded-rect outline a pixel or
+ * two, which reads as jittered but never as an actual pen stroke (no
+ * varying line weight, no real wobble). This stretches the real asset -
+ * which has genuine pressure variation and hand wobble baked in - to the
+ * card's bounds and tints it per-card via [color], with a second
+ * smaller/rotated copy layered underneath for depth. `seed` picks the
+ * second copy's jitter/rotation so it stays stable across recompositions
+ * for the same card instance.
+ *
+ * User-requested two distinct source doodles depending on card size: the
+ * wide double-line box (`notebook_pen_box_large`) for full-width cards
+ * ([ScanEatCard]/BioCard), and the tighter, more square scribble box
+ * (`notebook_pen_box_small`) for square-ish tiles ([FeatureTile]) - each
+ * doodle's own proportions and line character were drawn for that shape,
+ * so stretching the wide one over a square tile (or vice versa) distorts
+ * the linework rather than just resizing it.
  */
 @Composable
-fun Modifier.notebookPenBorder(color: Color, seed: Int, strokeWidth: Dp = 2.dp): Modifier {
+fun Modifier.notebookPenBorder(color: Color, seed: Int, strokeWidth: Dp = 2.dp, asset: NotebookBoxAsset = NotebookBoxAsset.LARGE): Modifier {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val boxBitmap = remember {
-        android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.notebook_pen_box)
+    val assetRes = when (asset) {
+        NotebookBoxAsset.LARGE -> fr.scanneat.R.drawable.notebook_pen_box_large
+        NotebookBoxAsset.SMALL -> fr.scanneat.R.drawable.notebook_pen_box_small
+    }
+    val boxBitmap = remember(assetRes) {
+        android.graphics.BitmapFactory.decodeResource(context.resources, assetRes)
             .asImageBitmap()
     }
     val rng = remember(seed) { Random(seed) }

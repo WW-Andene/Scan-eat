@@ -48,7 +48,7 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
             .glassSheen(edgeAlpha = if (postIt != null) 0f else 0.16f, shape = tileShape, glowAlpha = if (postIt != null) 0f else 0.06f)
             .shadow(elevation = if (postIt != null) 1.dp else 3.dp, shape = tileShape)
             .clip(tileShape)
-            .then(if (postIt != null) Modifier.notebookPenBorder(postIt.color, sketchSeed) else Modifier),
+            .then(if (postIt != null) Modifier.notebookPenBorder(postIt.color, sketchSeed, asset = fr.scanneat.presentation.ui.theme.NotebookBoxAsset.SMALL) else Modifier),
         shape = tileShape,
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
         color = if (postIt != null) NotebookPaper.copy(alpha = 0.4f) else SurfaceVariant.copy(alpha = StandardCardAlpha),
