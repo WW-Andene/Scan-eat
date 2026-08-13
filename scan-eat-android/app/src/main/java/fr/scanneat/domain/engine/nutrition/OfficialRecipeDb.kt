@@ -24,14 +24,27 @@ package fr.scanneat.domain.engine.nutrition
 
 data class OfficialRecipeIngredient(val foodName: String, val grams: Double)
 
+// code-audit §D3: lookup() used to linearly scan FOOD_DB per call, and it's
+// called once per ingredient for each of 8 separate total*/get() properties
+// below - RecipesViewModel's official-recipe sort re-triggers all of them on
+// every recomposition. FoodDb.kt already solved this exact problem for its
+// own search index (NORMALIZED_FOOD_DB); this reuses the same idea, a plain
+// case-insensitive Map built once and shared by every OfficialRecipe
+// instance. putIfAbsent (not associateBy, which keeps the LAST duplicate)
+// preserves firstOrNull's original "first match wins" semantics exactly.
+private val FOOD_DB_BY_NAME: Map<String, FoodEntry> by lazy {
+    val map = LinkedHashMap<String, FoodEntry>()
+    for (entry in FOOD_DB) map.putIfAbsent(entry.name.lowercase(), entry)
+    map
+}
+
 data class OfficialRecipe(
     val nameFr: String,
     val nameEn: String,
     val ingredients: List<OfficialRecipeIngredient>,
     val mealType: String, // "breakfast" | "lunch_dinner" | "snack"
 ) {
-    private fun lookup(foodName: String): FoodEntry? =
-        FOOD_DB.firstOrNull { it.name.equals(foodName, ignoreCase = true) }
+    private fun lookup(foodName: String): FoodEntry? = FOOD_DB_BY_NAME[foodName.lowercase()]
 
     val totalGrams: Double get() = ingredients.sumOf { it.grams }
 
