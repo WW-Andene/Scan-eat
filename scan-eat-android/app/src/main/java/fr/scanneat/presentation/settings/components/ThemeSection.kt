@@ -73,6 +73,40 @@ internal fun ThemeSection(
 }
 
 /**
+ * Notebook theme's own display-font choice - only rendered by the caller
+ * when `theme == "notebook"` (this section is meaningless for every other
+ * theme, which doesn't use a decorative display font at all). Kept to fonts
+ * with a confirmed, unambiguous commercial license (Caveat: Google Fonts/
+ * SIL OFL; Mayonice and Foxlite Script: Khurasan, "free for personal &
+ * commercial use" confirmed in writing) - several other candidate
+ * handwriting fonts the user supplied were excluded pending a license
+ * decision (see Theme.kt's own history/commit notes), so this list is
+ * deliberately short rather than including every font on hand.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun NotebookFontSection(notebookFont: String, onNotebookFontChange: (String) -> Unit) {
+    SettingsSection(stringResource(R.string.settings_section_notebook_font), icon = Icons.Default.Palette) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            listOf(
+                "caveat" to stringResource(R.string.settings_notebook_font_caveat),
+                "mayonice" to stringResource(R.string.settings_notebook_font_mayonice),
+                "foxlite" to stringResource(R.string.settings_notebook_font_foxlite),
+            ).forEach { (key, label) ->
+                FilterChip(
+                    selected = notebookFont == key,
+                    onClick  = { onNotebookFontChange(key) },
+                    label    = { Text(label, maxLines = 1) },
+                    colors   = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                    ),
+                )
+            }
+        }
+    }
+}
+
+/**
  * Color accent — independent from [ThemeSection]'s brightness/contrast choice
  * above (see Theme.kt's ColorAccent doc comment for why). Any accent can be
  * combined with any theme, including OLED's true-black background.

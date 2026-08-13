@@ -46,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -64,6 +65,7 @@ import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
+import fr.scanneat.presentation.ui.theme.LocalThemeName
 
 @Composable
 internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit, onDuplicate: () -> Unit, onEditIngredients: () -> Unit) {
@@ -86,11 +88,22 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
             IconButton(onClick = onToggleFavorite) {
                 // F32: Tabler has no Star/StarBorder filled/outline pair — tint alone
                 // (already the case here) carries the on/off favorite state.
-                Icon(
-                    TablerIcons.Star,
-                    stringResource(if (recipe.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
-                    tint = if (recipe.favorite) Gold else OnSurface.copy(0.3f),
-                )
+                // Notebook theme: user-supplied doodle star (Vecteezy, Free
+                // License - attribution in Settings > About > Licenses).
+                if (LocalThemeName.current == "notebook") {
+                    Icon(
+                        painterResource(R.drawable.doodle_star),
+                        stringResource(if (recipe.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                        tint = if (recipe.favorite) Gold else OnSurface.copy(0.3f),
+                        modifier = Modifier.size(20.dp),
+                    )
+                } else {
+                    Icon(
+                        TablerIcons.Star,
+                        stringResource(if (recipe.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                        tint = if (recipe.favorite) Gold else OnSurface.copy(0.3f),
+                    )
+                }
             }
             // The "💡" hint panel was previously reachable only from a scanned
             // product's Result screen - a saved Recipe carries the exact same

@@ -1316,6 +1316,10 @@
     <string name="settings_lang_en">English</string>
     <string name="settings_section_theme">Display</string>
     <string name="settings_section_color">Color</string>
+    <string name="settings_section_notebook_font">Notebook theme font</string>
+    <string name="settings_notebook_font_caveat">Caveat</string>
+    <string name="settings_notebook_font_mayonice">Mayonice</string>
+    <string name="settings_notebook_font_foxlite">Foxlite Script</string>
     <string name="settings_color_none">None</string>
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_oled">OLED</string>

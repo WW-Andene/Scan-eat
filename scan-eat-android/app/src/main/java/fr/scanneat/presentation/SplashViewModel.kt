@@ -30,6 +30,8 @@ class SplashViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "dark")
     val colorAccent: StateFlow<String> = prefs.colorAccent
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
+    val notebookFont: StateFlow<String> = prefs.notebookFont
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "caveat")
     val dyslexicFont: StateFlow<Boolean> = prefs.dyslexicFont
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val colorblindMode: StateFlow<String> = prefs.colorblindMode

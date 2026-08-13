@@ -341,17 +341,32 @@ private val OpenDyslexicFontFamily = FontFamily(
 // handwritten-style title over typeset body text, not handwriting
 // throughout.
 private val CaveatFontFamily = FontFamily(Font(R.font.caveat, FontWeight.Normal))
-private fun Typography.withNotebookDisplayFont(): Typography = copy(
-    displayLarge   = displayLarge.copy(fontFamily = CaveatFontFamily, fontSize = displayLarge.fontSize * 1.15f),
-    displayMedium  = displayMedium.copy(fontFamily = CaveatFontFamily, fontSize = displayMedium.fontSize * 1.15f),
-    displaySmall   = displaySmall.copy(fontFamily = CaveatFontFamily, fontSize = displaySmall.fontSize * 1.15f),
-    headlineLarge  = headlineLarge.copy(fontFamily = CaveatFontFamily, fontSize = headlineLarge.fontSize * 1.15f),
-    headlineMedium = headlineMedium.copy(fontFamily = CaveatFontFamily, fontSize = headlineMedium.fontSize * 1.15f),
-    headlineSmall  = headlineSmall.copy(fontFamily = CaveatFontFamily, fontSize = headlineSmall.fontSize * 1.15f),
-    titleLarge     = titleLarge.copy(fontFamily = CaveatFontFamily, fontSize = titleLarge.fontSize * 1.1f),
-    titleMedium    = titleMedium.copy(fontFamily = CaveatFontFamily, fontSize = titleMedium.fontSize * 1.1f),
-    titleSmall     = titleSmall.copy(fontFamily = CaveatFontFamily, fontSize = titleSmall.fontSize * 1.1f),
-)
+// Both confirmed free for personal AND commercial use in writing by their
+// author (Khurasan) at download time - see AboutSection.kt's OSS_LIBRARIES
+// entries for these two. Several other candidate handwriting fonts the user
+// supplied were deliberately excluded (no confirmed commercial license),
+// same reasoning "Rainy Calm" was excluded for earlier in this theme's
+// history.
+private val MayoniceFontFamily = FontFamily(Font(R.font.mayonice, FontWeight.Normal))
+private val FoxliteFontFamily  = FontFamily(Font(R.font.foxlite_script, FontWeight.Normal))
+private fun Typography.withNotebookDisplayFont(fontChoice: String): Typography {
+    val family = when (fontChoice) {
+        "mayonice" -> MayoniceFontFamily
+        "foxlite"  -> FoxliteFontFamily
+        else       -> CaveatFontFamily
+    }
+    return copy(
+        displayLarge   = displayLarge.copy(fontFamily = family, fontSize = displayLarge.fontSize * 1.15f),
+        displayMedium  = displayMedium.copy(fontFamily = family, fontSize = displayMedium.fontSize * 1.15f),
+        displaySmall   = displaySmall.copy(fontFamily = family, fontSize = displaySmall.fontSize * 1.15f),
+        headlineLarge  = headlineLarge.copy(fontFamily = family, fontSize = headlineLarge.fontSize * 1.15f),
+        headlineMedium = headlineMedium.copy(fontFamily = family, fontSize = headlineMedium.fontSize * 1.15f),
+        headlineSmall  = headlineSmall.copy(fontFamily = family, fontSize = headlineSmall.fontSize * 1.15f),
+        titleLarge     = titleLarge.copy(fontFamily = family, fontSize = titleLarge.fontSize * 1.1f),
+        titleMedium    = titleMedium.copy(fontFamily = family, fontSize = titleMedium.fontSize * 1.1f),
+        titleSmall     = titleSmall.copy(fontFamily = family, fontSize = titleSmall.fontSize * 1.1f),
+    )
+}
 
 /**
  * Real typeface swap plus wider letter/word spacing and taller lines — all
@@ -406,6 +421,10 @@ fun ScanEatTheme(
     dyslexicFont: Boolean = false,
     colorblindMode: String = "none",
     animatedBackground: Boolean = false,
+    // "caveat" | "mayonice" | "foxlite" - only read when theme == "notebook";
+    // ignored otherwise. See NotebookFontSection.kt's own doc comment for why
+    // the option list is this short.
+    notebookFont: String = "caveat",
     content: @Composable () -> Unit,
 ) {
     val resolvedTheme = if (theme == "system") {
@@ -493,7 +512,7 @@ fun ScanEatTheme(
     // to High Contrast/colorblind mode overriding decorative choices.
     val typography = when {
         dyslexicFont             -> ScanEatTypography.withDyslexicSpacing()
-        resolvedTheme == "notebook" -> ScanEatTypography.withNotebookDisplayFont()
+        resolvedTheme == "notebook" -> ScanEatTypography.withNotebookDisplayFont(notebookFont)
         else                      -> ScanEatTypography
     }
     CompositionLocalProvider(

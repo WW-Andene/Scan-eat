@@ -76,13 +76,14 @@ class MainActivity : AppCompatActivity() {
                 val dyslexicFont = splashViewModel.dyslexicFont.collectAsStateWithLifecycle().value
                 val colorblindMode = splashViewModel.colorblindMode.collectAsStateWithLifecycle().value
                 val animatedBackground = splashViewModel.animatedBackground.collectAsStateWithLifecycle().value
+                val notebookFont = splashViewModel.notebookFont.collectAsStateWithLifecycle().value
                 SideEffect {
                     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                     insetsController.isAppearanceLightStatusBars = theme == "light"
                     insetsController.isAppearanceLightNavigationBars = theme == "light"
                 }
 
-                ScanEatTheme(theme = theme, colorAccent = colorAccent, dyslexicFont = dyslexicFont, colorblindMode = colorblindMode, animatedBackground = animatedBackground) {
+                ScanEatTheme(theme = theme, colorAccent = colorAccent, dyslexicFont = dyslexicFont, colorblindMode = colorblindMode, animatedBackground = animatedBackground, notebookFont = notebookFont) {
                     MainShell(
                         startOnboarding = splashViewModel.needsOnboarding,
                         startRoute      = if (isPrivacyRationaleIntent) TopTab.Settings.route else shortcutStartRoute,

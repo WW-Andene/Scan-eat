@@ -62,6 +62,7 @@ fun SettingsScreen(
     val language  = viewModel.language.collectAsStateWithLifecycle()
     val theme     = viewModel.theme.collectAsStateWithLifecycle()
     val colorAccent = viewModel.colorAccent.collectAsStateWithLifecycle()
+    val notebookFont = viewModel.notebookFont.collectAsStateWithLifecycle()
     val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val voiceScoreAnnounce = viewModel.voiceScoreAnnounce.collectAsStateWithLifecycle()
@@ -236,6 +237,12 @@ fun SettingsScreen(
             // brightness/contrast (see ThemeSection's own doc comment) - its own
             // section rather than folded into the row above.
             item { ColorSection(colorAccent.value, onColorAccentChange = viewModel::setColorAccent) }
+
+            // Notebook theme's own display-font choice - only shown when that
+            // theme is active (see NotebookFontSection's own doc comment for why).
+            if (theme.value == "notebook") {
+                item { NotebookFontSection(notebookFont.value, onNotebookFontChange = viewModel::setNotebookFont) }
+            }
 
             // ---- Units — was only reachable from Profile despite being an app-wide
             // preference also consumed by Weight/Biolism; users looking for it under

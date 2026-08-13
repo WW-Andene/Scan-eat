@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,20 @@ fun StreakBadge(streakDays: Int, accentColor: Color) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
         ) {
-            Icon(Icons.Default.LocalFireDepartment, null, tint = accentColor, modifier = androidx.compose.ui.Modifier.size(IconSize.Small))
+            // User-supplied doodle icon set (Vecteezy, Free License -
+            // attribution given in Settings > About > Licenses, see
+            // AboutSection.kt) swapped in for the Notebook theme - a flat
+            // Material glyph doesn't match the hand-drawn identity every
+            // other Notebook-themed element (post-it cards, crayon bars,
+            // lens icon) already carries. Icon()'s default tint blend mode
+            // (SrcIn) recolors the whole non-transparent doodle to
+            // accentColor regardless of the source PNG's own black ink, so
+            // this needs no separate light/dark asset.
+            if (LocalThemeName.current == "notebook") {
+                Icon(painterResource(R.drawable.doodle_flame), null, tint = accentColor, modifier = androidx.compose.ui.Modifier.size(IconSize.Small))
+            } else {
+                Icon(Icons.Default.LocalFireDepartment, null, tint = accentColor, modifier = androidx.compose.ui.Modifier.size(IconSize.Small))
+            }
             Text(
                 stringResource(R.string.common_streak_days_compact, streakDays),
                 style = MaterialTheme.typography.labelMedium,

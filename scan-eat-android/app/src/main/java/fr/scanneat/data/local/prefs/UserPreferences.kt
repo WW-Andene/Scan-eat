@@ -49,6 +49,11 @@ class UserPreferences @Inject constructor(
         // accent were mutually exclusive. Independent so any accent can be
         // layered on top of any brightness mode.
         val KEY_COLOR_ACCENT         = stringPreferencesKey("color_accent")
+        // Independent of KEY_COLOR_ACCENT above for the same reason that one is
+        // independent of `theme` - the Notebook theme's own display-font choice
+        // (Caveat/Mayonice/Foxlite Script) is orthogonal to brightness/contrast
+        // and to the (disabled, for Notebook - see Theme.kt) color-accent axis.
+        val KEY_NOTEBOOK_FONT        = stringPreferencesKey("notebook_font")
         val KEY_ONBOARDING_COMPLETE  = booleanPreferencesKey("onboarding_complete")
         // app-audit §F: Pantry/Symptoms/Pregnancy tracking shipped this session
         // with zero notice to existing users - no onboarding mention, no "what's
@@ -161,6 +166,7 @@ class UserPreferences @Inject constructor(
     val language: Flow<String>    = storeData.map { it[KEY_LANGUAGE] ?: defaultLanguage() }.distinctUntilChanged()
     val theme: Flow<String>       = storeData.map { it[KEY_THEME]      ?: "dark" }.distinctUntilChanged()
     val colorAccent: Flow<String> = storeData.map { it[KEY_COLOR_ACCENT] ?: "none" }.distinctUntilChanged()
+    val notebookFont: Flow<String> = storeData.map { it[KEY_NOTEBOOK_FONT] ?: "caveat" }.distinctUntilChanged()
     val onboardingComplete: Flow<Boolean> = storeData.map { it[KEY_ONBOARDING_COMPLETE] ?: false }.distinctUntilChanged()
     val whatsNewSeenVersion: Flow<Int> = storeData.map { it[KEY_WHATS_NEW_SEEN_VERSION] ?: 0 }.distinctUntilChanged()
     suspend fun setWhatsNewSeenVersion(v: Int) = store.edit { it[KEY_WHATS_NEW_SEEN_VERSION] = v }
@@ -243,6 +249,7 @@ class UserPreferences @Inject constructor(
     suspend fun setLanguage(lang: String)   = store.edit { it[KEY_LANGUAGE]   = lang }
     suspend fun setTheme(theme: String)     = store.edit { it[KEY_THEME]      = theme }
     suspend fun setColorAccent(accent: String) = store.edit { it[KEY_COLOR_ACCENT] = accent }
+    suspend fun setNotebookFont(font: String) = store.edit { it[KEY_NOTEBOOK_FONT] = font }
     suspend fun setOnboardingComplete(v: Boolean) = store.edit { it[KEY_ONBOARDING_COMPLETE] = v }
     suspend fun setDyslexicFont(v: Boolean)       = store.edit { it[KEY_DYSLEXIC_FONT] = v }
     suspend fun setColorblindMode(mode: String)   = store.edit { it[KEY_COLORBLIND_MODE] = mode }

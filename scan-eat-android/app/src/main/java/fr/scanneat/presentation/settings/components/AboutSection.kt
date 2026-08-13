@@ -143,6 +143,20 @@ private val OSS_LIBRARIES = listOf(
     // Notebook theme's handwritten accent typeface.
     "OpenDyslexic" to "SIL Open Font License 1.1",
     "Caveat (Google Fonts)" to "SIL Open Font License 1.1",
+    // Confirmed free for personal AND commercial use in writing by the
+    // author (Khurasan) at download time - unlike "Rainy Calm" (the user's
+    // first choice, Personal Use Only, correctly excluded) and several
+    // other candidate handwriting fonts whose commercial terms couldn't be
+    // confirmed and were excluded pending the user's decision.
+    "Mayonice (Khurasan)" to "Free for personal & commercial use",
+    "Foxlite Script (Khurasan)" to "Free for personal & commercial use",
+    // Doodle icon set (res/drawable-nodpi/doodle_*.png), individually
+    // cropped from the single licensed sheet below - Vecteezy's Free
+    // License requires attribution rather than a specific license name, so
+    // this entry IS that attribution (not a real license name, unlike every
+    // other row here) - see Vecteezy's own license terms for what "Free
+    // License" permits.
+    "Doodle icon set — Vecteezy.com" to "Vecteezy Free License (attribution)",
 )
 
 @Composable
