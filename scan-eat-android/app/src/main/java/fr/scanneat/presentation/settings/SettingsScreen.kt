@@ -35,6 +35,7 @@ import fr.scanneat.presentation.settings.components.LanguageSection
 import fr.scanneat.presentation.settings.components.LegalSection
 import fr.scanneat.presentation.settings.components.OssLicensesDialog
 import fr.scanneat.presentation.settings.components.PremiumSection
+import fr.scanneat.presentation.settings.components.PrismThemeSection
 import fr.scanneat.presentation.settings.components.ProfileSection
 import fr.scanneat.presentation.settings.components.RemindersSection
 import fr.scanneat.presentation.settings.components.ResetConfirmDialog
