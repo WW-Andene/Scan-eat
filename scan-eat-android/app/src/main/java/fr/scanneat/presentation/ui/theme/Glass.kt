@@ -274,6 +274,16 @@ fun Modifier.ambientGloom(
         // stretch out of proportion.
         val coilTileWidthPx = ringColumnWidth
         val coilTileHeightPx = ringColumnWidth * (59f / 70f)
+        // User-reported: "fond animé ne fonctionne pas" for Prism - the
+        // facets were always static regardless of the Settings toggle,
+        // because unlike primaryCenter/secondaryCenter above (which read
+        // driftPhase right here, inside this drawWithCache block, so a
+        // driftPhase frame update re-triggers the whole cache), the facet
+        // list itself never read driftPhase at all. Reading it here (even
+        // though driftPhase is 0f/unused when `animated` is false, so the
+        // facets correctly stay put with the toggle off) makes this block
+        // re-run on every driftPhase tick the same way the blobs' does.
+        val prismDriftPx = size.width * 0.015f
         onDrawBehind {
             if (isNotebook && coilTileBitmap != null) {
                 // User-requested: "enlever les ligne du background" - the
@@ -297,11 +307,17 @@ fun Modifier.ambientGloom(
             }
             if (isPrism) {
                 drawRect(PrismBackground)
-                prismFacets.forEach { facet ->
+                prismFacets.forEachIndexed { i, facet ->
+                    // Each facet drifts on its own phase (offset by index)
+                    // so they don't all slide in lockstep - same reasoning
+                    // the two gloom blobs above use opposite phases.
+                    val facetPhase = driftPhase + i * 0.8f
+                    val dx = prismDriftPx * cos(facetPhase)
+                    val dy = prismDriftPx * sin(facetPhase) * 0.6f
                     val path = Path().apply {
-                        moveTo(facet.x1 * size.width, facet.y1 * size.height)
-                        lineTo(facet.x2 * size.width, facet.y2 * size.height)
-                        lineTo(facet.x3 * size.width, facet.y3 * size.height)
+                        moveTo(facet.x1 * size.width + dx, facet.y1 * size.height + dy)
+                        lineTo(facet.x2 * size.width + dx, facet.y2 * size.height + dy)
+                        lineTo(facet.x3 * size.width + dx, facet.y3 * size.height + dy)
                         close()
                     }
                     drawPath(path, color = facet.color.copy(alpha = 0.16f))
