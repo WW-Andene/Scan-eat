@@ -25,6 +25,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.PrismFillColor
 import fr.scanneat.presentation.ui.theme.glassSheen
 
 // Shared helper used repeatedly by the orchestrator's feature-tile rows.
@@ -43,8 +44,9 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
             .shadow(elevation = 3.dp, shape = tileShape)
             .clip(tileShape),
         shape = tileShape,
-        // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = if (isPrism) Color.Transparent else SurfaceVariant.copy(alpha = StandardCardAlpha),
+        // Aligned with ScanEatCard's own shared Prism fill (see PrismFillColor's doc comment)
+        // - user-requested: same card style everywhere, not a separately-tuned fill here.
+        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
         shadowElevation = 0.dp,
     ) {
         Column(

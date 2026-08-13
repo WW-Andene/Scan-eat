@@ -72,6 +72,16 @@ val StandardCardAlpha: Float @Composable get() = if (isLightBackground()) 0.9f e
  */
 val CameraOverlayDialogAlpha: Float @Composable get() = if (isLightBackground()) 0.97f else 0.96f
 
+/**
+ * Shared Prism-theme glass fill/border, used by every piece of "card-style"
+ * chrome in the app (ScanEatCard, FeatureTile, FloatingTopBar, MainShell's
+ * bottom nav - user-requested: "utilise ce style de carte... partout").
+ * One constant instead of each call site picking its own alpha, so a future
+ * "make it more visible" request only needs to change it here once.
+ */
+val PrismFillColor: Color get() = Color.White.copy(alpha = 0.25f)
+val PrismBorderAlpha: Float = 0.28f
+
 // internal (not private) so a card that can't use ScanEatCard directly - e.g.
 // CalorieBalanceCard, which overlays a streak badge on the outer Box via
 // BoxScope.align, a slot ScanEatCard's content: ColumnScope.() -> Unit
@@ -151,13 +161,15 @@ fun ScanEatCard(
     // [color] every other theme uses) keeps the background legible through
     // it while still giving the card a visible boundary/fill, and the
     // border is brightened to match for the same legibility reason.
-    // User-requested: 0.10 alpha was still too faint - raised to 0.20 (same
-    // white hue, just more of it) for a clearer, more visible card fill.
+    // User-requested: 0.10, then 0.20, still too faint - now [PrismFillColor]
+    // (0.25, same white hue) shared with every other piece of card-style
+    // chrome in the app (FeatureTile, FloatingTopBar, MainShell's bottom
+    // nav) so they all read as one consistent glass system.
     val isPrism = LocalThemeName.current == "prism"
     val hairlineBrush = Brush.horizontalGradient(
         colors = listOf(Color.Transparent, Color.White.copy(alpha = spec.edgeAlpha), Color.Transparent),
     )
-    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = if (isPrism) 0.28f else 0.14f)
+    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = if (isPrism) PrismBorderAlpha else 0.14f)
     // User-reported: putting the chrome (clip/background/border/hairline) AND
     // the content layout on the exact same Column node made the fill read as
     // "masked" wherever content sat - the card's own paint and the content's
@@ -170,7 +182,7 @@ fun ScanEatCard(
         modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(if (isPrism) Color.White.copy(alpha = 0.20f) else color, shape)
+            .background(if (isPrism) PrismFillColor else color, shape)
             .border(BorderStroke(1.dp, borderColor), shape)
             .drawWithCache {
                 onDrawWithContent {
