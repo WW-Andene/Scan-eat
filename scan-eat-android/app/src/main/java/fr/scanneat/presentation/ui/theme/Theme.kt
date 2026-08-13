@@ -211,6 +211,15 @@ private data class ColorAccent(
     val background: Color, val surface: Color, val surfaceVariant: Color,
     val outline: Color,
 )
+
+/** Re-saturates/re-brightens a color to full HSV saturation+value (same hue) — see High Contrast's colorAccent branch in [ScanEatTheme] for why. */
+private fun Color.boostedForHighContrast(): Color {
+    val hsv = FloatArray(3)
+    android.graphics.Color.RGBToHSV((red * 255).toInt(), (green * 255).toInt(), (blue * 255).toInt(), hsv)
+    hsv[1] = 1f
+    hsv[2] = 1f
+    return Color(android.graphics.Color.HSVToColor(hsv))
+}
 private val MatchaAccent = ColorAccent(
     primary = Color(0xFF9BC53D), secondary = Color(0xFFD8CB7A), tertiary = Color(0xFF4E7A51),
     background = Color(0xFF10130E), surface = Color(0xFF1C2117), surfaceVariant = Color(0xFF313A2A),
@@ -233,23 +242,34 @@ private val LazuliteAccent = ColorAccent(
 )
 // User-requested: Rose, Arlequin, Cyberpunk - three new colorAccent presets
 // alongside the four above, same shape (a background/surface/surfaceVariant/
-// outline neighborhood plus a 3-hue primary/secondary/tertiary).
+// outline neighborhood plus a 3-hue primary/secondary/tertiary). User-
+// corrected round 2: "le thème Arlequin n'est pas Arlequin, cyberpunk non
+// plus" - both reworked below with a clearer identity per name.
+//
+// Rose: a coherent single-hue family (ruby -> blush -> deep rose), the
+// same "gradient of one hue" structure Matcha/Lavande/Sunflower use above.
 private val RoseAccent = ColorAccent(
-    primary = Color(0xFFE85D9E), secondary = Color(0xFFF48FB1), tertiary = Color(0xFFB23A6B),
-    background = Color(0xFF150F13), surface = Color(0xFF241820), surfaceVariant = Color(0xFF3A2530),
-    outline = Color(0xFF5C3B48),
+    primary = Color(0xFFE0115F), secondary = Color(0xFFFF8FAB), tertiary = Color(0xFFC9184A),
+    background = Color(0xFF16070E), surface = Color(0xFF25121B), surfaceVariant = Color(0xFF3D1D2C),
+    outline = Color(0xFF5C2E42),
 )
-// Harlequin's classic jester-diamond palette - red/gold/purple against near-black.
+// Harlequin/jester's actual identity is the OPPOSITE of a matched gradient -
+// a motley of clashing, fully-saturated colors (the diamond patchwork
+// costume), not a tasteful single-hue family. Red/emerald/royal-purple is
+// the classic jester triad (was previously red/gold/muted-purple, which
+// read as "wine bar," not "clown/jester").
 private val ArlequinAccent = ColorAccent(
-    primary = Color(0xFFE63946), secondary = Color(0xFFF4A300), tertiary = Color(0xFF6A4C93),
-    background = Color(0xFF120A10), surface = Color(0xFF1F1420), surfaceVariant = Color(0xFF362336),
-    outline = Color(0xFF4A3048),
+    primary = Color(0xFFE4002B), secondary = Color(0xFF00A878), tertiary = Color(0xFF6A0DAD),
+    background = Color(0xFF0F0A12), surface = Color(0xFF1C1420), surfaceVariant = Color(0xFF302038),
+    outline = Color(0xFF4A2E56),
 )
-// Neon magenta/cyan/yellow on near-black - the genre's signature high-saturation triad.
+// Neon magenta/cyan/acid-yellow on a cool blue-black - Cyberpunk 2077's own
+// signature triad, pushed to fuller saturation (was previously a warmer,
+// muddier near-black that didn't read as "neon city night").
 private val CyberpunkAccent = ColorAccent(
-    primary = Color(0xFFFF2E63), secondary = Color(0xFF00F0FF), tertiary = Color(0xFFFFE156),
-    background = Color(0xFF0B0B14), surface = Color(0xFF14141F), surfaceVariant = Color(0xFF241F35),
-    outline = Color(0xFF3A3550),
+    primary = Color(0xFFFF006E), secondary = Color(0xFF00E5FF), tertiary = Color(0xFFD4FF00),
+    background = Color(0xFF0A0A14), surface = Color(0xFF14121F), surfaceVariant = Color(0xFF211D33),
+    outline = Color(0xFF3D2F5C),
 )
 
 // ── Colorblind-safe decorative/brand accent override ──────────────────────────
@@ -445,7 +465,27 @@ fun ScanEatTheme(
         // untinted OLED background would. Both now take only the accent's
         // hue (primary/secondary/tertiary), the same restriction OLED's own
         // branch already applies to background alone.
-        if (resolvedTheme == "oled" || resolvedTheme == "high_contrast") {
+        if (resolvedTheme == "high_contrast") {
+            // User-reported: "quand je change couleur en étant sur
+            // contrast élevé, ça ce désactive" - not an actual state bug
+            // (theme stays "high_contrast" the whole time), but picking any
+            // accent replaced HighContrastColors' own hand-picked maximal-
+            // contrast neon yellow/cyan/green with that accent's literal
+            // hue - each accent's own colors are tuned for a dark/OLED
+            // panel, at meaningfully lower saturation/brightness, so the
+            // result visually read as high contrast having turned off.
+            // boostedForHighContrast() re-saturates/re-brightens each
+            // accent hue to full HSV S/V (same hue, so it's still
+            // recognizably "that" accent) before use here, so an accent
+            // can be combined with High Contrast without undercutting the
+            // one thing that theme exists for.
+            baseColorScheme.copy(
+                primary = accent.primary.boostedForHighContrast(),
+                secondary = accent.secondary.boostedForHighContrast(),
+                tertiary = accent.tertiary.boostedForHighContrast(),
+                surface = accent.surface, surfaceVariant = accent.surfaceVariant, outline = accent.outline,
+            )
+        } else if (resolvedTheme == "oled") {
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
                 surface = accent.surface, surfaceVariant = accent.surfaceVariant, outline = accent.outline,
