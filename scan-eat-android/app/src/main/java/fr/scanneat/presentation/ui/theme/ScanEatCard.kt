@@ -2,10 +2,11 @@ package fr.scanneat.presentation.ui.theme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -148,40 +148,30 @@ fun ScanEatCard(
     // (ambientGloom's isPrism branch, Glass.kt) is for it to show through;
     // every other theme keeps its own considered [color] fill.
     val isPrism = LocalThemeName.current == "prism"
-    Box(
+    // User-reported: an outer Box (glassSheen's own clip + hairline draw)
+    // wrapped around an inner Surface (its own separate shadow/clip/
+    // background/border) rendered as two independently-clipped objects
+    // stacked on top of each other - visible as a stray rectangle at the
+    // card edge where the two layers' bounds didn't line up (worst with
+    // Prism's transparent fill, where there was nothing to hide the seam).
+    // Rebuilt as a single Column carrying shadow, clip, fill, border, the
+    // hairline sheen, and the click ripple all in one modifier chain - one
+    // object, one set of bounds, nothing to mismatch.
+    Column(
         modifier.fillMaxWidth()
-            .glassSheen(edgeAlpha = spec.edgeAlpha, shape = shape, glowTint = accent, glowAlpha = spec.glowAlpha),
-    ) {
-        // Simplified to match FloatingTopBar/FloatingBars' structure exactly
-        // (single Surface, plain untinted .shadow(), .clip(), fill via the
-        // Surface's own color) after the previous multi-layer version (a
-        // separate offset+blur shadow Box, a separate flat-fill Box, a
-        // tinted Modifier.shadow, a radial-vignette drawWithContent) kept
-        // producing stray rectangle artifacts on real devices — MIUI in
-        // particular rendered the tinted shadow as a solid, hard-edged grey
-        // box instead of a soft shadow. Headers never had this problem
-        // because they never carried those extra layers; cards now don't
-        // either. Trade-off: cards lose the directional-shadow/vignette look
-        // and always show a neutral shadow, same as the header chrome.
-        Surface(
-            modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = spec.elevation, shape = shape)
-                .clip(shape)
-                .then(
-                    if (onClick != null)
-                        Modifier.pressScale(interactionSource)
-                            .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
-                    else Modifier
-                ),
-            shape = shape,
-            color = if (isPrism) Color.Transparent else color,
-            // User-requested: a light outline on the card - previously the
-            // only edge definition came from glassSheen()'s soft top-light
-            // gradient, with no crisp border at all.
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)),
-            shadowElevation = 0.dp,
-        ) {
-            Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)
-        }
-    }
+            .shadow(elevation = spec.elevation, shape = shape, clip = false)
+            .clip(shape)
+            .background(if (isPrism) Color.Transparent else color, shape)
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)), shape)
+            .glassSheen(edgeAlpha = spec.edgeAlpha, shape = shape, glowTint = accent, glowAlpha = spec.glowAlpha)
+            .then(
+                if (onClick != null)
+                    Modifier.pressScale(interactionSource)
+                        .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
+                else Modifier
+            )
+            .padding(contentPadding),
+        verticalArrangement = verticalArrangement,
+        content = content,
+    )
 }
