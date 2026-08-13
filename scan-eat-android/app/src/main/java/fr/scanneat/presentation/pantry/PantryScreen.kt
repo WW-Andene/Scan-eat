@@ -58,6 +58,10 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
 
     val deletedMessage = stringResource(R.string.pantry_deleted_message)
     val undoLabel = stringResource(R.string.pantry_undo)
+    // code-audit §D3: was recomputed on every recomposition (e.g. opening/
+    // closing the edit-item dialog) even though items.value hadn't changed -
+    // GroceryScreen.kt already fixed this exact bug class elsewhere.
+    val byCategory = remember(items.value) { items.value.groupBy { it.category } }
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.pantry_title), color = OnBackground) },
@@ -96,10 +100,6 @@ fun PantryScreen(viewModel: PantryViewModel = hiltViewModel(), onBack: () -> Uni
                     EmptyListState(TablerIcons.ShoppingCart, emptyMessage)
                 }
             } else {
-                // code-audit §D3: was recomputed on every recomposition (e.g. opening/
-                // closing the edit-item dialog) even though items.value hadn't changed -
-                // GroceryScreen.kt already fixed this exact bug class elsewhere.
-                val byCategory = remember(items.value) { items.value.groupBy { it.category } }
                 // Only worth a header/grouping once items actually span more than
                 // one category - a pantry holding only "Autre" items (every manual
                 // add before this pass defaulted there) would otherwise show one
