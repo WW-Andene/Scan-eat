@@ -28,6 +28,7 @@ import fr.scanneat.presentation.settings.components.CerebrasKeySection
 import fr.scanneat.presentation.settings.components.ColorSection
 import fr.scanneat.presentation.settings.components.CurrencySection
 import fr.scanneat.presentation.settings.components.DataResetSection
+import fr.scanneat.presentation.settings.components.DisplaySection
 import fr.scanneat.presentation.settings.components.GroqKeySection
 import fr.scanneat.presentation.settings.components.HealthConnectSection
 import fr.scanneat.presentation.settings.components.LanguageSection
@@ -227,12 +228,12 @@ fun SettingsScreen(
             item { LanguageSection(language.value, onLanguageChange = viewModel::setLanguage) }
 
             // Fix 4: Theme toggle
-            item {
-                ThemeSection(
-                    theme.value, onThemeChange = viewModel::setTheme,
-                    animatedBackground.value, onAnimatedBackgroundChange = viewModel::setAnimatedBackground,
-                )
-            }
+            item { ThemeSection(theme.value, onThemeChange = viewModel::setTheme) }
+
+            // User-reported: "thème et affichage sont deux choses séparées" -
+            // the animated-background toggle used to live inside ThemeSection
+            // itself, under that same (mislabeled) header. Its own section now.
+            item { DisplaySection(animatedBackground.value, onAnimatedBackgroundChange = viewModel::setAnimatedBackground) }
 
             // User-requested: color accent is independent from the theme's own
             // brightness/contrast (see ThemeSection's own doc comment) - its own

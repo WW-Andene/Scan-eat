@@ -18,12 +18,18 @@ import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
+/**
+ * User-reported hard correction: "thème et affichage sont deux choses
+ * séparées" - this used to be one [SettingsSection] mixing the theme
+ * picker (which theme, incl. "carnet"/notebook) with the "Fond animé"
+ * switch (a display preference, not a theme choice) under a single
+ * mislabeled header. They're now two real sections: this one is only the
+ * theme picker; [DisplaySection] below is only the animated-background
+ * toggle.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun ThemeSection(
-    theme: String, onThemeChange: (String) -> Unit,
-    animatedBackground: Boolean, onAnimatedBackgroundChange: (Boolean) -> Unit,
-) {
+internal fun ThemeSection(theme: String, onThemeChange: (String) -> Unit) {
     // User-requested: brightness/contrast (this section) and color accent
     // (ColorSection below) are two different things - the four color themes
     // used to live in this same row, which both mixed the two concepts
@@ -57,7 +63,13 @@ internal fun ThemeSection(
                 )
             }
         }
-        Spacer(Modifier.height(Spacing.S))
+    }
+}
+
+/** The "Fond animé" (animated background) toggle - a display preference, split out of [ThemeSection] (see that composable's own doc comment for why). */
+@Composable
+internal fun DisplaySection(animatedBackground: Boolean, onAnimatedBackgroundChange: (Boolean) -> Unit) {
+    SettingsSection(stringResource(R.string.settings_section_display), icon = Icons.Default.Palette) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.settings_animated_background), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
