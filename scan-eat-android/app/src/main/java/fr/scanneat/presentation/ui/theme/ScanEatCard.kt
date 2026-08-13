@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -148,7 +149,15 @@ fun ScanEatCard(
         colors = listOf(Color.Transparent, Color.White.copy(alpha = spec.edgeAlpha), Color.Transparent),
     )
     val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
-    Column(
+    // User-reported: putting the chrome (clip/background/border/hairline) AND
+    // the content layout on the exact same Column node made the fill read as
+    // "masked" wherever content sat - the card's own paint and the content's
+    // layout were entangled on one node instead of being independent layers.
+    // Split into a Box that owns only the chrome (fill/border/hairline/click)
+    // and a Column child that owns only content layout/padding - the content
+    // now sits as a genuinely separate layer on top, like the "transparent
+    // PNG over the card" the fill was always meant to read as.
+    Box(
         modifier
             .fillMaxWidth()
             .clip(shape)
@@ -170,9 +179,12 @@ fun ScanEatCard(
                     Modifier.pressScale(interactionSource)
                         .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
                 else Modifier
-            )
-            .padding(contentPadding),
-        verticalArrangement = verticalArrangement,
-        content = content,
-    )
+            ),
+    ) {
+        Column(
+            Modifier.padding(contentPadding),
+            verticalArrangement = verticalArrangement,
+            content = content,
+        )
+    }
 }
