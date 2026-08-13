@@ -22,9 +22,11 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
@@ -235,15 +237,24 @@ fun Modifier.ambientGloom(
                 // horizontal ruled lines this used to draw are gone; plain
                 // paper fill plus the spiral binding only.
                 drawRect(NotebookPaper)
-                // Left-edge spiral binding: a punched hole (blurred shadow
-                // for depth) plus a thin metal-coil ring stroke around it -
-                // user-clarified this should stay (an earlier pass removed
-                // it per a since-revised instruction, before it had ever
-                // actually reached a successful build to be seen).
+                // Left-edge spiral binding: user report "les spirale n
+                // sont pas là, seulement les trous" was a bug report, not a
+                // removal request (confirmed: "j'ai pas dit de supprimer le
+                // trait, j'ai dit qu'il n'existe"). Root cause: the old code
+                // only drew a thin ring OUTLINE around each hole - not an
+                // actual spiral - and that outline (NotebookRing, an olive
+                // tone close in value to the dark ink fill) was too subtle
+                // to read at 2dp/5dp scale. A real notebook spiral is one
+                // continuous coil threading through every hole, so draw
+                // that: a wavy/zigzag path running the length of the
+                // column, passing behind each hole, in a clearly darker,
+                // higher-contrast metal tone with a visible stroke width.
+                drawNotebookCoil(ringColumnWidth, ringSpacing, size.height)
                 var ringY = ringSpacing / 2f
                 while (ringY < size.height) {
                     val ringCenter = Offset(ringColumnWidth / 2f, ringY)
                     drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius + 2.dp.toPx(), 4.dp.toPx(), ShadowTint.copy(alpha = 0.5f))
+                    drawCircle(color = NotebookPaper, radius = ringRadius + 3.dp.toPx(), center = ringCenter)
                     drawCircle(color = NotebookInk.copy(alpha = 0.55f), radius = ringRadius, center = ringCenter)
                     drawCircle(color = NotebookRing, radius = ringRadius + 2.dp.toPx(), center = ringCenter, style = Stroke(width = 2.dp.toPx()))
                     ringY += ringSpacing
@@ -291,6 +302,7 @@ fun Modifier.notebookSpiralBinding(): Modifier = this.drawWithCache {
     val ringRadius = 4.dp.toPx()
     onDrawWithContent {
         drawContent()
+        drawNotebookCoil(ringColumnWidth, ringSpacing, size.height)
         var ringY = ringSpacing / 2f
         while (ringY < size.height) {
             val ringCenter = Offset(ringColumnWidth / 2f, ringY)
@@ -323,6 +335,40 @@ fun Modifier.glassPopupSurface(shape: Shape = RoundedCornerShape(CardRadius.CONT
     // color.
     .shadow(elevation = 6.dp, shape = shape)
     .glassSheen(edgeAlpha = 0.22f, shape = shape, glowAlpha = 0.05f)
+
+/**
+ * Draws one continuous zigzag "coil" running the height of the spiral-
+ * binding column, passing through the center of every punched hole - what
+ * actually reads as a spiral, unlike a ring outline drawn separately around
+ * each hole (which the user correctly reported as not looking like a spiral
+ * at all). Alternates left/right of the hole column each half-loop, like a
+ * wire spring viewed edge-on.
+ */
+private fun DrawScope.drawNotebookCoil(columnWidth: Float, spacing: Float, height: Float) {
+    val amplitude = columnWidth * 0.42f
+    val centerX = columnWidth / 2f
+    val path = Path()
+    var y = spacing / 2f
+    var toggle = true
+    path.moveTo(centerX, 0f)
+    while (y < height + spacing) {
+        val loopCenterY = y - spacing / 2f
+        path.quadraticBezierTo(
+            centerX + if (toggle) amplitude else -amplitude,
+            loopCenterY,
+            centerX,
+            y,
+        )
+        toggle = !toggle
+        y += spacing
+    }
+    drawPath(path, color = NotebookRing.copy(alpha = 0.75f), style = Stroke(width = 3.dp.toPx()))
+    drawPath(
+        path,
+        color = Color.White.copy(alpha = 0.18f),
+        style = Stroke(width = 1.dp.toPx()),
+    )
+}
 
 private fun DrawScope.drawRippleRing(cycle: Float, center: Offset, maxRadius: Float, tint: Color) {
     if (cycle <= 0f || cycle >= 1f) return
@@ -402,9 +448,16 @@ fun DrawScope.drawCrayonRing(progress: Float, color: Color, trackColor: Color, s
  */
 fun Modifier.notebookTextJitter(): Modifier = composed {
     if (LocalThemeName.current != "notebook") return@composed this
-    val dx = remember { (Random.nextFloat() - 0.5f) * 2f }
-    val dy = remember { (Random.nextFloat() - 0.5f) * 2f }
-    this.offset(dx.dp, dy.dp)
+    // User-reported: "le Offset des textes et tailles n'es pas assez
+    // aléatoire" - widened from +/-1dp to +/-3dp and added a small rotation
+    // jitter (none existed before), so jittered text reads as hand-placed
+    // rather than a barely-perceptible nudge.
+    val dx = remember { (Random.nextFloat() - 0.5f) * 6f }
+    val dy = remember { (Random.nextFloat() - 0.5f) * 6f }
+    val rotation = remember { (Random.nextFloat() - 0.5f) * 6f }
+    this
+        .offset(dx.dp, dy.dp)
+        .graphicsLayer { rotationZ = rotation }
 }
 
 /**

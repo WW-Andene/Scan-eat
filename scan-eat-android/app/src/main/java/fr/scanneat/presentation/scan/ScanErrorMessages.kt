@@ -30,6 +30,19 @@ internal fun rateLimitedMessage(lang: String) =
     if (lang == "en") "Groq is rate-limiting requests right now — wait a moment and try again"
     else "Groq limite les requêtes en ce moment — patientez un instant puis réessayez"
 
+// User-reported: "scan error http 502" - ScanOffLookup/ScanServerClient
+// already retry a 5xx (502/503/504) up to 3x with backoff before giving up
+// (see ScanRetryUtil.kt), but if every retry still fails, the raw
+// HttpException message ("HTTP 502 Bad Gateway") reached the user
+// unwrapped and unlocalized - the one HTTP error class this file had no
+// friendly message for, unlike 401/403/400/404/429 just above. Doesn't try
+// to distinguish "Open Food Facts is down" from "your own configured
+// server is down" (the app has no reliable way to tell mid-error), just
+// names the situation and confirms retrying already happened.
+internal fun serviceUnavailableMessage(lang: String) =
+    if (lang == "en") "The scan service is temporarily unavailable (server error) — this was already retried automatically; wait a moment and try again"
+    else "Le service de scan est temporairement indisponible (erreur serveur) — une nouvelle tentative automatique a déjà eu lieu ; patientez un instant puis réessayez"
+
 internal fun noInputMessage(lang: String) =
     if (lang == "en") "Scan a barcode or take a photo"
     else "Scannez un code-barres ou prenez une photo"
@@ -91,5 +104,6 @@ internal fun httpFriendlyMessage(e: Throwable, lang: String): String = when {
     e is HttpException && (e.code() == 401 || e.code() == 403) -> invalidApiKeyMessage(lang)
     e is HttpException && (e.code() == 400 || e.code() == 404) -> invalidModelMessage(lang)
     e is HttpException && e.code() == 429 -> rateLimitedMessage(lang)
+    e is HttpException && e.code() in 500..599 -> serviceUnavailableMessage(lang)
     else -> e.message ?: genericErrorMessage(lang)
 }

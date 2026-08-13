@@ -358,7 +358,9 @@ private val IEatCrayonsFontFamily = FontFamily(Font(R.font.i_eat_crayons, FontWe
 // User-requested: "augmente un peu la taille général des texte de 4dp" - a
 // flat +4sp added on top of the existing per-role multiplier (not instead
 // of it), on every role including body/label.
-private const val NOTEBOOK_SIZE_BUMP_SP = 4f
+// User-requested a further +2dp on top of the original +4dp bump ("augmente
+// taille général police de 2dp"), cumulative: 4f -> 6f.
+private const val NOTEBOOK_SIZE_BUMP_SP = 6f
 // TextUnit has no `+` operator between two TextUnits (CI-breaking build
 // error the first version of this function hit: "Unresolved reference
 // 'plus'") - resolved to a raw Float via .value, added, then rewrapped as

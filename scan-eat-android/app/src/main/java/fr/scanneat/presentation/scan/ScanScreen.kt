@@ -175,15 +175,14 @@ fun ScanScreen(
         var barcodesInFrame by remember { mutableStateOf<Triple<List<DetectedBarcode>, Int, Int>?>(null) }
 
         if (hasCamera && !cameraUnavailable) {
-            // Notebook theme: the live camera preview is a full-bleed
-            // AndroidView that completely covers ambientGloom's own spiral-
-            // binding background layer, so it was coded but invisible here
-            // (user-reported) - notebookSpiralBinding() draws the same
-            // ring column as a FOREGROUND overlay instead, on top of the
-            // preview, matching the reference mockups (a photo taped into a
-            // notebook still shows the spiral sitting on top of it).
-            val isNotebook = LocalThemeName.current == "notebook"
-            Box(Modifier.fillMaxSize().then(if (isNotebook) Modifier.notebookSpiralBinding() else Modifier)) {
+            // User-reported: "quand scanner, background et [nav] ne devrait
+            // pas être visible" - the Notebook decor (paper/spiral overlay)
+            // should NOT show over the live camera view at all; a previous
+            // pass had added a spiral overlay here specifically because it
+            // was otherwise invisible behind the full-bleed camera, but the
+            // user now wants a clean, undecorated camera view during
+            // scanning instead - reverted.
+            Box(Modifier.fillMaxSize()) {
             CameraPreview(
                 onBarcodeDetected = { viewModel.onBarcodeDetected(it) },
                 onPhotoCaptured   = { viewModel.addPhoto(it) },

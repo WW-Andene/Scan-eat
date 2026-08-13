@@ -172,13 +172,25 @@ fun MainShell(
                         val tabInteractionSource = remember { MutableInteractionSource() }
                         val isPressed by tabInteractionSource.collectIsPressedAsState()
                         val expanded = isSelected || isPressed
-                        // User-requested: "plus espacé et un peu plus gros" -
-                        // sizes raised from 56/72/88dp to 64/80/104dp.
-                        val tabWidth by animateDpAsState(if (expanded) 104.dp else 80.dp, label = "notebookTabWidth")
+                        // User-requested: "plus espacé et un peu plus gros",
+                        // then "les marques page doivent être un peu plus
+                        // rentré lorspas sélectionné" - the resting
+                        // (unselected/unpressed) width was pulled back in
+                        // further (80dp -> 64dp) so tabs read as tucked into
+                        // the edge at rest, only sticking out fully once
+                        // selected or pressed.
+                        val tabWidth by animateDpAsState(if (expanded) 104.dp else 64.dp, label = "notebookTabWidth")
                         val tabShape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp)
+                        // User-requested: "espacement aléatoire pour les
+                        // marques page, comme un vrai notebook" - each tab's
+                        // own top spacing rolled once (a real stack of index
+                        // tabs isn't machine-uniform), on top of the
+                        // Column's own 10dp spacedBy baseline.
+                        val extraSpacing = remember { (0..8).random().dp }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
+                                .padding(top = extraSpacing)
                                 .height(64.dp)
                                 .width(tabWidth)
                                 // User-requested: "ajoutes les ombres pour
