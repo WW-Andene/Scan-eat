@@ -13,6 +13,10 @@ enum class ValueScore { GREAT, GOOD, AVERAGE, POOR }
  * typical, honestly approximate" philosophy as MicronutrientEstimator's
  * CATEGORY_DEFAULTS). Figures are deliberately coarse - a real per-country,
  * per-brand price index is out of scope for a client-side estimate.
+ *
+ * Figures as of 2026, review periodically - unlike the user's own price_log
+ * (always current) this fallback table drifts with inflation and won't
+ * self-correct.
  */
 private val CATEGORY_REF_PRICE_PER_KG: Map<ProductCategory, Double> = mapOf(
     ProductCategory.SANDWICH         to 12.0,

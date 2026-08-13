@@ -82,10 +82,18 @@ private val GROUP_KEYWORDS: List<Pair<FoodGroup, List<String>>> = listOf(
  * treated as "already represented" by [PairingsDb.diversifyByFoodGroup], so
  * an unclassified ingredient is never wrongly deprioritized).
  */
+// Word-boundary match, not a raw substring - unbounded contains() let a
+// short keyword false-positive-match inside an unrelated word, e.g. "peach"
+// contains "pea" (PROTEIN), misclassifying the fruit as PROTEIN and skewing
+// diversifyByFoodGroup()'s plate-balance suggestions. Same fix already
+// applied to GroceryCategories/AllergenDetector/DietChecker for this bug class.
+private fun wordBoundaryMatch(key: String, needle: String): Boolean =
+    Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(key)
+
 fun classifyFoodGroup(englishKey: String): FoodGroup {
     val normalized = englishKey.lowercase().replace('_', ' ')
     for ((group, keywords) in GROUP_KEYWORDS) {
-        if (keywords.any { normalized.contains(it.replace('_', ' ')) }) return group
+        if (keywords.any { wordBoundaryMatch(normalized, it.replace('_', ' ')) }) return group
     }
     return FoodGroup.OTHER
 }

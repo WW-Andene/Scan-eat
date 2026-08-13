@@ -124,19 +124,22 @@ class PantryViewModel @Inject constructor(
         guardedLaunch { repo.updateDetails(id, quantity, unit, expiryDate, category) }
     }
 
-    private var lastDeleted: PantryItem? = null
+    // Stack, not a single slot - a single `var` lost the ability to undo an
+    // earlier delete if a second swipe-to-delete fired before the first
+    // snackbar was dismissed/acted on (the second delete's coroutine would
+    // silently overwrite the first item as "the" undo target).
+    private val deletedStack = ArrayDeque<PantryItem>()
 
     fun delete(item: PantryItem) {
         guardedLaunch {
             repo.delete(item.id)
-            lastDeleted = item
+            deletedStack.addLast(item)
         }
     }
 
-    /** Re-creates the last deleted row (used by the "Undo" snackbar action) with its original stats. */
+    /** Re-creates the most recently deleted row (used by the "Undo" snackbar action) with its original stats. */
     fun undoDelete() {
-        val item = lastDeleted ?: return
-        lastDeleted = null
+        val item = deletedStack.removeLastOrNull() ?: return
         guardedLaunch {
             repo.add(item.name, item.barcode, item.category, item.quantity, item.unit, item.expiryDate, activeProfileId.value)
         }
