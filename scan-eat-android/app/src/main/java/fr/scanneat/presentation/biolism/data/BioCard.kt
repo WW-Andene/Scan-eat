@@ -51,6 +51,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.LocalThemeName
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.PrismFillColor
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
@@ -99,7 +100,9 @@ internal fun BioCard(
             // only ~1-3 RGB units from Background in Light theme, so this fill was
             // imperceptible there, leaving only the shadow visible as a disconnected
             // rectangle instead of a filled card.
-            color = if (isPrism) Color.Transparent else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
+            // User-requested: same card-glass style app-wide - PrismFillColor
+            // instead of a separately-tuned Color.Transparent here.
+            color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
             border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
             // same fix as ScanEatCard.kt: force the fill to hard-clip to its own shape
             // instead of relying on Surface's implicit clip, which doesn't reliably
