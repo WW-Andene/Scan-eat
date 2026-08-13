@@ -1,9 +1,11 @@
 package fr.scanneat.presentation.ui.theme
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -12,10 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -85,18 +87,22 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
  * already proved out, so a hand-rolled `Surface(...)` doesn't need to be
  * re-derived (and its treatment/radius drifted) on every new screen.
  *
- * Rebuilt from scratch (user-reported, twice: a raw `Modifier.shadow` chain
- * kept producing a stray unclipped rectangle - a plain transparent/colorless
- * "box" sitting inside the visible rounded card - through two separate
- * attempts to patch it). This version is a single [Surface] and nothing
- * else: Surface's own `shadowElevation` uses Android's native View elevation
- * system for the shadow (the same path this file's own history already
- * confirmed renders cleanly, including on OEM skins that mis-render a raw
- * `Modifier.shadow` as a hard-edged box), and Surface itself owns clip +
- * fill + border in one call - there is no second layer, no second clip, and
- * no compositing seam left for a rectangle to come from. The hairline
- * top-edge highlight is drawn as part of the *content*'s own modifier
- * (inside Surface's already-clipped bounds), not as a wrapping layer.
+ * Rebuilt from scratch twice already (user-reported both times: a stray
+ * unclipped rectangle - a plain transparent/colorless "box" - stayed visible
+ * inside the rounded card). First attempt used a raw `Modifier.shadow`
+ * chain; second attempt swapped to Material3's `Surface`, assuming its
+ * `shadowElevation` used a different, cleaner path - it doesn't:
+ * `Surface`'s own internal implementation applies the exact same
+ * `Modifier.shadow(clip = false)` + separate `.clip()` construction this
+ * file was already trying to move away from, so nothing actually changed.
+ * The elevation-shadow API itself (raw or via Surface) is what keeps
+ * producing a second compositing layer with its own bounds, independent
+ * of the visible clipped shape underneath it. This version drops elevation
+ * shadow entirely: a single [Modifier.clip] + [Modifier.background] +
+ * [Modifier.border] chain on the one content [Column], nothing else - one
+ * shape, one clip, no separate shadow layer for anything to mismatch against. The
+ * hairline top-edge highlight is drawn in the same [drawWithCache] pass,
+ * inside that one already-clipped node.
  *
  * Frosted-glass + hierarchy upgrade (app-wide polish pass):
  *  - [color] defaults to a translucent fill so a screen's own ambient
@@ -141,35 +147,32 @@ fun ScanEatCard(
     val hairlineBrush = Brush.horizontalGradient(
         colors = listOf(Color.Transparent, Color.White.copy(alpha = spec.edgeAlpha), Color.Transparent),
     )
-    Surface(
-        modifier        = modifier.fillMaxWidth()
+    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
+    Column(
+        modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(if (isPrism) Color.Transparent else color, shape)
+            .border(BorderStroke(1.dp, borderColor), shape)
+            .drawWithCache {
+                onDrawWithContent {
+                    drawContent()
+                    drawLine(
+                        brush       = hairlineBrush,
+                        start       = Offset(0f, 0.5f),
+                        end         = Offset(size.width, 0.5f),
+                        strokeWidth = 1.5f,
+                    )
+                }
+            }
             .then(
                 if (onClick != null)
                     Modifier.pressScale(interactionSource)
                         .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
                 else Modifier
-            ),
-        shape           = shape,
-        color           = if (isPrism) Color.Transparent else color,
-        border          = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)),
-        shadowElevation = spec.elevation,
-    ) {
-        Column(
-            Modifier
-                .drawWithCache {
-                    onDrawWithContent {
-                        drawContent()
-                        drawLine(
-                            brush       = hairlineBrush,
-                            start       = Offset(0f, 0.5f),
-                            end         = Offset(size.width, 0.5f),
-                            strokeWidth = 1.5f,
-                        )
-                    }
-                }
-                .padding(contentPadding),
-            verticalArrangement = verticalArrangement,
-            content = content,
-        )
-    }
+            )
+            .padding(contentPadding),
+        verticalArrangement = verticalArrangement,
+        content = content,
+    )
 }
