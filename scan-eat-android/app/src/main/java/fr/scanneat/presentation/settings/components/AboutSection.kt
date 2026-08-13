@@ -44,7 +44,12 @@ internal fun AboutSection(
     SettingsSection(stringResource(R.string.settings_section_about), icon = Icons.Default.Info) {
         Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
-        TextButton(onClick = onShowLicenses, contentPadding = PaddingValues(0.dp)) {
+        // colors= explicit: without it, TextButton's ripple/indication layer
+        // uses Material3's default colorScheme.primary-derived tint - the
+        // label text below was already manually colored AccentCoral, but
+        // the ripple wasn't, a half-themed button. Same fix applied to
+        // every other TextButton in this file below.
+        TextButton(onClick = onShowLicenses, contentPadding = PaddingValues(0.dp), colors = ButtonDefaults.textButtonColors(contentColor = AccentCoral)) {
             Text(stringResource(R.string.settings_about_licenses_button), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
         }
         // CrashLogger.install() (ScanEatApp.kt) persists uncaught exceptions to
@@ -71,6 +76,7 @@ internal fun AboutSection(
                 }
             },
             contentPadding = PaddingValues(0.dp),
+            colors = ButtonDefaults.textButtonColors(contentColor = AccentCoral),
         ) {
             Text(stringResource(R.string.settings_about_share_crash_log), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
         }
@@ -109,6 +115,7 @@ internal fun AboutSection(
                 context.startActivity(Intent.createChooser(sendIntent, null))
             },
             contentPadding = PaddingValues(0.dp),
+            colors = ButtonDefaults.textButtonColors(contentColor = AccentCoral),
         ) {
             Text(stringResource(R.string.settings_about_export_diagnostic), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
         }

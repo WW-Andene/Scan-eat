@@ -110,12 +110,23 @@ fun LoyaltyCardsTabContent(viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
                 }
             },
             confirmButton = {
+                // colors/text color explicit - previously fully un-themed
+                // (no colors= param, no manual text color either), so both
+                // the ripple and the label text fell back to Material3's
+                // default colorScheme.primary styling instead of this
+                // app's brand AccentCoral every other dialog button uses.
                 TextButton(
                     enabled = storeText.isNotBlank() && codeText.isNotBlank(),
                     onClick = { viewModel.addCard(storeText, codeText); showAddDialog = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = AccentCoral),
                 ) { Text(stringResource(R.string.common_add)) }
             },
-            dismissButton = { TextButton(onClick = { showAddDialog = false }) { Text(stringResource(R.string.common_cancel)) } },
+            dismissButton = {
+                TextButton(
+                    onClick = { showAddDialog = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = OnBackground.copy(0.6f)),
+                ) { Text(stringResource(R.string.common_cancel)) }
+            },
         )
     }
 

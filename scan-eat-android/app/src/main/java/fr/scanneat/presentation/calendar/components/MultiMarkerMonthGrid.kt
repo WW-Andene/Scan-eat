@@ -98,6 +98,11 @@ internal fun MultiMarkerMonthGrid(
                 // 8dp left of where the day-grid columns underneath it actually
                 // start. WeekNumberColumnWidth is the single source both now share.
                 modifier = Modifier.padding(start = WeekNumberColumnWidth),
+                // colors= explicit: without it, the ripple/indication layer
+                // falls back to Material3's default colorScheme.primary tint
+                // instead of this app's own AccentCoral brand color - the
+                // label text alone was already colored, the ripple wasn't.
+                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = AccentCoral),
             ) {
                 Text(stringResource(R.string.calendar_today), style = MaterialTheme.typography.labelMedium, color = AccentCoral)
             }
