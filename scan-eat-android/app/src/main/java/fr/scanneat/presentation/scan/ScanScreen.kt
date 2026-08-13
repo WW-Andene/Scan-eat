@@ -46,6 +46,7 @@ import fr.scanneat.presentation.scan.components.ShelfPeek
 import fr.scanneat.presentation.scan.components.ShelfPeekStatus
 import fr.scanneat.presentation.scan.components.handleShelfBoxTapped
 import fr.scanneat.presentation.ui.theme.*
+import dev.chrisbanes.haze.hazeSource
 
 @Composable
 fun ScanScreen(
@@ -167,7 +168,22 @@ fun ScanScreen(
     // under the status bar and the FABs/banners sit directly behind the floating nav.
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomNavClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
-    Box(modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
+    // User-reported: MainShell's floating bottom nav (and, for the same reason,
+    // the header on other screens) looked "wrong" - no visible glass chrome at
+    // all - on Scan's non-camera states (permission request, no camera, camera
+    // unavailable). Root cause: this screen never registers a hazeSource for
+    // MainShell's bottomNavHazeState (deliberately, for the LIVE CAMERA state -
+    // see the comment below this screen's own "background et nav ne devrait pas
+    // être visible" quote), so the bottom nav's hazeEffect had nothing to blur
+    // and rendered as a no-op instead of falling back to a visible tint. The
+    // non-camera branches have no live feed to protect, so they register the
+    // source like every other screen; the live-camera branch below stays as-is.
+    val bottomNavHazeState = LocalBottomNavHazeState.current
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+            .then(if (hasCamera && !cameraUnavailable) Modifier else Modifier.hazeSource(bottomNavHazeState)),
+    ) {
         // barcodesInFrame: every barcode decoded this frame plus the rotated image
         // dimensions used to map each one's rect into screen space - see
         // CameraFrameAnalyzer's own doc comment on why this is now a list rather

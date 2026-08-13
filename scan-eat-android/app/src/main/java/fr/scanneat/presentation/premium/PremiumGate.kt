@@ -14,10 +14,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.UserPreferences
+import dev.chrisbanes.haze.hazeSource
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.EmptyListState
 import fr.scanneat.presentation.ui.theme.Gold
+import fr.scanneat.presentation.ui.theme.LocalBottomNavHazeState
 import fr.scanneat.presentation.ui.theme.ambientGloom
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -50,8 +52,15 @@ fun PremiumGate(
         // background at all - every unlocked screen behind this gate (Biolism)
         // uses ambientGloom(), so the locked state sat on MainShell's plain
         // Background fill instead, and (since there was no gloom to animate)
-        // never picked up the "Fond animé" setting either.
-        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
+        // never picked up the "Fond animé" setting either. Also registers
+        // MainShell's bottomNavHazeState (same fix as BiolismScreen/ScanScreen)
+        // so the floating bottom nav's glass chrome has something to blur here too.
+        val bottomNavHazeState = LocalBottomNavHazeState.current
+        Box(
+            Modifier.fillMaxSize()
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+                .hazeSource(bottomNavHazeState),
+        ) {
             EmptyListState(
                 icon = Icons.Default.WorkspacePremium,
                 message = lockedMessage,

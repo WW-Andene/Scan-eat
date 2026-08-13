@@ -80,11 +80,18 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
     // and is genuinely visible (blurred) behind the floating header.
     val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + BiolismHeaderHeight
     val bottomClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
+    // User-reported: MainShell's floating bottom nav looked "wrong" - no visible
+    // glass chrome - on the Biolism tab. Root cause: this screen only registered
+    // its own local [hazeState] (for BiolismScreen's own internal header) and
+    // never registered MainShell's shared bottomNavHazeState, so the bottom
+    // nav's hazeEffect had nothing to blur here and rendered as a no-op.
+    val bottomNavHazeState = LocalBottomNavHazeState.current
     Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(hazeState),
+                .hazeSource(hazeState)
+                .hazeSource(bottomNavHazeState),
         ) {
             when (activeTab) {
                 BiolismTab.TRACKER   -> TrackerScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
