@@ -52,6 +52,21 @@ enum class CardEmphasis { HERO, PRIMARY, SECONDARY }
  */
 val StandardCardAlpha: Float @Composable get() = if (isLightBackground()) 0.9f else 0.85f
 
+/**
+ * Higher-opacity variant for dialogs that render directly over the live
+ * camera preview (ScanStateOverlay.kt's MedicationFound/NonConsumableFound
+ * AlertDialogs) rather than over the app's own static background. Those
+ * dialogs are AlertDialogs, which Compose renders in their own Android
+ * PopupWindow - a separate window from the camera-preview surface behind
+ * it, so [glassPopupSurface]'s real-time backdrop blur can't reach it (see
+ * that function's own doc comment for why). [StandardCardAlpha] was tuned
+ * assuming the blur would soften whatever's visible underneath; without it,
+ * that alpha over a busy, high-contrast camera feed left the dialog's own
+ * text unreadable - user-reported. Near-opaque instead, since translucency
+ * with no blur just means "camera image showing through," not "glass."
+ */
+val CameraOverlayDialogAlpha: Float @Composable get() = if (isLightBackground()) 0.97f else 0.96f
+
 // internal (not private) so a card that can't use ScanEatCard directly - e.g.
 // CalorieBalanceCard, which overlays a streak badge on the outer Box via
 // BoxScope.align, a slot ScanEatCard's content: ColumnScope.() -> Unit

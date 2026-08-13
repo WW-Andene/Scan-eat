@@ -44,6 +44,9 @@
     <string name="report_misclassification_current_food_label">food</string>
     <string name="report_misclassification_submitted">Report saved, thank you</string>
     <string name="scan_nonconsumable_found_body">%1$s (%2$s) — this product is not intended for consumption.</string>
+    <string name="scan_nonconsumable_found_body_no_brand">%1$s — this product is not intended for consumption.</string>
+    <string name="product_name_unknown">Product name not provided</string>
+    <string name="nonconsumable_no_score_missing_name">No quality score available: the product name isn\'t provided in the database, so the app can\'t identify its precise type (shampoo, toothpaste, etc.).</string>
     <string name="scan_nonconsumable_safety_line">Do not ingest. In case of ingestion or exposure, contact emergency services immediately (112 in Europe, 911 in the US) or a poison control center.</string>
     <string name="nonconsumable_transparency_title">Formula transparency</string>
     <string name="nonconsumable_transparency_no_data">No ingredient data available for this product.</string>

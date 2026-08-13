@@ -85,7 +85,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import fr.scanneat.presentation.ui.theme.StandardCardAlpha
+import fr.scanneat.presentation.ui.theme.CameraOverlayDialogAlpha
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.semanticAmber
@@ -162,7 +162,7 @@ internal fun BoxScope.ScanStateOverlay(
             }
             AlertDialog(
                 onDismissRequest = onDismissFound,
-                containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+                containerColor = SurfaceVariant.copy(alpha = CameraOverlayDialogAlpha),
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
@@ -243,13 +243,23 @@ internal fun BoxScope.ScanStateOverlay(
             var showReportDialog by remember(s.entry) { mutableStateOf(false) }
             AlertDialog(
                 onDismissRequest = onDismissFound,
-                containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+                containerColor = SurfaceVariant.copy(alpha = CameraOverlayDialogAlpha),
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        Text(stringResource(R.string.scan_nonconsumable_found_body, s.entry.name, s.entry.brand), color = OnBackground.copy(0.8f))
+                        // User-reported: a product OFF/OBF returned with no
+                        // name (and/or no brand) rendered as a bare " () — ce
+                        // produit..." with nothing identifying it - confusing
+                        // on top of unreadable (see CameraOverlayDialogAlpha's
+                        // own doc comment for that separate contrast fix).
+                        val displayName = s.entry.name.ifBlank { stringResource(R.string.product_name_unknown) }
+                        Text(
+                            if (s.entry.brand.isBlank()) stringResource(R.string.scan_nonconsumable_found_body_no_brand, displayName)
+                            else stringResource(R.string.scan_nonconsumable_found_body, displayName, s.entry.brand),
+                            color = OnBackground.copy(0.8f),
+                        )
                         Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
                         CosmeticTransparencySection(transparency, prohibited, restricted, showRetinolNote = cosmeticActives?.hasRetinoid == true)
                         if (shampooQuality != null) ShampooQualitySection(shampooQuality)
@@ -260,6 +270,27 @@ internal fun BoxScope.ScanStateOverlay(
                         if (absorbentHygieneFacts != null) AbsorbentHygieneFactsSection(absorbentHygieneFacts)
                         if (makeupQuality != null) MakeupQualitySection(makeupQuality)
                         if (makeupEducationalFacts != null && makeupEducationalFacts.facts.isNotEmpty()) MakeupEducationalFactsSection(makeupEducationalFacts)
+                        // User-reported: "aucun score" - the per-category
+                        // functional score (Shampoo/GelDouche/Toothpaste/
+                        // CosmeticActives/etc.) is matched from the
+                        // product's name+brand text (isLikelyShampoo etc.),
+                        // so a blank name (see displayName above) makes
+                        // every category check fail and silently produces no
+                        // score at all, with nothing telling the user why.
+                        // Non-consumables genuinely never get a nutrition
+                        // Grade (this isn't food), but a missing functional
+                        // score specifically because the source database
+                        // (OFF/OBF) didn't provide a name deserves an honest
+                        // explanation instead of just disappearing.
+                        val noFunctionalScoreMatched = shampooQuality == null && showerGelQuality == null &&
+                            toothpasteQuality == null && cosmeticActives == null && intimateWipeQuality == null &&
+                            absorbentHygieneFacts == null && makeupQuality == null
+                        if (s.entry.name.isBlank() && noFunctionalScoreMatched) {
+                            Text(
+                                stringResource(R.string.nonconsumable_no_score_missing_name),
+                                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+                            )
+                        }
                         FactsCautionsColumn(hints.facts, hints.cautions)
                     }
                 },

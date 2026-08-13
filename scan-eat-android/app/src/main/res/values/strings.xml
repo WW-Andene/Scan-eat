@@ -44,6 +44,9 @@
     <string name="report_misclassification_current_food_label">aliment</string>
     <string name="report_misclassification_submitted">Signalement enregistré, merci</string>
     <string name="scan_nonconsumable_found_body">%1$s (%2$s) — ce produit n\'est pas destiné à la consommation.</string>
+    <string name="scan_nonconsumable_found_body_no_brand">%1$s — ce produit n\'est pas destiné à la consommation.</string>
+    <string name="product_name_unknown">Nom du produit non renseigné</string>
+    <string name="nonconsumable_no_score_missing_name">Aucun score de qualité disponible : le nom du produit n\'est pas renseigné dans la base de données, l\'app ne peut donc pas identifier son type précis (shampoing, dentifrice, etc.).</string>
     <string name="scan_nonconsumable_safety_line">Ne pas ingérer. En cas d\'ingestion ou d\'exposition, contactez immédiatement les urgences (15 ou 112 en Europe) ou un centre antipoison.</string>
     <string name="nonconsumable_transparency_title">Transparence de la formule</string>
     <string name="nonconsumable_transparency_no_data">Aucune donnée d\'ingrédients disponible pour ce produit.</string>
