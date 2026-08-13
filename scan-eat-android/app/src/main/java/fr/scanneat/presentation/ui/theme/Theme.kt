@@ -349,28 +349,39 @@ private val CaveatFontFamily = FontFamily(Font(R.font.caveat, FontWeight.Normal)
 // history.
 private val MayoniceFontFamily = FontFamily(Font(R.font.mayonice, FontWeight.Normal))
 private val FoxliteFontFamily  = FontFamily(Font(R.font.foxlite_script, FontWeight.Normal))
+// I eat crayons (FontPanda) - added per explicit user instruction after the
+// commercial-license status was flagged as unconfirmed (dafont shows a €
+// badge next to it, not their "100% Free" tag, and dafont.com/fontget.com
+// aren't reachable from this environment's network egress proxy to check
+// the exact license text directly) - the user chose to proceed anyway.
+private val IEatCrayonsFontFamily = FontFamily(Font(R.font.i_eat_crayons, FontWeight.Normal))
+// User-requested: "augmente un peu la taille général des texte de 4dp" - a
+// flat +4sp added on top of the existing per-role multiplier (not instead
+// of it), on every role including body/label.
+private val NOTEBOOK_SIZE_BUMP = 4.sp
 private fun Typography.withNotebookDisplayFont(fontChoice: String): Typography {
     val family = when (fontChoice) {
-        "mayonice" -> MayoniceFontFamily
-        "foxlite"  -> FoxliteFontFamily
-        else       -> CaveatFontFamily
+        "mayonice"      -> MayoniceFontFamily
+        "foxlite"       -> FoxliteFontFamily
+        "i_eat_crayons" -> IEatCrayonsFontFamily
+        else            -> CaveatFontFamily
     }
     return copy(
-        displayLarge   = displayLarge.copy(fontFamily = family, fontSize = displayLarge.fontSize * 1.15f),
-        displayMedium  = displayMedium.copy(fontFamily = family, fontSize = displayMedium.fontSize * 1.15f),
-        displaySmall   = displaySmall.copy(fontFamily = family, fontSize = displaySmall.fontSize * 1.15f),
-        headlineLarge  = headlineLarge.copy(fontFamily = family, fontSize = headlineLarge.fontSize * 1.15f),
-        headlineMedium = headlineMedium.copy(fontFamily = family, fontSize = headlineMedium.fontSize * 1.15f),
-        headlineSmall  = headlineSmall.copy(fontFamily = family, fontSize = headlineSmall.fontSize * 1.15f),
-        titleLarge     = titleLarge.copy(fontFamily = family, fontSize = titleLarge.fontSize * 1.1f),
-        titleMedium    = titleMedium.copy(fontFamily = family, fontSize = titleMedium.fontSize * 1.1f),
-        titleSmall     = titleSmall.copy(fontFamily = family, fontSize = titleSmall.fontSize * 1.1f),
-        bodyLarge      = bodyLarge.copy(fontFamily = family, fontSize = bodyLarge.fontSize * 1.05f),
-        bodyMedium     = bodyMedium.copy(fontFamily = family, fontSize = bodyMedium.fontSize * 1.05f),
-        bodySmall      = bodySmall.copy(fontFamily = family, fontSize = bodySmall.fontSize * 1.05f),
-        labelLarge     = labelLarge.copy(fontFamily = family, fontSize = labelLarge.fontSize * 1.05f),
-        labelMedium    = labelMedium.copy(fontFamily = family, fontSize = labelMedium.fontSize * 1.05f),
-        labelSmall     = labelSmall.copy(fontFamily = family, fontSize = labelSmall.fontSize * 1.05f),
+        displayLarge   = displayLarge.copy(fontFamily = family, fontSize = displayLarge.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
+        displayMedium  = displayMedium.copy(fontFamily = family, fontSize = displayMedium.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
+        displaySmall   = displaySmall.copy(fontFamily = family, fontSize = displaySmall.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
+        headlineLarge  = headlineLarge.copy(fontFamily = family, fontSize = headlineLarge.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
+        headlineMedium = headlineMedium.copy(fontFamily = family, fontSize = headlineMedium.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
+        headlineSmall  = headlineSmall.copy(fontFamily = family, fontSize = headlineSmall.fontSize * 1.15f + NOTEBOOK_SIZE_BUMP),
+        titleLarge     = titleLarge.copy(fontFamily = family, fontSize = titleLarge.fontSize * 1.1f + NOTEBOOK_SIZE_BUMP),
+        titleMedium    = titleMedium.copy(fontFamily = family, fontSize = titleMedium.fontSize * 1.1f + NOTEBOOK_SIZE_BUMP),
+        titleSmall     = titleSmall.copy(fontFamily = family, fontSize = titleSmall.fontSize * 1.1f + NOTEBOOK_SIZE_BUMP),
+        bodyLarge      = bodyLarge.copy(fontFamily = family, fontSize = bodyLarge.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
+        bodyMedium     = bodyMedium.copy(fontFamily = family, fontSize = bodyMedium.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
+        bodySmall      = bodySmall.copy(fontFamily = family, fontSize = bodySmall.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
+        labelLarge     = labelLarge.copy(fontFamily = family, fontSize = labelLarge.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
+        labelMedium    = labelMedium.copy(fontFamily = family, fontSize = labelMedium.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
+        labelSmall     = labelSmall.copy(fontFamily = family, fontSize = labelSmall.fontSize * 1.05f + NOTEBOOK_SIZE_BUMP),
     )
 }
 

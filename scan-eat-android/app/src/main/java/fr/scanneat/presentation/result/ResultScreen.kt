@@ -7,6 +7,7 @@ import compose.icons.tablericons.ArrowLeft
 import android.content.Intent
 import android.widget.Toast
 import java.util.Locale
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -185,6 +186,23 @@ fun ResultScreen(
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         val s = state.value
+        // User-requested (Notebook theme): "le Polaroid c'est pour toute la
+        // page de score. comme un cadre avec un padding de 4dp entre les
+        // bord de l'écran" - a picture-frame border drawn 4dp in from the
+        // screen edges, around the whole Result screen (not just the score
+        // ring - the earlier, narrower reading of this request). Purely a
+        // decorative overlay (Modifier.border on an otherwise-empty
+        // full-size Box) rather than an actual padded container: the real
+        // content below still fills the screen and scrolls normally
+        // underneath it, since wrapping a scrolling Column in a fixed-size
+        // rotated frame (the same treatment ScoreRing's own Polaroid frame
+        // uses) would break scrolling and look wrong on a page this long.
+        if (fr.scanneat.presentation.ui.theme.LocalThemeName.current == "notebook") {
+            Box(
+                Modifier.fillMaxSize().padding(4.dp)
+                    .border(width = 12.dp, color = androidx.compose.ui.graphics.Color(0xFFFDFBF5), shape = androidx.compose.foundation.shape.RoundedCornerShape(2.dp)),
+            )
+        }
         if (s.notFound) {
             // scanLoad resolved to ScanLoad.Empty - a stale deep link or a deleted
             // history entry, not "still loading". Previously indistinguishable from

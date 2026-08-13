@@ -92,6 +92,7 @@ internal fun NotebookFontSection(notebookFont: String, onNotebookFontChange: (St
                 "caveat" to stringResource(R.string.settings_notebook_font_caveat),
                 "mayonice" to stringResource(R.string.settings_notebook_font_mayonice),
                 "foxlite" to stringResource(R.string.settings_notebook_font_foxlite),
+                "i_eat_crayons" to stringResource(R.string.settings_notebook_font_i_eat_crayons),
             ).forEach { (key, label) ->
                 FilterChip(
                     selected = notebookFont == key,

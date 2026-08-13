@@ -114,7 +114,6 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
     // freezing static — this ring is the "second skin" pulse's home.
     val breathingPulse = rememberBreathingPulse()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        NotebookPolaroidFrame {
         Box(modifier = Modifier.fillMaxWidth().height(232.dp), contentAlignment = Alignment.Center) {
             // User-reported regression: the OrganicBlobShape aura layer here read as a
             // rendering bug ("un cercle un peu déformé derrière"), not a deliberate
@@ -172,7 +171,6 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
                     style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f), modifier = Modifier.notebookTextJitter())
             }
         }
-        }
         if (scoreDelta != null) {
             ScoreDeltaChip(scoreDelta)
         }
@@ -189,7 +187,6 @@ internal fun DualScoreRing(
     val vetoDescription = stringResource(R.string.result_veto_description)
     val vetoShortLabel = stringResource(R.string.result_veto_short_label)
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    NotebookPolaroidFrame {
     Row(
         modifier              = Modifier.fillMaxWidth().padding(vertical = Spacing.S),
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -279,7 +276,6 @@ internal fun DualScoreRing(
             }
         }
     } // end Row
-    } // end NotebookPolaroidFrame
     if (scoreDelta != null) {
         Spacer(Modifier.height(Spacing.XS))
         ScoreDeltaChip(scoreDelta)

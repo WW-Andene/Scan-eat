@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -141,7 +142,20 @@ fun MainShell(
             ) {
                 val hierarchy = backStack.value?.destination?.hierarchy
                 val tabColors = NotebookPostItColors
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                // User-reported: tabs weren't flush against the screen edge
+                // and grew the wrong direction when expanding - both caused
+                // by the same root cause. Column had no horizontalAlignment
+                // (defaults to Start), so its width was set by its WIDEST
+                // child (the expanded 88dp tab) and every other, narrower
+                // tab sat flush to that width's LEFT edge - leaving a gap
+                // between the narrower tabs and the true screen edge on the
+                // right, and making an expanding tab grow further right
+                // (away from the edge) instead of left (into the screen,
+                // staying flush). Alignment.End anchors every tab's own
+                // right edge to the column's (and thus the screen's) right
+                // edge regardless of its current width, so growth is always
+                // leftward and every tab - expanded or not - stays flush.
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     navTabs.forEachIndexed { i, tab ->
                         val isSelected = hierarchy?.any { it.route == tab.route } == true
                         val isArmed = armedNavTab == tab
@@ -149,7 +163,7 @@ fun MainShell(
                         val tabColor = tabColors[i % tabColors.size]
                         // User-requested: "animation de développer/rétracté
                         // pour les marque page des onglet quand dessus" - a
-                        // touch device has no real hover, so "dessus" is
+                        // touch device has no true hover, so "dessus" is
                         // read as "pressed" (the closest touch equivalent):
                         // the tab widens to reveal its label while actively
                         // pressed, not just when it's the selected tab, and
@@ -158,12 +172,14 @@ fun MainShell(
                         val tabInteractionSource = remember { MutableInteractionSource() }
                         val isPressed by tabInteractionSource.collectIsPressedAsState()
                         val expanded = isSelected || isPressed
-                        val tabWidth by animateDpAsState(if (expanded) 88.dp else 72.dp, label = "notebookTabWidth")
+                        // User-requested: "plus espacé et un peu plus gros" -
+                        // sizes raised from 56/72/88dp to 64/80/104dp.
+                        val tabWidth by animateDpAsState(if (expanded) 104.dp else 80.dp, label = "notebookTabWidth")
                         val tabShape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .height(56.dp)
+                                .height(64.dp)
                                 .width(tabWidth)
                                 // User-requested: "ajoutes les ombres pour
                                 // les marque page" - each tab already had a
@@ -173,10 +189,18 @@ fun MainShell(
                                 // theme, not a special case).
                                 .shadow(elevation = 4.dp, shape = tabShape)
                                 .clip(tabShape)
-                                .background(
-                                    if (isArmed) tabColor.copy(alpha = 0.95f)
-                                    else if (isReplaceTarget) tabColor.copy(alpha = 0.5f)
-                                    else tabColor.copy(alpha = if (isSelected) 0.9f else 0.65f),
+                                // User-requested: "sensé être opaque pas
+                                // transparent" - flat fully-opaque fill for
+                                // every state (previously 0.65-0.95f alpha).
+                                // Armed/replace-target feedback (previously
+                                // carried by alpha) now uses a border
+                                // instead, so it stays visible without
+                                // reintroducing transparency.
+                                .background(tabColor)
+                                .then(
+                                    if (isArmed) Modifier.border(2.dp, NotebookInk, tabShape)
+                                    else if (isReplaceTarget) Modifier.border(1.dp, NotebookInk.copy(alpha = 0.4f), tabShape)
+                                    else Modifier
                                 )
                                 .combinedClickable(
                                     interactionSource = tabInteractionSource,

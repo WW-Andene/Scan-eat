@@ -235,15 +235,15 @@ fun Modifier.ambientGloom(
                 // horizontal ruled lines this used to draw are gone; plain
                 // paper fill plus the spiral binding only.
                 drawRect(NotebookPaper)
-                // Left-edge spiral binding: a column of small ring circles,
-                // each with a thin darker "wire" arc so it reads as metal
-                // coil rather than a flat dot.
+                // User-reported: "les spirale n'existe pas, seulement les
+                // trou" - no metal-coil ring stroke, just a plain punched
+                // hole (a solid dark circle, blurred shadow for depth) left
+                // edge column.
                 var ringY = ringSpacing / 2f
                 while (ringY < size.height) {
                     val ringCenter = Offset(ringColumnWidth / 2f, ringY)
-                    drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius + 2.dp.toPx(), 4.dp.toPx(), ShadowTint.copy(alpha = 0.5f))
-                    drawCircle(color = NotebookRing.copy(alpha = 0.35f), radius = ringRadius + 2.dp.toPx(), center = ringCenter)
-                    drawCircle(color = NotebookRing, radius = ringRadius, center = ringCenter, style = Stroke(width = 2.dp.toPx()))
+                    drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius, 4.dp.toPx(), ShadowTint.copy(alpha = 0.5f))
+                    drawCircle(color = NotebookInk.copy(alpha = 0.55f), radius = ringRadius, center = ringCenter)
                     ringY += ringSpacing
                 }
                 return@onDrawBehind
@@ -269,17 +269,19 @@ fun Modifier.ambientGloom(
 }
 
 /**
- * Foreground spiral-binding overlay - draws the same ring column
+ * Foreground hole-punch overlay - draws the same ring column
  * [ambientGloom]'s notebook branch draws as a BACKGROUND layer, but usable
  * as a plain `Modifier` on top of arbitrary content (a `drawWithContent`
  * overlay, not `drawBehind`). Needed because [ambientGloom] is a
  * background wash - on the Scan screen the live camera preview is a
  * full-bleed `AndroidView` that completely covers whatever's drawn behind
- * it, so [ambientGloom]'s spiral there was coded but literally invisible
- * (user-reported: "pas de spirale dans le décors"). Applying this instead,
- * on top of the camera preview, matches the notebook mockups the user
- * supplied - a photo taped into a notebook still shows the spiral binding
- * sitting on top of it at the page edge, not hidden behind it.
+ * it, so [ambientGloom]'s own column there was coded but literally
+ * invisible (user-reported: "pas de spirale dans le décors"). Applying
+ * this instead, on top of the camera preview, matches the notebook
+ * mockups the user supplied - a photo taped into a notebook still shows
+ * the binding holes sitting on top of it at the page edge, not hidden
+ * behind it. User-reported follow-up: "les spirale n'existe pas, seulement
+ * les trou" - no metal-coil ring stroke, just a plain punched hole.
  */
 fun Modifier.notebookSpiralBinding(): Modifier = this.drawWithCache {
     val ringColumnWidth = 22.dp.toPx()
@@ -290,9 +292,8 @@ fun Modifier.notebookSpiralBinding(): Modifier = this.drawWithCache {
         var ringY = ringSpacing / 2f
         while (ringY < size.height) {
             val ringCenter = Offset(ringColumnWidth / 2f, ringY)
-            drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius + 2.dp.toPx(), 4.dp.toPx(), Color.Black.copy(alpha = 0.4f))
-            drawCircle(color = Color.White.copy(alpha = 0.55f), radius = ringRadius + 2.dp.toPx(), center = ringCenter)
-            drawCircle(color = NotebookRing, radius = ringRadius, center = ringCenter, style = Stroke(width = 2.dp.toPx()))
+            drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius, 4.dp.toPx(), Color.Black.copy(alpha = 0.5f))
+            drawCircle(color = Color.Black.copy(alpha = 0.6f), radius = ringRadius, center = ringCenter)
             ringY += ringSpacing
         }
     }

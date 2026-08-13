@@ -150,6 +150,14 @@ private val OSS_LIBRARIES = listOf(
     // confirmed and were excluded pending the user's decision.
     "Mayonice (Khurasan)" to "Free for personal & commercial use",
     "Foxlite Script (Khurasan)" to "Free for personal & commercial use",
+    // Added per explicit user instruction after being told the commercial
+    // license status is unconfirmed - dafont marks it with a € badge
+    // (their "needs a commercial license" marker, not the green "100%
+    // Free" tag), and dafont.com/fontget.com aren't reachable from this
+    // build environment's network egress to check the exact wording
+    // directly. Listed honestly rather than mislabeled as "free" like its
+    // two Khurasan neighbors above.
+    "I eat crayons (FontPanda)" to "License unconfirmed - used at the app owner's own risk",
     // Doodle icon set (res/drawable-nodpi/doodle_*.png), individually
     // cropped from the single licensed sheet below - Vecteezy's Free
     // License requires attribution rather than a specific license name, so

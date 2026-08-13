@@ -1,7 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -27,9 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
@@ -281,53 +276,5 @@ fun ScanEatCard(
         ) {
             Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)
         }
-    }
-}
-
-/**
- * User-requested: "donne une apparence de Polaroid à l'écran de score" - a
- * white/cream instant-photo frame (thin even border on 3 sides, a much
- * thicker bottom margin for the classic Polaroid "caption strip"), slight
- * rotation, and a real blurred drop shadow (same recipe as
- * [FloatingTopBar]'s own header shadow) around whatever [content] draws -
- * the score ring itself becomes "the photo." Scoped to [ScoreRing]/
- * [DualScoreRing] specifically (the actual score display, not the whole
- * scrolling Result screen) - "l'écran de score" read as the score visual
- * itself, the thing a Polaroid metaphor genuinely applies to, not every
- * card on the page.
- *
- * No-op wrapper (returns [content] directly) outside Notebook theme.
- */
-@Composable
-fun NotebookPolaroidFrame(content: @Composable () -> Unit) {
-    if (LocalThemeName.current != "notebook") {
-        content()
-        return
-    }
-    val rotation = remember { Random.nextFloat() * 4f - 2f }
-    val shape = RoundedCornerShape(2.dp)
-    Box(
-        Modifier
-            .rotate(rotation)
-            .drawWithCache {
-                onDrawWithContent {
-                    drawIntoCanvas { canvas ->
-                        canvas.nativeCanvas.drawRoundRect(
-                            6.dp.toPx(), 10.dp.toPx(), size.width - 6.dp.toPx(), size.height - 6.dp.toPx(),
-                            2.dp.toPx(), 2.dp.toPx(),
-                            android.graphics.Paint().apply {
-                                color = ShadowTint.copy(alpha = 0.4f).toArgb()
-                                isAntiAlias = true
-                                maskFilter = android.graphics.BlurMaskFilter(10.dp.toPx(), android.graphics.BlurMaskFilter.Blur.NORMAL)
-                            },
-                        )
-                    }
-                    drawContent()
-                }
-            }
-            .background(Color(0xFFFDFBF5), shape)
-            .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 34.dp),
-    ) {
-        content()
     }
 }
