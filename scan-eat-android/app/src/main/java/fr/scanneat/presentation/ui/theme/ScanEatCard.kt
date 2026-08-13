@@ -159,7 +159,12 @@ fun ScanEatCard(
     // object, one set of bounds, nothing to mismatch.
     Column(
         modifier.fillMaxWidth()
-            .shadow(elevation = spec.elevation, shape = shape, clip = false)
+            // clip = false (the default is true) left the shadow's own
+            // compositing layer unclipped - it drew as a plain rectangular
+            // box, visible as a transparent/colorless seam inside the
+            // rounded card. Default clip=true makes .shadow() clip to
+            // [shape] itself, same as the rest of this chain.
+            .shadow(elevation = spec.elevation, shape = shape)
             .clip(shape)
             .background(if (isPrism) Color.Transparent else color, shape)
             .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)), shape)

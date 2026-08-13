@@ -105,32 +105,14 @@ fun MainShell(
             // own nav-bar inset (windowInsets = 0 below) so the floating gap is the
             // *only* gap, instead of stacking on top of NavigationBar's own default
             // system-bar padding.
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    // Shared with FloatingTopBar (see FloatingChromeMargin's own doc
-                    // comment) - keeps this bottom margin identical to the header's
-                    // top margin instead of the two independent literals this used
-                    // to be.
-                    .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
-                    .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT)),
-            ) {
-            Surface(
-                shape           = RoundedCornerShape(CardRadius.PROMINENT),
-                color           = Color.Transparent,
-                // MIUI-observed bug (see ScanEatCard.kt): ambientColor/spotColor-tinted
-                // Modifier.shadow renders as a solid, hard-edged grey rectangle instead
-                // of a soft shadow on some OEM skins. Reverted to the neutral default
-                // shadow color — Surface's own shadowElevation stays 0 so the two don't
-                // stack.
-                shadowElevation = 0.dp,
-                modifier        = Modifier
-                    .fillMaxWidth()
-                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
-                    .clip(RoundedCornerShape(CardRadius.PROMINENT))
-                    .hazeEffect(state = bottomNavHazeState, style = FrostedGlassStyle),
-            ) {
+            // User-reported: this used to be an outer Box (glassSheen's own clip +
+            // hairline draw) wrapping an inner Surface (its own separate shadow/
+            // clip/hazeEffect) - two independently-clipped objects stacked, whose
+            // bounds didn't line up, showing as a stray rectangle at the nav's edge
+            // (same root cause already fixed in ScanEatCard/FloatingTopBar - see
+            // those files' own comments). Collapsed into the single content Row's
+            // own modifier chain below - one object, one set of bounds.
+            val navShape = RoundedCornerShape(CardRadius.PROMINENT)
             // Replaces Material3's NavigationBar/NavigationBarItem with a plain Row
             // of custom items so long-press-to-arm can be layered on cleanly.
             //
@@ -149,7 +131,19 @@ fun MainShell(
             val haptics = LocalHapticFeedback.current
 
             Row(
-                modifier = Modifier.fillMaxWidth().height(64.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    // Shared with FloatingTopBar (see FloatingChromeMargin's own doc
+                    // comment) - keeps this bottom margin identical to the header's
+                    // top margin instead of the two independent literals this used
+                    // to be.
+                    .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
+                    .shadow(elevation = 8.dp, shape = navShape)
+                    .clip(navShape)
+                    .hazeEffect(state = bottomNavHazeState, style = FrostedGlassStyle)
+                    .glassSheen(edgeAlpha = 0.28f, shape = navShape)
+                    .height(64.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -216,8 +210,6 @@ fun MainShell(
                         )
                     }
                 }
-            }
-            }
             }
         }
     }
