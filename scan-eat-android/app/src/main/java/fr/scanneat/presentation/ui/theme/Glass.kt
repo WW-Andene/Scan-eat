@@ -20,15 +20,15 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlin.math.cos
 import kotlin.math.sin
@@ -141,6 +141,18 @@ fun Modifier.ambientGloom(
     // calls this one function for its outermost background, so gating here
     // is what makes the paper look apply app-wide with no per-screen change.
     val isNotebook = LocalThemeName.current == "notebook"
+    // User-supplied real notebook-page artwork ("utilise celui pour les
+    // background") - a two-ring-tall crop of an actual spiral-bound page's
+    // left edge (holes + coil, cream paper matching NotebookPaper closely
+    // enough not to seam), tiled down the ring column instead of drawing
+    // the coil/holes procedurally.
+    val coilTileBitmap = if (isNotebook) {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        remember {
+            android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.notebook_coil_tile)
+                .asImageBitmap()
+        }
+    } else null
 
     // Blob drift phase - rememberInfiniteTransition suits this one on its
     // own (a single float looping 0..2π), unlike the ripple clock below
@@ -229,32 +241,29 @@ fun Modifier.ambientGloom(
         // it only depends on `size`, same reasoning the brushes above are
         // hoisted out of onDrawBehind.
         val ringColumnWidth = 30.dp.toPx()
-        // User-reported: "moins de trou, trous plus gros" - fewer, larger
-        // holes (spacing widened, radius grown) to match the reference
-        // mockup's sparser, chunkier hole-punch column.
-        val ringSpacing = 72.dp.toPx()
-        val ringRadius = 8.dp.toPx()
+        // Real asset's own aspect ratio (70x59px source crop = two ring
+        // periods) preserved at this column width, so the holes/coil don't
+        // stretch out of proportion.
+        val coilTileWidthPx = ringColumnWidth
+        val coilTileHeightPx = ringColumnWidth * (59f / 70f)
         onDrawBehind {
-            if (isNotebook) {
+            if (isNotebook && coilTileBitmap != null) {
                 // User-requested: "enlever les ligne du background" - the
                 // horizontal ruled lines this used to draw are gone; plain
                 // paper fill plus the spiral binding only.
                 drawRect(NotebookPaper)
-                // Left-edge spiral binding, redrawn per reference image:
-                // user-clarified the earlier zigzag coil "toi tu l'a mal
-                // fais" - a real spiral binding is one metal loop PER hole
-                // (an oval passing through/around each punched hole), not
-                // one continuous wavy line threading corner to corner.
-                // drawNotebookCoilLoop draws that per-hole loop; called once
-                // per hole alongside its shadow/fill below.
-                var ringY = ringSpacing / 2f
-                while (ringY < size.height) {
-                    val ringCenter = Offset(ringColumnWidth / 2f, ringY)
-                    drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius + 2.dp.toPx(), 4.dp.toPx(), ShadowTint.copy(alpha = 0.5f))
-                    drawCircle(color = NotebookPaper, radius = ringRadius + 3.dp.toPx(), center = ringCenter)
-                    drawCircle(color = NotebookInk.copy(alpha = 0.55f), radius = ringRadius, center = ringCenter)
-                    drawNotebookCoilLoop(ringCenter, ringRadius)
-                    ringY += ringSpacing
+                // Left-edge spiral binding: real scanned notebook artwork
+                // tiled down the column instead of a procedural draw -
+                // user-supplied reference and asked for it directly ("utilise
+                // celui pour les background").
+                var tileY = 0f
+                while (tileY < size.height) {
+                    drawImage(
+                        image = coilTileBitmap,
+                        dstOffset = IntOffset(0, tileY.toInt()),
+                        dstSize = IntSize(coilTileWidthPx.toInt(), coilTileHeightPx.toInt()),
+                    )
+                    tileY += coilTileHeightPx
                 }
                 return@onDrawBehind
             }
@@ -293,19 +302,27 @@ fun Modifier.ambientGloom(
  * behind it. User-reported follow-up: "les spirale n'existe pas, seulement
  * les trou" - no metal-coil ring stroke, just a plain punched hole.
  */
-fun Modifier.notebookSpiralBinding(): Modifier = this.drawWithCache {
-    val ringColumnWidth = 24.dp.toPx()
-    val ringSpacing = 68.dp.toPx()
-    val ringRadius = 7.dp.toPx()
-    onDrawWithContent {
-        drawContent()
-        var ringY = ringSpacing / 2f
-        while (ringY < size.height) {
-            val ringCenter = Offset(ringColumnWidth / 2f, ringY)
-            drawBlurredShadowCircle(Offset(ringCenter.x + 1.5.dp.toPx(), ringCenter.y + 2.dp.toPx()), ringRadius + 2.dp.toPx(), 4.dp.toPx(), Color.Black.copy(alpha = 0.5f))
-            drawCircle(color = Color.Black.copy(alpha = 0.6f), radius = ringRadius, center = ringCenter)
-            drawNotebookCoilLoop(ringCenter, ringRadius)
-            ringY += ringSpacing
+fun Modifier.notebookSpiralBinding(): Modifier = composed {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val coilTileBitmap = remember {
+        android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.notebook_coil_tile)
+            .asImageBitmap()
+    }
+    this.drawWithCache {
+        val ringColumnWidth = 24.dp.toPx()
+        val coilTileWidthPx = ringColumnWidth
+        val coilTileHeightPx = ringColumnWidth * (59f / 70f)
+        onDrawWithContent {
+            drawContent()
+            var tileY = 0f
+            while (tileY < size.height) {
+                drawImage(
+                    image = coilTileBitmap,
+                    dstOffset = IntOffset(0, tileY.toInt()),
+                    dstSize = IntSize(coilTileWidthPx.toInt(), coilTileHeightPx.toInt()),
+                )
+                tileY += coilTileHeightPx
+            }
         }
     }
 }
@@ -331,37 +348,6 @@ fun Modifier.glassPopupSurface(shape: Shape = RoundedCornerShape(CardRadius.CONT
     // color.
     .shadow(elevation = 6.dp, shape = shape)
     .glassSheen(edgeAlpha = 0.22f, shape = shape, glowAlpha = 0.05f)
-
-/**
- * Draws one real spiral-binding wire loop through a single punched hole -
- * a wide oval passing through the hole and extending past it on both
- * sides, matching the reference notebook mockup's coil (one loop per
- * hole, not one continuous line threading corner to corner). User-
- * corrected: "spirale c'est comme la référence parce que toi tu l'as mal
- * fait" - the earlier zigzag misread "continuous coil" as one wavy path;
- * a real spiral-bound coil reads as a distinct oval ring per hole. A
- * lighter highlight arc on the loop's upper-left gives it a rounded
- * metal-wire sheen instead of a flat stroke.
- */
-private fun DrawScope.drawNotebookCoilLoop(center: Offset, holeRadius: Float) {
-    val loopWidth = holeRadius * 3.4f
-    val loopHeight = holeRadius * 2.3f
-    val metal = Color(0xFF6E6A63)
-    val topLeft = Offset(center.x - loopWidth / 2f, center.y - loopHeight / 2f)
-    val loopSize = Size(loopWidth, loopHeight)
-    drawOval(color = metal, topLeft = topLeft, size = loopSize, style = Stroke(width = 3.dp.toPx()))
-    // Highlight arc: a shorter, offset stroke along the top-left quadrant
-    // only, the classic "rounded wire catching light" cue.
-    drawArc(
-        color = Color.White.copy(alpha = 0.35f),
-        startAngle = 200f,
-        sweepAngle = 90f,
-        useCenter = false,
-        topLeft = topLeft,
-        size = loopSize,
-        style = Stroke(width = 1.5.dp.toPx()),
-    )
-}
 
 private fun DrawScope.drawRippleRing(cycle: Float, center: Offset, maxRadius: Float, tint: Color) {
     if (cycle <= 0f || cycle >= 1f) return
@@ -453,25 +439,3 @@ fun Modifier.notebookTextJitter(): Modifier = composed {
         .graphicsLayer { rotationZ = rotation }
 }
 
-/**
- * User-requested: "ajoutes les ombres... pour les spirales" - a soft
- * blurred drop shadow behind each spiral-binding ring, since a plain
- * offset circle (Compose's `drawCircle` has no blur of its own) would just
- * look like a second flat ring rather than a shadow. Uses the platform
- * Canvas's real `BlurMaskFilter` (via `nativeCanvas`) rather than Compose's
- * `Modifier.blur()` - this is a raw draw call inside an existing
- * DrawScope (ambientGloom's background layer, notebookSpiralBinding's
- * foreground overlay), not a composable with its own layout node, so
- * `Modifier.blur()` isn't applicable here the way it is for
- * FloatingTopBar's header shadow.
- */
-private fun DrawScope.drawBlurredShadowCircle(center: Offset, radius: Float, blurRadiusPx: Float, color: Color) {
-    drawContext.canvas.nativeCanvas.drawCircle(
-        center.x, center.y, radius,
-        android.graphics.Paint().apply {
-            this.color = color.toArgb()
-            isAntiAlias = true
-            maskFilter = android.graphics.BlurMaskFilter(blurRadiusPx, android.graphics.BlurMaskFilter.Blur.NORMAL)
-        },
-    )
-}
