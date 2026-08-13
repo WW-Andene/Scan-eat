@@ -3,6 +3,7 @@ package fr.scanneat.presentation.ui.theme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -56,6 +57,12 @@ private class AlwaysBelowPositionProvider(private val verticalGapPx: Int) : Popu
 
 private val MAX_MENU_HEIGHT: Dp = 320.dp
 
+// User-reported: popups grew as wide as their widest menu item's text (up to
+// Material3 DropdownMenuItem's own 280dp internal max), reading as "too wide"
+// and no longer visually tied to the small trigger button that opened them.
+// Capped tighter and consistently app-wide instead of drifting per call site.
+private val MAX_MENU_WIDTH: Dp = 128.dp + 96.dp
+
 @Composable
 fun ScanEatDropdownMenu(
     expanded: Boolean,
@@ -76,7 +83,7 @@ fun ScanEatDropdownMenu(
             shadowElevation = 0.dp,
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
         ) {
-            Column(Modifier.heightIn(max = MAX_MENU_HEIGHT).verticalScroll(rememberScrollState())) {
+            Column(Modifier.widthIn(max = MAX_MENU_WIDTH).heightIn(max = MAX_MENU_HEIGHT).verticalScroll(rememberScrollState())) {
                 content()
             }
         }
