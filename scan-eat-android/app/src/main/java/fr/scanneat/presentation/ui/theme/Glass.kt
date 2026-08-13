@@ -288,30 +288,29 @@ fun Modifier.ambientGloom(
                     dstOffset = IntOffset((-overscanX + panX).toInt(), (-overscanY + panY).toInt()),
                     dstSize = IntSize(dw.toInt(), dh.toInt()),
                 )
-                // Stained-glass pane grid, always visible - the lead came
-                // (seam) outline is the geometric structure the user asked
-                // for and reads fine static. The reflection WAVE on top,
-                // though, is inherently a motion effect - user-corrected:
-                // "seulement quand animation activé" - so it only draws
-                // when [animated] (Settings > Affichage > Fond animé) is
-                // on; each pane's phase is its own centroid x fraction so
-                // the highlight visibly sweeps across neighboring panes in
+                // User-corrected: "pas de lisière dorée, c'est sensé juste
+                // être un effet pour créé l'illusion d'animation des
+                // prisme" - no lead-came outline at all, just the
+                // reflection-wave highlight itself (only when [animated] -
+                // "seulement quand animation activé"), which alone is the
+                // whole effect: light appearing to catch and sweep across
+                // each facet, the illusion of the panes shifting/animating.
+                // Each pane's phase is its own centroid x fraction so the
+                // highlight visibly sweeps across neighboring panes in
                 // screen order, a "logical" wave rather than random flicker.
-                prismPanes.forEach { (a, b, c) ->
-                    val pa = Offset(a.x * size.width, a.y * size.height)
-                    val pb = Offset(b.x * size.width, b.y * size.height)
-                    val pc = Offset(c.x * size.width, c.y * size.height)
-                    val panePath = Path().apply {
-                        moveTo(pa.x, pa.y); lineTo(pb.x, pb.y); lineTo(pc.x, pc.y); close()
-                    }
-                    if (animated) {
+                if (animated) {
+                    prismPanes.forEach { (a, b, c) ->
                         val centroidXFrac = (a.x + b.x + c.x) / 3f
                         val wave = sin(t * 1.1f - centroidXFrac * 2f * Math.PI.toFloat() * 1.6f)
                         val highlightAlpha = 0.05f + (wave.coerceAtLeast(0f)) * 0.22f
+                        val pa = Offset(a.x * size.width, a.y * size.height)
+                        val pb = Offset(b.x * size.width, b.y * size.height)
+                        val pc = Offset(c.x * size.width, c.y * size.height)
+                        val panePath = Path().apply {
+                            moveTo(pa.x, pa.y); lineTo(pb.x, pb.y); lineTo(pc.x, pc.y); close()
+                        }
                         drawPath(panePath, color = Color.White.copy(alpha = highlightAlpha))
                     }
-                    // Lead came - the thin metal seam between stained-glass panes.
-                    drawPath(panePath, color = PrismGold.copy(alpha = 0.32f), style = Stroke(width = 1.2.dp.toPx()))
                 }
                 return@onDrawBehind
             }
