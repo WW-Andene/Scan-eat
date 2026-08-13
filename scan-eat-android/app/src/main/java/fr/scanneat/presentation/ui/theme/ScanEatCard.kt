@@ -16,10 +16,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
@@ -79,17 +84,19 @@ internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f
 private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, elevation = 6.dp)
 private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 3.dp)
 
-// User-requested (Notebook theme): "card become post it with slight variation
-// in position and rotation for natural look" - a real sticky note is never
-// perfectly axis-aligned once stuck down by hand, so every ScanEatCard
-// instance under this theme independently rolls a small rotation and one of
-// four post-it colors, rather than every card sharing one identical flat
-// tilt (which would just look like a rendering bug, not "natural"). `remember`
-// (no key) picks the value once per call-site instance and holds it stable
-// across recomposition, so a card doesn't visibly jitter or re-roll its own
-// tilt/color on every recompose - only a fresh composition (e.g. scrolling a
-// LazyColumn item back into existence) rerolls it, same as a sticky note
-// doesn't move once placed.
+// User-reported: the original post-it treatment (solid color fill + a small
+// independent rotation per card) made adjacent cards visually touch/overlap
+// in a Column ("certaine carte ce touche et ce superpose") - rotation
+// doesn't change a composable's LAYOUT bounds, only its drawn appearance, so
+// a rotated card's corners can extend past the flat rectangular space the
+// layout system still reserves for it, into its neighbor's space. Replaced
+// per explicit follow-up instruction: "remplace les carte post-it par des
+// carte dessiné au stylo... doivent être superposé et bougé en même temps
+// que le background, comme si écrit sur un cahier" - cards are now
+// axis-aligned (removes the rotation that caused the overlap bug as a side
+// effect) with a hand-drawn pen/sketch border instead of a solid post-it
+// fill, and a paper-toned (not opaque) interior so they read as part of the
+// page rather than separate floating objects on top of it.
 internal val NotebookPostItColors = listOf(NotebookPostItPink, NotebookPostItGold, NotebookPostItSky, NotebookPostItGreen)
 
 /**
@@ -97,22 +104,57 @@ internal val NotebookPostItColors = listOf(NotebookPostItPink, NotebookPostItGol
  * directly - e.g. it overlays a badge via `BoxScope.align`, a slot
  * [ScanEatCard]'s `content: ColumnScope.() -> Unit` doesn't expose, the
  * same reason [HeroGlassSpec] above is `internal`) can call this to get the
- * same post-it (color/shape/rotation) treatment [ScanEatCard] itself
- * applies, instead of re-deriving it or - the previous state for every
- * `Surface(...)` card in the app - silently keeping the glass look under
- * Notebook theme while every [ScanEatCard]-based card around it changed.
- * User-reported: "toutes les cartes n'ont pas été remplacées" - this is
- * the fix for hand-rolled cards specifically; [ScanEatCard]-based ones
- * were already covered.
+ * same sketched-card treatment [ScanEatCard] itself applies, instead of
+ * re-deriving it or - the previous state for every `Surface(...)` card in
+ * the app - silently keeping the glass look under Notebook theme while
+ * every [ScanEatCard]-based card around it changed. User-reported: "toutes
+ * les cartes n'ont pas été remplacées" - this is the fix for hand-rolled
+ * cards specifically; [ScanEatCard]-based ones were already covered.
  */
 @Composable
 internal fun rememberNotebookPostItStyle(baseShape: Shape): NotebookPostItStyle? {
     if (LocalThemeName.current != "notebook") return null
-    val color = remember { NotebookPostItColors.random() }
-    val rotation = remember { Random.nextFloat() * 5f - 2.5f }
-    return NotebookPostItStyle(color.copy(alpha = 0.96f), RoundedCornerShape(3.dp), rotation)
+    val penColor = remember { NotebookPostItColors.random() }
+    return NotebookPostItStyle(penColor, RoundedCornerShape(6.dp), 0f)
 }
 internal data class NotebookPostItStyle(val color: Color, val shape: Shape, val rotationDegrees: Float)
+
+/**
+ * Draws a hand-sketched rounded-rectangle outline instead of a filled
+ * shape - two slightly-offset overlapping passes of a jittered path, the
+ * same "visible individual strokes, not a perfectly clean line" idea
+ * [WeeklyBarsCard]'s crayon bars and [drawCrayonRing] use elsewhere in this
+ * theme. `seed` should be stable across recompositions for the same card
+ * instance (pass a `remember`-ed value) so the sketch doesn't redraw itself
+ * differently on every frame.
+ */
+fun Modifier.notebookPenBorder(color: Color, seed: Int, strokeWidth: Dp = 2.dp): Modifier = this.drawWithCache {
+    // Resolved against this draw scope's own density (not a hardcoded
+    // Density elsewhere) so the stroke is the same physical width on every
+    // device rather than a fixed raw-pixel count.
+    val strokeWidthPx = strokeWidth.toPx()
+    val cornerPx = 6.dp.toPx()
+    fun sketchPath(rng: Random, jitter: Float): Path {
+        val rect = Rect(0f, 0f, size.width, size.height)
+        return Path().apply {
+            addRoundRect(androidx.compose.ui.geometry.RoundRect(rect, CornerRadius(cornerPx, cornerPx)))
+        }.let { base ->
+            // Slight whole-path jitter (translate a hair) rather than a true
+            // per-point wobble - cheap, and reads as a second pen pass at
+            // this stroke width/card size.
+            Path().apply {
+                addPath(base, Offset((rng.nextFloat() - 0.5f) * jitter, (rng.nextFloat() - 0.5f) * jitter))
+            }
+        }
+    }
+    onDrawWithContent {
+        drawContent()
+        val rng1 = Random(seed)
+        val rng2 = Random(seed * 31 + 7)
+        drawPath(sketchPath(rng1, strokeWidthPx * 0.6f), color = color.copy(alpha = 0.8f), style = Stroke(width = strokeWidthPx))
+        drawPath(sketchPath(rng2, strokeWidthPx * 0.6f), color = color.copy(alpha = 0.5f), style = Stroke(width = strokeWidthPx * 0.8f))
+    }
+}
 
 /**
  * The app's one card primitive — glassSheen() top-light + hairline edge over
@@ -180,19 +222,18 @@ fun ScanEatCard(
     val indication = LocalIndication.current
     val isNotebook = LocalThemeName.current == "notebook"
     // Rolled once per card instance (see NotebookPostItColors' own doc
-    // comment above) - a real sticky note's tilt is a few degrees at most;
-    // anything wider would read as "falling off the page" rather than
-    // "hand-placed."
-    val postItColor = if (isNotebook) remember { NotebookPostItColors.random() } else Color.Unspecified
-    val postItRotation = if (isNotebook) remember { Random.nextFloat() * 5f - 2.5f } else 0f
-    val postItShape = if (isNotebook) RoundedCornerShape(3.dp) else shape
-    val effectiveColor = if (isNotebook) postItColor.copy(alpha = 0.96f) else color
+    // comment above) and held stable across recomposition via `remember`,
+    // so a card doesn't visibly redraw its sketch or re-pick its pen color
+    // on every recompose - only a fresh composition (e.g. scrolling a
+    // LazyColumn item back into existence) rerolls it.
+    val penColor = if (isNotebook) remember { NotebookPostItColors.random() } else Color.Unspecified
+    val sketchSeed = if (isNotebook) remember { Random.nextInt() } else 0
+    val notebookShape = if (isNotebook) RoundedCornerShape(6.dp) else shape
     Box(
         modifier.fillMaxWidth()
-            .then(if (isNotebook) Modifier.rotate(postItRotation) else Modifier)
             .glassSheen(
                 edgeAlpha = if (isNotebook) 0f else spec.edgeAlpha,
-                shape = postItShape,
+                shape = notebookShape,
                 glowTint = accent,
                 glowAlpha = if (isNotebook) 0f else spec.glowAlpha,
             ),
@@ -209,24 +250,28 @@ fun ScanEatCard(
         // either. Trade-off: cards lose the directional-shadow/vignette look
         // and always show a neutral shadow, same as the header chrome.
         //
-        // Notebook theme overrides shape/color/elevation to a flat, near-
-        // square, solid-fill post-it look (glassSheen disabled above via
-        // alpha=0f - a frosted-glass sheen doesn't belong on paper) with a
-        // slightly heavier shadow than the base PRIMARY/SECONDARY specs so
-        // it reads as a note sitting ON TOP of the page rather than glass
-        // floating over an ambient wash.
+        // Notebook theme: no independent rotation (that was the root cause
+        // of cards visually touching/overlapping their neighbors - see
+        // NotebookPostItColors' own doc comment), a paper-toned near-
+        // transparent interior instead of an opaque fill (glassSheen
+        // disabled above via alpha=0f - a frosted-glass sheen doesn't
+        // belong on paper either), and notebookPenBorder draws a hand-
+        // sketched outline on top instead of a solid post-it block, so the
+        // card reads as written directly on the page rather than a
+        // separate object floating over it.
         Surface(
             modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = if (isNotebook) 4.dp else spec.elevation, shape = postItShape)
-                .clip(postItShape)
+                .shadow(elevation = if (isNotebook) 1.dp else spec.elevation, shape = notebookShape)
+                .clip(notebookShape)
+                .then(if (isNotebook) Modifier.notebookPenBorder(penColor, sketchSeed) else Modifier)
                 .then(
                     if (onClick != null)
                         Modifier.pressScale(interactionSource)
                             .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
                     else Modifier
                 ),
-            shape = postItShape,
-            color = effectiveColor,
+            shape = notebookShape,
+            color = if (isNotebook) NotebookPaper.copy(alpha = 0.4f) else color,
             shadowElevation = 0.dp,
         ) {
             Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)

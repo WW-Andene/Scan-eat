@@ -7,6 +7,7 @@ import compose.icons.tablericons.ChevronUp
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -128,13 +129,23 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
                         CircleShape,
                     ),
             )
-            CircularProgressIndicator(
-                progress    = { animatedProgress },
-                modifier    = Modifier.size(178.dp),
-                color       = color,
-                strokeWidth = 14.dp,
-                trackColor  = SurfaceVariant,
-            )
+            // User-requested (Notebook theme): "les cercle et gauge doivent
+            // être en trait de crayon de couleur" - drawCrayonRing (Glass.kt)
+            // instead of Material's smooth CircularProgressIndicator arc for
+            // this theme; every other theme is unaffected.
+            if (LocalThemeName.current == "notebook") {
+                Canvas(Modifier.size(178.dp)) {
+                    drawCrayonRing(progress = animatedProgress, color = color, trackColor = SurfaceVariant, strokeWidthPx = 14.dp.toPx())
+                }
+            } else {
+                CircularProgressIndicator(
+                    progress    = { animatedProgress },
+                    modifier    = Modifier.size(178.dp),
+                    color       = color,
+                    strokeWidth = 14.dp,
+                    trackColor  = SurfaceVariant,
+                )
+            }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // Nutritionist/public-bench audit: unlike DualScoreRing (which labels
                 // its classic score "Score classique"), this single-ring view showed
@@ -145,12 +156,12 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
                 // way two different exams both grading A-F don't need new letters just
                 // because they measure different things - but only if each is actually
                 // named. This one wasn't.
-                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), modifier = Modifier.notebookTextJitter())
                 // User-reported: 56sp read as too large for a single-score display
                 // (DualScoreRing's 26sp comparison view was unaffected/correctly sized).
-                Text(grade.label, style = HeroNumberStyle.copy(fontSize = 44.sp), color = color)
+                Text(grade.label, style = HeroNumberStyle.copy(fontSize = 44.sp), color = color, modifier = Modifier.notebookTextJitter())
                 Text(stringResource(R.string.result_score_out_of_100, score),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
+                    style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f), modifier = Modifier.notebookTextJitter())
             }
         }
         if (scoreDelta != null) {

@@ -11,8 +11,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
@@ -122,6 +126,40 @@ val LocalBottomNavHazeState = compositionLocalOf { HazeState() }
  * with [glassSheen]'s gradient/edge-highlight layered on top for the "light
  * catching a glass edge" finish.
  */
+/**
+ * A simple metal-gray paperclip silhouette (two nested elongated loops),
+ * drawn clipping over the note's top-left corner - the classic "paperclip
+ * holding a sticky note to the page" look the user's reference mockups
+ * show. Position is in absolute pixels off the draw scope's own origin
+ * (negative Y so it visually overhangs the note's top edge), not
+ * parameterized - this is a one-off decoration for [FloatingTopBar]
+ * specifically, not a general reusable shape.
+ */
+private fun DrawScope.drawNotebookPaperclip() {
+    val clipColor = Color(0xFFB0B0B8)
+    val originX = 28.dp.toPx()
+    val originY = -6.dp.toPx()
+    val loopW = 14.dp.toPx()
+    val loopH = 34.dp.toPx()
+    fun loopPath(inset: Float): Path = Path().apply {
+        moveTo(originX - loopW / 2f + inset, originY)
+        cubicTo(
+            originX - loopW / 2f - 2.dp.toPx() + inset, originY + loopH * 0.15f,
+            originX - loopW / 2f - 2.dp.toPx() + inset, originY + loopH * 0.85f,
+            originX - loopW / 2f + inset, originY + loopH,
+        )
+        cubicTo(
+            originX - loopW / 2f + 4.dp.toPx() + inset, originY + loopH + 6.dp.toPx(),
+            originX + loopW / 2f - inset, originY + loopH + 6.dp.toPx(),
+            originX + loopW / 2f - inset, originY + loopH - 2.dp.toPx(),
+        )
+        lineTo(originX + loopW / 2f - inset, originY + 10.dp.toPx())
+    }
+    val strokeWidth = 2.5.dp.toPx()
+    drawPath(loopPath(0f), color = clipColor, style = Stroke(width = strokeWidth))
+    drawPath(loopPath(4.dp.toPx()), color = clipColor, style = Stroke(width = strokeWidth))
+}
+
 @Composable
 fun FloatingTopBar(
     title: @Composable () -> Unit,
@@ -132,6 +170,13 @@ fun FloatingTopBar(
     actions: @Composable RowScope.() -> Unit = {},
     accent: Color = Color.White,
 ) {
+    // User-requested (Notebook theme): "remplace le header par un post-it
+    // avec trombone" - a yellow sticky note (near-square corners, opaque
+    // paper-note fill, no real backdrop blur - a post-it isn't glass) with
+    // a drawn paperclip overlapping its top-left corner, instead of the
+    // frosted-glass pill every other theme uses here.
+    val isNotebook = LocalThemeName.current == "notebook"
+    val headerShape = if (isNotebook) RoundedCornerShape(4.dp) else RoundedCornerShape(CardRadius.PROMINENT)
     Box(
         modifier
             .fillMaxWidth()
@@ -140,11 +185,11 @@ fun FloatingTopBar(
             // and match MainShell's bottom nav margin exactly so the header's top
             // gap and the nav's bottom gap read as the same size.
             .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
-            .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = accent),
+            .then(if (isNotebook) Modifier else Modifier.glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = accent)),
     ) {
         Surface(
-            shape           = RoundedCornerShape(CardRadius.PROMINENT),
-            color           = Color.Transparent,
+            shape           = headerShape,
+            color           = if (isNotebook) NotebookPostItGold.copy(alpha = 0.95f) else Color.Transparent,
             // MIUI-observed bug (see ScanEatCard.kt): ambientColor/spotColor-tinted
             // Modifier.shadow renders as a solid, hard-edged grey rectangle instead
             // of a soft shadow on some OEM skins. Reverted to the neutral default
@@ -153,9 +198,10 @@ fun FloatingTopBar(
             shadowElevation = 0.dp,
             modifier        = Modifier
                 .fillMaxWidth()
-                .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
-                .clip(RoundedCornerShape(CardRadius.PROMINENT))
-                .hazeEffect(state = hazeState, style = FrostedGlassStyle),
+                .shadow(elevation = if (isNotebook) 3.dp else 8.dp, shape = headerShape)
+                .clip(headerShape)
+                .then(if (isNotebook) Modifier else Modifier.hazeEffect(state = hazeState, style = FrostedGlassStyle))
+                .then(if (isNotebook) Modifier.drawWithContent { drawContent(); drawNotebookPaperclip() } else Modifier),
         ) {
             Row(
                 // User-reported: on tab-root screens (no back arrow), the leading
@@ -181,7 +227,7 @@ fun FloatingTopBar(
                     // pixel-for-pixel instead of approximating it.
                     Spacer(Modifier.width(Spacing.L))
                 }
-                Box(Modifier.weight(1f)) {
+                Box(Modifier.weight(1f).notebookTextJitter()) {
                     ProvideTextStyle(MaterialTheme.typography.titleLarge) { title() }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, content = actions)

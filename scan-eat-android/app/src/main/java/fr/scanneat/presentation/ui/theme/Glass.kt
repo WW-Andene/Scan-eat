@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.shadow
 import androidx.compose.runtime.LaunchedEffect
@@ -220,27 +221,18 @@ fun Modifier.ambientGloom(
         )
         val t = timeSec
         val maxRadius = size.minDimension * 0.32f
-        // Ruled-paper line spacing/geometry precomputed here (drawWithCache,
-        // not per-frame) since it only depends on `size`, same reasoning the
-        // brushes above are hoisted out of onDrawBehind.
+        // Ring geometry precomputed here (drawWithCache, not per-frame) since
+        // it only depends on `size`, same reasoning the brushes above are
+        // hoisted out of onDrawBehind.
         val ringColumnWidth = 28.dp.toPx()
-        val lineSpacing = 32.dp.toPx()
-        val lineStartX = ringColumnWidth + 12.dp.toPx()
         val ringSpacing = 44.dp.toPx()
         val ringRadius = 5.dp.toPx()
         onDrawBehind {
             if (isNotebook) {
+                // User-requested: "enlever les ligne du background" - the
+                // horizontal ruled lines this used to draw are gone; plain
+                // paper fill plus the spiral binding only.
                 drawRect(NotebookPaper)
-                // Horizontal ruled lines, offset past the spiral-ring column
-                // on the left so lines don't run through the rings.
-                var y = lineSpacing
-                while (y < size.height) {
-                    drawLine(
-                        color = NotebookLine, strokeWidth = 1.dp.toPx(),
-                        start = Offset(lineStartX, y), end = Offset(size.width, y),
-                    )
-                    y += lineSpacing
-                }
                 // Left-edge spiral binding: a column of small ring circles,
                 // each with a thin darker "wire" arc so it reads as metal
                 // coil rather than a flat dot.
@@ -335,4 +327,72 @@ private fun DrawScope.drawRippleRing(cycle: Float, center: Offset, maxRadius: Fl
         alpha = alpha,
         style = Stroke(width = 1.5f + 2f * fade),
     )
+}
+
+/**
+ * User-requested (Notebook theme): "les cercle et gauge doivent être en
+ * trait de crayon de couleur" - a colored-pencil/crayon-textured circular
+ * progress ring instead of Material's smooth [androidx.compose.material3.CircularProgressIndicator]
+ * arc. Drawn as many short, alpha-jittered radial strokes packed along the
+ * progress arc (same "visible individual strokes, not a perfectly even
+ * line" idea as [WeeklyBarsCard]'s crayon bars), rather than one continuous
+ * stroke - a single arc with `pathEffect` dashing reads as "dashed line,"
+ * not "hand-colored," which is why this hand-draws each short segment
+ * instead. `trackColor` (the unfilled remainder of the ring) is drawn the
+ * same way at low alpha so the two read as one continuous hand-drawn
+ * circle rather than a smooth track behind a textured fill.
+ *
+ * Deliberately covers only the app's most prominent single ring (Result's
+ * ScoreRing/DualScoreRing) in this pass, not all ~13 CircularProgressIndicator
+ * call sites app-wide (Hydration, TodayMacroCard, ActiveFastCard, etc.) -
+ * same "flag the remaining scope honestly" approach as the post-it card
+ * conversion.
+ */
+fun DrawScope.drawCrayonRing(progress: Float, color: Color, trackColor: Color, strokeWidthPx: Float) {
+    val radius = (size.minDimension - strokeWidthPx) / 2f
+    val center = Offset(size.width / 2f, size.height / 2f)
+    val segmentDeg = 3f
+    val totalSegments = (360f / segmentDeg).toInt()
+    val filledSegments = (totalSegments * progress).toInt().coerceIn(0, totalSegments)
+    val rng = Random(center.x.toInt() * 31 + center.y.toInt())
+    for (i in 0 until totalSegments) {
+        val startAngle = -90f + i * segmentDeg
+        val isFilled = i < filledSegments
+        val jitterWidth = strokeWidthPx * (0.85f + rng.nextFloat() * 0.3f)
+        val jitterRadius = radius + (rng.nextFloat() - 0.5f) * strokeWidthPx * 0.15f
+        drawArc(
+            color = if (isFilled) color else trackColor,
+            startAngle = startAngle,
+            sweepAngle = segmentDeg * 0.8f,
+            useCenter = false,
+            topLeft = Offset(center.x - jitterRadius, center.y - jitterRadius),
+            size = androidx.compose.ui.geometry.Size(jitterRadius * 2, jitterRadius * 2),
+            style = Stroke(width = jitterWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+            alpha = if (isFilled) 0.75f + rng.nextFloat() * 0.25f else 0.4f,
+        )
+    }
+}
+
+/**
+ * User-requested (Notebook theme): "fait en sorte que tout les texte es des
+ * offset variable de 1dp pour un rendu naturel" - a small per-instance
+ * random x/y nudge (±1dp), rolled once via `remember` and held stable
+ * across recomposition (same reasoning [rememberNotebookPostItStyle]'s own
+ * doc comment gives), so text doesn't sit on a perfectly mechanical grid -
+ * closer to how handwriting/pasted notes never land pixel-perfectly
+ * aligned. Opt-in per `Text()` call via `.notebookTextJitter()`.
+ *
+ * NOT applied to every `Text()` call in the app - Compose's `Text()` is
+ * called directly (via Material3, not through a single shared wrapper) at
+ * several hundred call sites app-wide, so making literally all of them
+ * jitter would mean touching every one individually. Applied instead to
+ * the most prominent, highest-visibility text under Notebook theme
+ * (header title, score grade/number) as a representative implementation -
+ * broader coverage is a larger, separate follow-up.
+ */
+fun Modifier.notebookTextJitter(): Modifier = composed {
+    if (LocalThemeName.current != "notebook") return@composed this
+    val dx = remember { (Random.nextFloat() - 0.5f) * 2f }
+    val dy = remember { (Random.nextFloat() - 0.5f) * 2f }
+    this.offset(dx.dp, dy.dp)
 }
