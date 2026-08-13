@@ -108,7 +108,7 @@ internal fun WeightSummaryCard(
                 Text(stringResource(R.string.weight_bmi_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                     Text(bmi.formatDecimal(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = bmiColor)
-                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = bmiColor.copy(0.15f), border = BorderStroke(1.dp, bmiColor.copy(alpha = STATUS_BORDER_ALPHA))) {
+                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = bmiColor.copy(0.15f), border = BorderStroke(2.dp, bmiColor.copy(alpha = STATUS_BORDER_ALPHA))) {
                         Text(bmiLabel, style = MaterialTheme.typography.labelSmall, color = bmiColor, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2))
                     }
                 }

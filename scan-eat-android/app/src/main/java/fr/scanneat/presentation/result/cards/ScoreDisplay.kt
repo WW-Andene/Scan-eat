@@ -113,7 +113,7 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
     // freezing static — this ring is the "second skin" pulse's home.
     val breathingPulse = rememberBreathingPulse()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(modifier = Modifier.fillMaxWidth().height(232.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxWidth().height(128.dp), contentAlignment = Alignment.Center) {
             // User-reported regression: the OrganicBlobShape aura layer here read as a
             // rendering bug ("un cercle un peu déformé derrière"), not a deliberate
             // signature — reverted to a plain circular glow. OrganicBlobShape itself
@@ -122,7 +122,7 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
             // the breathing-pulse glow, no asymmetric aura.
             Box(
                 modifier = Modifier
-                    .size(210.dp)
+                    .size(128.dp)
                     .background(
                         Brush.radialGradient(listOf(color.copy(alpha = 0.24f * completion * breathingPulse), Color.Transparent)),
                         CircleShape,
@@ -130,7 +130,7 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
             )
             CircularProgressIndicator(
                 progress    = { animatedProgress },
-                modifier    = Modifier.size(178.dp),
+                modifier    = Modifier.size(128.dp),
                 color       = color,
                 strokeWidth = 14.dp,
                 trackColor  = SurfaceVariant,
@@ -179,10 +179,10 @@ internal fun DualScoreRing(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.result_classic_score_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
             Spacer(Modifier.height(Spacing.XS))
-            Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.size(96.dp), contentAlignment = Alignment.Center) {
                 Box(
                     modifier = Modifier
-                        .size(102.dp)
+                        .size(96.dp)
                         .background(
                             Brush.radialGradient(listOf(classicColor.copy(alpha = 0.20f * classicCompletion), Color.Transparent)),
                             CircleShape,
@@ -208,10 +208,10 @@ internal fun DualScoreRing(
             Text(stringResource(R.string.result_personal_score_label), style = MaterialTheme.typography.labelSmall,
                 color = if (veto) semanticRed() else AccentCoral)
             Spacer(Modifier.height(Spacing.XS))
-            Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.size(96.dp), contentAlignment = Alignment.Center) {
                 Box(
                     modifier = Modifier
-                        .size(102.dp)
+                        .size(96.dp)
                         .background(
                             Brush.radialGradient(listOf(personalColor.copy(alpha = 0.20f * personalCompletion), Color.Transparent)),
                             CircleShape,

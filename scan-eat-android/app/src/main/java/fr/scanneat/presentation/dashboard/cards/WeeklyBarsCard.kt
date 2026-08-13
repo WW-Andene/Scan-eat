@@ -104,7 +104,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                         color = dashColor,
                         start = Offset(0f, y),
                         end   = Offset(size.width, y),
-                        strokeWidth = 1.dp.toPx(),
+                        strokeWidth = 2.dp.toPx(),
                         pathEffect  = PathEffect.dashPathEffect(floatArrayOf(6f, 4f), 0f),
                     )
                 }

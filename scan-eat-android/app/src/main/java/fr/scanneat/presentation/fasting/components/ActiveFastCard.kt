@@ -29,15 +29,15 @@ internal fun ActiveFastCard(fastingState: FastingState, language: String, person
     // art-direction-engine §ATMOSPHERE: HydrationRingAndControls' ring already gets a
     // radial-gradient glow backdrop behind it - this ring, the literal focal element
     // of an active fast in progress, had none and read as flatter than its sibling.
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(140.dp)) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(128.dp)) {
         Box(
-            modifier = Modifier.size(140.dp)
+            modifier = Modifier.size(128.dp)
                 .background(Brush.radialGradient(listOf(AccentCoral.copy(alpha = 0.18f), Color.Transparent)), CircleShape),
         )
         CircularProgressIndicator(
-            progress = { pct }, modifier = Modifier.size(120.dp),
+            progress = { pct }, modifier = Modifier.size(128.dp),
             color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
-            trackColor = SurfaceVariant, strokeWidth = 10.dp,
+            trackColor = SurfaceVariant, strokeWidth = 12.dp,
         )
     }
     val (h, m, _) = hmsFromSeconds(fs.elapsedMs / 1000)
@@ -61,7 +61,7 @@ internal fun ActiveFastCard(fastingState: FastingState, language: String, person
     // merely tying a prior best also showed "new record" (hollow/inaccurate
     // for a user repeating the same fast length every week).
     if (personalRecord > 0 && h > personalRecord) {
-        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Gold.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Gold.copy(0.4f))) {
+        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Gold.copy(0.15f), border = androidx.compose.foundation.BorderStroke(2.dp, Gold.copy(0.4f))) {
             Row(
                 modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
                 verticalAlignment = Alignment.CenterVertically,

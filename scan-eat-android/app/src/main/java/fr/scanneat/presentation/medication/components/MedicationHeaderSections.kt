@@ -37,7 +37,7 @@ internal fun MedicationStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
         if (streakDays > 0) {
             StreakBadge(streakDays, Teal)
         } else {
-            Spacer(Modifier.width(1.dp))
+            Spacer(Modifier.width(2.dp))
         }
         IconButton(onClick = onOpenCalendar) {
             Icon(TablerIcons.Calendar, stringResource(R.string.medication_cd_calendar), tint = OnBackground.copy(0.6f))
@@ -81,7 +81,7 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
         // art-direction-engine §CARDS: CautionBanner (health-condition caution) frames
         // its semantic tint with a matching border for extra material weight - this
         // banner, for an active drug interaction (arguably higher severity), had none.
-        border = BorderStroke(1.dp, semanticRed().copy(alpha = 0.35f)),
+        border = BorderStroke(2.dp, semanticRed().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
@@ -133,7 +133,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
                                 if (taken) TablerIcons.Check else TablerIcons.X,
                                 null,
                                 tint = if (taken) Teal else OnSurface.copy(0.35f),
-                                modifier = Modifier.size(10.dp),
+                                modifier = Modifier.size(12.dp),
                             )
                             Text(
                                 m.name,

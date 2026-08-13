@@ -63,7 +63,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
     // Box carrying shadow, clip, and the glassSheen hairline in a single chain.
     Box(
         modifier = Modifier.fillMaxWidth()
-            .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
+            .shadow(elevation = 12.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
             .clip(RoundedCornerShape(CardRadius.PROMINENT))
             .glassSheen(
                 edgeAlpha = HeroGlassSpec.edgeAlpha,
@@ -79,8 +79,8 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         Box(
             Modifier
                 .matchParentSize()
-                .offset(x = -7.dp, y = 9.dp)
-                .blur(10.dp)
+                .offset(x = -8.dp, y = 8.dp)
+                .blur(12.dp)
                 .background(ShadowTint.copy(alpha = 0.4f), RoundedCornerShape(CardRadius.PROMINENT)),
         )
         // This is the Dashboard's one focal metric — the Part B6 atmosphere
@@ -198,7 +198,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .offset(x = 8.dp, y = (-10).dp)
-                .size(46.dp)
+                .size(48.dp)
                 .shadow(elevation = 6.dp, shape = RoundedCornerShape(50)),
             shape = RoundedCornerShape(50),
             color = AccentCoral,

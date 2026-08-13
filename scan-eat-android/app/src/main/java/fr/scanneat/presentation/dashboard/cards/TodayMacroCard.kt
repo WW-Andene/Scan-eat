@@ -60,7 +60,7 @@ internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
 @Composable
 private fun MacroRing(label: String, value: Int, unit: String, pct: Float?, color: Color, target: Int?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(modifier = Modifier.size(52.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 progress   = { pct?.coerceIn(0f, 1f) ?: 1f },
                 modifier   = Modifier.fillMaxSize(),
@@ -70,7 +70,7 @@ private fun MacroRing(label: String, value: Int, unit: String, pct: Float?, colo
             )
             Text(value.toString(), style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground, fontWeight = FontWeight.Bold)
         }
-        Spacer(Modifier.height(5.dp))
+        Spacer(Modifier.height(6.dp))
         // Previously only the current total was shown ("120g") with no indication of
         // the profile-derived target it's being measured against, even though the
         // ring's own fill % was silently computed from that same target — the number

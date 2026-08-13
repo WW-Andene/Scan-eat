@@ -90,7 +90,7 @@ private fun StepDots(total: Int, active: Int) {
         repeat(total) { i ->
             Box(
                 Modifier
-                    .size(if (i == active) 20.dp else 8.dp, 8.dp)
+                    .size(if (i == active) 24.dp else 8.dp, 8.dp)
                     .clip(RoundedCornerShape(50))
                     .background(if (i == active) AccentCoral else OnBackground.copy(0.2f)),
             )

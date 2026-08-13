@@ -44,7 +44,7 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = color.copy(0.04f),
-        border = BorderStroke(1.dp, color.copy(0.15f)),
+        border = BorderStroke(2.dp, color.copy(0.15f)),
         modifier = Modifier.fillMaxWidth()
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),

@@ -79,5 +79,5 @@ private fun NRow(label: String, value: String) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
         Text(value, style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"), color = OnBackground, fontWeight = FontWeight.Medium)
     }
-    HorizontalDivider(thickness = 0.5.dp, color = SeparatorLight)
+    HorizontalDivider(thickness = 0.6.dp, color = SeparatorLight)
 }

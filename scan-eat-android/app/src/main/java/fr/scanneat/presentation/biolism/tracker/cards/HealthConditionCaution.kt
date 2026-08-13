@@ -80,7 +80,7 @@ private fun CautionBanner(text: String) {
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = semanticAmber().copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, semanticAmber().copy(alpha = 0.35f)),
+        border = BorderStroke(2.dp, semanticAmber().copy(alpha = 0.35f)),
         // art-direction-engine §CARDS: a health-safety caution (ketosis +
         // diabetes/kidney disease/pregnancy) deserves real prominence, matching
         // ErrorBanner's own reasoning - had no shadowElevation at all.

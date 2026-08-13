@@ -61,7 +61,7 @@ import fr.scanneat.presentation.ui.theme.ScanEatLoadingIndicator
  * literals that didn't decompose cleanly onto the app's Spacing scale,
  * unlike every other screen's FAB corner margin (Spacing.L, e.g. Diary's
  * own FAB). ScanFabMargin unifies them onto that same convention; the
- * offsets below are built from margin + real FAB size (56.dp, Material's
+ * offsets below are built from margin + real FAB size (64.dp, Material's
  * own standard FAB dimension, not a spacing concern) + a named gap, the
  * same formula this file's own top-anchored stack (ScanShelfModeFab/
  * ScanInstantModeFab below) already uses.
@@ -98,7 +98,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
     // discoverable at all, instead of a feature nobody ever stumbles onto.
     val multiHint = stringResource(R.string.scan_identify_multi_hint)
     Column(
-        modifier = Modifier.align(Alignment.BottomEnd).padding(end = ScanFabMargin + 56.dp + Spacing.SM, bottom = bottomNavClearance + ScanFabMargin + Spacing.SM),
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = ScanFabMargin + 64.dp + Spacing.SM, bottom = bottomNavClearance + ScanFabMargin + Spacing.SM),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
@@ -137,7 +137,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
 internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottomNavClearance: Dp, onQuickScan: (String) -> Unit) {
     Column(
         modifier = Modifier.align(Alignment.BottomStart)
-            .padding(start = ScanFabMargin, bottom = bottomNavClearance + ScanFabMargin + 56.dp + Spacing.SM),
+            .padding(start = ScanFabMargin, bottom = bottomNavClearance + ScanFabMargin + 64.dp + Spacing.SM),
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         recentBarcodes.takeLast(3).reversed().forEach { bc ->
@@ -145,11 +145,11 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
             // (see ScanIdentifyFoodAction's own comment above) - collapsed into one Box.
             Box(
                 Modifier
-                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(20.dp))
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(20.dp))
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(24.dp))
                     .clickable { onQuickScan(bc) }
-                    .glassSheen(edgeAlpha = 0.12f, shape = RoundedCornerShape(20.dp), glowAlpha = 0f, reliefAlpha = 0f),
+                    .glassSheen(edgeAlpha = 0.12f, shape = RoundedCornerShape(24.dp), glowAlpha = 0f, reliefAlpha = 0f),
             ) {
                 Row(Modifier.padding(horizontal = Spacing.SM, vertical = Spacing.XS), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     Icon(TablerIcons.History, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Micro))
@@ -173,7 +173,7 @@ internal fun BoxScope.ScanInstantModeFab(instantMode: Boolean, topInset: Dp, onC
     FloatingActionButton(
         onClick = onClick,
         modifier       = Modifier.align(Alignment.TopEnd)
-            .padding(top = topInset + Spacing.L + (56.dp + Spacing.S + 6.dp) * 2, end = Spacing.L)
+            .padding(top = topInset + Spacing.L + (64.dp + Spacing.S + 6.dp) * 2, end = Spacing.L)
             .minTouchTarget(),
         containerColor = if (instantMode) AccentCoral else SurfaceVariant,
         shape          = RoundedCornerShape(CardRadius.CONTROL),
@@ -214,7 +214,7 @@ internal fun BoxScope.ScanShelfModeFab(shelfMode: Boolean, topInset: Dp, onClick
         // bottom-start, bottom-start, then jumped back up to this top-right button.
         // User-reported: the gap below the flash button wasn't visible on-device -
         // bumped by another 6dp on top of the existing Spacing.S gap.
-        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 56.dp + Spacing.S + 6.dp, end = Spacing.L)
+        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 64.dp + Spacing.S + 6.dp, end = Spacing.L)
             .minTouchTarget() // was a fixed 40dp, below the 48dp WCAG/Material touch-target minimum
             .semantics { traversalIndex = -1f },
         containerColor = if (shelfMode) Teal else SurfaceVariant,

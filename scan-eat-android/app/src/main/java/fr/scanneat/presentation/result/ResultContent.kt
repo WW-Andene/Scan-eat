@@ -307,7 +307,7 @@ private fun MacroContributionCard(nutrition: NutritionPer100g) {
         rows.forEach { row ->
             val pct = (row.value / row.ref).coerceIn(0.0, 1.0).toFloat()
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Text(row.label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(56.dp))
+                Text(row.label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(64.dp))
                 LinearProgressIndicator(
                     progress = { pct },
                     modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
@@ -374,7 +374,7 @@ private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
                 val isLast = i == pts.lastIndex
                 drawCircle(
                     color  = if (isLast) lineColor else lineColor.copy(0.5f),
-                    radius = if (isLast) 5.dp.toPx() else 3.dp.toPx(),
+                    radius = if (isLast) 6.dp.toPx() else 3.dp.toPx(),
                     center = pt,
                 )
             }

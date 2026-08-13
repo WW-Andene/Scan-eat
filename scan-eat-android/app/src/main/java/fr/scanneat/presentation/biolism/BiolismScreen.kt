@@ -154,7 +154,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { role = Role.Tab; selected = isActive },
                         shape = RoundedCornerShape(8.dp),
                         color = if (isActive) GoldHaze else OnBackground.copy(0.03f),
-                        border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, GoldBorder) else null,
+                        border = if (isActive) androidx.compose.foundation.BorderStroke(2.dp, GoldBorder) else null,
                     ) {
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Text(

@@ -35,7 +35,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
     val barPct = (h.value / (h.refHigh * 1.3)).coerceIn(0.0, 1.0).toFloat()
     // Spacing.XS, matching InfoRow's own vertical padding - this and InfoRow render
     // the same "label/value row in a list" shape in the same cards (e.g.
-    // HormonesCard), and previously used a different literal padding (5.dp vs
+    // HormonesCard), and previously used a different literal padding (6.dp vs
     // InfoRow's Spacing.XS/4dp) for no reason, giving the two row types a visibly
     // different rhythm next to each other.
     Column(Modifier.padding(vertical = Spacing.XS)) {
@@ -53,7 +53,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 // doesn't have. Whole numbers, matching the ref range's own format.
                 Text("%.0f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
                 Surface(shape = RoundedCornerShape(3.dp), color = color.copy(0.15f),
-                    border = BorderStroke(1.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
+                    border = BorderStroke(2.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
                     Text(h.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                         style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
                 }

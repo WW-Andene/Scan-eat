@@ -21,7 +21,7 @@ internal fun HydrationStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
         if (streakDays > 0) {
             StreakBadge(streakDays, semanticBlue())
         } else {
-            Spacer(Modifier.width(1.dp))
+            Spacer(Modifier.width(2.dp))
         }
         IconButton(onClick = onOpenCalendar) {
             Icon(TablerIcons.Calendar, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))

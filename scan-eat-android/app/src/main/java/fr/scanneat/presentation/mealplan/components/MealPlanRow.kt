@@ -30,10 +30,10 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
     var text by remember(slot) { mutableStateOf((slot as? MealPlanSlot.NoteSlot)?.text ?: "") }
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-        // Was width(72.dp) - fit "Déjeuner"/"Dîner"/"Collation" on one line but
+        // Was width(64.dp) - fit "Déjeuner"/"Dîner"/"Collation" on one line but
         // forced "Petit-déjeuner" (the longest meal label) to wrap onto two
         // cramped lines, the only one of the four that did.
-        Text(meal, style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f), maxLines = 1, modifier = Modifier.width(88.dp))
+        Text(meal, style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f), maxLines = 1, modifier = Modifier.width(96.dp))
         if (editing) {
             OutlinedTextField(
                 value = text, onValueChange = { text = it },

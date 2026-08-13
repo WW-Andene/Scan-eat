@@ -94,7 +94,7 @@ internal fun BioCard(
     // clip, background, border, and the glassSheen hairline in a single chain.
     Box(
         Modifier.fillMaxWidth()
-            .shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = cardShape)
+            .shadow(elevation = if (emphasized) 12.dp else 6.dp, shape = cardShape)
             .clip(cardShape)
             // design-aesthetic-audit: same fix as ScanEatCard.kt - SurfaceVariant sits
             // only ~1-3 RGB units from Background in Light theme, so this fill was
@@ -104,7 +104,7 @@ internal fun BioCard(
             // instead of a separately-tuned Color.Transparent here.
             .background(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f), cardShape)
             .then(
-                if (emphasized) Modifier.border(BorderStroke(1.dp, Gold.copy(alpha = 0.22f)), cardShape) else Modifier
+                if (emphasized) Modifier.border(BorderStroke(2.dp, Gold.copy(alpha = 0.22f)), cardShape) else Modifier
             )
             .glassSheen(
                 edgeAlpha = if (emphasized) 0.34f else 0.16f,
@@ -123,7 +123,7 @@ internal fun BioCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
-                    Box(Modifier.width(2.dp).height(16.dp).background(Gold, RoundedCornerShape(1.dp)))
+                    Box(Modifier.width(2.dp).height(16.dp).background(Gold, RoundedCornerShape(2.dp)))
                     Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     badge?.invoke()
                     Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.Inline))

@@ -159,7 +159,7 @@ private fun PantryExpiryBanner(count: Int) {
         shape = androidx.compose.foundation.shape.RoundedCornerShape(CardRadius.CONTROL),
         color = semanticAmber().copy(0.1f),
         modifier = Modifier.fillMaxWidth(),
-        border = androidx.compose.foundation.BorderStroke(1.dp, semanticAmber().copy(alpha = 0.35f)),
+        border = androidx.compose.foundation.BorderStroke(2.dp, semanticAmber().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Icon(TablerIcons.AlertTriangle, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Compact))
@@ -181,7 +181,7 @@ private fun PantryHealthConflictBanner(count: Int) {
         shape = androidx.compose.foundation.shape.RoundedCornerShape(CardRadius.CONTROL),
         color = semanticRed().copy(0.1f),
         modifier = Modifier.fillMaxWidth(),
-        border = androidx.compose.foundation.BorderStroke(1.dp, semanticRed().copy(alpha = 0.35f)),
+        border = androidx.compose.foundation.BorderStroke(2.dp, semanticRed().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
@@ -237,7 +237,7 @@ private fun PantryItemRow(item: PantryItem, recalled: Boolean = false, healthCon
         color = if (flagged) semanticRed().copy(alpha = 0.08f) else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
         onClick = onEdit,
-        border = if (flagged) androidx.compose.foundation.BorderStroke(1.dp, semanticRed().copy(alpha = 0.4f)) else null,
+        border = if (flagged) androidx.compose.foundation.BorderStroke(2.dp, semanticRed().copy(alpha = 0.4f)) else null,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(Spacing.M),

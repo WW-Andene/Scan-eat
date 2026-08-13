@@ -124,7 +124,7 @@ internal fun SuggestRecipesDialog(
                         if (pantryItemNames.isNotEmpty()) {
                             Text(stringResource(R.string.recipes_suggest_pantry_chips_hint), color = OnBackground.copy(0.6f))
                             LazyColumn(
-                                modifier = Modifier.heightIn(max = 120.dp),
+                                modifier = Modifier.heightIn(max = 128.dp),
                                 verticalArrangement = Arrangement.spacedBy(Spacing.S),
                                 contentPadding = PaddingValues(vertical = Spacing.XS),
                             ) {
@@ -206,11 +206,11 @@ internal fun SuggestRecipesDialog(
                     LazyColumn(modifier = Modifier.heightIn(max = 280.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         itemsIndexed(results, key = { index, idea -> "$index-${idea.name}" }) { _, idea ->
                             Surface(
-                                shape = RoundedCornerShape(10.dp), color = OnBackground.copy(0.05f),
+                                shape = RoundedCornerShape(12.dp), color = OnBackground.copy(0.05f),
                                 onClick = { onPick(idea) },
                                 modifier = Modifier.fillMaxWidth()
-                                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(10.dp))
-                                    .clip(RoundedCornerShape(10.dp)),
+                                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(12.dp)),
                                 // app-audit §E5: matching AddDiaryEntryDialog's
                                 // list-row elevation - had none.
                                 shadowElevation = 0.dp,

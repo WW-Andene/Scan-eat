@@ -65,14 +65,14 @@ internal fun AddSleepEntryDialog(
                     OutlinedTextField(
                         value = bedtimeStr, onValueChange = { bedtimeStr = it },
                         label = { Text(stringResource(R.string.sleep_bedtime_label)) },
-                        singleLine = true, modifier = Modifier.width(110.dp),
+                        singleLine = true, modifier = Modifier.width(96.dp),
                         isError = showError, colors = scanEatTextFieldColors(),
                     )
                     Text("→", style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.5f))
                     OutlinedTextField(
                         value = wakeStr, onValueChange = { wakeStr = it },
                         label = { Text(stringResource(R.string.sleep_wake_label)) },
-                        singleLine = true, modifier = Modifier.width(110.dp),
+                        singleLine = true, modifier = Modifier.width(96.dp),
                         isError = showError, colors = scanEatTextFieldColors(),
                     )
                 }

@@ -196,7 +196,7 @@ private fun ReceiptReviewList(lines: List<ReceiptReviewLine>, onBack: () -> Unit
                             onValueChange = { priceText = it; it.replace(',', '.').toDoubleOrNull()?.let { p -> viewModel.updateLine(line.id, line.name, p) } },
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.width(84.dp),
+                            modifier = Modifier.width(96.dp),
                         )
                     }
                     // User-requested: when a line doesn't exactly match a known

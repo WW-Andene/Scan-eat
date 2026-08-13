@@ -85,7 +85,7 @@ internal fun AddWeightDialog(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).clickable(onClick = onPickDate),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     color = Color.Transparent,
-                    border = BorderStroke(1.dp, OnBackground.copy(0.2f)),
+                    border = BorderStroke(2.dp, OnBackground.copy(0.2f)),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.M),

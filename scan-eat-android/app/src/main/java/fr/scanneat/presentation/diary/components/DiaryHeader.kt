@@ -170,7 +170,7 @@ internal fun BoxScope.DiaryHeader(
                             },
                             shape = RoundedCornerShape(8.dp),
                             color = if (overflowActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
-                            border = if (overflowActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+                            border = if (overflowActive) BorderStroke(2.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
                         ) {
                             Row(
                                 Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
@@ -274,7 +274,7 @@ private fun DiaryTabButton(
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
         color = if (isReplaceTarget) AccentCoral.copy(alpha = 0.16f) else if (isActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
-        border = if (isReplaceTarget) BorderStroke(2.dp, AccentCoral.copy(alpha = 0.6f)) else if (isActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+        border = if (isReplaceTarget) BorderStroke(2.dp, AccentCoral.copy(alpha = 0.6f)) else if (isActive) BorderStroke(2.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
     ) {
         Row(
             Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),

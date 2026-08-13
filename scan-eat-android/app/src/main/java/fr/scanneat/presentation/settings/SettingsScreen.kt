@@ -328,7 +328,7 @@ fun SettingsScreen(
             // formula substituted with the user's own numbers, not a medical opinion.
             item { LegalSection() }
 
-            item { Spacer(Modifier.height(40.dp)) }
+            item { Spacer(Modifier.height(48.dp)) }
         }
     }
 

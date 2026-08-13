@@ -88,9 +88,9 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
             rollup.daysLogged, rollup.days.size, daysOverTarget,
         )
         Row(
-            modifier              = Modifier.fillMaxWidth().height(56.dp)
+            modifier              = Modifier.fillMaxWidth().height(64.dp)
                 .semantics(mergeDescendants = true) { contentDescription = chartDescription },
-            horizontalArrangement = Arrangement.spacedBy(1.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment     = Alignment.Bottom,
         ) {
             rollup.days.forEach { day ->
@@ -106,7 +106,7 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(if (day.count == 0) 0.05f else frac.coerceAtLeast(0.05f))
-                        .clip(RoundedCornerShape(topStart = 1.dp, topEnd = 1.dp))
+                        .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
                         .background(color),
                 )
             }

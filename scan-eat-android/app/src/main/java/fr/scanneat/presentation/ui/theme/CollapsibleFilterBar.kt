@@ -68,7 +68,7 @@ fun CollapsibleFilterBar(
             // CardRadius.CONTROL) - was a hardcoded 8.dp, its own one-off value.
             shape = RoundedCornerShape(CardRadius.CONTROL),
             color = ChipBackgroundAccent,
-            border = BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)),
+            border = BorderStroke(2.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)),
         ) {
             Row(
                 Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),

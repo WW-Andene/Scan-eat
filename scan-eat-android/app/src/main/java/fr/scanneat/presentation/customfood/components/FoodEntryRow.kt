@@ -111,7 +111,7 @@ internal fun FoodEntryRow(
                         score >= 20 -> Gold to "D$score"
                         else        -> semanticRed() to "D$score"
                     }
-                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = scoreColor.copy(0.15f), border = BorderStroke(1.dp, scoreColor.copy(alpha = STATUS_BORDER_ALPHA))) {
+                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = scoreColor.copy(0.15f), border = BorderStroke(2.dp, scoreColor.copy(alpha = STATUS_BORDER_ALPHA))) {
                         Text(scoreLabel, modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.T2),
                             style = MaterialTheme.typography.labelSmall, color = scoreColor)
                     }

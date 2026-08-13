@@ -184,11 +184,11 @@ class TodayWidget : GlanceAppWidget() {
     }
 
     companion object {
-        val COMPACT_SIZE = DpSize(180.dp, 90.dp)
+        val COMPACT_SIZE = DpSize(128.dp, 96.dp)
         // Grew from 130dp when the macro (P/C/F) row was added below the streak line,
         // then again from 148dp for the meds-adherence row - see today_widget_info.xml's
         // matching minHeight bump.
-        val FULL_SIZE = DpSize(180.dp, 164.dp)
+        val FULL_SIZE = DpSize(128.dp, 164.dp)
     }
 }
 
@@ -241,7 +241,7 @@ private fun TodayWidgetContent(
             Text(streakLabel, style = TextStyle(color = ColorProvider(AccentCoralRaw), fontSize = 12.sp, fontWeight = FontWeight.Medium))
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(macroLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 11.sp))
-            Spacer(modifier = GlanceModifier.height(10.dp))
+            Spacer(modifier = GlanceModifier.height(12.dp))
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

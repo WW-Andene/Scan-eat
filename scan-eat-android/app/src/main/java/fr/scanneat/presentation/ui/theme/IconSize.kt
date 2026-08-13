@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
  */
 object IconSize {
     /**
-     * §E1/genre audit (icon sizes): 18.dp turned out to be the de facto
+     * §E1/genre audit (icon sizes): 16.dp turned out to be the de facto
      * standard for a small row-action icon (delete/edit/favorite glyphs in
      * dense list rows) at ~19 call sites, distinct from [Inline]'s role and
      * more common than it - never named, so those call sites couldn't move

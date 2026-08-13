@@ -69,7 +69,7 @@ private fun MoodBarRow(
     value: (Triple<LocalDate, Int, Int>) -> Int,
 ) {
     Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), fontSize = TextUnit(9f, TextUnitType.Sp))
-    Row(modifier = Modifier.fillMaxWidth().height(28.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+    Row(modifier = Modifier.fillMaxWidth().height(32.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
         weeklyMoodStress.forEach { entry ->
             val v = value(entry)
             val frac = (v / 5f).coerceIn(0f, 1f)

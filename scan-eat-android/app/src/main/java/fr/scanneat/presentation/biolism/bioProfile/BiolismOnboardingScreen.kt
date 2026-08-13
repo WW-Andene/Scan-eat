@@ -141,7 +141,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                     }
                 }
 
-                Icon(s.icon, null, tint = Gold, modifier = Modifier.size(36.dp))
+                Icon(s.icon, null, tint = Gold, modifier = Modifier.size(32.dp))
                 Text(s.title, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                 Row {
                     Text(s.sub, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))
@@ -177,7 +177,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                                 bmi < 30.0 -> semanticAmber()
                                 else       -> semanticRed()
                             }
-                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = bmiColor.copy(0.12f), border = androidx.compose.foundation.BorderStroke(1.dp, bmiColor.copy(alpha = STATUS_BORDER_ALPHA)), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
+                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = bmiColor.copy(0.12f), border = androidx.compose.foundation.BorderStroke(2.dp, bmiColor.copy(alpha = STATUS_BORDER_ALPHA)), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
                                 Text(
                                     stringResource(R.string.biolism_onboard_bmi_preview, bmi.formatDecimal(1)),
                                     modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),

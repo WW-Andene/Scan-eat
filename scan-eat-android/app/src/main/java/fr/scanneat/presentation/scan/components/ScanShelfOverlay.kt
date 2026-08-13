@@ -164,7 +164,7 @@ fun BoxScope.ScanShelfPeekChip(peek: ShelfPeek, onDismiss: () -> Unit, onOpenRes
                         Text(stringResource(R.string.scan_shelf_peek_loading), style = MaterialTheme.typography.labelSmall, color = OnSurface)
                     }
                     is ShelfPeekStatus.Ready -> {
-                        Box(Modifier.size(20.dp).clip(CircleShape).background(gradeColor(status.grade)), contentAlignment = Alignment.Center) {
+                        Box(Modifier.size(24.dp).clip(CircleShape).background(gradeColor(status.grade)), contentAlignment = Alignment.Center) {
                             Text(status.grade.label, style = MaterialTheme.typography.labelSmall, color = Color.Black, fontWeight = FontWeight.Bold)
                         }
                         Text(status.name, style = MaterialTheme.typography.labelSmall, color = OnSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
