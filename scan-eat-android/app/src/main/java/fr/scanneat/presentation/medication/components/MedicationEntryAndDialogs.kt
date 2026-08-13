@@ -128,11 +128,12 @@ internal fun MedicationEntryRow(
                 Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f))
             }
             var menuExpanded by remember { mutableStateOf(false) }
-            IconButton(onClick = { menuExpanded = true }) {
+            var menuTriggerWidth by remember { mutableStateOf(0.dp) }
+            IconButton(onClick = { menuExpanded = true }, modifier = Modifier.reportWidthTo { menuTriggerWidth = it }) {
                 Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
             }
             // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-            ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+            ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorWidth = menuTriggerWidth) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.common_delete)) },
                     leadingIcon = { Icon(TablerIcons.X, contentDescription = null) },

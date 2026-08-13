@@ -172,6 +172,7 @@ internal fun BoxScope.DiaryHeader(
     // header pill instead of inside it, per user request.
     var tabMenuExpanded by remember { mutableStateOf(false) }
     val overflowActive = activeTab in overflowTabs
+    var overflowTriggerWidth by remember { mutableStateOf(0.dp) }
     Box(
         Modifier
             .align(Alignment.TopEnd)
@@ -185,13 +186,14 @@ internal fun BoxScope.DiaryHeader(
             shape = RoundedCornerShape(8.dp),
             color = if (overflowActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
             border = if (overflowActive) BorderStroke(2.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+            modifier = Modifier.reportWidthTo { overflowTriggerWidth = it },
         ) {
             Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
                 Icon(TablerIcons.ChevronDown, contentDescription = stringResource(R.string.diary_tab_more), tint = if (overflowActive) AccentCoral else OnBackground.copy(0.7f))
             }
         }
         // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-        ScanEatDropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }) {
+        ScanEatDropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, anchorWidth = overflowTriggerWidth) {
             overflowTabs.forEach { tab ->
                 val isActive = tab == activeTab
                 HoldToArmMenuItem(

@@ -10,8 +10,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
@@ -37,11 +42,12 @@ internal fun RecipesSortMenu(
     onSortChange: (RecipesViewModel.RecipeSort) -> Unit,
 ) {
     Box {
-        IconButton(onClick = { onExpandedChange(true) }) {
+        var triggerWidth by remember { mutableStateOf(0.dp) }
+        IconButton(onClick = { onExpandedChange(true) }, modifier = Modifier.reportWidthTo { triggerWidth = it }) {
             Icon(Icons.Rounded.Sort, stringResource(R.string.recipes_sort_cd), tint = OnBackground)
         }
         ScanEatDropdownMenu(
-            expanded = expanded, onDismissRequest = { onExpandedChange(false) },
+            expanded = expanded, onDismissRequest = { onExpandedChange(false) }, anchorWidth = triggerWidth,
         ) {
             val options = listOf(
                 RecipesViewModel.RecipeSort.RECENT to stringResource(R.string.recipes_sort_recent),

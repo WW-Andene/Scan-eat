@@ -301,10 +301,11 @@ internal fun ExpenseCategoryPicker(category: ProductCategory, onCategoryChange: 
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
         Text(stringResource(R.string.expenses_add_entry_category_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
         Box {
+            var triggerWidth by remember { mutableStateOf(0.dp) }
             OutlinedButton(
                 onClick = { expanded = true },
                 shape = RoundedCornerShape(CardRadius.CONTROL),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).reportWidthTo { triggerWidth = it },
                 // Was missing - fell back to Material's default colorScheme.primary
                 // for the border/ripple, which is blue under the Lazulite color-accent
                 // (Theme.kt), even though the label text was already themed OnBackground.
@@ -315,6 +316,7 @@ internal fun ExpenseCategoryPicker(category: ProductCategory, onCategoryChange: 
             ScanEatDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
+                anchorWidth = triggerWidth,
             ) {
                 ProductCategory.entries.forEach { c ->
                     DropdownMenuItem(

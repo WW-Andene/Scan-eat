@@ -17,6 +17,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -61,6 +65,7 @@ fun CollapsibleFilterBar(
     // the search bar directly above it on every call site that doesn't
     // already provide one (see applyHorizontalInset above for the ones that do).
     Box(if (applyHorizontalInset) modifier.padding(horizontal = Spacing.L) else modifier) {
+        var triggerWidth by remember { mutableStateOf(0.dp) }
         Surface(
             onClick = onToggle,
             // User-reported: radius/height didn't match this same screen's other
@@ -69,6 +74,7 @@ fun CollapsibleFilterBar(
             shape = RoundedCornerShape(CardRadius.CONTROL),
             color = ChipBackgroundAccent,
             border = BorderStroke(2.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)),
+            modifier = Modifier.reportWidthTo { triggerWidth = it },
         ) {
             Row(
                 Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
@@ -87,6 +93,7 @@ fun CollapsibleFilterBar(
         ScanEatDropdownMenu(
             expanded = expanded,
             onDismissRequest = onToggle,
+            anchorWidth = triggerWidth,
             content = content,
         )
     }
