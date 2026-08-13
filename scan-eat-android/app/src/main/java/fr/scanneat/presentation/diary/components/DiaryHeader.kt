@@ -60,7 +60,15 @@ internal fun BoxScope.DiaryHeader(
     primaryTabs: List<DiaryTab>,
     onPrimaryTabsChange: (List<DiaryTab>) -> Unit,
 ) {
-    Box(
+    val headerShape = RoundedCornerShape(CardRadius.PROMINENT)
+    // User-reported: this header is not standard, use Tableau's (FloatingTopBar)
+    // as the reference - it had the same outer-Box(glassSheen)+inner-Surface
+    // (shadow/clip/hazeEffect) two-layer construction already fixed on
+    // FloatingTopBar/ScanEatCard/MainShell's nav (see their own doc comments),
+    // never applied here. Collapsed into a single Column carrying shadow,
+    // clip, the haze blur, and the hairline sheen in one modifier chain,
+    // exactly like FloatingTopBar's own fix.
+    Column(
         modifier = Modifier
             .align(Alignment.TopCenter)
             .fillMaxWidth()
@@ -72,22 +80,13 @@ internal fun BoxScope.DiaryHeader(
             // floating-pill implementation (Diary needs an extra tab row FloatingTopBar
             // doesn't support) that never got that same fix applied to it.
             .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
-            .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral),
+            .shadow(elevation = 8.dp, shape = headerShape)
+            .clip(headerShape)
+            .hazeEffect(state = hazeState, style = FrostedGlassStyle)
+            .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = AccentCoral)
+            .padding(horizontal = Spacing.L)
+            .padding(top = Spacing.M, bottom = Spacing.M),
     ) {
-        Surface(
-            shape           = RoundedCornerShape(CardRadius.PROMINENT),
-            color           = Color.Transparent,
-            // User-reported: this header used an untinted shadowElevation while
-            // FloatingTopBar/ScanEatCard/MainShell's nav all moved to a tinted
-            // Modifier.shadow — standardized here too.
-            shadowElevation = 0.dp,
-            modifier        = Modifier
-                .fillMaxWidth()
-                .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
-                .clip(RoundedCornerShape(CardRadius.PROMINENT))
-                .hazeEffect(state = hazeState, style = FrostedGlassStyle),
-        ) {
-            Column(modifier = Modifier.padding(horizontal = Spacing.L).padding(top = Spacing.M, bottom = Spacing.M)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (!isTabRoot) {
                         IconButton(onClick = onBack, modifier = Modifier.padding(end = Spacing.XS)) {
@@ -214,8 +213,6 @@ internal fun BoxScope.DiaryHeader(
                         }
                     }
                 }
-            }
-        }
     }
 }
 

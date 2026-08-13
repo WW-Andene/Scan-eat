@@ -205,7 +205,11 @@ fun ScanEatCard(
             ),
     ) {
         Column(
-            Modifier.padding(contentPadding),
+            // fillMaxWidth() - without it, this Column only wraps its widest
+            // child, so horizontalAlignment had no room to actually center
+            // anything against (user-reported: FeatureTile's label/icon lost
+            // their centering once content moved to this independent Column).
+            Modifier.fillMaxWidth().padding(contentPadding),
             verticalArrangement = verticalArrangement,
             horizontalAlignment = horizontalAlignment,
             content = content,
