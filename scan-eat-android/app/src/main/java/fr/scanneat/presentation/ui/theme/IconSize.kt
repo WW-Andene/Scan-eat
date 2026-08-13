@@ -20,7 +20,9 @@ object IconSize {
      * onto the scale. Named at the exact existing value (zero visual change,
      * unlike a full-scale renumbering) so they can reference it directly.
      */
-    val Compact: Dp = 18.dp
+    // User-requested: all sizes must sit on a base-2 scale
+    // (2/4/6/8/12/16/24/32/48/64/96/128) - 18dp isn't a member, snapped to 16dp.
+    val Compact: Dp = 16.dp
 
     /**
      * §E1/genre audit (icon sizes, round 2): 16.dp turned out to be even more
@@ -38,7 +40,9 @@ object IconSize {
      * indicators, inline delete/list icons in dialogs). Named at the exact
      * existing value, same zero-visual-change rationale as [Compact]/[Small].
      */
-    val Tiny: Dp = 14.dp
+    // User-requested: all sizes must sit on a base-2 scale
+    // (2/4/6/8/12/16/24/32/48/64/96/128) - 14dp isn't a member, snapped to 12dp.
+    val Tiny: Dp = 12.dp
 
     /**
      * §E1/genre audit (icon sizes, round 4): 12.dp is the smallest recurring
@@ -49,12 +53,16 @@ object IconSize {
      */
     val Micro: Dp = 12.dp
 
+    // User-requested: all sizes must sit on a base-2 scale
+    // (2/4/6/8/12/16/24/32/48/64/96/128) - 20dp isn't a member, snapped to 24dp.
     /** Inline / label-adjacent icons (chip icons, list-row leading icons). */
-    val Inline: Dp = 20.dp
+    val Inline: Dp = 24.dp
 
     /** Navigation-bar icons — matches Material's native 24dp grid. */
     val Nav: Dp = 24.dp
 
-    /** Empty-state icons — matches EmptyListState.kt's existing value. */
-    val EmptyState: Dp = 40.dp
+    // User-requested: all sizes must sit on a base-2 scale
+    // (2/4/6/8/12/16/24/32/48/64/96/128) - 40dp isn't a member, snapped to 48dp.
+    /** Empty-state icons. */
+    val EmptyState: Dp = 48.dp
 }

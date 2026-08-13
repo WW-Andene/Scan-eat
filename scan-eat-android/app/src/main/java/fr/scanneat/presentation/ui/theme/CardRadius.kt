@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 object CardRadius {
     val CONTROL: Dp = 12.dp
     val CARD: Dp = 16.dp
-    val PROMINENT: Dp = 20.dp
+    // User-requested: all sizes must sit on a base-2 scale
+    // (2/4/6/8/12/16/24/32/48/64/96/128) - 20dp isn't a member, snapped to 24dp.
+    val PROMINENT: Dp = 24.dp
 
     // genre audit (shape/corners): 4.dp turned out to be the single most
     // common tinted-badge Surface radius in the app (13 exact-match sites:

@@ -36,8 +36,9 @@ object Spacing {
     // used too consistently to be drift. Named here instead of snapped to S/M
     // so those call sites can move onto the token scale with zero visual change.
     val SM: Dp = 8.dp
-    // User-requested: standardized from 11dp to 10dp.
-    val M: Dp = 10.dp
+    // User-requested: all sizes must sit on a base-2 scale
+    // (2/4/6/8/12/16/24/32/48/64/96/128) - 10dp isn't a member, snapped to 12dp.
+    val M: Dp = 12.dp
     val L: Dp = 16.dp
     // User-requested: standardized from 23dp to 24dp (even).
     val XL: Dp = 24.dp

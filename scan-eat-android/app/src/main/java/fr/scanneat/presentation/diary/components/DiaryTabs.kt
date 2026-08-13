@@ -58,4 +58,6 @@ internal val DiaryTabSaver = Saver<DiaryTab, String>(save = { it.name }, restore
 // this hardcoded approximation of the header's real measured height needed
 // the same +26dp top / +26dp bottom the margin change actually added, or
 // content below would start sliding up under the now-taller header.
-internal val DiaryHeaderHeight = 124.dp + 52.dp
+// User-requested: all sizes must sit on a base-2 scale
+// (2/4/6/8/12/16/24/32/48/64/96/128) - 124dp/52dp aren't members, snapped to 128dp/48dp.
+internal val DiaryHeaderHeight = 128.dp + 48.dp
