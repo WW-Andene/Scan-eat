@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -146,6 +147,39 @@ fun Modifier.ambientGloom(
                 .asImageBitmap()
         }
     } else null
+    // User-requested: "ajoute un filtre... vitrail avec une génération
+    // logique de reflet en vague" - an irregular stained-glass pane grid
+    // overlaid on the background image, each pane outlined like real lead
+    // "came", with a light-reflection sweep that travels across the panes
+    // left-to-right rather than flickering randomly (each pane's phase is
+    // its own centroid x-position, so neighboring panes catch the "wave"
+    // in position order). Grid points (not independent per-triangle
+    // corners) so adjacent panes share exact edges - no gaps between them.
+    val prismPanes = if (isPrism) {
+        remember {
+            val rng = Random(20260814)
+            val cols = 5
+            val rows = 8
+            val cellW = 1f / (cols - 1)
+            val cellH = 1f / (rows - 1)
+            val points = Array(cols) { c -> Array(rows) { r ->
+                Offset(
+                    (c * cellW + (rng.nextFloat() - 0.5f) * cellW * 0.6f).coerceIn(0f, 1f),
+                    (r * cellH + (rng.nextFloat() - 0.5f) * cellH * 0.6f).coerceIn(0f, 1f),
+                )
+            } }
+            buildList {
+                for (c in 0 until cols - 1) {
+                    for (r in 0 until rows - 1) {
+                        val p00 = points[c][r]; val p10 = points[c + 1][r]
+                        val p01 = points[c][r + 1]; val p11 = points[c + 1][r + 1]
+                        add(Triple(p00, p10, p01))
+                        add(Triple(p10, p11, p01))
+                    }
+                }
+            }
+        }
+    } else emptyList()
 
     // Blob drift phase - rememberInfiniteTransition suits this one on its
     // own (a single float looping 0..2π), unlike the ripple clock below
@@ -230,7 +264,6 @@ fun Modifier.ambientGloom(
         )
         val t = timeSec
         val maxRadius = size.minDimension * 0.32f
-        // User-reported: "fond animé ne fonctionne pas" for Prism - the
         onDrawBehind {
             if (isPrism && prismBitmap != null) {
                 // "Cover" fit (like CSS background-size: cover): scale up
@@ -255,6 +288,29 @@ fun Modifier.ambientGloom(
                     dstOffset = IntOffset((-overscanX + panX).toInt(), (-overscanY + panY).toInt()),
                     dstSize = IntSize(dw.toInt(), dh.toInt()),
                 )
+                // Stained-glass pane grid + traveling reflection wave.
+                // Each pane's wave phase comes from its own centroid x
+                // fraction (not a random per-pane offset) so the highlight
+                // visibly sweeps across neighboring panes in screen order,
+                // rather than reading as independent panes flickering at
+                // random - a "logical" wave, not noise. `t` (frame clock)
+                // drives the sweep when animated; 0 otherwise, which still
+                // yields a varied-but-frozen highlight per pane (phase
+                // still differs by position) instead of one flat value.
+                prismPanes.forEach { (a, b, c) ->
+                    val pa = Offset(a.x * size.width, a.y * size.height)
+                    val pb = Offset(b.x * size.width, b.y * size.height)
+                    val pc = Offset(c.x * size.width, c.y * size.height)
+                    val centroidXFrac = (a.x + b.x + c.x) / 3f
+                    val wave = sin(t * 1.1f - centroidXFrac * 2f * Math.PI.toFloat() * 1.6f)
+                    val highlightAlpha = 0.05f + (wave.coerceAtLeast(0f)) * 0.22f
+                    val panePath = Path().apply {
+                        moveTo(pa.x, pa.y); lineTo(pb.x, pb.y); lineTo(pc.x, pc.y); close()
+                    }
+                    drawPath(panePath, color = Color.White.copy(alpha = highlightAlpha))
+                    // Lead came - the thin metal seam between stained-glass panes.
+                    drawPath(panePath, color = PrismGold.copy(alpha = 0.32f), style = Stroke(width = 1.2.dp.toPx()))
+                }
                 return@onDrawBehind
             }
             drawRect(base)
