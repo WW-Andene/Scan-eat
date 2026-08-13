@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.LocalThemeName
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -31,6 +33,9 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
     // User-reported "rectangle" bug: untinted shadowElevation + no forced .clip(),
     // same fix as ScanEatCard/CalorieBalanceCard.
     val tileShape = RoundedCornerShape(CardRadius.CONTROL)
+    // User-reported: "pourquoi les carte ne sont pas transparentes" (Prism
+    // theme) - see ScanEatCard.kt's own doc comment on the same fix.
+    val isPrism = LocalThemeName.current == "prism"
     Surface(
         onClick = onClick,
         modifier = modifier
@@ -39,7 +44,7 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
             .clip(tileShape),
         shape = tileShape,
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (isPrism) Color.Transparent else SurfaceVariant.copy(alpha = StandardCardAlpha),
         shadowElevation = 0.dp,
     ) {
         Column(

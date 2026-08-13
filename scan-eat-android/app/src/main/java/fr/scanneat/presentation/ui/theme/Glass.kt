@@ -21,7 +21,6 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -121,12 +120,6 @@ private data class RippleSpec(
     val periodSec: Float, val phaseSec: Float, val usePrimary: Boolean,
 )
 
-/** One translucent triangle in Prism theme's low-poly background wash - corners as size-relative fractions so the layout scales with the screen. */
-private data class PrismFacet(
-    val x1: Float, val y1: Float, val x2: Float, val y2: Float, val x3: Float, val y3: Float,
-    val color: Color,
-)
-
 fun Modifier.ambientGloom(
     base: Color,
     primary: Color,
@@ -139,27 +132,20 @@ fun Modifier.ambientGloom(
     // veto - unlike every other rememberReducedMotion()-gated animation in
     // the app (hero entrance, score reveal, press-scale), which stay gated.
     val animated = LocalAnimatedGloom.current
-    // "Prism" theme: replaces the radial gloom blobs with a static wash of
-    // translucent low-poly triangles, echoing the faceted-polygon reference
-    // image the theme's own palette (PrismRose/Blue/Gold/Mint) was pulled
-    // from - a soft light glow doesn't read as that theme's identity the way
-    // sharp overlapping facets do. Seeded once per composition (not
-    // re-rolled every recompose) so the facet layout doesn't jump around.
+    // "Prism" theme: the actual user-supplied reference image (a colorful
+    // faceted-polygon background), not a procedural approximation - user
+    // corrected: "pourquoi prism n'utilise pas le fichier que je t'ai
+    // donner... au lieu de ton je ne sais quoi improvisé". Drawn "cover"
+    // style (scaled up, centered, cropped to fill) so its own 2:1 aspect
+    // ratio doesn't stretch/distort on a tall phone screen.
     val isPrism = LocalThemeName.current == "prism"
-    val prismFacets = if (isPrism) {
+    val prismBitmap = if (isPrism) {
+        val context = androidx.compose.ui.platform.LocalContext.current
         remember {
-            val rng = Random(20260813)
-            val palette = listOf(PrismRose, PrismBlue, PrismGold, PrismMint)
-            List(9) {
-                PrismFacet(
-                    x1 = rng.nextFloat(), y1 = rng.nextFloat(),
-                    x2 = rng.nextFloat(), y2 = rng.nextFloat(),
-                    x3 = rng.nextFloat(), y3 = rng.nextFloat(),
-                    color = palette[it % palette.size],
-                )
-            }
+            android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.prism_background)
+                .asImageBitmap()
         }
-    } else emptyList()
+    } else null
 
     // Blob drift phase - rememberInfiniteTransition suits this one on its
     // own (a single float looping 0..2π), unlike the ripple clock below
@@ -245,33 +231,30 @@ fun Modifier.ambientGloom(
         val t = timeSec
         val maxRadius = size.minDimension * 0.32f
         // User-reported: "fond animé ne fonctionne pas" for Prism - the
-        // facets were always static regardless of the Settings toggle,
-        // because unlike primaryCenter/secondaryCenter above (which read
-        // driftPhase right here, inside this drawWithCache block, so a
-        // driftPhase frame update re-triggers the whole cache), the facet
-        // list itself never read driftPhase at all. Reading it here (even
-        // though driftPhase is 0f/unused when `animated` is false, so the
-        // facets correctly stay put with the toggle off) makes this block
-        // re-run on every driftPhase tick the same way the blobs' does.
-        val prismDriftPx = size.width * 0.015f
         onDrawBehind {
-            if (isPrism) {
-                drawRect(PrismBackground)
-                prismFacets.forEachIndexed { i, facet ->
-                    // Each facet drifts on its own phase (offset by index)
-                    // so they don't all slide in lockstep - same reasoning
-                    // the two gloom blobs above use opposite phases.
-                    val facetPhase = driftPhase + i * 0.8f
-                    val dx = prismDriftPx * cos(facetPhase)
-                    val dy = prismDriftPx * sin(facetPhase) * 0.6f
-                    val path = Path().apply {
-                        moveTo(facet.x1 * size.width + dx, facet.y1 * size.height + dy)
-                        lineTo(facet.x2 * size.width + dx, facet.y2 * size.height + dy)
-                        lineTo(facet.x3 * size.width + dx, facet.y3 * size.height + dy)
-                        close()
-                    }
-                    drawPath(path, color = facet.color.copy(alpha = 0.16f))
-                }
+            if (isPrism && prismBitmap != null) {
+                // "Cover" fit (like CSS background-size: cover): scale up
+                // by whichever axis needs it more, so the image fills the
+                // screen with no letterboxing, then crop the overflow
+                // evenly on both sides - the source image's own 2:1 aspect
+                // ratio would otherwise stretch badly on a ~9:19 phone
+                // screen. Read driftPhase here (same reasoning as the blob
+                // centers above) for a small pan when "Fond animé" is on;
+                // 0 when it's off, so the image sits still by default.
+                val bw = prismBitmap.width.toFloat()
+                val bh = prismBitmap.height.toFloat()
+                val scale = maxOf(size.width / bw, size.height / bh)
+                val dw = bw * scale
+                val dh = bh * scale
+                val overscanX = (dw - size.width) / 2f
+                val overscanY = (dh - size.height) / 2f
+                val panX = overscanX * 0.6f * cos(driftPhase)
+                val panY = overscanY * 0.6f * sin(driftPhase)
+                drawImage(
+                    image = prismBitmap,
+                    dstOffset = IntOffset((-overscanX + panX).toInt(), (-overscanY + panY).toInt()),
+                    dstSize = IntSize(dw.toInt(), dh.toInt()),
+                )
                 return@onDrawBehind
             }
             drawRect(base)

@@ -49,6 +49,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.IconSize
+import fr.scanneat.presentation.ui.theme.LocalThemeName
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -80,6 +81,9 @@ internal fun BioCard(
     // goal-editor row (see HydrationScreen.kt ~line 171).
     val openStateDescription = stringResource(if (open) R.string.common_expanded else R.string.common_collapsed)
     val cardShape = RoundedCornerShape(CardRadius.CARD)
+    // User-reported: "pourquoi les carte ne sont pas transparentes" (Prism
+    // theme) - see ScanEatCard.kt's own doc comment on the same fix.
+    val isPrism = LocalThemeName.current == "prism"
     Box(
         Modifier.fillMaxWidth()
             .glassSheen(
@@ -95,7 +99,7 @@ internal fun BioCard(
             // only ~1-3 RGB units from Background in Light theme, so this fill was
             // imperceptible there, leaving only the shadow visible as a disconnected
             // rectangle instead of a filled card.
-            color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
+            color = if (isPrism) Color.Transparent else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
             border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
             // same fix as ScanEatCard.kt: force the fill to hard-clip to its own shape
             // instead of relying on Surface's implicit clip, which doesn't reliably

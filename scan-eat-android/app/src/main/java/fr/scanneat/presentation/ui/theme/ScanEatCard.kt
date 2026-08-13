@@ -143,6 +143,11 @@ fun ScanEatCard(
     }
     val interactionSource = remember { MutableInteractionSource() }
     val indication = LocalIndication.current
+    // User-reported: "pourquoi les carte ne sont pas transparentes" (Prism
+    // theme) - the whole point of that theme's full-bleed background image
+    // (ambientGloom's isPrism branch, Glass.kt) is for it to show through;
+    // every other theme keeps its own considered [color] fill.
+    val isPrism = LocalThemeName.current == "prism"
     Box(
         modifier.fillMaxWidth()
             .glassSheen(edgeAlpha = spec.edgeAlpha, shape = shape, glowTint = accent, glowAlpha = spec.glowAlpha),
@@ -169,7 +174,7 @@ fun ScanEatCard(
                     else Modifier
                 ),
             shape = shape,
-            color = color,
+            color = if (isPrism) Color.Transparent else color,
             // User-requested: a light outline on the card - previously the
             // only edge definition came from glassSheen()'s soft top-light
             // gradient, with no crisp border at all.
