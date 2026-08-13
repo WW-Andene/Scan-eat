@@ -60,6 +60,37 @@ internal fun BoxScope.DiaryHeader(
     primaryTabs: List<DiaryTab>,
     onPrimaryTabsChange: (List<DiaryTab>) -> Unit,
 ) {
+    // User-reported (2nd round): the single button below (showing only the
+    // active tab, everything else behind a DropdownMenu) read as "one tab"
+    // instead of a real tab row - MEALS/WEIGHT/WATER (the three most-used
+    // trackers) are now always-visible, real tab buttons; ACTIVITY/FASTING/
+    // TREATMENT/EXPENSES stay behind the same popup pattern as before, now
+    // as the 4th slot instead of the only one. Was a fixed Row with each tab
+    // forced to Modifier.weight(1f) before that (see history) - a full
+    // horizontally-scrollable 7-tab row still didn't reliably fit any phone
+    // width, which is why only 3 are direct buttons here, not all 7.
+    val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs }
+
+    // User-requested: hold-to-arm-then-tap-to-replace instead of a
+    // continuous drag. A continuous drag out of the "more" dropdown
+    // below is unreliable — DropdownMenu renders in its own Android
+    // popup window, a separate window from this Row, so tracking one
+    // finger's motion across that window boundary in real time (and
+    // surviving the popup dismissing mid-gesture) never worked
+    // consistently. Long-pressing an item "arms" it (the popup closes,
+    // haptic feedback fires), then a normal tap on any of the three
+    // primary tab buttons below completes the swap - two independent,
+    // ordinary gestures instead of one gesture that has to survive a
+    // window handoff.
+    var armedOverflowTab by remember { mutableStateOf<DiaryTab?>(null) }
+    val haptics = LocalHapticFeedback.current
+    LaunchedEffect(armedOverflowTab) {
+        if (armedOverflowTab != null) {
+            delay(ARM_AUTO_CANCEL_MS)
+            armedOverflowTab = null
+        }
+    }
+
     val headerShape = RoundedCornerShape(CardRadius.PROMINENT)
     // User-reported: this header is not standard, use Tableau's (FloatingTopBar)
     // as the reference - it had the same outer-Box(glassSheen)+inner-Surface
@@ -102,36 +133,6 @@ internal fun BoxScope.DiaryHeader(
                     Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(Spacing.M))
-                // User-reported (2nd round): the single button below (showing only the
-                // active tab, everything else behind a DropdownMenu) read as "one tab"
-                // instead of a real tab row - MEALS/WEIGHT/WATER (the three most-used
-                // trackers) are now always-visible, real tab buttons; ACTIVITY/FASTING/
-                // TREATMENT/EXPENSES stay behind the same popup pattern as before, now
-                // as the 4th slot instead of the only one. Was a fixed Row with each tab
-                // forced to Modifier.weight(1f) before that (see history) - a full
-                // horizontally-scrollable 7-tab row still didn't reliably fit any phone
-                // width, which is why only 3 are direct buttons here, not all 7.
-                val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs }
-
-                // User-requested: hold-to-arm-then-tap-to-replace instead of a
-                // continuous drag. A continuous drag out of the "more" dropdown
-                // below is unreliable — DropdownMenu renders in its own Android
-                // popup window, a separate window from this Row, so tracking one
-                // finger's motion across that window boundary in real time (and
-                // surviving the popup dismissing mid-gesture) never worked
-                // consistently. Long-pressing an item "arms" it (the popup closes,
-                // haptic feedback fires), then a normal tap on any of the three
-                // primary tab buttons below completes the swap - two independent,
-                // ordinary gestures instead of one gesture that has to survive a
-                // window handoff.
-                var armedOverflowTab by remember { mutableStateOf<DiaryTab?>(null) }
-                val haptics = LocalHapticFeedback.current
-                LaunchedEffect(armedOverflowTab) {
-                    if (armedOverflowTab != null) {
-                        delay(ARM_AUTO_CANCEL_MS)
-                        armedOverflowTab = null
-                    }
-                }
 
                 if (armedOverflowTab != null) {
                     Text(
