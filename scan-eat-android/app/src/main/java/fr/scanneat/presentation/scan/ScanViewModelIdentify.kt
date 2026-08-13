@@ -71,10 +71,18 @@ internal fun ScanViewModel.identifyFromPhotos() {
                         // wraps it in mapCatching) - a Room write failure would
                         // propagate out of this coroutine uncaught instead of
                         // surfacing as an Error state.
+                        // code-audit §D8: onFailure must rethrow CancellationException
+                        // first - without it, backing out of Scan mid-persist() gets
+                        // the cancellation caught here and routed to an Error state
+                        // instead of the coroutine actually stopping, which could
+                        // leave a stale error banner behind after navigating away.
                         else -> runCatching { scanRepo.persist(scanResult, activeProfileId.value) }
                             .fold(
                                 onSuccess = { id -> _state.value = ScanUiState.Success(scanResult, id); announceScoreIfEnabled(scanResult) },
-                                onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },
+                                onFailure = { e ->
+                                    if (e is kotlinx.coroutines.CancellationException) throw e
+                                    _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang))
+                                },
                             )
                     }
                 },
@@ -132,10 +140,15 @@ internal fun ScanViewModel.identifyMultiFromPhotos() {
                     _state.value = if (edibleResults.isEmpty()) {
                         ScanUiState.Error(noFoodsDetectedMessage(lang))
                     } else {
+                        // code-audit §D8: same CancellationException rethrow fix as
+                        // identifyFromPhotos() above.
                         runCatching { edibleResults.map { it to scanRepo.persist(it, activeProfileId.value) } }
                             .fold(
                                 onSuccess = { items -> ScanUiState.MultiFoodFound(items = items) },
-                                onFailure = { e -> ScanUiState.Error(httpFriendlyMessage(e, lang)) },
+                                onFailure = { e ->
+                                    if (e is kotlinx.coroutines.CancellationException) throw e
+                                    ScanUiState.Error(httpFriendlyMessage(e, lang))
+                                },
                             )
                     }
                 },

@@ -172,10 +172,17 @@ fun CameraPreview(
                         // that carries a StateError (as opposed to the error-free CLOSED a
                         // normal lifecycle-driven unbind produces) is CameraX's own signal
                         // that this was an unrequested failure, not an intentional stop.
+                        //
+                        // code-audit §D7: was gated on `state.type == CLOSED` too - several
+                        // of CameraX's own StateErrors (e.g. ERROR_CAMERA_IN_USE, the exact
+                        // "reclaimed by another app" case this comment already calls out)
+                        // keep the camera in PENDING_OPEN rather than forcing it CLOSED, so
+                        // that gate silently missed them. Any non-null error is real -
+                        // check the error alone, not which state it happened to land in.
                         camera?.cameraInfo?.cameraState?.observe(
                             lifecycleOwner,
                             Observer { state ->
-                                if (state.type == CameraState.Type.CLOSED && state.error != null) onCameraError()
+                                if (state.error != null) onCameraError()
                             },
                         )
                     }.onFailure { onCameraError() }
