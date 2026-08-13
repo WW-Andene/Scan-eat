@@ -16,11 +16,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -255,6 +258,16 @@ private fun NotebookCornerHeader(
 ) {
     val noteShape = RoundedCornerShape(2.dp)
     val rotation = remember { (-4..4).random().toFloat() }
+    // User-supplied real sticky-note artwork (a red peeled-corner note from
+    // a stock doodle pack, hue-shifted to the app's NotebookPostItGold) -
+    // "utilise le post-it rouge mais change le en couleur jaune". Replaces
+    // the flat-fill rounded rect below: a real curled-corner note reads as
+    // an actual sticky note, not a plain colored box.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val postItBitmap = remember {
+        android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.notebook_postit_yellow)
+            .asImageBitmap()
+    }
     Box(
         modifier
             .fillMaxWidth()
@@ -282,9 +295,12 @@ private fun NotebookCornerHeader(
                     .graphicsLayer { rotationZ = rotation }
                     .shadow(elevation = 3.dp, shape = noteShape)
                     .clip(noteShape)
-                    .background(NotebookPostItGold.copy(alpha = 0.97f))
-                    .drawWithContent { drawContent(); drawNotebookPaperclip() }
-                    .padding(horizontal = Spacing.M, vertical = Spacing.S),
+                    .drawWithContent {
+                        drawImage(image = postItBitmap, dstOffset = IntOffset.Zero, dstSize = IntSize(size.width.toInt(), size.height.toInt()))
+                        drawContent()
+                        drawNotebookPaperclip()
+                    }
+                    .padding(horizontal = Spacing.M, vertical = Spacing.S + 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 ProvideTextStyle(MaterialTheme.typography.titleMedium) { title() }
