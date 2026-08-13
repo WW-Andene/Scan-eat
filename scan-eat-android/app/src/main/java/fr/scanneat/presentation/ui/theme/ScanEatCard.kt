@@ -151,6 +151,8 @@ fun ScanEatCard(
     // [color] every other theme uses) keeps the background legible through
     // it while still giving the card a visible boundary/fill, and the
     // border is brightened to match for the same legibility reason.
+    // User-requested: 0.10 alpha was still too faint - raised to 0.20 (same
+    // white hue, just more of it) for a clearer, more visible card fill.
     val isPrism = LocalThemeName.current == "prism"
     val hairlineBrush = Brush.horizontalGradient(
         colors = listOf(Color.Transparent, Color.White.copy(alpha = spec.edgeAlpha), Color.Transparent),
@@ -168,7 +170,7 @@ fun ScanEatCard(
         modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(if (isPrism) Color.White.copy(alpha = 0.10f) else color, shape)
+            .background(if (isPrism) Color.White.copy(alpha = 0.20f) else color, shape)
             .border(BorderStroke(1.dp, borderColor), shape)
             .drawWithCache {
                 onDrawWithContent {
