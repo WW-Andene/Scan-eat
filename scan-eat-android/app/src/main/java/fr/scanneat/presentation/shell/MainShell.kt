@@ -92,6 +92,89 @@ fun MainShell(
         // in the app (see Motion.kt's own doc comment) - this one was added
         // without the check, unlike ambientGloom/pressScale/rememberHeroEntrance.
         val reduceMotion = rememberReducedMotion()
+        // User-requested (Notebook theme): "nav bar become page reminder on
+        // right side, become longer and on the said tab" - a vertical column
+        // of colored index-tab bookmarks along the right edge (the mockups
+        // the user provided show exactly this: small colored square tabs
+        // stacked down a notebook's right edge), replacing the floating
+        // bottom-center pill this app uses for every other theme. The
+        // click/long-press-to-reorder behavior is identical either way -
+        // only the layout/visual treatment branches on theme, factored into
+        // navTabClickHandler below so that logic isn't duplicated between
+        // the two layouts.
+        val haptics = LocalHapticFeedback.current
+        val navTabClickHandler: (TopTab) -> Unit = { tab ->
+            val armed = armedNavTab
+            if (armed != null) {
+                if (armed != tab) {
+                    val fromIdx = navTabs.indexOf(armed)
+                    val toIdx = navTabs.indexOf(tab)
+                    val newOrder = navTabs.toMutableList()
+                    newOrder[fromIdx] = tab
+                    newOrder[toIdx] = armed
+                    shellViewModel.setNavTabOrder(serializeTopTabOrder(newOrder))
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+                armedNavTab = null
+            } else {
+                navController.navigate(tab.route) {
+                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                    launchSingleTop = true
+                    restoreState    = true
+                }
+            }
+        }
+        val navTabLongClickHandler: (TopTab) -> Unit = { tab ->
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            armedNavTab = if (armedNavTab == tab) null else tab
+        }
+        if (LocalThemeName.current == "notebook") {
+            AnimatedVisibility(
+                visible  = showNav,
+                enter    = if (reduceMotion) EnterTransition.None else fadeIn(),
+                exit     = if (reduceMotion) ExitTransition.None else fadeOut(),
+                modifier = Modifier.align(Alignment.CenterEnd).windowInsetsPadding(WindowInsets.navigationBars),
+            ) {
+                val hierarchy = backStack.value?.destination?.hierarchy
+                val tabColors = NotebookPostItColors
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    navTabs.forEachIndexed { i, tab ->
+                        val isSelected = hierarchy?.any { it.route == tab.route } == true
+                        val isArmed = armedNavTab == tab
+                        val isReplaceTarget = armedNavTab != null && !isArmed
+                        val tabColor = tabColors[i % tabColors.size]
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .height(56.dp)
+                                .width(if (isSelected) 88.dp else 72.dp)
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp))
+                                .clip(RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp))
+                                .background(
+                                    if (isArmed) tabColor.copy(alpha = 0.95f)
+                                    else if (isReplaceTarget) tabColor.copy(alpha = 0.5f)
+                                    else tabColor.copy(alpha = if (isSelected) 0.9f else 0.65f),
+                                )
+                                .combinedClickable(
+                                    onClick = { navTabClickHandler(tab) },
+                                    onLongClick = { navTabLongClickHandler(tab) },
+                                )
+                                .padding(start = Spacing.S),
+                        ) {
+                            Icon(tab.icon, stringResource(tab.labelRes), tint = NotebookInk, modifier = Modifier.size(IconSize.Nav))
+                            if (isSelected) {
+                                Spacer(Modifier.width(Spacing.XS))
+                                Text(
+                                    stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
+                                    color = NotebookInk, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            return@Box
+        }
         AnimatedVisibility(
             visible  = showNav,
             enter    = if (reduceMotion) EnterTransition.None else fadeIn(),

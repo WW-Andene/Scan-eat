@@ -24,21 +24,28 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.glassSheen
+import fr.scanneat.presentation.ui.theme.rememberNotebookPostItStyle
 
 // Shared helper used repeatedly by the orchestrator's feature-tile rows.
 @Composable
 internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     // User-reported "rectangle" bug: untinted shadowElevation + no forced .clip(),
     // same fix as ScanEatCard/CalorieBalanceCard.
+    // Notebook theme: post-it fill, no rotation - unlike a stand-alone card,
+    // these tiles sit edge-to-edge in a tight grid (see the orchestrator's
+    // feature-tile rows), so a rotated tile would visually overlap its
+    // neighbors instead of reading as a natural hand-placed note.
+    val postIt = rememberNotebookPostItStyle(RoundedCornerShape(CardRadius.CONTROL))
+    val tileShape = postIt?.shape ?: RoundedCornerShape(CardRadius.CONTROL)
     Surface(
         onClick = onClick,
         modifier = modifier
-            .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-            .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
-            .clip(RoundedCornerShape(CardRadius.CONTROL)),
-        shape = RoundedCornerShape(CardRadius.CONTROL),
+            .glassSheen(edgeAlpha = if (postIt != null) 0f else 0.16f, shape = tileShape, glowAlpha = if (postIt != null) 0f else 0.06f)
+            .shadow(elevation = 3.dp, shape = tileShape)
+            .clip(tileShape),
+        shape = tileShape,
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = postIt?.color ?: SurfaceVariant.copy(alpha = StandardCardAlpha),
         shadowElevation = 0.dp,
     ) {
         Column(

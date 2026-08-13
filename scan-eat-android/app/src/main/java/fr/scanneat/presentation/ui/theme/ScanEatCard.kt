@@ -90,7 +90,29 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
 // tilt/color on every recompose - only a fresh composition (e.g. scrolling a
 // LazyColumn item back into existence) rerolls it, same as a sticky note
 // doesn't move once placed.
-private val NotebookPostItColors = listOf(NotebookPostItPink, NotebookPostItGold, NotebookPostItSky, NotebookPostItGreen)
+internal val NotebookPostItColors = listOf(NotebookPostItPink, NotebookPostItGold, NotebookPostItSky, NotebookPostItGreen)
+
+/**
+ * A hand-rolled `Surface(...)` card (one that can't use [ScanEatCard]
+ * directly - e.g. it overlays a badge via `BoxScope.align`, a slot
+ * [ScanEatCard]'s `content: ColumnScope.() -> Unit` doesn't expose, the
+ * same reason [HeroGlassSpec] above is `internal`) can call this to get the
+ * same post-it (color/shape/rotation) treatment [ScanEatCard] itself
+ * applies, instead of re-deriving it or - the previous state for every
+ * `Surface(...)` card in the app - silently keeping the glass look under
+ * Notebook theme while every [ScanEatCard]-based card around it changed.
+ * User-reported: "toutes les cartes n'ont pas été remplacées" - this is
+ * the fix for hand-rolled cards specifically; [ScanEatCard]-based ones
+ * were already covered.
+ */
+@Composable
+internal fun rememberNotebookPostItStyle(baseShape: Shape): NotebookPostItStyle? {
+    if (LocalThemeName.current != "notebook") return null
+    val color = remember { NotebookPostItColors.random() }
+    val rotation = remember { Random.nextFloat() * 5f - 2.5f }
+    return NotebookPostItStyle(color.copy(alpha = 0.96f), RoundedCornerShape(3.dp), rotation)
+}
+internal data class NotebookPostItStyle(val color: Color, val shape: Shape, val rotationDegrees: Float)
 
 /**
  * The app's one card primitive — glassSheen() top-light + hairline edge over

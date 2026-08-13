@@ -273,6 +273,34 @@ fun Modifier.ambientGloom(
 }
 
 /**
+ * Foreground spiral-binding overlay - draws the same ring column
+ * [ambientGloom]'s notebook branch draws as a BACKGROUND layer, but usable
+ * as a plain `Modifier` on top of arbitrary content (a `drawWithContent`
+ * overlay, not `drawBehind`). Needed because [ambientGloom] is a
+ * background wash - on the Scan screen the live camera preview is a
+ * full-bleed `AndroidView` that completely covers whatever's drawn behind
+ * it, so [ambientGloom]'s spiral there was coded but literally invisible
+ * (user-reported: "pas de spirale dans le décors"). Applying this instead,
+ * on top of the camera preview, matches the notebook mockups the user
+ * supplied - a photo taped into a notebook still shows the spiral binding
+ * sitting on top of it at the page edge, not hidden behind it.
+ */
+fun Modifier.notebookSpiralBinding(): Modifier = this.drawWithCache {
+    val ringColumnWidth = 22.dp.toPx()
+    val ringSpacing = 40.dp.toPx()
+    val ringRadius = 4.dp.toPx()
+    onDrawWithContent {
+        drawContent()
+        var ringY = ringSpacing / 2f
+        while (ringY < size.height) {
+            drawCircle(color = Color.White.copy(alpha = 0.55f), radius = ringRadius + 2.dp.toPx(), center = Offset(ringColumnWidth / 2f, ringY))
+            drawCircle(color = NotebookRing, radius = ringRadius, center = Offset(ringColumnWidth / 2f, ringY), style = Stroke(width = 2.dp.toPx()))
+            ringY += ringSpacing
+        }
+    }
+}
+
+/**
  * The glass treatment for `DropdownMenu`-based popups: tinted shadow +
  * hairline sheen, same recipe as [ScanEatCard]'s Surface — minus real-time
  * backdrop blur, which `Modifier.hazeEffect` cannot provide here. Material3's

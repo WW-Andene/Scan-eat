@@ -333,13 +333,13 @@ private val OpenDyslexicFontFamily = FontFamily(
 // instance shipped upstream), used as-is at its default weight.
 //
 // Applied to display/headline/title roles ONLY, not body/label - a script
-// typeface at small sizes is measurably harder to read (this app's own
-// standing "irréprochable"/user-trust bar rules out trading legibility for
-// theming on the roles that actually carry information), so body copy stays
-// on the default typeface regardless of theme. This mirrors the same
-// display-font/body-font split any print notebook/planner uses: a
-// handwritten-style title over typeset body text, not handwriting
-// throughout.
+// typeface at small sizes is measurably harder to read - originally kept off
+// body/label text for that reason. User-reported: "tout les texte n'ont pas
+// été mis à la police correctement" - explicit instruction to cover every
+// text role, overriding that earlier restraint. Now applied everywhere,
+// with a smaller size bump on body/label (1.05x vs display/headline/title's
+// 1.1-1.15x) as a partial legibility compensation rather than skipping
+// those roles entirely.
 private val CaveatFontFamily = FontFamily(Font(R.font.caveat, FontWeight.Normal))
 // Both confirmed free for personal AND commercial use in writing by their
 // author (Khurasan) at download time - see AboutSection.kt's OSS_LIBRARIES
@@ -365,6 +365,12 @@ private fun Typography.withNotebookDisplayFont(fontChoice: String): Typography {
         titleLarge     = titleLarge.copy(fontFamily = family, fontSize = titleLarge.fontSize * 1.1f),
         titleMedium    = titleMedium.copy(fontFamily = family, fontSize = titleMedium.fontSize * 1.1f),
         titleSmall     = titleSmall.copy(fontFamily = family, fontSize = titleSmall.fontSize * 1.1f),
+        bodyLarge      = bodyLarge.copy(fontFamily = family, fontSize = bodyLarge.fontSize * 1.05f),
+        bodyMedium     = bodyMedium.copy(fontFamily = family, fontSize = bodyMedium.fontSize * 1.05f),
+        bodySmall      = bodySmall.copy(fontFamily = family, fontSize = bodySmall.fontSize * 1.05f),
+        labelLarge     = labelLarge.copy(fontFamily = family, fontSize = labelLarge.fontSize * 1.05f),
+        labelMedium    = labelMedium.copy(fontFamily = family, fontSize = labelMedium.fontSize * 1.05f),
+        labelSmall     = labelSmall.copy(fontFamily = family, fontSize = labelSmall.fontSize * 1.05f),
     )
 }
 

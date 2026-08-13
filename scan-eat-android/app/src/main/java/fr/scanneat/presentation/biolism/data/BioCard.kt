@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -54,6 +55,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.isLightBackground
+import fr.scanneat.presentation.ui.theme.rememberNotebookPostItStyle
 import fr.scanneat.presentation.ui.theme.rememberReducedMotion
 
 /** Shared expand/collapse card shell for the Biolism Data screen's ~15 cards. */
@@ -79,22 +81,40 @@ internal fun BioCard(
     // the expanded/collapsed state and a Button role, mirroring HydrationScreen's
     // goal-editor row (see HydrationScreen.kt ~line 171).
     val openStateDescription = stringResource(if (open) R.string.common_expanded else R.string.common_collapsed)
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = if (emphasized) 0.34f else 0.16f, glowTint = if (emphasized) Gold else Color.White)) {
+    // User-reported: "toutes les cartes n'ont pas été remplacées" - this card
+    // is the shared shell for all ~15 Biolism Data cards, hand-rolled as its
+    // own Surface() rather than ScanEatCard() (see this function's own doc
+    // comment for why), so it was one of the biggest gaps left when only
+    // ScanEatCard itself got the post-it treatment. rememberNotebookPostItStyle
+    // returns null for every other theme, so this changes nothing outside
+    // Notebook.
+    val postIt = rememberNotebookPostItStyle(RoundedCornerShape(CardRadius.CARD))
+    val cardShape = postIt?.shape ?: RoundedCornerShape(CardRadius.CARD)
+    Box(
+        Modifier.fillMaxWidth()
+            .then(if (postIt != null) Modifier.rotate(postIt.rotationDegrees) else Modifier)
+            .glassSheen(
+                edgeAlpha = if (postIt != null) 0f else if (emphasized) 0.34f else 0.16f,
+                shape = cardShape,
+                glowTint = if (emphasized) Gold else Color.White,
+                glowAlpha = if (postIt != null) 0f else if (emphasized) 0.12f else 0.06f,
+            ),
+    ) {
         Surface(
-            shape = RoundedCornerShape(CardRadius.CARD),
+            shape = cardShape,
             // design-aesthetic-audit: same fix as ScanEatCard.kt - SurfaceVariant sits
             // only ~1-3 RGB units from Background in Light theme, so this fill was
             // imperceptible there, leaving only the shadow visible as a disconnected
             // rectangle instead of a filled card.
-            color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
-            border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
+            color = postIt?.color ?: SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
+            border = if (postIt == null && emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
             // same fix as ScanEatCard.kt: force the fill to hard-clip to its own shape
             // instead of relying on Surface's implicit clip, which doesn't reliably
             // match the shadow's rounded outline on every rendering path. Shadow also
             // now tinted (Modifier.shadow) instead of Surface's untinted shadowElevation.
             modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = RoundedCornerShape(CardRadius.CARD))
-                .clip(RoundedCornerShape(CardRadius.CARD)),
+                .shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = cardShape)
+                .clip(cardShape),
             shadowElevation = 0.dp,
         ) {
             Column(Modifier.padding(Spacing.L)) {
