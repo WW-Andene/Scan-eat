@@ -2,8 +2,6 @@ package fr.scanneat.presentation.ui.theme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -14,11 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -80,12 +80,23 @@ private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f,
 private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 3.dp)
 
 /**
- * The app's one card primitive — glassSheen() top-light + hairline edge over
- * a fill, 16dp corners by default. Generalizes the pattern BioCard() already
- * proved out, so a hand-rolled `Surface(...)` doesn't need to be re-derived
- * (and its glassSheen/radius drifted) on every new screen. glassSheen is on
- * by default — the app's one distinctive surface treatment should be the
- * default, not a per-screen coin flip.
+ * The app's one card primitive — a translucent fill with a hairline top-edge
+ * highlight, 16dp corners by default. Generalizes the pattern BioCard()
+ * already proved out, so a hand-rolled `Surface(...)` doesn't need to be
+ * re-derived (and its treatment/radius drifted) on every new screen.
+ *
+ * Rebuilt from scratch (user-reported, twice: a raw `Modifier.shadow` chain
+ * kept producing a stray unclipped rectangle - a plain transparent/colorless
+ * "box" sitting inside the visible rounded card - through two separate
+ * attempts to patch it). This version is a single [Surface] and nothing
+ * else: Surface's own `shadowElevation` uses Android's native View elevation
+ * system for the shadow (the same path this file's own history already
+ * confirmed renders cleanly, including on OEM skins that mis-render a raw
+ * `Modifier.shadow` as a hard-edged box), and Surface itself owns clip +
+ * fill + border in one call - there is no second layer, no second clip, and
+ * no compositing seam left for a rectangle to come from. The hairline
+ * top-edge highlight is drawn as part of the *content*'s own modifier
+ * (inside Surface's already-clipped bounds), not as a wrapping layer.
  *
  * Frosted-glass + hierarchy upgrade (app-wide polish pass):
  *  - [color] defaults to a translucent fill so a screen's own ambient
@@ -93,19 +104,9 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
  *    reads as "frosted glass over an atmosphere" rather than a flat tinted
  *    rectangle. Existing call sites that pass an explicit [color] are
  *    unaffected.
- *    User-reported correction (real-device screenshots, Dashboard): an
- *    earlier pass dropped this to 0.24 dark-theme alpha reasoning that 0.42
- *    "dominated the blend" against ambientGloom's ~7-10% glow blobs - but at
- *    0.24, next to the app's actual (mostly static, not glowing) background,
- *    cards read as "almost inseparable" from it instead of a distinct
- *    surface. Raised back to 0.4 - still meaningfully translucent (nowhere
- *    near the old fully-opaque baseline), paired with PrimaryGlassSpec's new
- *    subtle border above so the fill difference isn't the only thing
- *    carrying the card's edge.
  *  - [emphasis]/[accent] pick which [CardEmphasis] tier this card renders at
  *    and which hue its glow/border echo — default (PRIMARY, white accent)
- *    reproduces this primitive's original look plus the new subtle layers,
- *    so no existing call site needs to change to keep working.
+ *    reproduces this primitive's original look.
  *  - [onClick], when non-null, makes the card tappable and applies
  *    [pressScale] alongside the tap ripple — both share one interaction
  *    source, which a caller-supplied `Modifier.clickable` on [modifier]
@@ -117,17 +118,6 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
 fun ScanEatCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(CardRadius.CARD),
-    // design-aesthetic-audit: Light theme's SurfaceVariant (#F0E7E0) sits only ~1-3
-    // RGB units from its own Background (#F6F1EC) - composited at the 0.24 alpha
-    // tuned against Dark/OLED (where SurfaceVariant contrasts strongly with a
-    // near-black Background), the card's own fill was imperceptible in Light theme.
-    // With no visible fill, the card never read as one whole shape - only its
-    // shadowElevation shadow (which DOES have real contrast against a light
-    // background) showed up, as a disconnected rectangle instead of a filled card.
-    // User-requested: one standard glass config app-wide (see StandardCardAlpha's
-    // own doc comment) - previously tuned independently as a more-translucent
-    // "floats over the ambient wash" look, now the same near-opaque fill every
-    // dialog/popup already uses.
     color: Color = SurfaceVariant.copy(alpha = StandardCardAlpha),
     contentPadding: PaddingValues = PaddingValues(Spacing.L),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
@@ -148,35 +138,38 @@ fun ScanEatCard(
     // (ambientGloom's isPrism branch, Glass.kt) is for it to show through;
     // every other theme keeps its own considered [color] fill.
     val isPrism = LocalThemeName.current == "prism"
-    // User-reported: an outer Box (glassSheen's own clip + hairline draw)
-    // wrapped around an inner Surface (its own separate shadow/clip/
-    // background/border) rendered as two independently-clipped objects
-    // stacked on top of each other - visible as a stray rectangle at the
-    // card edge where the two layers' bounds didn't line up (worst with
-    // Prism's transparent fill, where there was nothing to hide the seam).
-    // Rebuilt as a single Column carrying shadow, clip, fill, border, the
-    // hairline sheen, and the click ripple all in one modifier chain - one
-    // object, one set of bounds, nothing to mismatch.
-    Column(
-        modifier.fillMaxWidth()
-            // clip = false (the default is true) left the shadow's own
-            // compositing layer unclipped - it drew as a plain rectangular
-            // box, visible as a transparent/colorless seam inside the
-            // rounded card. Default clip=true makes .shadow() clip to
-            // [shape] itself, same as the rest of this chain.
-            .shadow(elevation = spec.elevation, shape = shape)
-            .clip(shape)
-            .background(if (isPrism) Color.Transparent else color, shape)
-            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)), shape)
-            .glassSheen(edgeAlpha = spec.edgeAlpha, shape = shape, glowTint = accent, glowAlpha = spec.glowAlpha)
+    val hairlineBrush = Brush.horizontalGradient(
+        colors = listOf(Color.Transparent, Color.White.copy(alpha = spec.edgeAlpha), Color.Transparent),
+    )
+    Surface(
+        modifier        = modifier.fillMaxWidth()
             .then(
                 if (onClick != null)
                     Modifier.pressScale(interactionSource)
                         .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
                 else Modifier
-            )
-            .padding(contentPadding),
-        verticalArrangement = verticalArrangement,
-        content = content,
-    )
+            ),
+        shape           = shape,
+        color           = if (isPrism) Color.Transparent else color,
+        border          = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)),
+        shadowElevation = spec.elevation,
+    ) {
+        Column(
+            Modifier
+                .drawWithCache {
+                    onDrawWithContent {
+                        drawContent()
+                        drawLine(
+                            brush       = hairlineBrush,
+                            start       = Offset(0f, 0.5f),
+                            end         = Offset(size.width, 0.5f),
+                            strokeWidth = 1.5f,
+                        )
+                    }
+                }
+                .padding(contentPadding),
+            verticalArrangement = verticalArrangement,
+            content = content,
+        )
+    }
 }
