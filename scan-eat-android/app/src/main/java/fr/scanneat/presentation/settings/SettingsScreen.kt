@@ -225,8 +225,13 @@ fun SettingsScreen(
             // Fix 4: Language toggle
             item { LanguageSection(language.value, onLanguageChange = viewModel::setLanguage) }
 
-            // Fix 4: Theme toggle
+            // Fix 4: Theme toggle - renamed to "Affichage" (see ThemeSection's own
+            // doc comment); brightness/contrast presets only, Prism moved out.
             item { ThemeSection(theme.value, onThemeChange = viewModel::setTheme) }
+
+            // User-requested: Prism is a full alternate visual identity, not a
+            // brightness/contrast preset - its own "Thème" card.
+            item { PrismThemeSection(theme.value, onThemeChange = viewModel::setTheme) }
 
             // User-reported: "thème et affichage sont deux choses séparées" -
             // the animated-background toggle used to live inside ThemeSection

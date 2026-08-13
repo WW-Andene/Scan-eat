@@ -276,32 +276,45 @@ private val RoseAccent = ColorAccent(
 )
 // Harlequin/jester's actual identity is the OPPOSITE of a matched gradient -
 // a motley of clashing, fully-saturated colors (the diamond patchwork
-// costume), not a tasteful single-hue family. Red/emerald/royal-purple is
-// the classic jester triad (was previously red/gold/muted-purple, which
-// read as "wine bar," not "clown/jester").
+// costume), not a tasteful single-hue family. User-requested round 3:
+// red/emerald/purple (round 2) still read as "festive," not specifically
+// "jester diamond costume" - the actual heraldic jester palette is red,
+// gold, and blue/purple (the traditional cap-and-bells motley, e.g. the
+// playing-card Joker's own costume), so emerald green is swapped for a
+// bright gold that pairs with the purple tertiary the way real harlequin
+// diamonds do, and the background gets a touch more saturation (was
+// reading as plain near-black, not "stage-lit" the way the rest of this
+// costume-triad is meant to).
 private val ArlequinAccent = ColorAccent(
-    primary = Color(0xFFE4002B), secondary = Color(0xFF00A878), tertiary = Color(0xFF6A0DAD),
-    background = Color(0xFF0F0A12), surface = Color(0xFF1C1420), surfaceVariant = Color(0xFF302038),
-    outline = Color(0xFF4A2E56),
+    primary = Color(0xFFE4002B), secondary = Color(0xFFFFC72C), tertiary = Color(0xFF7B2FBE),
+    background = Color(0xFF120A16), surface = Color(0xFF1F1526), surfaceVariant = Color(0xFF34223E),
+    outline = Color(0xFF54326A),
 )
 // Neon magenta/cyan/acid-yellow on a cool blue-black - Cyberpunk 2077's own
-// signature triad, pushed to fuller saturation (was previously a warmer,
-// muddier near-black that didn't read as "neon city night").
+// signature triad. User-requested round 3: primary/tertiary already read
+// correctly, but the surface layer sat too close to the background (both
+// muted, low-chroma navy) to read as "circuitry glowing over dark glass" -
+// surface/surfaceVariant pushed toward a more saturated blue-violet and the
+// outline brightened toward the secondary's own cyan, so panel edges pick
+// up a visible neon rim instead of a flat dark border.
 private val CyberpunkAccent = ColorAccent(
     primary = Color(0xFFFF006E), secondary = Color(0xFF00E5FF), tertiary = Color(0xFFD4FF00),
-    background = Color(0xFF0A0A14), surface = Color(0xFF14121F), surfaceVariant = Color(0xFF211D33),
-    outline = Color(0xFF3D2F5C),
+    background = Color(0xFF090714), surface = Color(0xFF181135), surfaceVariant = Color(0xFF261A4A),
+    outline = Color(0xFF4A2F8C),
 )
 // Elite: gold on ebony - warm, deep 24k-gold-on-black-wood register. Primary
 // is classic gold leaf, secondary a pale champagne highlight (the light
 // catching a gold edge), tertiary a deep bronze shadow tone - one hue
 // family with real light/shadow range, not three unrelated golds. Backdrop
 // stays warm-black (brown undertone, not neutral gray) to read as ebony
-// specifically.
+// specifically. User-requested round 3: primary/tertiary deepened slightly
+// toward true 24k gold/antique bronze (was leaning pale-brass) and the
+// outline warmed further so panel borders read as gold leaf catching light,
+// not a generic brown line - sharpens the distinction against Noble below.
 private val EliteAccent = ColorAccent(
-    primary = Color(0xFFD4AF37), secondary = Color(0xFFF0D889), tertiary = Color(0xFF8B6914),
+    primary = Color(0xFFCFA028), secondary = Color(0xFFF0D889), tertiary = Color(0xFF7A5710),
     background = Color(0xFF0C0805), surface = Color(0xFF180F09), surfaceVariant = Color(0xFF2E2013),
-    outline = Color(0xFF5C4425),
+    outline = Color(0xFF6B4E22),
 )
 // Noble: gold on marble - a cooler, paler gilt (not Elite's deep warm
 // bronze) against a neutral gray-veined backdrop instead of Elite's warm
@@ -311,11 +324,15 @@ private val EliteAccent = ColorAccent(
 // ScanEatTheme's own accent-application branches: background/surface must
 // stay dark enough for the base theme's light text tokens, so "marble" is
 // carried by the cooler gray undertone and pale gilt, not a literal white
-// fill) rather than Elite's warm champagne.
+// fill) rather than Elite's warm champagne. User-requested round 3: primary
+// cooled/desaturated further toward true white-gold (was still reading
+// close to Elite's warmer brass at a glance) and surface/surfaceVariant
+// pushed a touch lighter with a cooler blue-gray undertone for a more
+// convincing "veined marble panel" than the previous near-neutral gray.
 private val NobleAccent = ColorAccent(
-    primary = Color(0xFFD4C08C), secondary = Color(0xFFF5EFE0), tertiary = Color(0xFFB08D3F),
-    background = Color(0xFF121212), surface = Color(0xFF1E1E20), surfaceVariant = Color(0xFF333336),
-    outline = Color(0xFF4A4A4E),
+    primary = Color(0xFFC9BB9A), secondary = Color(0xFFF5EFE0), tertiary = Color(0xFFA6883F),
+    background = Color(0xFF141416), surface = Color(0xFF232326), surfaceVariant = Color(0xFF39393E),
+    outline = Color(0xFF56565C),
 )
 
 // ── Colorblind-safe decorative/brand accent override ──────────────────────────

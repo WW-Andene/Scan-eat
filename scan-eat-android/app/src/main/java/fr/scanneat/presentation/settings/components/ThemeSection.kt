@@ -25,6 +25,14 @@ import fr.scanneat.presentation.ui.theme.*
  * choice) under a single mislabeled header. They're now two real
  * sections: this one is only the theme picker; [DisplaySection] below is
  * only the animated-background toggle.
+ *
+ * User-requested second pass: this section's own brightness/contrast chips
+ * (system/oled/dark/light/high_contrast/low_contrast) are themselves a
+ * "display" concern (how light/dark/contrasty the UI reads), not a "theme"
+ * in the sense Prism is - a full alternate visual identity (its own
+ * background artwork, its own card treatment). Renamed to "Affichage" and
+ * Prism moved out into its own [PrismThemeSection] titled "Thème", so the
+ * one genuinely thematic choice isn't buried in a row of contrast presets.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -35,7 +43,7 @@ internal fun ThemeSection(theme: String, onThemeChange: (String) -> Unit) {
     // together in the UI and (see Theme.kt's ColorAccent doc comment) forced
     // OLED's true-black background and a color accent to be mutually
     // exclusive under the hood.
-    SettingsSection(stringResource(R.string.settings_section_theme), icon = Icons.Default.Palette) {
+    SettingsSection(stringResource(R.string.settings_section_display), icon = Icons.Default.Palette) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             listOf(
                 "system" to stringResource(R.string.settings_theme_system),
@@ -44,7 +52,6 @@ internal fun ThemeSection(theme: String, onThemeChange: (String) -> Unit) {
                 "light" to stringResource(R.string.settings_theme_light),
                 "high_contrast" to stringResource(R.string.settings_theme_high_contrast),
                 "low_contrast" to stringResource(R.string.settings_theme_low_contrast),
-                "prism" to stringResource(R.string.settings_theme_prism),
             ).forEach { (key, label) ->
                 FilterChip(
                     selected = theme == key,
@@ -62,6 +69,27 @@ internal fun ThemeSection(theme: String, onThemeChange: (String) -> Unit) {
                 )
             }
         }
+    }
+}
+
+/**
+ * Prism, split out of [ThemeSection] (see that composable's own doc comment)
+ * into its own "Thème" card - it's a full alternate visual identity (its own
+ * background artwork, its own card treatment), not a brightness/contrast
+ * preset. Single chip, toggle behavior: tapping it while already selected
+ * falls back to "system" rather than leaving no theme selectable at all.
+ */
+@Composable
+internal fun PrismThemeSection(theme: String, onThemeChange: (String) -> Unit) {
+    SettingsSection(stringResource(R.string.settings_section_theme), icon = Icons.Default.Palette) {
+        FilterChip(
+            selected = theme == "prism",
+            onClick  = { onThemeChange(if (theme == "prism") "system" else "prism") },
+            label    = { Text(stringResource(R.string.settings_theme_prism), maxLines = 1) },
+            colors   = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+            ),
+        )
     }
 }
 
