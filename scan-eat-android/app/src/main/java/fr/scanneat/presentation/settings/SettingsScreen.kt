@@ -32,6 +32,7 @@ import fr.scanneat.presentation.settings.components.GroqKeySection
 import fr.scanneat.presentation.settings.components.HealthConnectSection
 import fr.scanneat.presentation.settings.components.LanguageSection
 import fr.scanneat.presentation.settings.components.LegalSection
+import fr.scanneat.presentation.settings.components.NotebookFontSection
 import fr.scanneat.presentation.settings.components.OssLicensesDialog
 import fr.scanneat.presentation.settings.components.PremiumSection
 import fr.scanneat.presentation.settings.components.ProfileSection
