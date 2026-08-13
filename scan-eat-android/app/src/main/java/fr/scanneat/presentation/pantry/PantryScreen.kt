@@ -162,7 +162,7 @@ private fun PantryExpiryBanner(count: Int) {
         border = androidx.compose.foundation.BorderStroke(1.dp, semanticAmber().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(TablerIcons.AlertTriangle, null, tint = semanticAmber(), modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Compact))
             Text(
                 pluralStringResourceCompat(count),
                 style = MaterialTheme.typography.bodySmall, color = semanticAmber(), fontWeight = FontWeight.SemiBold,
@@ -184,7 +184,7 @@ private fun PantryHealthConflictBanner(count: Int) {
         border = androidx.compose.foundation.BorderStroke(1.dp, semanticRed().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
             Text(
                 androidx.compose.ui.res.pluralStringResource(R.plurals.pantry_health_conflict_count, count, count),
                 style = MaterialTheme.typography.bodySmall, color = semanticRed(), fontWeight = FontWeight.SemiBold,

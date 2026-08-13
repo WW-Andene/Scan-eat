@@ -30,7 +30,7 @@ fun EquationsCard(met: MetabolicResult, profile: BiolismProfile) {
             stringResource(R.string.biolism_eq_disclaimer),
             style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(Spacing.M))
         EqBlock(stringResource(R.string.biolism_eq_bmr_msj), "10×poids + 6,25×taille − 5×âge + s",
             "10×%.1f + 6,25×%.1f − 5×%d %s = %.1f kcal/j".format(Locale.US, 
                 profile.weightKg, profile.heightCm, profile.ageYears,

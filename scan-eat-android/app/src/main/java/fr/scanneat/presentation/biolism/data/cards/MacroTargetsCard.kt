@@ -45,7 +45,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
                 }
             }
         }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(Spacing.M))
         Label(stringResource(R.string.biolism_macro_extra_title), OnBackground.copy(0.4f))
         InfoRow(stringResource(R.string.biolism_macro_water), "≥ %.1f L".format(Locale.US, met.waterNeedL),
             if (profile.activityMeta.mult >= 1.55)

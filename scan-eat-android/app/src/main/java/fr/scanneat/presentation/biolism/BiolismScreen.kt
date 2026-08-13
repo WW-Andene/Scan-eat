@@ -136,7 +136,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                 Text(stringResource(R.string.tab_biolism), style = MaterialTheme.typography.titleLarge, color = LocalGoldAccent.current, fontWeight = FontWeight.Bold)
             }
             Text(stringResource(R.string.biolism_subtitle), style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(Spacing.M))
             // Sub-tab row
             Row(
                 modifier = Modifier.fillMaxWidth(),

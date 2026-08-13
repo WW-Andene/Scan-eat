@@ -40,7 +40,7 @@ internal fun HydrationOverconsumptionBanner(warning: OverhydrationWarning) {
         border = BorderStroke(1.dp, semanticRed().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
             Column {
                 Text(stringResource(R.string.hydration_overconsumption_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
                 Text(stringResource(messageRes, warning.totalMl), style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))

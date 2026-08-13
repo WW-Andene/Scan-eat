@@ -74,13 +74,13 @@ internal fun FoodSearchRow(
                         TablerIcons.Star,
                         stringResource(if (item.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
                         tint = if (item.favorite) Gold else OnSurface.copy(0.3f),
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(IconSize.Compact),
                     )
                 }
             }
             if (onLog != null) {
                 IconButton(onClick = { onLog(item) }, modifier = Modifier.size(IconSize.Inline + Spacing.M)) {
-                    Icon(TablerIcons.Plus, stringResource(R.string.logsheet_title), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                    Icon(TablerIcons.Plus, stringResource(R.string.logsheet_title), tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
                 }
             }
             // Rows with no grade (i.e. not a scanned product) expand in place instead

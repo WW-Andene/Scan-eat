@@ -121,7 +121,7 @@ internal fun HydrationRingAndControls(
                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL)),
         ) {
             Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(IconSize.Compact))
                 Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())
             }
         }

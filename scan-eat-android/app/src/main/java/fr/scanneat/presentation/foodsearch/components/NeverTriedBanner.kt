@@ -23,6 +23,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.presentation.expenses.components.displayLabel
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -40,7 +41,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 internal fun NeverTriedBanner(categories: List<ProductCategory>) {
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(TablerIcons.Bulb, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.Bulb, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
             Text(stringResource(R.string.foodsearch_never_tried_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {

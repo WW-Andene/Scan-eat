@@ -51,7 +51,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // minimum) below - a UI/UX audit found this row forcing every control
             // to 32dp. The inner Icon's own smaller size keeps the glyph compact.
             IconButton(onClick = { onEdit(text); editing = false }) {
-                Icon(TablerIcons.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
             }
             IconButton(onClick = { editing = false }) {
                 Icon(TablerIcons.X, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
@@ -92,7 +92,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // template is assigned; a note has no nutrition to log.
             if (slot is MealPlanSlot.RecipeSlot || slot is MealPlanSlot.TemplateSlot) {
                 IconButton(onClick = { onLog(slot) }) {
-                    Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                    Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
                 }
             }
             // Lets a saved Recipe/Template actually be planned onto this slot — until

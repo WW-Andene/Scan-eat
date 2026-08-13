@@ -27,6 +27,7 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
@@ -51,7 +52,7 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
             Text(stringResource(R.string.diary_totals_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             if (isLowCarbDiet) {
                 IconButton(onClick = { showLowCarbInfo = true }) {
-                    Icon(Icons.Rounded.Info, stringResource(R.string.diary_low_carb_hint_cd), tint = OnSurface.copy(0.5f), modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.Info, stringResource(R.string.diary_low_carb_hint_cd), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
                 }
             }
         }
