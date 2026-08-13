@@ -163,6 +163,39 @@ private val NotebookColors = lightColorScheme(
     outline          = NotebookLine,
 )
 
+// User-supplied reference ("utilise cette base pour créé un nouveau
+// thème"): a light, airy low-poly/faceted gradient - blush pink into sky
+// blue into cream into soft gold, overlapping translucent triangles. Like
+// Notebook above, this is a LIGHT scheme with its own considered palette
+// (rose/blue/gold standing in for primary/secondary/tertiary) rather than
+// a hue applied on top of a neutral base - see Glass.kt's ambientGloom()
+// isPrism branch for the faceted-triangle background that carries the
+// rest of this theme's identity.
+val PrismBackground     = Color(0xFFFBF3F0)
+val PrismOnBackground   = Color(0xFF2C2430)
+val PrismRose           = Color(0xFFC24A6B)
+val PrismBlue           = Color(0xFF3E6FA0)
+val PrismGold           = Color(0xFFCB9A3D)
+val PrismMint           = Color(0xFF8FB89A)
+private val PrismColors = lightColorScheme(
+    primary          = PrismRose,
+    onPrimary        = Color.White,
+    secondary        = PrismBlue,
+    onSecondary      = Color.White,
+    tertiary         = PrismGold,
+    background       = PrismBackground,
+    onBackground     = PrismOnBackground,
+    surface          = Color(0xFFFFFFFF),
+    onSurface        = PrismOnBackground,
+    surfaceVariant   = Color(0xFFF3E4E8),
+    onSurfaceVariant = PrismOnBackground.copy(alpha = 0.75f),
+    error            = Color(0xFFD32F2F),
+    onError          = Color.White,
+    errorContainer   = Color(0xFFFFCDD2),
+    onErrorContainer = Color(0xFF9B1C1C),
+    outline          = Color(0xFFDCC3CB),
+)
+
 private val LowContrastColors = darkColorScheme(
     primary          = Gold,
     onPrimary        = Color.Black,
@@ -424,7 +457,7 @@ private fun Typography.withDyslexicSpacing(): Typography = copy(
 /**
  * Root theme. Pass [theme] from UserPreferences
  * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "notebook" |
- * "system") -
+ * "prism" | "system") -
  * brightness/contrast only. [colorAccent] ("none" | "matcha" | "lavande" |
  * "sunflower" | "lazulite") is the independent color-accent axis - see
  * [ColorAccent]'s own doc comment on why these are separate params rather
@@ -461,6 +494,7 @@ fun ScanEatTheme(
         "high_contrast"  -> HighContrastColors
         "low_contrast"   -> LowContrastColors
         "notebook"       -> NotebookColors
+        "prism"          -> PrismColors
         else             -> OledColors
     }
     // High Contrast's own primary/secondary/tertiary are deliberately
@@ -471,7 +505,9 @@ fun ScanEatTheme(
     // way: its post-it palette (NotebookColors' primary/secondary/tertiary)
     // IS the theme's own considered accent - a Matcha/Lavande/etc. hue swap
     // on top would fight the paper/ink/sticky-note identity, not complement it.
-    val accent = if (resolvedTheme != "high_contrast" && resolvedTheme != "notebook") when (colorAccent) {
+    // Prism excluded for the same reason: its rose/blue/gold palette IS the
+    // point of the theme (matches the faceted background it's drawn from).
+    val accent = if (resolvedTheme != "high_contrast" && resolvedTheme != "notebook" && resolvedTheme != "prism") when (colorAccent) {
         "matcha"    -> MatchaAccent
         "lavande"   -> LavandeAccent
         "sunflower" -> SunflowerAccent
@@ -526,7 +562,7 @@ fun ScanEatTheme(
     } ?: colorScheme
     val goldAccent = when {
         colorblindAccent != null  -> colorblindAccent.primary
-        resolvedTheme == "light"  -> LightGoldAccent
+        resolvedTheme == "light" || resolvedTheme == "prism" -> LightGoldAccent
         else                      -> Gold
     }
     // Notebook's handwritten display font takes priority when both a

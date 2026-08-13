@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -122,6 +123,12 @@ private data class RippleSpec(
     val periodSec: Float, val phaseSec: Float, val usePrimary: Boolean,
 )
 
+/** One translucent triangle in Prism theme's low-poly background wash - corners as size-relative fractions so the layout scales with the screen. */
+private data class PrismFacet(
+    val x1: Float, val y1: Float, val x2: Float, val y2: Float, val x3: Float, val y3: Float,
+    val color: Color,
+)
+
 fun Modifier.ambientGloom(
     base: Color,
     primary: Color,
@@ -141,6 +148,27 @@ fun Modifier.ambientGloom(
     // calls this one function for its outermost background, so gating here
     // is what makes the paper look apply app-wide with no per-screen change.
     val isNotebook = LocalThemeName.current == "notebook"
+    // "Prism" theme: replaces the radial gloom blobs with a static wash of
+    // translucent low-poly triangles, echoing the faceted-polygon reference
+    // image the theme's own palette (PrismRose/Blue/Gold/Mint) was pulled
+    // from - a soft light glow doesn't read as that theme's identity the way
+    // sharp overlapping facets do. Seeded once per composition (not
+    // re-rolled every recompose) so the facet layout doesn't jump around.
+    val isPrism = LocalThemeName.current == "prism"
+    val prismFacets = if (isPrism) {
+        remember {
+            val rng = Random(20260813)
+            val palette = listOf(PrismRose, PrismBlue, PrismGold, PrismMint)
+            List(9) {
+                PrismFacet(
+                    x1 = rng.nextFloat(), y1 = rng.nextFloat(),
+                    x2 = rng.nextFloat(), y2 = rng.nextFloat(),
+                    x3 = rng.nextFloat(), y3 = rng.nextFloat(),
+                    color = palette[it % palette.size],
+                )
+            }
+        }
+    } else emptyList()
     // User-supplied real notebook-page artwork ("utilise celui pour les
     // background") - a two-ring-tall crop of an actual spiral-bound page's
     // left edge (holes + coil, cream paper matching NotebookPaper closely
@@ -264,6 +292,19 @@ fun Modifier.ambientGloom(
                         dstSize = IntSize(coilTileWidthPx.toInt(), coilTileHeightPx.toInt()),
                     )
                     tileY += coilTileHeightPx
+                }
+                return@onDrawBehind
+            }
+            if (isPrism) {
+                drawRect(PrismBackground)
+                prismFacets.forEach { facet ->
+                    val path = Path().apply {
+                        moveTo(facet.x1 * size.width, facet.y1 * size.height)
+                        lineTo(facet.x2 * size.width, facet.y2 * size.height)
+                        lineTo(facet.x3 * size.width, facet.y3 * size.height)
+                        close()
+                    }
+                    drawPath(path, color = facet.color.copy(alpha = 0.16f))
                 }
                 return@onDrawBehind
             }

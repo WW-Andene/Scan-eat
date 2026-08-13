@@ -1392,6 +1392,7 @@
     <string name="settings_theme_high_contrast">Contraste élevé</string>
     <string name="settings_theme_low_contrast">Contraste faible</string>
     <string name="settings_theme_notebook">Carnet</string>
+    <string name="settings_theme_prism">Prisme</string>
     <string name="settings_theme_matcha">Matcha</string>
     <string name="settings_theme_lavande">Lavande</string>
     <string name="settings_theme_sunflower">Tournesol</string>

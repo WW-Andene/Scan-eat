@@ -46,6 +46,7 @@ internal fun ThemeSection(theme: String, onThemeChange: (String) -> Unit) {
                 "high_contrast" to stringResource(R.string.settings_theme_high_contrast),
                 "low_contrast" to stringResource(R.string.settings_theme_low_contrast),
                 "notebook" to stringResource(R.string.settings_theme_notebook),
+                "prism" to stringResource(R.string.settings_theme_prism),
             ).forEach { (key, label) ->
                 FilterChip(
                     selected = theme == key,
