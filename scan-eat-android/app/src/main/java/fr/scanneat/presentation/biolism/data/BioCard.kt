@@ -112,15 +112,18 @@ internal fun BioCard(
             // only ~1-3 RGB units from Background in Light theme, so this fill was
             // imperceptible there, leaving only the shadow visible as a disconnected
             // rectangle instead of a filled card.
-            color = if (postIt != null) NotebookPaper.copy(alpha = 0.4f) else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
+            color = if (postIt != null) Color.Transparent else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
             border = if (postIt == null && emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
             // same fix as ScanEatCard.kt: force the fill to hard-clip to its own shape
             // instead of relying on Surface's implicit clip, which doesn't reliably
             // match the shadow's rounded outline on every rendering path. Shadow also
             // now tinted (Modifier.shadow) instead of Surface's untinted shadowElevation.
+            // Notebook (postIt != null): no shadow/clip silhouette at all - see
+            // ScanEatCard.kt's own doc comment on why that plain box and the
+            // hand-drawn ink box never lined up (offset "les card et les box
+            // existe en même temps" bug); the sketch is the only visible shape.
             modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = if (postIt != null) 1.dp else if (emphasized) 10.dp else 6.dp, shape = cardShape)
-                .clip(cardShape)
+                .then(if (postIt != null) Modifier else Modifier.shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = cardShape).clip(cardShape))
                 .then(if (postIt != null) Modifier.notebookPenBorder(postIt.color, sketchSeed) else Modifier),
             shadowElevation = 0.dp,
         ) {

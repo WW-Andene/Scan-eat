@@ -287,8 +287,17 @@ fun ScanEatCard(
         // separate object floating over it.
         Surface(
             modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = if (isNotebook) 1.dp else spec.elevation, shape = notebookShape)
-                .clip(notebookShape)
+                // User-reported: "les card et les box existe en même temps et
+                // décalé" - the plain shadow+clip rounded-rect this drew for
+                // every theme (a real Modifier.shadow silhouette, plus a
+                // near-transparent fill) was still fully present under
+                // Notebook, and since the hand-drawn ink asset has its own
+                // internal transparent margin, its actual ink rectangle sits
+                // inset from the view bounds - so the two boxes never lined
+                // up, exactly the "existe en même temps et décalé" bug.
+                // Notebook now skips the shadow/clip entirely: the hand-
+                // sketched box IS the card's only visible shape.
+                .then(if (isNotebook) Modifier else Modifier.shadow(elevation = spec.elevation, shape = notebookShape).clip(notebookShape))
                 .then(if (isNotebook) Modifier.notebookPenBorder(penColor, sketchSeed) else Modifier)
                 .then(
                     if (onClick != null)
@@ -297,7 +306,7 @@ fun ScanEatCard(
                     else Modifier
                 ),
             shape = notebookShape,
-            color = if (isNotebook) NotebookPaper.copy(alpha = 0.4f) else color,
+            color = if (isNotebook) Color.Transparent else color,
             shadowElevation = 0.dp,
         ) {
             Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)

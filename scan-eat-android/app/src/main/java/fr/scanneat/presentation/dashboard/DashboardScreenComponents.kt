@@ -15,10 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.NotebookPaper
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -46,12 +46,14 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
         onClick = onClick,
         modifier = modifier
             .glassSheen(edgeAlpha = if (postIt != null) 0f else 0.16f, shape = tileShape, glowAlpha = if (postIt != null) 0f else 0.06f)
-            .shadow(elevation = if (postIt != null) 1.dp else 3.dp, shape = tileShape)
-            .clip(tileShape)
+            // Notebook (postIt != null): no shadow/clip silhouette - see
+            // ScanEatCard.kt's doc comment on why that plain box and the
+            // hand-drawn ink box read as two offset shapes at once.
+            .then(if (postIt != null) Modifier else Modifier.shadow(elevation = 3.dp, shape = tileShape).clip(tileShape))
             .then(if (postIt != null) Modifier.notebookPenBorder(postIt.color, sketchSeed, asset = fr.scanneat.presentation.ui.theme.NotebookBoxAsset.SMALL) else Modifier),
         shape = tileShape,
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = if (postIt != null) NotebookPaper.copy(alpha = 0.4f) else SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (postIt != null) Color.Transparent else SurfaceVariant.copy(alpha = StandardCardAlpha),
         shadowElevation = 0.dp,
     ) {
         Column(
