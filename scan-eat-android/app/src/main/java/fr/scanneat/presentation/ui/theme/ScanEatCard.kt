@@ -143,12 +143,19 @@ fun ScanEatCard(
     // User-reported: "pourquoi les carte ne sont pas transparentes" (Prism
     // theme) - the whole point of that theme's full-bleed background image
     // (ambientGloom's isPrism branch, Glass.kt) is for it to show through;
-    // every other theme keeps its own considered [color] fill.
+    // every other theme keeps its own considered [color] fill. User-reported
+    // round 2: fully Color.Transparent, paired with the border's already-low
+    // 0.14 alpha, left the card with no visible fill or edge at all against
+    // Prism's busy polygon artwork - a card that reads as "nothing here"
+    // instead of "a card." A faint frosted-glass tint (not the opaque
+    // [color] every other theme uses) keeps the background legible through
+    // it while still giving the card a visible boundary/fill, and the
+    // border is brightened to match for the same legibility reason.
     val isPrism = LocalThemeName.current == "prism"
     val hairlineBrush = Brush.horizontalGradient(
         colors = listOf(Color.Transparent, Color.White.copy(alpha = spec.edgeAlpha), Color.Transparent),
     )
-    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
+    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = if (isPrism) 0.28f else 0.14f)
     // User-reported: putting the chrome (clip/background/border/hairline) AND
     // the content layout on the exact same Column node made the fill read as
     // "masked" wherever content sat - the card's own paint and the content's
@@ -161,7 +168,7 @@ fun ScanEatCard(
         modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(if (isPrism) Color.Transparent else color, shape)
+            .background(if (isPrism) Color.White.copy(alpha = 0.10f) else color, shape)
             .border(BorderStroke(1.dp, borderColor), shape)
             .drawWithCache {
                 onDrawWithContent {
