@@ -56,7 +56,13 @@ internal fun ColumnScope.WelcomePage(onNext: () -> Unit) {
         color = OnBackground.copy(0.7f),
         textAlign = TextAlign.Center,
     )
-    Spacer(Modifier.weight(1f))
+    // OnboardingScreen wraps every page in a wrap-content ScanEatCard now (matching
+    // BiolismOnboardingScreen's own card convention) rather than a fillMaxSize
+    // Column, so a weight(1f) spacer here has nothing to expand into — it silently
+    // collapsed to zero height instead of the full-screen gap it used to create.
+    // A fixed Spacing.XL gap keeps an intentional, base-2 breathing room between
+    // the body copy and the primary button instead of the two sitting flush.
+    Spacer(Modifier.height(Spacing.XL))
     ScanEatPrimaryButton(
         onClick = onNext,
         modifier = Modifier.fillMaxWidth(),

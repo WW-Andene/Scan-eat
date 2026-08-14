@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -92,7 +93,10 @@ internal fun ColumnScope.ApiModePage(
         )
     }
 
-    Spacer(Modifier.weight(1f))
+    // See WelcomePage's identical fix: OnboardingScreen's page container is now a
+    // wrap-content ScanEatCard (matching BiolismOnboardingScreen), so weight(1f)
+    // has no remaining space to expand into — a fixed gap replaces it.
+    Spacer(Modifier.height(Spacing.XL))
     val serverUrlValid = serverUrl.isNotBlank() && (serverUrl.startsWith("http://") || serverUrl.startsWith("https://"))
     ScanEatPrimaryButton(
         onClick = onContinue,

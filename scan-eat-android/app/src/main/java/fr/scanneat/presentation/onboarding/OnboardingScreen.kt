@@ -94,113 +94,151 @@ fun OnboardingScreen(
     var goal by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(Goal.MAINTAIN) }
     var conditions by rememberSaveable(stateSaver = stringSetSaver) { mutableStateOf(emptySet<String>()) }
 
+    // Card-wrapped wizard body, header (Skip) and footer (Back/dots) all living
+    // inside one ScanEatCard with Spacing.XL content padding, matching the one
+    // other multi-step wizard in the app (BiolismOnboardingScreen) exactly —
+    // that screen already establishes this as the app's standard "onboarding
+    // wizard" shape (one card, Spacing.XL edges, a zeroed-padding TextButton
+    // flush against the card's own leading/trailing edge). This screen instead
+    // had no card at all (bare TextButtons floating on the ambientGloom
+    // background) and its own different Spacing.L (16dp) padding — a visible
+    // seam between the app's two onboarding wizards, and the reason the header
+    // (Skip) and footer (Back) rows read as two unrelated components rather
+    // than symmetric top/bottom bars of the same container. Also unifies the
+    // Skip/Back label alpha (was 0.5f vs 0.6f — no reason for these two
+    // same-weight secondary nav actions to differ) to Biolism's own 0.5f.
     Scaffold(containerColor = Background, snackbarHost = { ScanEatSnackbarHost(snackbarHostState) }) { padding ->
-        Column(
+        // BoxWithConstraints, not Box - Page 3 (Profile capture) is the one page with
+        // enough fields (sex/age/height/weight/activity/goal/conditions) to overflow a
+        // short screen, and its own scrollable Column relies on Modifier.weight(1f) to
+        // both bound itself to the remaining space and let the Skip/Save footer stay put
+        // below it. weight(1f) only has real space to expand into when the ScanEatCard
+        // around it has a bounded (not wrap-content) height - maxHeight here is that
+        // real bound, the same fix BiolismOnboardingScreen's own identical wizard
+        // already applies for its own multi-field steps.
+        BoxWithConstraints(
             modifier = Modifier.fillMaxSize().padding(padding)
-                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
-                .padding(horizontal = Spacing.L),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.M),
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
+            contentAlignment = Alignment.Center,
         ) {
-            Spacer(Modifier.height(48.dp))
-
-            // Pages 0-1 (Welcome/Value proposition) had no exit at all short of
-            // abandoning the app entirely - every later page already reaches its own
-            // onSkip (ApiModePage page 2, ProfileCapturePage page 3), same
-            // viewModel.finish() this jumps straight to. A returning user reinstalling,
-            // or anyone who just wants to explore the app first, previously had no way
-            // to bail out of these first two pages.
-            if (page <= 1) {
-                Box(Modifier.fillMaxWidth()) {
-                    TextButton(onClick = { viewModel.finish() }, modifier = Modifier.align(Alignment.CenterEnd)) {
-                        Text(stringResource(R.string.onboarding_skip_all), color = OnBackground.copy(0.5f))
-                    }
-                }
-            }
-
-            when (page) {
-                // ---- Page 0: Welcome ----
-                0 -> WelcomePage(onNext = { page = 1 })
-
-                // ---- Page 1: Value proposition — what sets this apart ----
-                1 -> ValuePropositionPage(onNext = { page = 2 })
-
-                // ---- Page 2: API mode ----
-                2 -> ApiModePage(
-                    selectedMode = selectedMode, onModeChange = { selectedMode = it },
-                    apiKey = apiKey, onApiKeyChange = { apiKey = it },
-                    apiKeyVisible = apiKeyVisible, onToggleApiKeyVisible = { apiKeyVisible = !apiKeyVisible },
-                    serverUrl = serverUrl, onServerUrlChange = { serverUrl = it },
-                    onContinue = {
-                        viewModel.setMode(selectedMode)
-                        if (apiKey.isNotBlank()) viewModel.setApiKey(apiKey)
-                        if (serverUrl.isNotBlank()) viewModel.setServerUrl(serverUrl)
-                        page = 3
-                    },
-                    onSkip = {
-                        // Previously never persisted selectedMode at all on skip — it
-                        // only "worked" because ApiMode.DIRECT also happens to be
-                        // UserPreferences' own default, so a toggle to SERVER (with no
-                        // URL filled in) then skipping silently discarded that choice.
-                        viewModel.setMode(selectedMode); viewModel.skipApiSetup(); page = 3
-                    },
-                )
-
-                // ---- Page 3: Profile capture — previously just a prompt pointing at a
-                // separate, skippable screen. hasMinimalProfile() (PersonalScoreEngine)
-                // requires sex+age+height+weight before dailyTargets()/PersonalScoreEngine
-                // compute anything at all, so a "Skip" tap here meant zero personalized
-                // score/targets indefinitely - the fields are now captured inline instead,
-                // still skippable, reusing the exact selectors ProfileScreen itself uses. ----
-                3 -> ProfileCapturePage(
-                    sex = sex, onSexChange = { sex = it },
-                    ageText = ageText, onAgeTextChange = { ageText = it },
-                    heightText = heightText, onHeightTextChange = { heightText = it },
-                    weightText = weightText, onWeightTextChange = { weightText = it },
-                    activity = activity, onActivityChange = { activity = it },
-                    goal = goal, onGoalChange = { goal = it },
-                    conditions = conditions, onConditionsChange = { conditions = it },
-                    onSaveAndContinue = { s, age, h, w, act, g, cond -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g, cond)) viewModel.finish() },
-                    onSaveAndGoToProfile = { s, age, h, w, act, g, cond -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g, cond)) viewModel.finish(goToProfile = true) },
-                    onGoToProfileWithoutSaving = { viewModel.finish(goToProfile = true) },
-                    onSkip = { viewModel.finish() },
-                )
-            }
-
-            // User-reported: the step-progress dots (+ Back button) previously
-            // rendered above the page content, right under the Skip button -
-            // moved below the page content so the progress indicator reads as a
-            // page-bottom element, matching where the page's own primary button
-            // (WelcomePage etc.) already sits.
-            if (page > 0) {
-                Box(Modifier.fillMaxWidth()) {
-                    Row(
-                        Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        (1..3).forEach { step ->
-                            val active = step == page
-                            Box(
-                                Modifier
-                                    .size(if (active) 24.dp else 8.dp, 8.dp)
-                                    .clip(RoundedCornerShape(50))
-                                    .background(if (active) AccentCoral else OnBackground.copy(0.2f)),
-                            )
+            ScanEatCard(
+                modifier = Modifier.padding(Spacing.XL).heightIn(max = maxHeight - Spacing.XL * 2),
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
+                contentPadding = PaddingValues(Spacing.XL),
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(Spacing.M),
+                ) {
+                    // Header — Skip, flush against the card's trailing edge (zeroed end
+                    // padding), the same edge-alignment treatment Biolism's own footer
+                    // Back/Skip buttons use against their leading edge below.
+                    // Pages 0-1 (Welcome/Value proposition) had no exit at all short of
+                    // abandoning the app entirely - every later page already reaches its own
+                    // onSkip (ApiModePage page 2, ProfileCapturePage page 3), same
+                    // viewModel.finish() this jumps straight to. A returning user reinstalling,
+                    // or anyone who just wants to explore the app first, previously had no way
+                    // to bail out of these first two pages.
+                    if (page <= 1) {
+                        Box(Modifier.fillMaxWidth()) {
+                            TextButton(
+                                onClick = { viewModel.finish() },
+                                modifier = Modifier.align(Alignment.CenterEnd),
+                                contentPadding = PaddingValues(start = Spacing.M, end = 0.dp, top = Spacing.S, bottom = Spacing.S),
+                            ) {
+                                Text(stringResource(R.string.onboarding_skip_all), color = OnBackground.copy(0.5f))
+                            }
                         }
                     }
-                    // A user who picked Server mode then wanted to change it after
-                    // already reaching Profile capture (page 3), or who just wanted
-                    // to re-read the value-proposition page, had no way back short of
-                    // abandoning onboarding entirely (there's no "restart" affordance
-                    // either) - every other multi-step wizard in the app
-                    // (BiolismOnboardingScreen) already has a Back button at every
-                    // step past the first; this one didn't.
-                    TextButton(onClick = { page -= 1 }, modifier = Modifier.align(Alignment.CenterStart)) {
-                        Text(stringResource(R.string.common_back), color = OnBackground.copy(0.6f))
+
+                    when (page) {
+                        // ---- Page 0: Welcome ----
+                        0 -> WelcomePage(onNext = { page = 1 })
+
+                        // ---- Page 1: Value proposition — what sets this apart ----
+                        1 -> ValuePropositionPage(onNext = { page = 2 })
+
+                        // ---- Page 2: API mode ----
+                        2 -> ApiModePage(
+                            selectedMode = selectedMode, onModeChange = { selectedMode = it },
+                            apiKey = apiKey, onApiKeyChange = { apiKey = it },
+                            apiKeyVisible = apiKeyVisible, onToggleApiKeyVisible = { apiKeyVisible = !apiKeyVisible },
+                            serverUrl = serverUrl, onServerUrlChange = { serverUrl = it },
+                            onContinue = {
+                                viewModel.setMode(selectedMode)
+                                if (apiKey.isNotBlank()) viewModel.setApiKey(apiKey)
+                                if (serverUrl.isNotBlank()) viewModel.setServerUrl(serverUrl)
+                                page = 3
+                            },
+                            onSkip = {
+                                // Previously never persisted selectedMode at all on skip — it
+                                // only "worked" because ApiMode.DIRECT also happens to be
+                                // UserPreferences' own default, so a toggle to SERVER (with no
+                                // URL filled in) then skipping silently discarded that choice.
+                                viewModel.setMode(selectedMode); viewModel.skipApiSetup(); page = 3
+                            },
+                        )
+
+                        // ---- Page 3: Profile capture — previously just a prompt pointing at a
+                        // separate, skippable screen. hasMinimalProfile() (PersonalScoreEngine)
+                        // requires sex+age+height+weight before dailyTargets()/PersonalScoreEngine
+                        // compute anything at all, so a "Skip" tap here meant zero personalized
+                        // score/targets indefinitely - the fields are now captured inline instead,
+                        // still skippable, reusing the exact selectors ProfileScreen itself uses. ----
+                        3 -> ProfileCapturePage(
+                            sex = sex, onSexChange = { sex = it },
+                            ageText = ageText, onAgeTextChange = { ageText = it },
+                            heightText = heightText, onHeightTextChange = { heightText = it },
+                            weightText = weightText, onWeightTextChange = { weightText = it },
+                            activity = activity, onActivityChange = { activity = it },
+                            goal = goal, onGoalChange = { goal = it },
+                            conditions = conditions, onConditionsChange = { conditions = it },
+                            onSaveAndContinue = { s, age, h, w, act, g, cond -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g, cond)) viewModel.finish() },
+                            onSaveAndGoToProfile = { s, age, h, w, act, g, cond -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g, cond)) viewModel.finish(goToProfile = true) },
+                            onGoToProfileWithoutSaving = { viewModel.finish(goToProfile = true) },
+                            onSkip = { viewModel.finish() },
+                        )
+                    }
+
+                    // Footer — step-progress dots + Back, symmetric with the header Skip
+                    // row above: same Box(fillMaxWidth)/Alignment shape, same TextButton
+                    // label alpha (0.5f), same zeroed-edge content padding (start=0 here,
+                    // end=0 above) so both rows read as one consistent top/bottom bar
+                    // pairing rather than two differently-styled components.
+                    if (page > 0) {
+                        Box(Modifier.fillMaxWidth()) {
+                            Row(
+                                Modifier.align(Alignment.Center),
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                (1..3).forEach { step ->
+                                    val active = step == page
+                                    Box(
+                                        Modifier
+                                            .size(if (active) 24.dp else 8.dp, 8.dp)
+                                            .clip(RoundedCornerShape(50))
+                                            .background(if (active) AccentCoral else OnBackground.copy(0.2f)),
+                                    )
+                                }
+                            }
+                            // A user who picked Server mode then wanted to change it after
+                            // already reaching Profile capture (page 3), or who just wanted
+                            // to re-read the value-proposition page, had no way back short of
+                            // abandoning onboarding entirely (there's no "restart" affordance
+                            // either) - every other multi-step wizard in the app
+                            // (BiolismOnboardingScreen) already has a Back button at every
+                            // step past the first; this one didn't.
+                            TextButton(
+                                onClick = { page -= 1 },
+                                modifier = Modifier.align(Alignment.CenterStart),
+                                contentPadding = PaddingValues(start = 0.dp, end = Spacing.M, top = Spacing.S, bottom = Spacing.S),
+                            ) {
+                                Text(stringResource(R.string.common_back), color = OnBackground.copy(0.5f))
+                            }
+                        }
                     }
                 }
             }
         }
     }
-
 }

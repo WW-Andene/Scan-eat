@@ -51,7 +51,10 @@ internal fun ColumnScope.ValuePropositionPage(onNext: () -> Unit) {
     // users arrived at profile setup with no idea what domains were covered.
     FeatureDomainChips()
 
-    Spacer(Modifier.weight(1f))
+    // See WelcomePage's identical fix: OnboardingScreen's page container is now a
+    // wrap-content ScanEatCard (matching BiolismOnboardingScreen), so weight(1f)
+    // has no remaining space to expand into — a fixed gap replaces it.
+    Spacer(Modifier.height(Spacing.XL))
     ScanEatPrimaryButton(
         onClick = onNext,
         modifier = Modifier.fillMaxWidth(),
