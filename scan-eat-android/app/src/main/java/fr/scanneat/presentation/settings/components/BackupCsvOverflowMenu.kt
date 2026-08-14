@@ -23,6 +23,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
 import fr.scanneat.presentation.ui.theme.ScanEatOutlinedButton
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.reportWidthTo
 
 /**
  * Weight/Activity/Hydration/Medication/Fasting/Prices/CustomFoods/MealTemplates/

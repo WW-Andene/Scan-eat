@@ -27,6 +27,7 @@ import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
+import fr.scanneat.presentation.ui.theme.reportWidthTo
 
 /**
  * User-requested: "develop the tool" for Recipes - same shape as History's

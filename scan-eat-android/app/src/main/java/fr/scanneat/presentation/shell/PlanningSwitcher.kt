@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
+import fr.scanneat.presentation.ui.theme.reportWidthTo
 
 /**
  * Recipes, Meal Templates, Meal Plan, Grocery, and Custom Foods constantly
