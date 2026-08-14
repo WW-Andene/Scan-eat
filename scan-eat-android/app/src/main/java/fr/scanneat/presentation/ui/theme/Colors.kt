@@ -162,6 +162,29 @@ const val CHIP_BORDER_ALPHA: Float = 0.4f
 const val STATUS_BORDER_ALPHA: Float = 0.3f
 
 // ── Biolism accent system (φ-derived) ─────────────────────────────────────────
+// Colour-composition pass (Original theme = colorAccent "none", consumed by
+// OledColors/DarkColors/LowContrastColors and LightColors in Theme.kt):
+// Harmony — split-complementary by design, not accident. Gold (H44°,
+// S50%, L50%) and AccentCoral (H17°, S60%, L60%) are ANALOGOUS, 27° apart
+// (within the 30-60° analogous band, on the low/tight edge on purpose since
+// both read as "warm brand action" — primary Biolism CTA and secondary
+// Scan'eat CTA respectively). Teal (H180°, S60%, L50%) sits well off the
+// true complement of that warm pair's midpoint (~30° → complement ~210°),
+// i.e. a split-complementary cool counterpoint rather than a straight
+// complement — intentional: Teal marks a DIFFERENT semantic domain
+// (Biolism substrate/ketosis/VO2, not an action color), so it should read as
+// clearly "other," not as a tinted extension of the warm pair.
+// WCAG (calculated, sRGB relative luminance): Gold on Color.Black
+// (OledColors/DarkColors onPrimary) = 9.19:1; AccentCoral on Color.Black
+// (onSecondary) = 6.97:1; Teal on DarkColors' background 0xFF120F0B =
+// 9.34:1 — all comfortably clear the 4.5:1 body-text floor, no luminance
+// adjustment needed. LightColors' own hand-tuned primary/secondary/tertiary
+// (0xFFA07828/0xFFB05A38/0xFF1A9090, same H40/H17/H180 hue family) were
+// re-verified the same way: 4.03:1/4.81:1 as white button fills (≥3:1
+// large/bold floor) and 3.59:1/4.29:1/3.44:1 as text directly on
+// background 0xFFF6F1EC (below 4.5 body-text but above the 3:1 large/bold
+// floor) — matches this file's pre-existing per-role reasoning above
+// LightColors in Theme.kt, confirmed rather than re-derived.
 // Gold — primary action, live timer, BMR hero
 val Gold            = Color(0xFFC9A84C)
 val GoldDim         = Gold.copy(alpha = PHI_DIM_ALPHA)

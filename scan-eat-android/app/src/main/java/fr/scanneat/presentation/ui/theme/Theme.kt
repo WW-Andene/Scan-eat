@@ -220,44 +220,79 @@ private fun Color.boostedForHighContrast(): Color {
     hsv[2] = 1f
     return Color(android.graphics.Color.HSVToColor(hsv))
 }
-// User-requested: "pareil pour les autre thème de couleur" - same
-// one-by-one review pass as Rose/Arlequin/Cyberpunk above, applied to the
-// original four.
+// Colour-composition pass (methodical, calculated rather than by-eye — see
+// Colors.kt's own matching pass above the Gold/AccentCoral/Teal group for the
+// same method applied to the "none"/Original theme). For each accent below:
+// (1) a stated HSL hue relation between primary/secondary/tertiary — analogous
+// (±30-60°) unless the theme's real-world referent is inherently bichrome, in
+// which case complementary/split-complementary; (2) WCAG contrast ratios
+// computed via the standard sRGB relative-luminance formula for every pair
+// actually rendered together (primary/onPrimary=Black, secondary/onSecondary
+// =Black — ColorAccent has no onPrimary/onSecondary fields of its own, so
+// these always land on DarkColors'/OledColors' Color.Black); adjusted by L
+// only, same H (and S where possible), until ≥4.5:1; (3) background <
+// surface < surfaceVariant kept as the pre-existing monotonic, hue-matched
+// luminance ramp (unchanged where already compliant), outline held near
+// DarkColors' own outline luminance (0xFF4E4A56, relative luminance 0.072)
+// so accent borders don't regress contrast versus the base theme.
 //
-// Matcha: was yellow-green + a mustard-leaning pale tan + dark green -
-// recognizable but the secondary read more "mustard" than "matcha latte."
-// Vivid whisked-matcha green, a cream/latte foam tan, and a deep tea-leaf
-// green reads more specifically as the drink/powder, not just "green
-// theme."
+// Matcha (matcha latte): primary H82°/S80%/L40% (whisked-matcha green) and
+// tertiary H83°/S70%/L20% (deep tea-leaf green) are the SAME hue, a
+// monochrome-shade pair (latte foam vs. steeped leaf, the same plant); the
+// secondary H46°/S48%/L80% (cream/latte foam tan) sits 36° away — analogous,
+// within the 30-60° band. WCAG: primary/Black = 8.48:1, secondary/Black =
+// 15.34:1 — both clear 4.5:1 with no L adjustment needed.
 private val MatchaAccent = ColorAccent(
     primary = Color(0xFF7CB518), secondary = Color(0xFFE8DCB5), tertiary = Color(0xFF3A5311),
     background = Color(0xFF0F130B), surface = Color(0xFF1B2114), surfaceVariant = Color(0xFF2E3A20),
     outline = Color(0xFF485C34),
 )
-// Lavande: previous values were Material's own pastel lavender defaults -
-// correct hue family but soft enough to read as generic "light purple"
-// rather than lavender specifically. A clearer light->medium->deep bloom
-// gradient (actual lavender-flower purple as the primary, not the
-// palest tone) reads more like a lavender field.
+// Lavande (champ de lavande): primary H262°/S50%/L60%, secondary H261°/S50%/
+// L70%, tertiary H253°/S30%/L40% — a tight single-hue gradient (bloom-tone
+// scale within 9°, not a spread analogous relation), the same "one hue, three
+// depths" structure a lavender field's own bloom-to-stem shading actually has.
+// WCAG: primary/Black = 5.70:1, secondary/Black = 8.76:1 — both clear 4.5:1
+// with no L adjustment needed.
 private val LavandeAccent = ColorAccent(
     primary = Color(0xFF9575CD), secondary = Color(0xFFB39DDB), tertiary = Color(0xFF5C4B99),
     background = Color(0xFF120F16), surface = Color(0xFF201B26), surfaceVariant = Color(0xFF362E40),
     outline = Color(0xFF4E4560),
 )
-// Sunflower: petal yellow + orange were already right; tertiary warmed
-// from a fairly neutral gold toward a huskier burnt-amber, closer to the
-// actual seed-head center's tone instead of just "darker yellow."
+// Sunflower: primary H48°/S95%/L58% (golden petal yellow), secondary H32°/
+// S95%/L55% (orange), tertiary H18°/S80%/L40% (burnt-amber seed-head center)
+// — a 30°-wide analogous fan (petal → mid-petal → husk center), at the wide
+// edge of the analogous band rather than Matcha/Lavande's tighter spread,
+// matching a sunflower's own wider visible hue range from bright petal to
+// dark center. WCAG: primary/Black = 14.22:1, secondary/Black = 9.28:1, both
+// well clear of 4.5:1; tertiary/Black = 3.90:1 (tertiary has no onTertiary
+// field on ColorAccent so isn't paired with Black by this system, but kept
+// above the 3:1 large/bold floor regardless as a margin of safety).
 private val SunflowerAccent = ColorAccent(
-    primary = Color(0xFFFFC940), secondary = Color(0xFFFF9E40), tertiary = Color(0xFFC9820A),
+    primary = Color(0xFFFAD12E), secondary = Color(0xFFF9941F), tertiary = Color(0xFFB84514),
     background = Color(0xFF141008), surface = Color(0xFF231C10), surfaceVariant = Color(0xFF423420),
     outline = Color(0xFF5C4A2E),
 )
-// Lazulite (lapis lazuli, the mineral): gold tertiary for the stone's
-// characteristic pyrite flecks was already right; primary deepened from a
-// medium sky-blue to the mineral's actual deep ultramarine, promoting the
-// old primary to secondary - lapis is a DEEP blue stone, not a light one.
+// Lazulite (lapis lazuli, the mineral): the stone is intrinsically BICHROME —
+// deep ultramarine matrix with metallic gold pyrite flecks — so unlike the
+// three analogous/monohue accents above, this one is deliberately
+// complementary: primary/secondary form one tight blue family (H214°/H218°,
+// 4° apart — matrix vs. its own lighter mineral glint, not two competing
+// hues) and tertiary sits at H40° (pyrite gold), close to the blue family's
+// true complement (~H36°) — split-complementary, not analogous, matching the
+// stone's real two-mineral composition rather than forcing a hue this
+// concept doesn't have.
+// WCAG fix (this pass): the previous primary 0xFF1F4E8C (H214°/S60%/L30%)
+// measured 2.53:1 against Color.Black (onPrimary) — a real AA failure below
+// even the 3:1 large/bold floor, since ColorAccent has no onPrimary field to
+// flip independently of the base theme's Black. Lightened along the SAME
+// hue/saturation (H214°, S60%) from L30% to L52% — the minimum step that
+// clears 4.5:1 — rather than picking an arbitrary lighter blue; still a
+// mid-to-deep royal blue, not a pastel. New primary/Black = 4.91:1. Secondary
+// nudged from L60% to L58%/S65% to stay a visibly lighter step above the
+// new primary (secondary/Black = 5.48:1). Tertiary re-derived at the
+// corrected split-complement H40°/S55%/L50% (tertiary/Black = 7.89:1).
 private val LazuliteAccent = ColorAccent(
-    primary = Color(0xFF1F4E8C), secondary = Color(0xFF4C82E0), tertiary = Color(0xFFC9A84C),
+    primary = Color(0xFF3B7BCE), secondary = Color(0xFF4E81DA), tertiary = Color(0xFFC69739),
     background = Color(0xFF0A0F16), surface = Color(0xFF161F2B), surfaceVariant = Color(0xFF283246),
     outline = Color(0xFF3C4A60),
 )
