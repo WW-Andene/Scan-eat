@@ -442,7 +442,7 @@ internal fun isLightBackground(): Boolean = MaterialTheme.colorScheme.background
  * that's a near-invisible black-on-near-black icon. Luminance-based instead
  * of a fixed literal so it self-corrects for any current or future accent.
  */
-fun contentColorFor(background: Color): Color = if (background.luminance() > 0.5f) Color.Black else Color.White
+fun scanEatContrastColorFor(background: Color): Color = if (background.luminance() > 0.5f) Color.Black else Color.White
 
 /** Good / positive / success signal. */
 @Composable

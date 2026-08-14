@@ -43,9 +43,10 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.scan.ScanUiState
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.contentColorFor
+import fr.scanneat.presentation.ui.theme.scanEatContrastColorFor
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.PrismFillColor
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -80,7 +81,7 @@ internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: D
         // Exhaustive over all 7 ScanUiState variants (no `else`) - a future
         // 8th variant now fails to compile here instead of silently falling
         // through to the generic search icon unnoticed.
-        val fabContentColor = contentColorFor(AccentCoral)
+        val fabContentColor = scanEatContrastColorFor(AccentCoral)
         when (scanState) {
             is ScanUiState.Scanning -> ScanEatLoadingIndicator(size = 24.dp, color = fabContentColor)
             is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,

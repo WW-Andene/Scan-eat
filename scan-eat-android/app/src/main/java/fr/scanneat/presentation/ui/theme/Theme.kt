@@ -525,18 +525,18 @@ fun ScanEatTheme(
             baseColorScheme.copy(
                 primary = boostedPrimary, secondary = boostedSecondary, tertiary = boostedTertiary,
                 surface = accent.surface, surfaceVariant = accent.surfaceVariant, outline = accent.outline,
-                onPrimary = contentColorFor(boostedPrimary), onSecondary = contentColorFor(boostedSecondary), onTertiary = contentColorFor(boostedTertiary),
+                onPrimary = scanEatContrastColorFor(boostedPrimary), onSecondary = scanEatContrastColorFor(boostedSecondary), onTertiary = scanEatContrastColorFor(boostedTertiary),
             )
         } else if (resolvedTheme == "oled") {
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
                 surface = accent.surface, surfaceVariant = accent.surfaceVariant, outline = accent.outline,
-                onPrimary = contentColorFor(accent.primary), onSecondary = contentColorFor(accent.secondary), onTertiary = contentColorFor(accent.tertiary),
+                onPrimary = scanEatContrastColorFor(accent.primary), onSecondary = scanEatContrastColorFor(accent.secondary), onTertiary = scanEatContrastColorFor(accent.tertiary),
             )
         } else if (resolvedTheme == "light" || resolvedTheme == "low_contrast") {
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
-                onPrimary = contentColorFor(accent.primary), onSecondary = contentColorFor(accent.secondary), onTertiary = contentColorFor(accent.tertiary),
+                onPrimary = scanEatContrastColorFor(accent.primary), onSecondary = scanEatContrastColorFor(accent.secondary), onTertiary = scanEatContrastColorFor(accent.tertiary),
             )
         } else {
             // Verification pass ("j'ai dit TOUTS les thèmes de couleur"): a
@@ -554,7 +554,7 @@ fun ScanEatTheme(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
                 background = accent.background, surface = accent.surface, surfaceVariant = accent.surfaceVariant,
                 outline = accent.outline,
-                onPrimary = contentColorFor(accent.primary), onSecondary = contentColorFor(accent.secondary), onTertiary = contentColorFor(accent.tertiary),
+                onPrimary = scanEatContrastColorFor(accent.primary), onSecondary = scanEatContrastColorFor(accent.secondary), onTertiary = scanEatContrastColorFor(accent.tertiary),
             )
         }
     } else baseColorScheme
