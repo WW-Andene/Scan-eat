@@ -81,14 +81,11 @@ val FrostedGlassStyle: HazeStyle
         // shadowElevation shadow (both of which DO have real contrast in Light
         // theme) as the only visible shape - a disconnected rectangle instead of a
         // whole glass pill.
-        val tintAlpha = if (isLightBackground()) 0.82f else 0.55f
         // User-requested: header/footer should use the same card-glass style as
-        // every other card - PrismFillColor instead of a separately-tuned tint,
-        // on Prism specifically (every other theme keeps its own considered tint).
-        val isPrism = LocalThemeName.current == "prism"
+        // every other card - PrismFillColor, app-wide.
         HazeStyle(
             backgroundColor = Background,
-            tint            = HazeTint(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = tintAlpha)),
+            tint            = HazeTint(PrismFillColor),
             blurRadius      = 16.dp,
             noiseFactor     = 0f,
         )

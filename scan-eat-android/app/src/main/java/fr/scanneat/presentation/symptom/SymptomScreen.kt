@@ -132,10 +132,9 @@ internal fun symptomTypeLabel(type: SymptomType): String = stringResource(
 
 @Composable
 private fun SymptomRow(entry: SymptomEntry, onDelete: () -> Unit) {
-    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = PrismFillColor,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(

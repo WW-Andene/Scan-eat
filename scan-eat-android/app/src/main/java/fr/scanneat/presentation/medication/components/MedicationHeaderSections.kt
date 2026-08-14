@@ -102,11 +102,10 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
 internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTaken: List<MedicationLogEntry>) {
     val active = medications.filter { it.active }
     val allTaken = active.isNotEmpty() && active.all { m -> todayTaken.any { it.medicationId == m.id } }
-    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = if (allTaken) Teal.copy(0.1f) else if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (allTaken) Teal.copy(0.1f) else PrismFillColor,
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),

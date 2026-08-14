@@ -50,13 +50,10 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.IconSize
-import fr.scanneat.presentation.ui.theme.LocalThemeName
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.PrismFillColor
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
-import fr.scanneat.presentation.ui.theme.isLightBackground
 import fr.scanneat.presentation.ui.theme.rememberReducedMotion
 
 /** Shared expand/collapse card shell for the Biolism Data screen's ~15 cards. */
@@ -83,9 +80,6 @@ internal fun BioCard(
     // goal-editor row (see HydrationScreen.kt ~line 171).
     val openStateDescription = stringResource(if (open) R.string.common_expanded else R.string.common_collapsed)
     val cardShape = RoundedCornerShape(CardRadius.CARD)
-    // User-reported: "pourquoi les carte ne sont pas transparentes" (Prism
-    // theme) - see ScanEatCard.kt's own doc comment on the same fix.
-    val isPrism = LocalThemeName.current == "prism"
     // User-reported: this used to be an outer Box(glassSheen's own clip) wrapping
     // an inner Surface (its own separate shadow/clip/background/border) - two
     // independently-clipped objects, the exact construction already fixed on
@@ -96,13 +90,8 @@ internal fun BioCard(
         Modifier.fillMaxWidth()
             .shadow(elevation = if (emphasized) 12.dp else 6.dp, shape = cardShape)
             .clip(cardShape)
-            // design-aesthetic-audit: same fix as ScanEatCard.kt - SurfaceVariant sits
-            // only ~1-3 RGB units from Background in Light theme, so this fill was
-            // imperceptible there, leaving only the shadow visible as a disconnected
-            // rectangle instead of a filled card.
-            // User-requested: same card-glass style app-wide - PrismFillColor
-            // instead of a separately-tuned Color.Transparent here.
-            .background(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f), cardShape)
+            // User-requested: same card-glass style app-wide - PrismFillColor.
+            .background(PrismFillColor, cardShape)
             .then(
                 if (emphasized) Modifier.border(BorderStroke(2.dp, Gold.copy(alpha = 0.22f)), cardShape) else Modifier
             )

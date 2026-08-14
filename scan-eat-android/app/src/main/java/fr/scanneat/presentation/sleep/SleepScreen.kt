@@ -173,10 +173,9 @@ fun SleepScreen(
 
 @Composable
 private fun SleepHistoryRow(entry: SleepEntry, onDelete: () -> Unit) {
-    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = PrismFillColor,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(

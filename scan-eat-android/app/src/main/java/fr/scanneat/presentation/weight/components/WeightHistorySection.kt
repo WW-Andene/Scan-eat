@@ -202,11 +202,10 @@ internal fun WeightTrendChart(chartEntries: List<WeightEntry>, goalKg: Double?, 
 internal fun WeeklyAverageCard(thisWeek: Double, lastWeek: Double, useImperial: Boolean) {
     val delta = thisWeek - lastWeek
     val dColor = if (delta < -0.1) semanticGreen() else if (delta > 0.1) semanticRed() else OnSurface.copy(0.6f)
-    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = PrismFillColor,
         modifier = Modifier.fillMaxWidth()
             .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))

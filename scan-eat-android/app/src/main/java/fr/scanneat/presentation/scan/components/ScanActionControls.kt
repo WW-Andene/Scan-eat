@@ -99,7 +99,6 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
     // same gate the caller already applies) is what makes identifyMultiFromPhotos()
     // discoverable at all, instead of a feature nobody ever stumbles onto.
     val multiHint = stringResource(R.string.scan_identify_multi_hint)
-    val isPrism = LocalThemeName.current == "prism"
     Column(
         modifier = Modifier.align(Alignment.BottomEnd).padding(end = ScanFabMargin + 64.dp + Spacing.SM, bottom = bottomNavClearance + ScanFabMargin + Spacing.SM),
         horizontalAlignment = Alignment.End,
@@ -119,7 +118,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
             Modifier
                 .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
-                .background(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(CardRadius.PROMINENT))
+                .background(PrismFillColor, RoundedCornerShape(CardRadius.PROMINENT))
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = onLongClick,
@@ -138,7 +137,6 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
 
 @Composable
 internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottomNavClearance: Dp, onQuickScan: (String) -> Unit) {
-    val isPrism = LocalThemeName.current == "prism"
     Column(
         modifier = Modifier.align(Alignment.BottomStart)
             .padding(start = ScanFabMargin, bottom = bottomNavClearance + ScanFabMargin + 64.dp + Spacing.SM),
@@ -151,7 +149,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
                 Modifier
                     .shadow(elevation = 2.dp, shape = RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
-                    .background(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(24.dp))
+                    .background(PrismFillColor, RoundedCornerShape(24.dp))
                     .clickable { onQuickScan(bc) }
                     .glassSheen(edgeAlpha = 0.12f, shape = RoundedCornerShape(24.dp), glowAlpha = 0f, reliefAlpha = 0f),
             ) {
