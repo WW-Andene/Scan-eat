@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.BorderWidth
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -95,8 +96,8 @@ private fun SeasonMonthCell(
     val densityFill = AccentCoral.copy(alpha = 0.06f + density * 0.22f)
     val fill = if (isHighlighted) semanticGreen().copy(alpha = 0.28f) else densityFill
     val border = when {
-        isHighlighted -> BorderStroke(1.6.dp, semanticGreen())
-        isSelected -> BorderStroke(1.6.dp, AccentCoral)
+        isHighlighted -> BorderStroke(BorderWidth.SELECTED, semanticGreen())
+        isSelected -> BorderStroke(BorderWidth.SELECTED, AccentCoral)
         else -> null
     }
     // app-audit §G2: isSelected/isHighlighted were purely color/border-coded with no

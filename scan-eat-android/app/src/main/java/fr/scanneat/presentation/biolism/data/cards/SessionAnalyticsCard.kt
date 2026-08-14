@@ -52,7 +52,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
             // design-aesthetic-audit §DC: the "best efficiency" stat cell above uses Gold,
             // but this chart of the same efficiency metric used Violet - mismatched color
             // for the same number, immediately adjacent.
-            BarSparkline(effScores, Gold, barHeight = 48.dp)
+            BarSparkline(effScores, Gold, barHeight = ChartRowHeight.STANDARD)
         }
 
         if (compHistory.size > 1) {
@@ -64,7 +64,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
             TintedPanel(Violet) {
                 Label(stringResource(R.string.biolism_sessan_body_comp_trend), Violet)
                 val last8 = compHistory.takeLast(8)
-                BarSparkline(last8, Violet, barHeight = 32.dp)
+                BarSparkline(last8, Violet, barHeight = ChartRowHeight.COMPACT)
                 Spacer(Modifier.height(Spacing.S))
                 InfoRow(stringResource(R.string.biolism_sessan_fat_oxidised_cum), "%.1f g".format(Locale.US, totalFatLostKg * 1000), "", Violet)
                 InfoRow(stringResource(R.string.biolism_sessan_est_weight), dispWeight(latestWeight, useImperial), "", deltaColor)

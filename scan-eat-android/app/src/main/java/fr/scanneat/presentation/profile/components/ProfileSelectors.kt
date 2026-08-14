@@ -30,6 +30,7 @@ import fr.scanneat.domain.model.BodyCompositionLevel
 import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Sex
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.BorderWidth
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SeparatorLight
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -79,7 +80,7 @@ internal fun ActivitySelector(current: ActivityLevel, onSelect: (ActivityLevel) 
                     colors = RadioButtonDefaults.colors(selectedColor = AccentCoral),
                 )
             }
-            if (lvl != ActivityLevel.EXTRA_ACTIVE) HorizontalDivider(thickness = 0.6.dp, color = SeparatorLight)
+            if (lvl != ActivityLevel.EXTRA_ACTIVE) HorizontalDivider(thickness = BorderWidth.HAIRLINE, color = SeparatorLight)
         }
     }
 }

@@ -32,7 +32,7 @@ internal fun ModeCard(selected: Boolean, title: String, subtitle: String, onClic
         // colorScheme.outline gray - unrelated to the AccentCoral fill this
         // card already commits to when selected. A selected card showed a
         // coral tint with a plain gray border around it.
-        border  = if (selected) BorderStroke(1.6.dp, AccentCoral) else null,
+        border  = if (selected) BorderStroke(BorderWidth.SELECTED, AccentCoral) else null,
         modifier = Modifier.fillMaxWidth()
             .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),

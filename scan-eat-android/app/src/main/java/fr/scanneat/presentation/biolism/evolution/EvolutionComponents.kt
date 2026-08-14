@@ -27,11 +27,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
+import fr.scanneat.presentation.ui.theme.BorderWidth
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
+import fr.scanneat.presentation.ui.theme.ChartRowHeight
 
 // ── Shared chart primitives for the Evolution tab ──────────────────────────
 // Generalizes the Canvas polyline WeightScreen.kt already draws for weight
@@ -132,7 +134,7 @@ internal fun LineTrendChart(
                 color = targetColor.copy(0.7f),
                 start = Offset(0f, ty),
                 end   = Offset(w, ty),
-                strokeWidth = 1.6.dp.toPx(),
+                strokeWidth = BorderWidth.SELECTED.toPx(),
                 pathEffect  = PathEffect.dashPathEffect(floatArrayOf(8f, 6f)),
             )
         }
@@ -151,7 +153,7 @@ internal fun LineTrendChart(
  * too heavy.
  */
 @Composable
-internal fun BarSparkline(values: List<Double>, color: Color, barHeight: Dp = 32.dp) {
+internal fun BarSparkline(values: List<Double>, color: Color, barHeight: Dp = ChartRowHeight.COMPACT) {
     if (values.isEmpty()) {
         NotEnoughDataNote()
         return

@@ -82,9 +82,14 @@ fun ScanEatDropdownMenu(
         onDismissRequest = onDismissRequest,
         properties = PopupProperties(focusable = true),
     ) {
+        // Verification pass: this shared popup surface (every DropdownMenu in
+        // the app) had no Prism branch at all, unlike every other piece of
+        // card-style chrome (ScanEatCard/BioCard/FloatingTopBar/MainShell's
+        // nav/DiaryHeader/dialogs).
+        val isPrism = LocalThemeName.current == "prism"
         Surface(
             shape = RoundedCornerShape(CardRadius.CONTROL),
-            color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+            color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
             shadowElevation = 0.dp,
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
         ) {

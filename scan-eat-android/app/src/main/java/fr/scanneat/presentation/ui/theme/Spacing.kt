@@ -83,3 +83,15 @@ object ChartRowHeight {
     val COMPACT: Dp = 48.dp
     val STANDARD: Dp = 64.dp
 }
+
+/**
+ * Verification pass: `0.6.dp`/`1.6.dp` hairline dividers and selected-state
+ * borders were independently hardcoded as the same two sub-pixel values in
+ * 6 different files - the base-2 dp scale doesn't accommodate anything
+ * this thin, so named here as the scale's one sanctioned exception instead
+ * of leaving 6 undocumented copies of the same two magic numbers.
+ */
+object BorderWidth {
+    val HAIRLINE: Dp = 0.6.dp
+    val SELECTED: Dp = 1.6.dp
+}

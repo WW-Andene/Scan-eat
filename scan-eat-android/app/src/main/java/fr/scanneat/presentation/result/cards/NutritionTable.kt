@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.BorderWidth
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SeparatorLight
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -99,5 +100,5 @@ private fun NRow(label: String, value: String) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
         Text(value, style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"), color = OnBackground, fontWeight = FontWeight.Medium)
     }
-    HorizontalDivider(thickness = 0.6.dp, color = SeparatorLight)
+    HorizontalDivider(thickness = BorderWidth.HAIRLINE, color = SeparatorLight)
 }

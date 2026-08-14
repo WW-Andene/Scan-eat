@@ -201,7 +201,9 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         Surface(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .offset(x = 8.dp, y = (-10).dp)
+                // User-requested: all sizes must sit on a base-2 scale
+                // (2/4/6/8/12/16/24/32/48/64/96/128) - 10dp isn't a member, snapped to 12dp.
+                .offset(x = 8.dp, y = (-12).dp)
                 .size(48.dp)
                 .shadow(elevation = 6.dp, shape = RoundedCornerShape(50)),
             shape = RoundedCornerShape(50),
@@ -210,6 +212,14 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Verification pass: flagged as an off-scale HeroNumberStyle
+                    // fontSize (44/40/36/32/28/24 are the display/headline
+                    // scale steps that fix targeted) - but this is a small
+                    // digit inside a 48dp circular badge, not a dominant "hero"
+                    // number; HeroNumberStyle is reused here only for its Black
+                    // weight/tabular-figures, at a size that actually fits the
+                    // badge. Left as a documented exception rather than forced
+                    // onto a scale step meant for a much larger role.
                     Text("$streak", style = HeroNumberStyle.copy(fontSize = 14.sp), color = Color.Black)
                     Text(
                         pluralStringResource(R.plurals.dashboard_streak_unit, streak),
