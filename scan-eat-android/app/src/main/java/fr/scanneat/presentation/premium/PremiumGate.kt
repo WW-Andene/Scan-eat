@@ -1,7 +1,11 @@
 package fr.scanneat.presentation.premium
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateBottomPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.runtime.Composable
@@ -19,6 +23,7 @@ import dev.chrisbanes.haze.hazeSource
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.EmptyListState
+import fr.scanneat.presentation.ui.theme.FloatingBottomNavHeight
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.LocalBottomNavHazeState
 import fr.scanneat.presentation.ui.theme.ambientGloom
@@ -61,10 +66,19 @@ fun PremiumGate(
         // EmptyListState only fills its own content width/height (it doesn't
         // fillMaxSize itself), so it pinned to the top instead.
         val bottomNavHazeState = LocalBottomNavHazeState.current
+        // User-reported: unlike every other bottom-nav-tab screen (BiolismScreen/
+        // ScanScreen/DiaryScreen all reserve navigationBars inset + FloatingBottomNavHeight
+        // via their own bottomClearance), this locked state centered EmptyListState over
+        // the FULL screen height, including the area the floating bottom nav pill sits on
+        // top of - so the message centered lower than the "classic" (unlocked) page behind
+        // the same gate, and its CTA button could render directly under the nav's own glass
+        // chrome instead of clearing it like every other screen's bottom content does.
+        val bottomClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
         Box(
             Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
-                .hazeSource(bottomNavHazeState),
+                .hazeSource(bottomNavHazeState)
+                .padding(bottom = bottomClearance),
             contentAlignment = Alignment.Center,
         ) {
             EmptyListState(
