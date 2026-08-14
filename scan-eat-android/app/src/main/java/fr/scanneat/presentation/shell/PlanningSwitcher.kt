@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,16 +46,18 @@ enum class PlanningDestination(val labelRes: Int, val icon: ImageVector) {
 fun PlanningSwitcherMenu(current: PlanningDestination, onNavigate: (PlanningDestination) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val (anchorWidth, widthTracker) = rememberTrackedWidth()
-    IconButton(onClick = { expanded = true }, modifier = widthTracker) {
-        Icon(Icons.Default.SwapHoriz, stringResource(R.string.planning_switcher_cd), tint = OnBackground)
-    }
-    ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, anchorWidth = anchorWidth) {
-        PlanningDestination.entries.filter { it != current }.forEach { dest ->
-            DropdownMenuItem(
-                text = { Text(stringResource(dest.labelRes)) },
-                leadingIcon = { Icon(dest.icon, null) },
-                onClick = { expanded = false; onNavigate(dest) },
-            )
+    Box {
+        IconButton(onClick = { expanded = true }, modifier = widthTracker) {
+            Icon(Icons.Default.SwapHoriz, stringResource(R.string.planning_switcher_cd), tint = OnBackground)
+        }
+        ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, anchorWidth = anchorWidth) {
+            PlanningDestination.entries.filter { it != current }.forEach { dest ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(dest.labelRes)) },
+                    leadingIcon = { Icon(dest.icon, null) },
+                    onClick = { expanded = false; onNavigate(dest) },
+                )
+            }
         }
     }
 }

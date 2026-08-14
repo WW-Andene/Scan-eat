@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
@@ -90,7 +92,7 @@ private val MAX_MENU_HEIGHT: Dp = 384.dp
  * here with an explicit scrim + [BackHandler]).
  */
 @Composable
-fun ScanEatDropdownMenu(
+fun BoxScope.ScanEatDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     anchorWidth: Dp = Dp.Unspecified,
@@ -106,7 +108,15 @@ fun ScanEatDropdownMenu(
     val hazeState = LocalBottomNavHazeState.current
     var anchorCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
-    Box(Modifier.onGloballyPositioned { anchorCoordinates = it })
+    // matchParentSize(), not a zero-size probe: anchorSizePx (used below in
+    // PopupOverlayMenu to offset the popup below the trigger's own bottom
+    // edge) must equal the trigger's real height, not 0 - a same-size probe
+    // over the trigger (the trigger itself, the Box's other/first child,
+    // still defines the shared Box's own size) reports that real height,
+    // instead of collapsing the "below trigger + gap" offset down to
+    // "trigger's top-left + gap" (visually flush against the trigger, not
+    // below it, when the trigger has any height at all).
+    Box(Modifier.matchParentSize().onGloballyPositioned { anchorCoordinates = it })
 
     BackHandler(enabled = expanded) { onDismissRequest() }
 

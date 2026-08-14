@@ -12,6 +12,7 @@ import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Row
@@ -106,6 +107,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 IconButton(onClick = onLog) { Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral) }
                 var menuExpanded by remember { mutableStateOf(false) }
                 val (menuAnchorWidth, menuWidthTracker) = rememberTrackedWidth()
+                Box {
                 IconButton(onClick = { menuExpanded = true }, modifier = menuWidthTracker) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
@@ -171,6 +173,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         leadingIcon = { Icon(TablerIcons.X, contentDescription = null) },
                         onClick = { menuExpanded = false; onDelete() },
                     )
+                }
                 }
             }
         }

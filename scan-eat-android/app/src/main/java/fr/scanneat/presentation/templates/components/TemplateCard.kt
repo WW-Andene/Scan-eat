@@ -87,6 +87,7 @@ internal fun TemplateCard(
                 // directly visible at full size.
                 var menuExpanded by remember { mutableStateOf(false) }
                 val (menuAnchorWidth, menuWidthTracker) = rememberTrackedWidth()
+                Box {
                 IconButton(onClick = { menuExpanded = true }, modifier = menuWidthTracker) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
@@ -132,6 +133,7 @@ internal fun TemplateCard(
                         leadingIcon = { Icon(TablerIcons.X, contentDescription = null) },
                         onClick = { menuExpanded = false; onDelete() },
                     )
+                }
                 }
             }
         }

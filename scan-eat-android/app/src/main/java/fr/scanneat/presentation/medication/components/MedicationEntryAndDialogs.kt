@@ -129,16 +129,18 @@ internal fun MedicationEntryRow(
             }
             var menuExpanded by remember { mutableStateOf(false) }
             val (menuAnchorWidth, menuWidthTracker) = rememberTrackedWidth()
-            IconButton(onClick = { menuExpanded = true }, modifier = menuWidthTracker) {
-                Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
-            }
-            // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-            ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorWidth = menuAnchorWidth) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.common_delete)) },
-                    leadingIcon = { Icon(TablerIcons.X, contentDescription = null) },
-                    onClick = { menuExpanded = false; onDelete() },
-                )
+            Box {
+                IconButton(onClick = { menuExpanded = true }, modifier = menuWidthTracker) {
+                    Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+                }
+                // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
+                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorWidth = menuAnchorWidth) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.common_delete)) },
+                        leadingIcon = { Icon(TablerIcons.X, contentDescription = null) },
+                        onClick = { menuExpanded = false; onDelete() },
+                    )
+                }
             }
         }
     }
