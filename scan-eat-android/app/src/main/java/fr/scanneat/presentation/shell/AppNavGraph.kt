@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -37,6 +38,7 @@ import fr.scanneat.presentation.scan.ScanScreen
 import fr.scanneat.presentation.seasonal.SeasonalProduceScreen
 import fr.scanneat.presentation.settings.SettingsScreen
 import fr.scanneat.presentation.templates.TemplatesScreen
+import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScoreRevealEasing
 import fr.scanneat.presentation.ui.theme.rememberReducedMotion
 
@@ -196,6 +198,7 @@ fun AppNavGraph(
 
         composable(TopTab.Biolism.route) {
             PremiumGate(
+                title = { Text(stringResource(R.string.tab_biolism), color = OnBackground) },
                 lockedMessage = stringResource(R.string.settings_premium_required_biolism),
                 onOpenSettings = { navController.switchToTab(TopTab.Settings.route) },
             ) { BiolismScreen() }

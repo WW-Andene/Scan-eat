@@ -14,13 +14,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.UserPreferences
-import dev.chrisbanes.haze.hazeSource
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.EmptyListState
-import fr.scanneat.presentation.ui.theme.FloatingBottomNavHeight
+import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
 import fr.scanneat.presentation.ui.theme.Gold
-import fr.scanneat.presentation.ui.theme.LocalBottomNavHazeState
 import fr.scanneat.presentation.ui.theme.ambientGloom
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,9 +35,18 @@ class PremiumGateViewModel @Inject constructor(prefs: UserPreferences) : ViewMod
  * for a Premium user, or a locked empty state with an upgrade CTA otherwise. See
  * UserPreferences.isPremium's own doc comment for why these two specifically are
  * the paid tier and everything else stays free.
+ *
+ * User-instructed, literal: "Utilise exactement le même navbar que Tableau
+ * pour Métabolisme" - the locked state is what a non-Premium user actually
+ * sees on the Métabolisme tab, and it previously had no header at all (a bare
+ * centered message), unlike the unlocked BiolismScreen behind this same gate.
+ * [title] wires it through FloatingScreenScaffold - the exact composable
+ * Dashboard/Biolism's own unlocked screen call - so the locked state gets
+ * the identical header/footer chrome instead of being the one state with none.
  */
 @Composable
 fun PremiumGate(
+    title: @Composable () -> Unit,
     lockedMessage: String,
     onOpenSettings: () -> Unit,
     viewModel: PremiumGateViewModel = hiltViewModel(),
@@ -49,39 +56,29 @@ fun PremiumGate(
     if (isPremium.value) {
         content()
     } else {
-        // User-reported: the locked state rendered EmptyListState bare, with no
-        // background at all - every unlocked screen behind this gate (Biolism)
-        // uses ambientGloom(), so the locked state sat on MainShell's plain
-        // Background fill instead, and (since there was no gloom to animate)
-        // never picked up the "Fond animé" setting either. Also registers
-        // MainShell's bottomNavHazeState (same fix as BiolismScreen/ScanScreen)
-        // so the floating bottom nav's glass chrome has something to blur here too.
-        // User-reported: the message lost its vertical centering once wrapped in
-        // this Box - Box defaults to top-start alignment for its children, and
-        // EmptyListState only fills its own content width/height (it doesn't
-        // fillMaxSize itself), so it pinned to the top instead.
-        val bottomNavHazeState = LocalBottomNavHazeState.current
-        // User-reported: unlike every other bottom-nav-tab screen (BiolismScreen/
-        // ScanScreen/DiaryScreen all reserve navigationBars inset + FloatingBottomNavHeight
-        // via their own bottomClearance), this locked state centered EmptyListState over
-        // the FULL screen height, including the area the floating bottom nav pill sits on
-        // top of - so the message centered lower than the "classic" (unlocked) page behind
-        // the same gate, and its CTA button could render directly under the nav's own glass
-        // chrome instead of clearing it like every other screen's bottom content does.
-        val bottomClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
-        Box(
-            Modifier.fillMaxSize()
-                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
-                .hazeSource(bottomNavHazeState)
-                .padding(bottom = bottomClearance),
-            contentAlignment = Alignment.Center,
-        ) {
-            EmptyListState(
-                icon = Icons.Default.WorkspacePremium,
-                message = lockedMessage,
-                ctaLabel = stringResource(R.string.settings_premium_enable_button),
-                onCta = onOpenSettings,
-            )
+        FloatingScreenScaffold(
+            title = title,
+            hasNavigationIcon = false,
+            showBottomNavClearance = true,
+        ) { padding ->
+            // User-reported: the locked state rendered EmptyListState bare, with no
+            // background at all - every unlocked screen behind this gate (Biolism)
+            // uses ambientGloom(), so the locked state sat on MainShell's plain
+            // Background fill instead, and (since there was no gloom to animate)
+            // never picked up the "Fond animé" setting either.
+            Box(
+                Modifier.fillMaxSize()
+                    .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+                    .padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                EmptyListState(
+                    icon = Icons.Default.WorkspacePremium,
+                    message = lockedMessage,
+                    ctaLabel = stringResource(R.string.settings_premium_enable_button),
+                    onCta = onOpenSettings,
+                )
+            }
         }
     }
 }
