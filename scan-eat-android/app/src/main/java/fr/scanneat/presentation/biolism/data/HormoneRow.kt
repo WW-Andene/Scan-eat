@@ -28,6 +28,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.STATUS_BORDER_ALPHA
 import fr.scanneat.presentation.ui.theme.Spacing
 import java.util.Locale
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 @Composable
 internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
@@ -95,6 +96,6 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
         }
         // Bumped from 0.25f - a UI/UX audit flagged a clinically meaningful reference
         // range rendered at the lowest alpha found anywhere in the app.
-        Text(stringResource(R.string.biolism_common_ref_range, h.refLow, h.refHigh, h.unit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+        Text(stringResource(R.string.biolism_common_ref_range, h.refLow, h.refHigh, h.unit), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
     }
 }

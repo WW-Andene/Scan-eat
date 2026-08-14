@@ -30,7 +30,7 @@ fun GlobalSummaryCard(allSessions: List<BiolismSession>) {
         ))
         if (spark.size > 1) {
             Spacer(Modifier.height(Spacing.S))
-            Label(stringResource(R.string.biolism_summary_spark_label, spark.size), OnBackground.copy(0.4f))
+            Label(stringResource(R.string.biolism_summary_spark_label, spark.size), OnBackgroundMuted)
             BarSparkline(spark.map { it.kcalBurned }, Gold, barHeight = 48.dp)
         }
     }

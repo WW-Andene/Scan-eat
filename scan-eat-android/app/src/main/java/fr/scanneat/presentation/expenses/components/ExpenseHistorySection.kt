@@ -28,7 +28,7 @@ internal fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, curr
                     Text(entry.date.format(dateFmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                     Text(dispCurrency(entry.priceEuros, currencySymbol), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                     entry.pricePerKg?.let {
-                        Text("${dispCurrency(it, currencySymbol)}/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                        Text("${dispCurrency(it, currencySymbol)}/kg", style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted)
                     }
                     entry.valueScore?.let { score ->
                         val (label, color) = when (score) {

@@ -171,7 +171,7 @@ fun BiolismProfileScreen(
                 ) {
                     Column(Modifier.weight(1f)) {
                         Text(lvl.label(language.value), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = if (activityId == lvl.id) FontWeight.SemiBold else FontWeight.Normal)
-                        Text(lvl.note(language.value), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                        Text(lvl.note(language.value), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
                     }
                     RadioButton(selected = activityId == lvl.id, onClick = null,
                         colors = RadioButtonDefaults.colors(selectedColor = Gold))
@@ -183,7 +183,7 @@ fun BiolismProfileScreen(
         // ── Ethnicity ─────────────────────────────────────────────────────────
         ProfileSection(stringResource(R.string.bioprofile_section_ethnicity)) {
             Text(stringResource(R.string.bioprofile_ethnicity_hint),
-                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+                style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted)
             ETHNICITY_OPTIONS.forEach { opt ->
                 Row(
                     Modifier.fillMaxWidth().selectable(selected = ethnicityId == opt.id, onClick = { ethnicityId = opt.id }, role = Role.RadioButton),
@@ -205,7 +205,7 @@ fun BiolismProfileScreen(
         // ── Circumferences ────────────────────────────────────────────────────
         ProfileSection(stringResource(R.string.bioprofile_section_circumferences)) {
             Text(stringResource(R.string.bioprofile_circumferences_hint),
-                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+                style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted)
             BioInputUnit(
                 stringResource(R.string.bioprofile_field_waist), stringResource(R.string.bioprofile_field_waist_imperial),
                 waist, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },

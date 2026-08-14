@@ -11,13 +11,14 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Violet
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 /** BiolismProfileScreen's female-only cycle-day section. Extracted (§T1 composition-root split). */
 @Composable
 internal fun BiolismCycleSection(cycleDay: String, onCycleDayChange: (String) -> Unit) {
     ProfileSection(stringResource(R.string.bioprofile_section_cycle)) {
         Text(stringResource(R.string.bioprofile_cycle_hint),
-            style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+            style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted)
         BioInput(stringResource(R.string.bioprofile_field_cycle_day), cycleDay, KeyboardType.Number) { v -> if (v.toIntOrNull()?.let { it in 1..28 } != false) onCycleDayChange(v) }
         Slider(value = (cycleDay.toIntOrNull() ?: 14).toFloat(), onValueChange = { onCycleDayChange(it.toInt().toString()) },
             valueRange = 1f..28f, steps = 26, colors = SliderDefaults.colors(thumbColor = Gold, activeTrackColor = Gold))

@@ -27,6 +27,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import java.text.Collator
 import java.util.Locale
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 /** Extracted from SeasonalProduceScreen (§T1 composition-root split). */
 @OptIn(ExperimentalLayoutApi::class)
@@ -71,7 +72,7 @@ internal fun SeasonalGroupCard(
             Text(
                 stringResource(R.string.seasonal_pairings_hint),
                 style = MaterialTheme.typography.labelSmall,
-                color = OnBackground.copy(0.4f),
+                color = OnBackgroundMuted,
             )
         }
     }

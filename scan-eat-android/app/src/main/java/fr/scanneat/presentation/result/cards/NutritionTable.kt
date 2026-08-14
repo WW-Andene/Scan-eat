@@ -22,6 +22,7 @@ import fr.scanneat.presentation.ui.theme.SeparatorLight
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.util.formatDecimal
 import kotlin.math.roundToInt
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 @Composable
 internal fun NutritionTable(nutrition: NutritionPer100g) {
@@ -56,7 +57,7 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
                 Text(
                     stringResource(R.string.result_nutri_estimated_note),
                     style = MaterialTheme.typography.labelSmall,
-                    color = OnBackground.copy(0.4f),
+                    color = OnBackgroundMuted,
                     modifier = Modifier.padding(top = Spacing.XS),
                 )
             }

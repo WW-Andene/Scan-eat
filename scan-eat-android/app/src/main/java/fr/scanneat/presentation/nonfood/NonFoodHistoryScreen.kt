@@ -154,7 +154,7 @@ private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Uni
             IconButton(onClick = onToggleFavorite) {
                 Icon(
                     TablerIcons.Heart, stringResource(R.string.common_favorite),
-                    tint = if (item.favorite) AccentCoral else OnBackground.copy(0.4f),
+                    tint = if (item.favorite) AccentCoral else OnBackgroundMuted,
                 )
             }
             IconButton(onClick = onDelete) { Icon(TablerIcons.Trash, stringResource(R.string.common_delete), tint = OnBackground.copy(0.5f)) }

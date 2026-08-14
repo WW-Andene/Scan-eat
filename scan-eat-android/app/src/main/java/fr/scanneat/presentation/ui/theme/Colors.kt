@@ -98,6 +98,18 @@ val OnBackground:   Color @Composable get() = MaterialTheme.colorScheme.onBackgr
 val SurfaceVariant: Color @Composable get() = MaterialTheme.colorScheme.surfaceVariant
 val OnSurface:      Color @Composable get() = MaterialTheme.colorScheme.onSurface
 
+/**
+ * Design audit (§E3, contrast): every "muted caption" text app-wide reused
+ * the same `OnBackground.copy(alpha = 0.4f)`/`OnSurface.copy(alpha = 0.4f)`
+ * literal regardless of scheme brightness. That alpha is legible for light
+ * text dimmed on a dark background, but the identical 0.4 on Light/Prism
+ * (both light schemes) drops small caption text well under WCAG AA's
+ * 4.5:1 contrast floor. Boosted only for light schemes; dark schemes keep
+ * the original, already-legible 0.4.
+ */
+val OnBackgroundMuted: Color @Composable get() = OnBackground.copy(alpha = if (isLightBackground()) 0.65f else 0.4f)
+val OnSurfaceMuted: Color @Composable get() = OnSurface.copy(alpha = if (isLightBackground()) 0.65f else 0.4f)
+
 // ── Scan'eat accent ───────────────────────────────────────────────────────────
 // User-reported: selecting a color theme (Matcha/Lavande/Sunflower/Lazulite)
 // left some elements stuck on the base coral instead of picking up the new

@@ -35,7 +35,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
             Row(Modifier.padding(Spacing.M), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
                     Text(stringResource(R.string.biolism_macro_total_min), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(R.string.biolism_macro_total_min_sub), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                    Text(stringResource(R.string.biolism_macro_total_min_sub), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text("%.0f kcal".format(Locale.US, met.macroFloorKcal), style = MaterialTheme.typography.titleMedium, color = Gold, fontWeight = FontWeight.Bold)
@@ -46,7 +46,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
             }
         }
         Spacer(Modifier.height(Spacing.M))
-        Label(stringResource(R.string.biolism_macro_extra_title), OnBackground.copy(0.4f))
+        Label(stringResource(R.string.biolism_macro_extra_title), OnBackgroundMuted)
         InfoRow(stringResource(R.string.biolism_macro_water), "≥ %.1f L".format(Locale.US, met.waterNeedL),
             if (profile.activityMeta.mult >= 1.55)
                 stringResource(R.string.biolism_macro_water_sub_activity, if (profile.sex == BiolismSex.MALE) 2.5 else 2.0, 0.5)

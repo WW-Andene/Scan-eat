@@ -129,7 +129,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
                                     style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold)
                             }
                         } else {
-                            Text(stringResource(R.string.biolism_ketosis_3weeks_required), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                            Text(stringResource(R.string.biolism_ketosis_3weeks_required), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
                         }
                     }
                     Text(stringResource(R.string.biolism_ketosis_adapted_desc), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))

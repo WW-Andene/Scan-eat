@@ -26,7 +26,7 @@ internal fun GroceryQuickAddRow(quickAddText: String, onQuickAddTextChange: (Str
             value = quickAddText,
             onValueChange = onQuickAddTextChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text(stringResource(R.string.grocery_quick_add_placeholder), color = OnBackground.copy(0.4f)) },
+            placeholder = { Text(stringResource(R.string.grocery_quick_add_placeholder), color = OnBackgroundMuted) },
             singleLine = true,
             shape = RoundedCornerShape(CardRadius.CONTROL),
             colors = scanEatTextFieldColors(),

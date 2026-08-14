@@ -49,6 +49,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.IconSize
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 // RecipeComponent isn't a type rememberSaveable's default Bundle-backed Saver knows
 // how to store - round-tripping through the same Moshi JSON adapter shape
@@ -149,7 +150,7 @@ internal fun AddRecipeDialog(
                 if (selectedFood == null && newIngName.isNotBlank()) {
                     Text(
                         stringResource(R.string.recipes_manual_ingredient_hint),
-                        style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f),
+                        style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted,
                     )
                 }
                 // FOOD_DB + custom-food search results - previously this dialog had no

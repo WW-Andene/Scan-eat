@@ -30,7 +30,7 @@ fun OrganHeatCard(met: MetabolicResult, s: TimerState) {
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Text("%.1f%%".format(Locale.US, organ.pct), style = MaterialTheme.typography.labelSmall, color = barColor, fontWeight = FontWeight.Bold)
                         if (s.ketosisOn && delta != 0.0) Text("%+.1f%%".format(Locale.US, delta), style = MaterialTheme.typography.labelSmall, color = if (delta > 0) Teal else Violet)
-                        Text(kcalPerDayFmt.format(kcalDay), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                        Text(kcalPerDayFmt.format(kcalDay), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
                     }
                 }
                 Spacer(Modifier.height(2.dp))

@@ -24,6 +24,7 @@ import fr.scanneat.presentation.ui.theme.GLOW_BORDER_ALPHA
 import fr.scanneat.presentation.ui.theme.GLOW_HAZE_ALPHA
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 /** Small display-primitive helpers shared across the Biolism Data screen's cards. */
 
@@ -50,7 +51,7 @@ internal fun MetCell(label: String, value: String, sub: String, accent: Color = 
         // Spacing.S (8dp), not the literal 8.dp this had - one dp off the actual
         // scale for no reason, next to every other Biolism cell/row padding here.
         Column(Modifier.padding(Spacing.S)) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), fontWeight = FontWeight.Bold)
+            Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted, fontWeight = FontWeight.Bold)
             Text(value, style = MaterialTheme.typography.bodySmall, color = accent, fontWeight = FontWeight.SemiBold)
             // Bumped from 0.3f - a UI/UX audit flagged this as real informational
             // content (not decorative) rendered too faint against the dark surface.
@@ -73,7 +74,7 @@ internal fun InfoRow(label: String, value: String, note: String, color: Color = 
 }
 
 @Composable
-internal fun Label(text: String, color: Color = OnBackground.copy(0.4f)) {
+internal fun Label(text: String, color: Color = OnBackgroundMuted) {
     Text(text, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp, modifier = Modifier.padding(bottom = Spacing.S))
 }

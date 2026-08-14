@@ -381,7 +381,7 @@ private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
         }
         Spacer(Modifier.height(Spacing.XS))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("${scores.first()}", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnSurface.copy(0.4f))
+            Text("${scores.first()}", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnSurfaceMuted)
             Text("$currentScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = lineColor, fontWeight = FontWeight.Bold)
         }
     }

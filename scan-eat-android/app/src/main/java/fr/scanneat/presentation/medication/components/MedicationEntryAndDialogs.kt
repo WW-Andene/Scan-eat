@@ -94,7 +94,7 @@ internal fun MedicationEntryRow(
                 Icon(
                     if (takenToday != null) Icons.Rounded.CheckCircle else Icons.Rounded.CheckCircleOutline,
                     stringResource(if (takenToday != null) R.string.medication_cd_undo_taken else R.string.medication_cd_taken_today),
-                    tint = if (takenToday != null) Teal else OnSurface.copy(0.4f),
+                    tint = if (takenToday != null) Teal else OnSurfaceMuted,
                 )
             }
             // Was the only toggle in this row with no haptic feedback - the adjacent
@@ -114,7 +114,7 @@ internal fun MedicationEntryRow(
                 Icon(
                     TablerIcons.Bell,
                     stringResource(R.string.medication_reminder_cd),
-                    tint = if (m.reminderOn) Teal else OnSurface.copy(0.4f),
+                    tint = if (m.reminderOn) Teal else OnSurfaceMuted,
                 )
             }
             // A fresh UX audit flagged Medication as the one tracker whose Edit

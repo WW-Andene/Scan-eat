@@ -65,6 +65,7 @@ import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
+import fr.scanneat.presentation.ui.theme.OnSurfaceMuted
 
 @Composable
 internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit, onDuplicate: () -> Unit, onEditIngredients: () -> Unit) {
@@ -178,7 +179,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
             Text(stringResource(R.string.templates_item_summary, c.productName, c.grams.toInt(), c.kcal.toInt()),
                 style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
         }
-        if (recipe.components.size > 3) Text(stringResource(R.string.templates_more_items, recipe.components.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
+        if (recipe.components.size > 3) Text(stringResource(R.string.templates_more_items, recipe.components.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurfaceMuted)
         // Macro strip — protein/carbs/fat totals per serving were previously
         // invisible on the card; a user judging whether a recipe fits their
         // macros had to tap Log just to see the numbers.
@@ -190,7 +191,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
         // 1/4 of the dish). Only shown when there's more than one serving to
         // avoid a redundant label on the common single-serving case.
         if (recipe.servings > 1) {
-            Text(stringResource(R.string.recipes_macro_per_serving_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+            Text(stringResource(R.string.recipes_macro_per_serving_label), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
             val servings = recipe.servings.coerceAtLeast(1)

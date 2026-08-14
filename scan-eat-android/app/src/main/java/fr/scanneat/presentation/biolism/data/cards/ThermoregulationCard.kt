@@ -14,7 +14,7 @@ import java.util.Locale
 fun ThermoregulationCard(met: MetabolicResult) {
     BioCard(stringResource(R.string.biolism_thermo_title), defaultOpen = false,
         badge = { GoldBadge(stringResource(R.string.biolism_thermo_badge)) }) {
-        Label(stringResource(R.string.biolism_thermo_dissipation_label, met.watts), OnBackground.copy(0.4f))
+        Label(stringResource(R.string.biolism_thermo_dissipation_label, met.watts), OnBackgroundMuted)
         MetCellGrid(
             listOf(
                 Triple(stringResource(R.string.biolism_thermo_radiation), "%.4f W".format(Locale.US, met.heatRadW), stringResource(R.string.biolism_thermo_radiation_sub)),
@@ -27,7 +27,7 @@ fun ThermoregulationCard(met: MetabolicResult) {
         InfoRow(stringResource(R.string.biolism_thermo_transepidermal), "%.4f W".format(Locale.US, met.heatEvapSkinW), stringResource(R.string.biolism_thermo_transepidermal_sub), Violet)
         InfoRow(stringResource(R.string.biolism_thermo_respiratory), "%.4f W".format(Locale.US, met.heatEvapRespW), stringResource(R.string.biolism_thermo_respiratory_sub), Violet)
         Spacer(Modifier.height(Spacing.S))
-        Label(stringResource(R.string.biolism_thermo_iwl_title), OnBackground.copy(0.4f))
+        Label(stringResource(R.string.biolism_thermo_iwl_title), OnBackgroundMuted)
         MetCellGrid(
             listOf(
                 Triple(stringResource(R.string.biolism_thermo_rwl_label), "%.2f mL/h".format(Locale.US, met.rwlMlPerHr), stringResource(R.string.biolism_thermo_ml_per_day, met.rwlMlPerHr * 24)),

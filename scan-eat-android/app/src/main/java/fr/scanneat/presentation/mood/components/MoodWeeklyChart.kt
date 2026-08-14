@@ -68,7 +68,7 @@ private fun MoodBarRow(
     highIsBad: Boolean = false,
     value: (Triple<LocalDate, Int, Int>) -> Int,
 ) {
-    Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), fontSize = TextUnit(9f, TextUnitType.Sp))
+    Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted, fontSize = TextUnit(9f, TextUnitType.Sp))
     Row(modifier = Modifier.fillMaxWidth().height(32.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
         weeklyMoodStress.forEach { entry ->
             val v = value(entry)

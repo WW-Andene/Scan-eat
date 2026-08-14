@@ -1,5 +1,12 @@
 package fr.scanneat.presentation.foodsearch.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -94,30 +101,41 @@ internal fun FoodSearchRow(
                 )
             }
         }
-        if (expanded) {
-            HorizontalDivider(color = OnSurface.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                DetailStat(stringResource(R.string.dashboard_micro_fiber), "${item.fiberG.formatDecimal()} g")
-                DetailStat(stringResource(R.string.dashboard_micro_iron), "${item.ironMg.formatDecimal()} mg")
-                DetailStat(stringResource(R.string.dashboard_micro_calcium), "${item.calciumMg.formatDecimal()} mg")
-                DetailStat(stringResource(R.string.dashboard_micro_vitc), "${item.vitCMg.formatDecimal()} mg")
-            }
-            Spacer(Modifier.height(Spacing.XS))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                DetailStat(stringResource(R.string.dashboard_micro_vitd), "${item.vitDUg.formatDecimal()} µg")
-                DetailStat(stringResource(R.string.dashboard_micro_b12), "${item.b12Ug.formatDecimal()} µg")
-                DetailStat(stringResource(R.string.dashboard_micro_vita), "${item.vitAUg.formatDecimal()} µg")
-                DetailStat(stringResource(R.string.dashboard_micro_folate), "${item.b9Ug.formatDecimal()} µg")
-            }
-            // User-reported (2nd round): "cover them" - magnesium/potassium/zinc were
-            // wired into the diary/dashboard but this row's own detail panel still
-            // stopped at the original 6 stats above.
-            Spacer(Modifier.height(Spacing.XS))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                DetailStat(stringResource(R.string.dashboard_micro_magnesium), "${item.magnesiumMg.formatDecimal()} mg")
-                DetailStat(stringResource(R.string.dashboard_micro_potassium), "${item.potassiumMg.formatDecimal()} mg")
-                DetailStat(stringResource(R.string.dashboard_micro_zinc), "${item.zincMg.formatDecimal()} mg")
-                DetailStat(stringResource(R.string.result_nutri_salt), "${item.saltG.formatDecimal()} g")
+        // User-reported (§E6 audit): this detail panel used to snap in/out
+        // instantly while visually-identical expand/collapse rows elsewhere
+        // (BioCard, SessionHistoryCard) animate - same AnimatedVisibility +
+        // reduced-motion gating as those.
+        val reduceMotion = rememberReducedMotion()
+        AnimatedVisibility(
+            visible = expanded,
+            enter = if (reduceMotion) EnterTransition.None else fadeIn() + expandVertically(),
+            exit = if (reduceMotion) ExitTransition.None else fadeOut() + shrinkVertically(),
+        ) {
+            Column {
+                HorizontalDivider(color = OnSurface.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    DetailStat(stringResource(R.string.dashboard_micro_fiber), "${item.fiberG.formatDecimal()} g")
+                    DetailStat(stringResource(R.string.dashboard_micro_iron), "${item.ironMg.formatDecimal()} mg")
+                    DetailStat(stringResource(R.string.dashboard_micro_calcium), "${item.calciumMg.formatDecimal()} mg")
+                    DetailStat(stringResource(R.string.dashboard_micro_vitc), "${item.vitCMg.formatDecimal()} mg")
+                }
+                Spacer(Modifier.height(Spacing.XS))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    DetailStat(stringResource(R.string.dashboard_micro_vitd), "${item.vitDUg.formatDecimal()} µg")
+                    DetailStat(stringResource(R.string.dashboard_micro_b12), "${item.b12Ug.formatDecimal()} µg")
+                    DetailStat(stringResource(R.string.dashboard_micro_vita), "${item.vitAUg.formatDecimal()} µg")
+                    DetailStat(stringResource(R.string.dashboard_micro_folate), "${item.b9Ug.formatDecimal()} µg")
+                }
+                // User-reported (2nd round): "cover them" - magnesium/potassium/zinc were
+                // wired into the diary/dashboard but this row's own detail panel still
+                // stopped at the original 6 stats above.
+                Spacer(Modifier.height(Spacing.XS))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    DetailStat(stringResource(R.string.dashboard_micro_magnesium), "${item.magnesiumMg.formatDecimal()} mg")
+                    DetailStat(stringResource(R.string.dashboard_micro_potassium), "${item.potassiumMg.formatDecimal()} mg")
+                    DetailStat(stringResource(R.string.dashboard_micro_zinc), "${item.zincMg.formatDecimal()} mg")
+                    DetailStat(stringResource(R.string.result_nutri_salt), "${item.saltG.formatDecimal()} g")
+                }
             }
         }
     }

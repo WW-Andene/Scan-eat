@@ -17,6 +17,7 @@ import fr.scanneat.presentation.ui.theme.ScanEatDivider
 import fr.scanneat.presentation.ui.theme.SeparatorExtraLight
 import fr.scanneat.presentation.ui.theme.Spacing
 import java.util.Locale
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 @Composable
 internal fun MacroTargetRow(label: String, grams: Double, unit: String, note: String, color: Color, kcal: Double? = null) {
@@ -27,7 +28,7 @@ internal fun MacroTargetRow(label: String, grams: Double, unit: String, note: St
     Row(Modifier.fillMaxWidth().padding(vertical = Spacing.XS), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.bodyMedium, color = color, fontWeight = FontWeight.SemiBold)
-            Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+            Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
         }
         Column(horizontalAlignment = Alignment.End) {
             Text("%.1f $unit".format(Locale.US, grams), style = MaterialTheme.typography.titleSmall, color = color, fontWeight = FontWeight.Bold)

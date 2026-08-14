@@ -48,7 +48,7 @@ internal fun ApiKeyInputSection(
             singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
             colors = scanEatTextFieldColors(),
         )
-        hintAfterRes?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f)) }
+        hintAfterRes?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted) }
         SaveButtonRow(saved = saved, onSave = onSave)
     }
 }

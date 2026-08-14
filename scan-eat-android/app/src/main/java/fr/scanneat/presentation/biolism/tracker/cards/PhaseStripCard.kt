@@ -20,6 +20,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.util.formatDecimal
 import kotlin.math.roundToInt
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 @Composable
 internal fun PhaseStrip(phase: KetoPhaseInfo, ketoHours: Double, color: Color) {
@@ -50,7 +51,7 @@ internal fun PhaseStrip(phase: KetoPhaseInfo, ketoHours: Double, color: Color) {
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text("${ketoHours.formatDecimal(1)} h", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
-                Text("${phase.progressPct.roundToInt()}%", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                Text("${phase.progressPct.roundToInt()}%", style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
             }
         }
     }

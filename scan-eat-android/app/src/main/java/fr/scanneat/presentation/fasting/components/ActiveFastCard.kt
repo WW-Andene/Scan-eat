@@ -52,7 +52,7 @@ internal fun ActiveFastCard(fastingState: FastingState, language: String, person
             Text(stringResource(R.string.fasting_phase_label, phase.label(language)), style = MaterialTheme.typography.labelMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
             Text(phase.description(language), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
             if (nextPhase != null) {
-                Text(stringResource(R.string.fasting_phase_next, nextPhase.label(language), nextPhase.minHours), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                Text(stringResource(R.string.fasting_phase_next, nextPhase.label(language), nextPhase.minHours), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted)
             }
         }
     }

@@ -137,7 +137,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(stringResource(R.string.dashboard_calorie_balance_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(sourceRes), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                    Text(stringResource(sourceRes), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted)
                 }
 
                 Text(
@@ -170,7 +170,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 if (longestStreak > streak) {
                     Text(
                         pluralStringResource(R.plurals.dashboard_streak_record, longestStreak, longestStreak),
-                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f),
+                        style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted,
                     )
                 }
                 // Activité previously had zero visible connection to this card - a
@@ -179,7 +179,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 if (balance.exerciseKcal > 0) {
                     Text(
                         stringResource(R.string.dashboard_calorie_exercise, balance.exerciseKcal),
-                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f),
+                        style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted,
                     )
                 }
                 // User-requested: is logged activity actually connected to the calorie

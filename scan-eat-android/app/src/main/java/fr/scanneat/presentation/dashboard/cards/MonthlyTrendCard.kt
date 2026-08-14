@@ -115,12 +115,12 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
         // start/end are printed, same information WeeklyBarsCard conveys
         // per-bar but compressed to fit a month at a glance.
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(rollup.days.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp)
+            Text(rollup.days.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted, fontSize = 9.sp)
             Text(
                 stringResource(R.string.dashboard_month_days_logged, rollup.daysLogged, rollup.days.size),
-                style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp, textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted, fontSize = 9.sp, textAlign = TextAlign.Center,
             )
-            Text(rollup.days.last().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp)
+            Text(rollup.days.last().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted, fontSize = 9.sp)
         }
   }
 }

@@ -48,7 +48,7 @@ internal fun ActivityWeeklyMinutesCard(weeklyMinutes: Int, weekTrendPct: Int?, g
                 trackColor  = SurfaceVariant,
             )
             if (pct >= 1f) Text(stringResource(R.string.activity_who_goal_reached), style = MaterialTheme.typography.labelSmall, color = semanticGreen())
-            else Text(stringResource(R.string.activity_who_goal_hint), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+            else Text(stringResource(R.string.activity_who_goal_hint), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted)
         }
     }
     if (showGoalEditor && onSetGoal != null) {

@@ -70,12 +70,12 @@ internal fun HeroCard(
 
             TextButton(onClick = onPrecision) {
                 Text(if (precision) stringResource(R.string.biolism_hero_precision_low) else stringResource(R.string.biolism_hero_precision_high),
-                    style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                    style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
             }
 
             // Elapsed
             Text(formatElapsed(elapsedSec), style = MaterialTheme.typography.labelMedium,
-                color = OnBackground.copy(0.4f), fontWeight = FontWeight.Medium)
+                color = OnBackgroundMuted, fontWeight = FontWeight.Medium)
 
             // Substrate bar - Spacing.S, not XS: the bar-to-legend gap read as
             // cramped next to the rest of this card's own rhythm (every other

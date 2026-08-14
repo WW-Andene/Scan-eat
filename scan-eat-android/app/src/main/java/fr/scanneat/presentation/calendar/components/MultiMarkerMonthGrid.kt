@@ -47,6 +47,7 @@ import fr.scanneat.presentation.ui.theme.semanticGreen
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 /**
  * Android's real 48dp minimum touch target (not a Spacing-scale value - a
@@ -112,7 +113,7 @@ internal fun MultiMarkerMonthGrid(
             // land over the day columns they actually label, not shifted left of them.
             Spacer(Modifier.size(WeekNumberColumnWidth))
             weekdayLabels.forEach { label ->
-                Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), textAlign = TextAlign.Center)
+                Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted, textAlign = TextAlign.Center)
             }
         }
         val totalCells = leadingBlanks + daysInMonth

@@ -40,7 +40,7 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile, useImperi
         }
         // IBW
         Spacer(Modifier.height(Spacing.S))
-        Label(stringResource(R.string.biolism_body_ibw_title), OnBackground.copy(0.4f))
+        Label(stringResource(R.string.biolism_body_ibw_title), OnBackgroundMuted)
         val ibwDelta = profile.weightKg - met.ibwMean
         MetCellGrid(listOf(
             Triple(stringResource(R.string.biolism_body_ibw_devine), dispWeight(met.ibwDevine, useImperial), stringResource(R.string.biolism_body_ibw_devine_sub)),
@@ -63,7 +63,7 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile, useImperi
                     if (v < 0.40) riskThin else if (v < 0.50) riskHealthy else if (v < 0.60) riskCentral else riskHigh,
                     if (v < 0.50) semanticGreen() else if (v < 0.60) semanticAmber() else semanticRed())
             } ?: Text(stringResource(R.string.biolism_body_whtr_prompt),
-                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
             met.whr?.let { v ->
                 val thresh = if (profile.sex == BiolismSex.MALE) 0.90 else 0.85
                 InfoRow(stringResource(R.string.biolism_body_whr_label), v.formatDecimal(3),

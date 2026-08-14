@@ -246,11 +246,11 @@ internal fun WeightEntryRow(entry: WeightEntry, delta: Double?, useImperial: Boo
             Column(Modifier.weight(1f)) {
                 Text(e.date.format(fmt), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                 if (e.notes.isNotBlank()) {
-                    Text(e.notes, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                    Text(e.notes, style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted)
                 }
             }
             if (delta != null) {
-                val dColor = if (delta < -0.05) semanticGreen() else if (delta > 0.05) semanticRed() else OnSurface.copy(0.4f)
+                val dColor = if (delta < -0.05) semanticGreen() else if (delta > 0.05) semanticRed() else OnSurfaceMuted
                 val sign = if (delta >= 0) "+" else ""
                 Text(
                     "$sign${(if (useImperial) delta * KG_TO_LB else delta).formatDecimal()}",

@@ -48,7 +48,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
 
         if (effScores.size > 1) {
             Spacer(Modifier.height(Spacing.M))
-            Label(stringResource(R.string.biolism_sessan_efficiency_chart, effScores.size), OnBackground.copy(0.4f))
+            Label(stringResource(R.string.biolism_sessan_efficiency_chart, effScores.size), OnBackgroundMuted)
             // design-aesthetic-audit §DC: the "best efficiency" stat cell above uses Gold,
             // but this chart of the same efficiency metric used Violet - mismatched color
             // for the same number, immediately adjacent.

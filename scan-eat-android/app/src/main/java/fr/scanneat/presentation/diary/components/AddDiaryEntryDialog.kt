@@ -116,7 +116,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                     value = query.value,
                     onValueChange = { viewModel.setSearchQuery(it) },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.diary_add_entry_search_hint), color = OnBackground.copy(0.4f)) },
+                    placeholder = { Text(stringResource(R.string.diary_add_entry_search_hint), color = OnBackgroundMuted) },
                     leadingIcon = { Icon(TablerIcons.Search, null, tint = OnBackground.copy(0.5f)) },
                     trailingIcon = {
                         if (query.value.isNotEmpty()) {

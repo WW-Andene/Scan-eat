@@ -123,7 +123,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                         .replaceFirstChar { it.uppercaseChar() },
                     modifier  = Modifier.weight(1f),
                     style     = MaterialTheme.typography.labelSmall,
-                    color     = if (day.date == java.time.LocalDate.now()) AccentCoral else OnSurface.copy(0.4f),
+                    color     = if (day.date == java.time.LocalDate.now()) AccentCoral else OnSurfaceMuted,
                     textAlign = TextAlign.Center,
                     fontSize  = 9.sp,
                 )

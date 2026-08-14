@@ -31,7 +31,7 @@ internal fun GroceryProgressRow(
     budgetEstimate?.let { est ->
         Text(
             stringResource(R.string.grocery_budget_estimate, dispCurrency(est.totalEuros, currencySymbol), est.matchedCount, est.totalCount),
-            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f),
+            style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted,
         )
     }
     if (total > 0 && checked > 0) {
@@ -53,7 +53,7 @@ internal fun GroceryProgressRow(
             Text(
                 stringResource(R.string.grocery_checked_progress, checked, total),
                 style = MaterialTheme.typography.labelSmall,
-                color = OnBackground.copy(0.4f),
+                color = OnBackgroundMuted,
             )
         }
     }

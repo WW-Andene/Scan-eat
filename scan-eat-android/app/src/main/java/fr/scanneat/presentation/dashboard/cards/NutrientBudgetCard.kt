@@ -107,7 +107,7 @@ private fun BudgetRow(label: String, value: Double, max: Double, unit: String, c
             Text(
                 it,
                 style = MaterialTheme.typography.labelSmall,
-                color = OnSurface.copy(0.4f),
+                color = OnSurfaceMuted,
                 modifier = Modifier.padding(start = BudgetLabelWidth + Spacing.S),
             )
         }

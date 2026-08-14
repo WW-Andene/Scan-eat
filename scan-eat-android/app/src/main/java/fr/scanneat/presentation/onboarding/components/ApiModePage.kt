@@ -69,7 +69,7 @@ internal fun ColumnScope.ApiModePage(
             colors = scanEatTextFieldColors(),
             shape = RoundedCornerShape(CardRadius.CONTROL),
         )
-        Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+        Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted)
     } else {
         // Was accepting any non-blank text with no scheme check - a typo (missing
         // "https://", stray whitespace) sailed past onboarding and only surfaced
@@ -88,7 +88,7 @@ internal fun ColumnScope.ApiModePage(
         Text(
             stringResource(if (urlSchemeValid) R.string.onboarding_server_url_hint else R.string.onboarding_server_url_error),
             style = MaterialTheme.typography.bodySmall,
-            color = if (urlSchemeValid) OnBackground.copy(0.4f) else semanticRed(),
+            color = if (urlSchemeValid) OnBackgroundMuted else semanticRed(),
         )
     }
 

@@ -202,7 +202,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                             ) {
                                 Column(Modifier.weight(1f)) {
                                     Text(lvl.label(language.value), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Medium)
-                                    Text(lvl.note(language.value), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                                    Text(lvl.note(language.value), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
                                 }
                                 RadioButton(selected = activityId == lvl.id, onClick = null,
                                     colors = RadioButtonDefaults.colors(selectedColor = Gold))

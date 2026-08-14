@@ -93,7 +93,7 @@ fun PhysiologicalMetricsCard(
                             style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold,
                             color = if (abs(diff) <= 10) semanticGreen() else if (abs(diff) <= 20) semanticAmber() else semanticRed())
                         Text(stringResource(R.string.biolism_physio_sv_implied, met.vo2PerMin * 1000 / (mhr * 0.05)),
-                            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                            style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
                     }
                 }
             }

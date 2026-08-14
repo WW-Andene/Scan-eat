@@ -31,6 +31,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 // ── Shared chart primitives for the Evolution tab ──────────────────────────
 // Generalizes the Canvas polyline WeightScreen.kt already draws for weight
@@ -50,7 +51,7 @@ internal fun NotEnoughDataNote() {
     Text(
         stringResource(R.string.biolism_evo_not_enough_data),
         style = MaterialTheme.typography.labelSmall,
-        color = OnBackground.copy(0.4f),
+        color = OnBackgroundMuted,
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center,
     )

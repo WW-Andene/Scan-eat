@@ -43,7 +43,7 @@ internal fun AboutSection(
     val context = LocalContext.current
     SettingsSection(stringResource(R.string.settings_section_about), icon = Icons.Default.Info) {
         Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-        Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+        Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted)
         // colors= explicit: without it, TextButton's ripple/indication layer
         // uses Material3's default colorScheme.primary-derived tint - the
         // label text below was already manually colored AccentCoral, but
@@ -196,7 +196,7 @@ internal fun OssLicensesDialog(onDismiss: () -> Unit) {
                 item {
                     Text(
                         stringResource(R.string.settings_licenses_apache_note),
-                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f),
+                        style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted,
                         modifier = Modifier.padding(top = Spacing.S),
                     )
                 }

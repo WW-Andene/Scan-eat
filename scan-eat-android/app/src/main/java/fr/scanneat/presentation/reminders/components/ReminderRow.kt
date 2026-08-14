@@ -41,6 +41,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 @Composable
 internal fun ReminderRow(
@@ -65,7 +66,7 @@ internal fun ReminderRow(
                 OutlinedTextField(
                     value = labelText,
                     onValueChange = { labelText = it; onLabelChange(it) },
-                    placeholder = { Text(defaultLabel, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f)) },
+                    placeholder = { Text(defaultLabel, style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted) },
                     modifier = Modifier.weight(1f).padding(end = Spacing.S),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium,

@@ -143,7 +143,7 @@ internal fun TemplateCard(
                 style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
         }
         if (template.items.size > 3) {
-            Text(stringResource(R.string.templates_more_items, template.items.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
+            Text(stringResource(R.string.templates_more_items, template.items.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurfaceMuted)
         }
         // Diet/allergen check previously only ever ran on Recipes/Grocery -
         // a template built from ingredients the user's own profile forbids
