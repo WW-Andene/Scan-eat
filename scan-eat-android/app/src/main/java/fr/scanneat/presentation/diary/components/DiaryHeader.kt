@@ -19,16 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.delay
@@ -60,58 +56,30 @@ internal fun BoxScope.DiaryHeader(
     primaryTabs: List<DiaryTab>,
     onPrimaryTabsChange: (List<DiaryTab>) -> Unit,
 ) {
-    val headerShape = RoundedCornerShape(CardRadius.PROMINENT)
-    // User-reported: this header is not standard, use Tableau's (FloatingTopBar)
-    // as the reference - it had the same outer-Box(glassSheen)+inner-Surface
-    // (shadow/clip/hazeEffect) two-layer construction already fixed on
-    // FloatingTopBar/ScanEatCard/MainShell's nav (see their own doc comments),
-    // never applied here. Collapsed into a single Column carrying shadow,
-    // clip, the haze blur, and the hairline sheen in one modifier chain,
-    // exactly like FloatingTopBar's own fix.
-    Column(
-        modifier = Modifier
-            .align(Alignment.TopCenter)
-            .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.statusBars)
-            // User-reported: this header's own outer margin (horizontal=Spacing.L,
-            // vertical=Spacing.S) was the inverse of the 1(sides):2(top/bottom) ratio
-            // FloatingTopBar's own doc comment already establishes as this app's
-            // standard (see FloatingChromeMargin) - DiaryHeader is a separate, bespoke
-            // floating-pill implementation (Diary needs an extra tab row FloatingTopBar
-            // doesn't support) that never got that same fix applied to it.
-            .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
-            .shadow(elevation = 8.dp, shape = headerShape)
-            .clip(headerShape)
-            .hazeEffect(state = hazeState, style = FrostedGlassStyle)
-            .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = AccentCoral)
-            // User-reported: this still wasn't standard - a blanket Spacing.L (16dp)
-            // leading inset applied regardless of whether the back icon shows, unlike
-            // FloatingTopBar's own leading-inset logic (Spacing.XS + a fixed 48dp icon
-            // slot when there's a real back arrow, Spacing.L only in the no-icon case).
-            // With !isTabRoot showing a back icon, that put this header's arrow a full
-            // 16dp further from the edge than the same button renders everywhere else
-            // in the app - copied verbatim from FloatingTopBar's own two branches below
-            // instead of the previous single unconditional horizontal padding.
-            .padding(start = if (!isTabRoot) Spacing.XS else Spacing.L, end = Spacing.L)
-            .padding(top = Spacing.M, bottom = Spacing.M),
-    ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!isTabRoot) {
-                        // Fixed-width leading slot for the back arrow - matches
-                        // FloatingTopBar's own Box(Modifier.size(48.dp)) icon slot
-                        // exactly, instead of a bare IconButton with only end-padding.
-                        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                            IconButton(onClick = onBack) {
-                                Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground)
-                            }
-                        }
-                    }
-                    // User-reported: was headlineSmall — every other screen's title
-                    // (via FloatingTopBar, Dashboard being the cited reference) renders
-                    // at titleLarge; standardized here so font size actually matches.
-                    Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
-                }
-                Spacer(Modifier.height(Spacing.M))
+    // User-requested: "utilise exactement le même header de Tableau pour
+    // Journal" - this no longer hand-rolls the chrome (shadow/clip/
+    // hazeEffect/glassSheen/margin/leading-icon-slot) a second time. Every
+    // one of those hand-copies is exactly where this header kept drifting
+    // from the real standard (wrong leading-icon inset, stale glassSheen
+    // alpha, etc.) - calling FloatingTopBar directly, the same composable
+    // Tableau/every other screen uses, makes that drift structurally
+    // impossible instead of something to keep re-auditing by hand. The tab
+    // row is FloatingTopBar's own extraContent slot, added specifically for
+    // this call site so it renders inside the exact same glass container.
+    FloatingTopBar(
+        title = {
+            // User-reported: was headlineSmall — every other screen's title
+            // (via FloatingTopBar, Dashboard being the cited reference) renders
+            // at titleLarge; FloatingTopBar's own ProvideTextStyle already
+            // applies titleLarge, so this no longer needs its own style override.
+            Text(stringResource(R.string.diary_header), color = OnBackground, fontWeight = FontWeight.Bold)
+        },
+        hazeState = hazeState,
+        modifier = Modifier.align(Alignment.TopCenter),
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
+        hasNavigationIcon = !isTabRoot,
+        accent = AccentCoral,
+        extraContent = {
                 // User-reported (2nd round): the single button below (showing only the
                 // active tab, everything else behind a DropdownMenu) read as "one tab"
                 // instead of a real tab row - MEALS/WEIGHT/WATER (the three most-used
@@ -228,7 +196,8 @@ internal fun BoxScope.DiaryHeader(
                         }
                     }
                 }
-    }
+        },
+    )
 }
 
 /**

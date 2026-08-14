@@ -136,6 +136,20 @@ fun FloatingTopBar(
     hasNavigationIcon: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     accent: Color = Color.White,
+    // User-requested: "utilise exactement le même header de Tableau pour
+    // Journal" - Journal's tab row previously lived in DiaryHeader's own
+    // hand-rolled reimplementation of this exact chrome (shadow/clip/
+    // hazeEffect/glassSheen/margin copied by hand), which is exactly how it
+    // kept drifting from this real standard (wrong leading-icon inset, wrong
+    // glassSheen alpha on the Biolism header's identical copy, etc.) every
+    // time this one changed without the copies following. An optional slot
+    // rendered below the title row, inside the SAME glass container, so a
+    // screen needing extra chrome (a tab row) uses this composable directly
+    // instead of copying it. null (the default) renders byte-for-byte
+    // identically to every other existing call site - the outer container
+    // was a Row before and is now a Column wrapping that same Row with no
+    // second child, which measures to the exact same bounds.
+    extraContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val headerShape = RoundedCornerShape(CardRadius.PROMINENT)
     // User-reported: an outer Box (glassSheen's own clip + hairline draw)
@@ -143,9 +157,11 @@ fun FloatingTopBar(
     // two independently-clipped objects stacked, whose bounds didn't line
     // up, showing as a stray rectangle at the chrome's edge (same root
     // cause already fixed in ScanEatCard - see that file's own comment).
-    // Rebuilt as a single Row carrying shadow, clip, the haze blur, and the
-    // hairline sheen all in one modifier chain.
-    Row(
+    // Rebuilt as a single Column carrying shadow, clip, the haze blur, and
+    // the hairline sheen all in one modifier chain (was a Row directly -
+    // promoted to a Column so extraContent can sit below the title Row
+    // inside the exact same glass container instead of a second one).
+    Column(
         modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.statusBars)
@@ -156,35 +172,45 @@ fun FloatingTopBar(
             .shadow(elevation = 8.dp, shape = headerShape)
             .clip(headerShape)
             .hazeEffect(state = hazeState, style = FrostedGlassStyle)
-            .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = accent)
-            .height(48.dp)
-            // User-reported: on tab-root screens (no back arrow), the leading
-            // side previously got Spacing.XS (icon-slot case) or an
-            // approximated Spacing.M spacer (~15dp, not an exact match to the
-            // content below's Spacing.L inset). The leading side is now
-            // Spacing.XS when there's a real back-arrow icon (unchanged from
-            // before, for the 16 push/detail screens that always show one),
-            // or 0 when there isn't, so the no-icon branch below can set the
-            // leading inset to an exact value instead of stacking a second,
-            // redundant padding source on top of it. The trailing side always
-            // keeps Spacing.XS (unchanged breathing room before actions).
-            .padding(start = if (hasNavigationIcon) Spacing.XS else 0.dp, end = Spacing.XS),
-        verticalAlignment = Alignment.CenterVertically,
+            .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = accent),
     ) {
-        if (hasNavigationIcon) {
-            // Fixed-width leading slot for a real back arrow - matches
-            // TouchTarget/IconButton's own footprint.
-            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { navigationIcon() }
-        } else {
-            // No icon to show: the leading inset is exactly Spacing.L,
-            // matching the content below's own outer Spacing.L margin
-            // pixel-for-pixel instead of approximating it.
-            Spacer(Modifier.width(Spacing.L))
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                // User-reported: on tab-root screens (no back arrow), the leading
+                // side previously got Spacing.XS (icon-slot case) or an
+                // approximated Spacing.M spacer (~15dp, not an exact match to the
+                // content below's Spacing.L inset). The leading side is now
+                // Spacing.XS when there's a real back-arrow icon (unchanged from
+                // before, for the 16 push/detail screens that always show one),
+                // or 0 when there isn't, so the no-icon branch below can set the
+                // leading inset to an exact value instead of stacking a second,
+                // redundant padding source on top of it. The trailing side always
+                // keeps Spacing.XS (unchanged breathing room before actions).
+                .padding(start = if (hasNavigationIcon) Spacing.XS else 0.dp, end = Spacing.XS),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (hasNavigationIcon) {
+                // Fixed-width leading slot for a real back arrow - matches
+                // TouchTarget/IconButton's own footprint.
+                Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { navigationIcon() }
+            } else {
+                // No icon to show: the leading inset is exactly Spacing.L,
+                // matching the content below's own outer Spacing.L margin
+                // pixel-for-pixel instead of approximating it.
+                Spacer(Modifier.width(Spacing.L))
+            }
+            Box(Modifier.weight(1f)) {
+                ProvideTextStyle(MaterialTheme.typography.titleLarge) { title() }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, content = actions)
         }
-        Box(Modifier.weight(1f)) {
-            ProvideTextStyle(MaterialTheme.typography.titleLarge) { title() }
+        if (extraContent != null) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.S)) {
+                extraContent()
+            }
         }
-        Row(verticalAlignment = Alignment.CenterVertically, content = actions)
     }
 }
 
