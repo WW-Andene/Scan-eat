@@ -120,7 +120,7 @@ internal fun LineTrendChart(
             val isLast = i == n - 1
             drawCircle(
                 color = if (isLast) color else color.copy(0.4f),
-                radius = if (isLast) 6.dp.toPx() else 3.dp.toPx(),
+                radius = if (isLast) 6.dp.toPx() else 2.dp.toPx(),
                 center = Offset(xAt(i), yAt(e.second)),
             )
         }

@@ -115,7 +115,7 @@ internal fun HydrationRingAndControls(
         // own comment) - collapsed into one Box.
         Box(
             Modifier
-                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                 .clip(RoundedCornerShape(CardRadius.CONTROL))
                 .background(semanticGreen().copy(0.15f), RoundedCornerShape(CardRadius.CONTROL))
                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL)),

@@ -56,7 +56,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit,
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                             Text(date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                             if (sess.ketosis) {
-                                Surface(shape = RoundedCornerShape(3.dp), color = TealHaze, border = BorderStroke(2.dp, TealBorder)) {
+                                Surface(shape = RoundedCornerShape(2.dp), color = TealHaze, border = BorderStroke(2.dp, TealBorder)) {
                                     Text(stringResource(R.string.biolism_sesshist_keto_badge), modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.T2),
                                         style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                                 }
@@ -67,8 +67,8 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit,
                         }
                         Text("${sess.activityLabel} · $dur · ${sess.kcalBurned.toInt()} kcal",
                             style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
-                        Spacer(Modifier.height(3.dp))
-                        Row(Modifier.fillMaxWidth(0.6f).height(3.dp).background(OnBackground.copy(0.06f), RoundedCornerShape(2.dp))) {
+                        Spacer(Modifier.height(2.dp))
+                        Row(Modifier.fillMaxWidth(0.6f).height(2.dp).background(OnBackground.copy(0.06f), RoundedCornerShape(2.dp))) {
                             Box(Modifier.fillMaxWidth(sess.fatFrac.toFloat().coerceIn(0f, 1f)).fillMaxHeight().background(Warm, RoundedCornerShape(2.dp)))
                         }
                     }

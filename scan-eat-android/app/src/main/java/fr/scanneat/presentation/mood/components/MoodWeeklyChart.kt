@@ -86,7 +86,7 @@ private fun MoodBarRow(
                 Modifier
                     .weight(1f)
                     .fillMaxHeight(if (frac == 0f) 0.05f else frac.coerceAtLeast(0.05f))
-                    .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                    .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
                     .background(color)
                     .semantics { contentDescription = barDescription },
             )

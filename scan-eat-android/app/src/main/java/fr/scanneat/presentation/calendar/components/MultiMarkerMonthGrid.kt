@@ -197,7 +197,7 @@ internal fun MultiMarkerMonthGrid(
                                         // total), comfortably fitting a day cell without a cap.
                                         Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                                             sources.sortedBy { it.ordinal }.forEach { s ->
-                                                Box(Modifier.size(3.dp).clip(CircleShape).background(colorFor(s)))
+                                                Box(Modifier.size(2.dp).clip(CircleShape).background(colorFor(s)))
                                             }
                                         }
                                     }

@@ -176,7 +176,7 @@ internal fun AddExpenseDialog(
                                 color = SurfaceVariant.copy(alpha = 0.42f),
                                 modifier = Modifier.fillMaxWidth()
                                     .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-                                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                                 shadowElevation = 0.dp,
                             ) {

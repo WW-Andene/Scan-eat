@@ -178,7 +178,7 @@ internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>,
                         else             -> semanticRed()
                     }
                     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
-                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.04f)).background(barColor, RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)))
+                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.04f)).background(barColor, RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp)))
                     }
                 }
             }

@@ -162,7 +162,7 @@ internal fun TemplateCard(
             HorizontalDivider(color = OnSurface.copy(0.07f))
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 @Composable fun M(label: String, v: Int, color: androidx.compose.ui.graphics.Color) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f))
                         Text("${v}g", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
                     }

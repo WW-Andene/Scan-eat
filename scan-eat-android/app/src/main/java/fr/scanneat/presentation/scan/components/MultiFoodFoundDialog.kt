@@ -71,7 +71,7 @@ internal fun MultiFoodFoundDialog(
                             color = OnBackground.copy(0.05f),
                             onClick = { onPick(persistedId) },
                             modifier = Modifier.fillMaxWidth()
-                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                                 .clip(RoundedCornerShape(CardRadius.CONTROL)),
                             // design-aesthetic-audit §DH: matching the dialog
                             // list-row elevation established elsewhere - had none.

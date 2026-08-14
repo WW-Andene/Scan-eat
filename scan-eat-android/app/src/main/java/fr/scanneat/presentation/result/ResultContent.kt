@@ -310,7 +310,7 @@ private fun MacroContributionCard(nutrition: NutritionPer100g) {
                 Text(row.label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(64.dp))
                 LinearProgressIndicator(
                     progress = { pct },
-                    modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
+                    modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(2.dp)),
                     color = when {
                         pct >= 0.5f && row.positiveWhenHigh -> semanticGreen()
                         pct >= 0.5f -> semanticAmber()
@@ -374,7 +374,7 @@ private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
                 val isLast = i == pts.lastIndex
                 drawCircle(
                     color  = if (isLast) lineColor else lineColor.copy(0.5f),
-                    radius = if (isLast) 6.dp.toPx() else 3.dp.toPx(),
+                    radius = if (isLast) 6.dp.toPx() else 2.dp.toPx(),
                     center = pt,
                 )
             }

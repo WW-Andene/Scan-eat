@@ -63,7 +63,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
         // construction already fixed elsewhere (see ScanActionControls.kt's
         // own comment) - collapsed into one Box.
         Box(
-            Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(12.dp))
+            Modifier.shadow(elevation = 2.dp, shape = RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
                 .background(Background.copy(0.7f), RoundedCornerShape(12.dp))
                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp)),

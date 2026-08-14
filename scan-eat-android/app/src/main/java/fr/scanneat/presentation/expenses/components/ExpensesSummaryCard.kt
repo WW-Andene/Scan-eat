@@ -138,6 +138,7 @@ internal fun ExpensesWeekCard(
                         modifier = Modifier
                             .clip(RoundedCornerShape(CardRadius.BADGE))
                             .clickable { onModeChange(m) }
+                            .minTouchTarget()
                             .padding(horizontal = Spacing.S, vertical = Spacing.T2),
                     )
                 }

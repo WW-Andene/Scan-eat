@@ -49,7 +49,7 @@ internal fun FeatureDomainChips() {
         domains.chunked(4).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 row.forEach { (icon, label) ->
-                    Surface(shape = RoundedCornerShape(50), color = SurfaceVariant.copy(alpha = 0.42f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(50)).clip(RoundedCornerShape(50))) {
+                    Surface(shape = RoundedCornerShape(50), color = SurfaceVariant.copy(alpha = 0.42f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 2.dp, shape = RoundedCornerShape(50)).clip(RoundedCornerShape(50))) {
                         Row(
                             modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                             verticalAlignment = Alignment.CenterVertically,

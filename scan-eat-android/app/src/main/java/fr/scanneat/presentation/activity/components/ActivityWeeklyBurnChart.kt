@@ -41,7 +41,7 @@ internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>, lan
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .fillMaxHeight(frac.coerceAtLeast(0.02f))
-                                .background(barColor.copy(if (date == LocalDate.now()) 1f else 0.4f), RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                                .background(barColor.copy(if (date == LocalDate.now()) 1f else 0.4f), RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
                                 .semantics { contentDescription = barDescription },
                         )
                     }

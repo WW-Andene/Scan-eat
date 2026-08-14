@@ -21,7 +21,7 @@ internal fun HydrationSuggestedGoalBanner(suggestedGoalMl: Int, onApply: (Int) -
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = semanticBlue().copy(0.1f),
         modifier = Modifier.fillMaxWidth()
-            .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // design-aesthetic-audit §DH: had no shadowElevation at all.
         shadowElevation = 0.dp,

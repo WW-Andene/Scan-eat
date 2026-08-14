@@ -45,7 +45,7 @@ internal fun DiaryProteinPerSlotCard(bySlot: Map<MealSlot, List<DiaryEntry>>) {
                     Text(slot.shortLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.width(32.dp))
                     LinearProgressIndicator(
                         progress = { (prot / maxSlotProt).toFloat().coerceIn(0f, 1f) },
-                        modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
+                        modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(2.dp)),
                         color = AccentCoral,
                         trackColor = OnSurface.copy(0.08f),
                     )

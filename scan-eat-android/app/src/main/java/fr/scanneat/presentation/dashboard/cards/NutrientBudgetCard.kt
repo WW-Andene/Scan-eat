@@ -91,7 +91,7 @@ private fun BudgetRow(label: String, value: Double, max: Double, unit: String, c
             )
             LinearProgressIndicator(
                 progress   = { pct.coerceIn(0f, 1f) },
-                modifier   = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
+                modifier   = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(2.dp)),
                 color      = if (isOver) overColor else color,
                 trackColor = OnSurface.copy(0.08f),
             )

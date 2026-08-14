@@ -52,14 +52,14 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 // reference range just below) implied a level of accuracy this
                 // doesn't have. Whole numbers, matching the ref range's own format.
                 Text("%.0f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
-                Surface(shape = RoundedCornerShape(3.dp), color = color.copy(0.15f),
+                Surface(shape = RoundedCornerShape(2.dp), color = color.copy(0.15f),
                     border = BorderStroke(2.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
                     Text(h.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                         style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
                 }
             }
         }
-        Spacer(Modifier.height(3.dp))
+        Spacer(Modifier.height(2.dp))
         // design-aesthetic-audit §DC3: the reference band below was a hardcoded
         // Color.White at low alpha - readable on the dark/OLED themes it was
         // eyeballed against, but nearly invisible on the Light theme's near-white
@@ -68,7 +68,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
         // below) isn't itself a @Composable context and can't read it directly.
         val referenceBandColor = OnBackground
         // Fix 12: Canvas draws track, normal-range band, and value bar correctly
-        Canvas(modifier = Modifier.fillMaxWidth().height(3.dp)) {
+        Canvas(modifier = Modifier.fillMaxWidth().height(2.dp)) {
             val w   = size.width
             val h3  = size.height
             val top = 1.5f    // half-height — used for RoundedCornerShape approximation via cornerRadius

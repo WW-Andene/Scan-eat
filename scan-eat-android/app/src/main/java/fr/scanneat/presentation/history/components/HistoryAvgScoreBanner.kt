@@ -21,7 +21,7 @@ internal fun HistoryAvgScoreBanner(avgScore: Int) {
         modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
-        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
+        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
             Text(
                 stringResource(R.string.history_avg_score, avgScore),
                 style = MaterialTheme.typography.labelSmall,

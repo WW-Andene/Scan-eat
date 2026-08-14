@@ -20,7 +20,7 @@ internal fun WeeklyKcalBanner(weeklyTotalKcal: Int) {
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = AccentCoral.copy(0.08f),
         modifier = Modifier.fillMaxWidth()
-            .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // design-aesthetic-audit §DH: had no shadowElevation at all.
         shadowElevation = 0.dp,

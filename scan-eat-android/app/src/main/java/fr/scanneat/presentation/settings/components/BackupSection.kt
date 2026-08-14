@@ -29,7 +29,7 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun DataStatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier
-            .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = OnBackground.copy(0.06f),

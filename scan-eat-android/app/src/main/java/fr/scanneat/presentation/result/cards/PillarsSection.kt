@@ -99,7 +99,7 @@ private fun PillarRow(pillar: PillarScore) {
         Spacer(Modifier.height(Spacing.XS))
         LinearProgressIndicator(
             progress   = { ratio },
-            modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+            modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(2.dp)),
             color      = color,
             trackColor = SurfaceVariant,
         )

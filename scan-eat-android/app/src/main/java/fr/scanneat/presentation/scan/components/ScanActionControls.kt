@@ -145,7 +145,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
             // (see ScanIdentifyFoodAction's own comment above) - collapsed into one Box.
             Box(
                 Modifier
-                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(24.dp))
+                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
                     .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(24.dp))
                     .clickable { onQuickScan(bc) }
