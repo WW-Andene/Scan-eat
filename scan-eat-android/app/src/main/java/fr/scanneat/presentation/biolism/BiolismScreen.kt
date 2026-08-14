@@ -124,7 +124,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                 .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
                 .hazeEffect(state = hazeState, style = FrostedGlassStyle)
-                .glassSheen(edgeAlpha = 0.26f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = Gold, glowAlpha = 0.06f)
+                .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = Gold)
                 .padding(horizontal = Spacing.L)
                 .padding(top = Spacing.M, bottom = Spacing.S),
         ) {
