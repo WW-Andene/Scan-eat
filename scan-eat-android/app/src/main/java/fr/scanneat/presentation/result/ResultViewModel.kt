@@ -138,6 +138,15 @@ class ResultViewModel @Inject constructor(
         .map { meds -> meds.filter { it.active }.map { it.name }.toSet() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    // User-requested: pairing hints ("Se marie bien avec...") shouldn't
+    // re-suggest a food category already logged today - see
+    // ProductHintsPairings.buildPairings's own doc comment. Same reactive
+    // pattern as activeMedicationNames above.
+    val todaysLoggedFoodNames: StateFlow<Set<String>> = prefs.activeProfileId
+        .flatMapLatest { id -> consumptionRepo.observeDay(LocalDate.now(), id) }
+        .map { day -> day.entries.map { it.productName }.toSet() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
     internal val _logState = MutableStateFlow<LogState>(LogState.Idle)
 
     // getById() is a one-shot suspend read, not a Flow, so toggling the DB row

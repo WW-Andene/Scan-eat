@@ -1,5 +1,7 @@
 package fr.scanneat.domain.engine.nutrition
 
+import fr.scanneat.domain.model.ProductCategory
+
 // ============================================================================
 // FOOD DATABASE — dairy products, legumes, and nuts/seeds.
 // Split out of FoodDb.kt; concatenated into FOOD_DB there.
@@ -9,11 +11,11 @@ package fr.scanneat.domain.engine.nutrition
 internal val FOOD_DB_DAIRY_AND_LEGUMES: List<FoodEntry> = listOf(
     // Produits laitiers
     FoodEntry("lait demi-écrémé",  46.0,  3.2,  4.7,  1.6, 0.0, saturatedFatG = 1.0, sugarsG = 4.7, calciumMg = 120.0, b12Ug = 0.4, aliases = listOf("lait", "milk")),
-    FoodEntry("yaourt nature",      60.0,  3.5,  4.7,  3.0, 0.0, saturatedFatG = 1.9, sugarsG = 4.7, typicalPortionG = 125.0, calciumMg = 140.0, b12Ug = 0.4, aliases = listOf("yaourt", "yogurt")),
-    FoodEntry("skyr",               60.0, 10.0,  4.0,  0.2, 0.0, saturatedFatG = 0.1, sugarsG = 4.0, typicalPortionG = 150.0, calciumMg = 110.0, b12Ug = 0.5),
-    FoodEntry("fromage blanc 0%",   45.0,  7.5,  4.0,  0.1, 0.0, saturatedFatG = 0.1, sugarsG = 4.0, typicalPortionG = 100.0, calciumMg = 95.0, b12Ug = 0.3, aliases = listOf("fromage blanc")),
-    FoodEntry("emmental",          380.0, 29.0,  0.0, 30.0, 0.0, saturatedFatG = 19.0, saltG = 0.8, calciumMg = 880.0, vitDUg = 0.4, b12Ug = 1.9, aliases = listOf("gruyère")),
-    FoodEntry("camembert",         300.0, 20.0,  0.5, 24.0, 0.0, saturatedFatG = 15.0, saltG = 1.4, calciumMg = 400.0, vitDUg = 0.35, b12Ug = 1.3),
+    FoodEntry("yaourt nature",      60.0,  3.5,  4.7,  3.0, 0.0, saturatedFatG = 1.9, sugarsG = 4.7, typicalPortionG = 125.0, calciumMg = 140.0, b12Ug = 0.4, aliases = listOf("yaourt", "yogurt"), category = ProductCategory.YOGURT),
+    FoodEntry("skyr",               60.0, 10.0,  4.0,  0.2, 0.0, saturatedFatG = 0.1, sugarsG = 4.0, typicalPortionG = 150.0, calciumMg = 110.0, b12Ug = 0.5, category = ProductCategory.YOGURT),
+    FoodEntry("fromage blanc 0%",   45.0,  7.5,  4.0,  0.1, 0.0, saturatedFatG = 0.1, sugarsG = 4.0, typicalPortionG = 100.0, calciumMg = 95.0, b12Ug = 0.3, aliases = listOf("fromage blanc"), category = ProductCategory.YOGURT),
+    FoodEntry("emmental",          380.0, 29.0,  0.0, 30.0, 0.0, saturatedFatG = 19.0, saltG = 0.8, calciumMg = 880.0, vitDUg = 0.4, b12Ug = 1.9, aliases = listOf("gruyère"), category = ProductCategory.CHEESE),
+    FoodEntry("camembert",         300.0, 20.0,  0.5, 24.0, 0.0, saturatedFatG = 15.0, saltG = 1.4, calciumMg = 400.0, vitDUg = 0.35, b12Ug = 1.3, category = ProductCategory.CHEESE),
 
     // Légumineuses / oléagineux
     FoodEntry("lentille cuite",   115.0,  9.0, 20.0,  0.4, 3.8, saturatedFatG = 0.1, sugarsG = 1.8, ironMg = 3.3, zincMg = 1.3, magnesiumMg = 36.0, b9Ug = 181.0, aliases = listOf("lentilles", "lentils")),
@@ -22,10 +24,10 @@ internal val FOOD_DB_DAIRY_AND_LEGUMES: List<FoodEntry> = listOf(
     FoodEntry("noix",             655.0, 15.0, 14.0, 65.0,  6.7, saturatedFatG = 6.1, sugarsG = 2.6, typicalPortionG = 30.0, ironMg = 2.9, magnesiumMg = 158.0, zincMg = 3.1),
 
     // Produits laitiers (suite)
-    FoodEntry("fromage de chèvre", 364.0, 22.0, 2.0, 29.0, 0.0, saturatedFatG = 20.0, calciumMg = 140.0, aliases = listOf("goat cheese")),
-    FoodEntry("mozzarella",        280.0, 22.0, 2.2, 21.0, 0.0, saturatedFatG = 13.0, sugarsG = 1.0, saltG = 0.6, calciumMg = 515.0),
-    FoodEntry("feta",              264.0, 14.0, 4.1, 21.0, 0.0, saturatedFatG = 15.0, sugarsG = 4.1, saltG = 3.0, calciumMg = 493.0),
-    FoodEntry("parmesan",          392.0, 35.0, 3.2, 26.0, 0.0, saturatedFatG = 17.0, saltG = 1.6, calciumMg = 1180.0, b12Ug = 1.5),
+    FoodEntry("fromage de chèvre", 364.0, 22.0, 2.0, 29.0, 0.0, saturatedFatG = 20.0, calciumMg = 140.0, aliases = listOf("goat cheese"), category = ProductCategory.CHEESE),
+    FoodEntry("mozzarella",        280.0, 22.0, 2.2, 21.0, 0.0, saturatedFatG = 13.0, sugarsG = 1.0, saltG = 0.6, calciumMg = 515.0, category = ProductCategory.CHEESE),
+    FoodEntry("feta",              264.0, 14.0, 4.1, 21.0, 0.0, saturatedFatG = 15.0, sugarsG = 4.1, saltG = 3.0, calciumMg = 493.0, category = ProductCategory.CHEESE),
+    FoodEntry("parmesan",          392.0, 35.0, 3.2, 26.0, 0.0, saturatedFatG = 17.0, saltG = 1.6, calciumMg = 1180.0, b12Ug = 1.5, category = ProductCategory.CHEESE),
     FoodEntry("lait entier",        64.0,  3.2, 4.8,  3.6, 0.0, saturatedFatG = 2.3, sugarsG = 4.8, calciumMg = 118.0, aliases = listOf("whole milk")),
     FoodEntry("crème fraîche",     292.0,  2.2, 3.4, 30.0, 0.0, saturatedFatG = 19.0, sugarsG = 3.0, calciumMg = 80.0),
     FoodEntry("lait de soja",       33.0,  3.0, 1.0,  1.8, 0.4, saturatedFatG = 0.3, sugarsG = 1.0, calciumMg = 120.0, aliases = listOf("soy milk")),
@@ -44,12 +46,12 @@ internal val FOOD_DB_DAIRY_AND_LEGUMES: List<FoodEntry> = listOf(
     FoodEntry("cacahuète",           567.0, 26.0, 16.0, 49.0, 8.5, saturatedFatG = 7.0, sugarsG = 4.0, typicalPortionG = 30.0, aliases = listOf("cacahuètes", "peanut")),
 
     // Produits laitiers (extension 2026-08-03)
-    FoodEntry("fromage cottage",  98.0, 11.0,  3.4,  4.3, 0.0, saturatedFatG = 2.7, sugarsG = 3.4, calciumMg = 61.0, aliases = listOf("cottage cheese")),
-    FoodEntry("ricotta",         174.0, 11.0,  3.0, 13.0, 0.0, saturatedFatG = 8.3, sugarsG = 3.0, calciumMg = 207.0),
-    FoodEntry("fromage à raclette", 380.0, 25.0, 0.5, 31.0, 0.0, saturatedFatG = 20.0, saltG = 1.5, calciumMg = 750.0, aliases = listOf("raclette cheese")),
+    FoodEntry("fromage cottage",  98.0, 11.0,  3.4,  4.3, 0.0, saturatedFatG = 2.7, sugarsG = 3.4, calciumMg = 61.0, aliases = listOf("cottage cheese"), category = ProductCategory.CHEESE),
+    FoodEntry("ricotta",         174.0, 11.0,  3.0, 13.0, 0.0, saturatedFatG = 8.3, sugarsG = 3.0, calciumMg = 207.0, category = ProductCategory.CHEESE),
+    FoodEntry("fromage à raclette", 380.0, 25.0, 0.5, 31.0, 0.0, saturatedFatG = 20.0, saltG = 1.5, calciumMg = 750.0, aliases = listOf("raclette cheese"), category = ProductCategory.CHEESE),
     FoodEntry("kéfir",            41.0,  3.3,  4.0,  1.0, 0.0, saturatedFatG = 0.6, sugarsG = 4.0, calciumMg = 120.0, b12Ug = 0.4, aliases = listOf("kefir")),
     FoodEntry("lait d'avoine",    47.0,  1.0,  6.7,  1.5, 0.8, saturatedFatG = 0.2, sugarsG = 4.0, calciumMg = 120.0, aliases = listOf("oat milk")),
-    FoodEntry("yaourt grec",      97.0,  9.0,  4.0,  5.0, 0.0, saturatedFatG = 3.2, sugarsG = 4.0, typicalPortionG = 150.0, calciumMg = 110.0, b12Ug = 0.5, aliases = listOf("greek yogurt")),
+    FoodEntry("yaourt grec",      97.0,  9.0,  4.0,  5.0, 0.0, saturatedFatG = 3.2, sugarsG = 4.0, typicalPortionG = 150.0, calciumMg = 110.0, b12Ug = 0.5, aliases = listOf("greek yogurt"), category = ProductCategory.YOGURT),
 
     // Légumineuses / oléagineux (extension)
     FoodEntry("fève cuite",       88.0,  7.6, 17.0,  0.5,  6.9, saturatedFatG = 0.1, sugarsG = 1.5, ironMg = 1.5, aliases = listOf("fèves cuites", "fava bean")),

@@ -67,6 +67,7 @@ fun ResultScreen(
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
     val activeMedicationNames = viewModel.activeMedicationNames.collectAsStateWithLifecycle()
+    val todaysLoggedFoodNames = viewModel.todaysLoggedFoodNames.collectAsStateWithLifecycle()
     val priceEntries = viewModel.priceEntries.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
@@ -145,7 +146,7 @@ fun ResultScreen(
                 }) {
                     Icon(TablerIcons.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
                 }
-                HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value, activeMedicationNames.value))
+                HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value, activeMedicationNames.value, todaysLoggedFoodNames.value))
                 // User-requested: "signaler une erreur de classification" -
                 // e.g. a shampoo or other non-food item that classifyNonFood
                 // missed and got scored as food. See
@@ -223,7 +224,7 @@ fun ResultScreen(
                 // generateProductHints call already used for HintIconButton
                 // above; pure/cheap, safe to compute again here rather than
                 // threading it across the TopBar/content composable boundary.
-                improvementTips   = generateProductHints(s.scanResult.product, profile.value, language.value, activeMedicationNames.value).improvementTips,
+                improvementTips   = generateProductHints(s.scanResult.product, profile.value, language.value, activeMedicationNames.value, todaysLoggedFoodNames.value).improvementTips,
                 onSavePrice       = { price, weight -> viewModel.savePrice(price, weight) },
                 onDeletePrice     = { id -> viewModel.deletePrice(id) },
                 onOpenResult      = onOpenResult,

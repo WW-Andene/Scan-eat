@@ -99,7 +99,7 @@ internal suspend fun buildHeavyDashboardState(
     // subscription DashboardViewModel previously needed just for that.
     val totalsWithOutdoorVitD = todayData.totals.withOutdoorVitD(todayActivity.any { it.wasOutdoors })
     val gaps = if (targets != null && todayData.entries.isNotEmpty())
-        closeTheGap(totalsWithOutdoorVitD, targets, foodDb)
+        closeTheGap(totalsWithOutdoorVitD, targets, foodDb, todaysEntries = todayData.entries)
     else emptyList()
     // chronicNutrientGaps() was fully built (7-day recurring-deficit
     // scan) but never called from any ViewModel - closeTheGap() above

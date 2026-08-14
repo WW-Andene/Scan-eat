@@ -4,6 +4,7 @@ import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.domain.model.DiaryEntry
+import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.domain.model.roundTo1Decimal
 import java.time.LocalDate
 import kotlin.math.roundToInt
@@ -59,6 +60,21 @@ private data class GapNutrientDef(
     val gramsCap: Int,
 )
 
+// User-requested: a suggestion shouldn't repeat a food category already
+// logged today (e.g. re-suggesting a sweet snack right after an already-sweet
+// meal) - same "prefer novel, fall back to same-category candidates only if
+// there aren't enough novel ones" partition PairingsDb.findPairings() already
+// uses for FoodGroup, reused here for ProductCategory. OTHER is excluded
+// since it's the default/unknown bucket, not a real category match.
+private fun eatenCategoriesOf(entries: List<DiaryEntry>): Set<ProductCategory> =
+    entries.map { it.category }.filterTo(mutableSetOf()) { it != ProductCategory.OTHER }
+
+private fun <T> List<T>.preferNovelCategory(eatenCategories: Set<ProductCategory>, poolSize: Int, foodOf: (T) -> FoodEntry): List<T> {
+    if (eatenCategories.isEmpty()) return this
+    val (novel, sameCategory) = partition { foodOf(it).category !in eatenCategories }
+    return if (novel.size >= poolSize) novel else novel + sameCategory
+}
+
 /**
  * Suggest foods from [foodDB] that would close roughly half of each
  * nutritional deficit relative to [targets].
@@ -74,8 +90,14 @@ fun closeTheGap(
     targets: DailyTargets,
     foodDB: List<FoodEntry>,
     date: LocalDate = LocalDate.now(),
+    // User-requested: avoid suggesting a food from the same category as
+    // something already logged today in Repas (e.g. don't re-suggest a
+    // sweet snack right after an already-sweet meal). Defaults to empty so
+    // existing callers that haven't passed today's entries are unaffected.
+    todaysEntries: List<DiaryEntry> = emptyList(),
 ): List<GapEntry> {
     val out = mutableListOf<GapEntry>()
+    val eatenCategories = eatenCategoriesOf(todaysEntries)
 
     data class NutrientValues(val got: Double, val tgt: Double, val foodDensity: (FoodEntry) -> Double)
 
@@ -106,6 +128,7 @@ fun closeTheGap(
         }
         ranked.sortByDescending { nv.foodDensity(it.first) }
         if (ranked.isEmpty()) continue
+        val prioritized = ranked.preferNovelCategory(eatenCategories, poolSize = 8) { it.first }
 
         // Previously always `ranked.take(3)` — the same handful of highest-
         // density foods (e.g. maquereau/saumon/sardine for vitamin D, every
@@ -120,7 +143,7 @@ fun closeTheGap(
         // 6/3 to 8/6 so GapCloserCard's refresh button has a real pool of
         // spare candidates to shuffle through instead of re-showing the same
         // 3 chips every tap.
-        val pool = ranked.take(8)
+        val pool = prioritized.take(8)
         val seed = date.toEpochDay() * 31 + def.label.hashCode()
         val chosen = pool.shuffled(kotlin.random.Random(seed)).take(6)
 
@@ -179,6 +202,11 @@ fun chronicNutrientGaps(
         Def("b12",      targets.b12UgTarget,      { it.b12Ug })      { it.b12Ug },
     )
 
+    // Same category-avoidance signal as closeTheGap() above - derived from
+    // entries actually logged on [end] (today, by default), not the whole
+    // 7-day window, since the goal is "don't repeat what I just ate", not
+    // "avoid whatever I ate at any point this week".
+    val eatenCategories = eatenCategoriesOf(entries.filter { it.date == end })
     val out = mutableListOf<ChronicGap>()
     for (def in defs) {
         if (def.target <= 0) continue
@@ -200,10 +228,11 @@ fun chronicNutrientGaps(
             ranked += food to density
         }
         ranked.sortByDescending { it.second }
+        val prioritized = ranked.preferNovelCategory(eatenCategories, poolSize = 6) { it.first }
         // Same top-6/day-seeded-shuffle rotation as closeTheGap() above, and
         // for the same reason - this recurring (weekly) gap previously showed
         // the identical top-3 foods every time it fired for a given nutrient.
-        val pool = ranked.take(6)
+        val pool = prioritized.take(6)
         val seed = end.toEpochDay() * 31 + def.label.hashCode()
         val suggestions = pool.shuffled(kotlin.random.Random(seed)).take(3).map { (food, density) ->
             val grams = ((avgDeficit * 0.5 / density) * 100).roundToInt().coerceAtLeast(1)

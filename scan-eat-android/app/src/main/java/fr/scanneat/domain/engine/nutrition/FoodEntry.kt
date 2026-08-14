@@ -1,5 +1,7 @@
 package fr.scanneat.domain.engine.nutrition
 
+import fr.scanneat.domain.model.ProductCategory
+
 // ============================================================================
 // FOOD DATABASE — model
 // Split out of FoodDb.kt: the FoodEntry shape shared by every FOOD_DB
@@ -69,4 +71,12 @@ data class FoodEntry(
     // requires.
     val typicalPortionG: Double? = null,
     val aliases: List<String> = emptyList(),
+    // User-requested: "combler les écarts" suggestions should avoid repeating
+    // a food category already logged today (see DashboardGapAnalysis.kt's
+    // eatenCategories filter). ProductCategory is tailored to packaged/OFF
+    // products, so some raw staples genuinely have no clean bucket (milk,
+    // coffee/tea, legumes) - those stay null, treated as "no category" by
+    // the filter (never excluded, never excludes another suggestion), rather
+    // than forcing an inaccurate classification.
+    val category: ProductCategory? = null,
 )

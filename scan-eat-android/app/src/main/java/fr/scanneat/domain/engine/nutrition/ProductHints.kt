@@ -81,8 +81,13 @@ data class ProductHints(
  * MedicationRepository read wired in to pass real data here; Recipes/
  * Templates/CustomFood's own call sites keep the prior behavior (no
  * medication cross-reference) until they get the same wiring.
+ *
+ * [todaysLoggedFoodNames] - same pattern as [activeMedicationNames]: optional,
+ * defaults to none, only Result screen has a reactive ConsumptionRepository
+ * read wired in to pass today's already-logged foods here (see
+ * ProductHintsPairings.buildPairings's own doc comment).
  */
-fun generateProductHints(product: Product, profile: Profile, lang: String, activeMedicationNames: Set<String> = emptySet()): ProductHints {
+fun generateProductHints(product: Product, profile: Profile, lang: String, activeMedicationNames: Set<String> = emptySet(), todaysLoggedFoodNames: Set<String> = emptySet()): ProductHints {
     val benefits = mutableListOf<String>()
     val risks = mutableListOf<String>()
     val conditionRisks = mutableListOf<String>()
@@ -98,7 +103,7 @@ fun generateProductHints(product: Product, profile: Profile, lang: String, activ
     val facts = buildFacts(product, lang).toMutableList()
     appendWaterMineralHints(product, lang, benefits, facts)
     appendSeasonalFact(product, lang, facts)
-    val (pairWell, avoidPairing) = buildPairings(product, lang, containsCaffeineSource, profile.healthConditions)
+    val (pairWell, avoidPairing) = buildPairings(product, lang, containsCaffeineSource, profile.healthConditions, todaysLoggedFoodNames)
     // scoreProduct is a pure function of Product alone (see ScoringEngine.kt) -
     // computed once here rather than threading a ScoreAudit through every one
     // of this function's 6 call sites, several of which (Recipes/Templates/

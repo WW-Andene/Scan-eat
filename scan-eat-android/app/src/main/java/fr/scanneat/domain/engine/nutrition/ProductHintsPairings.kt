@@ -17,7 +17,17 @@ import fr.scanneat.domain.model.Product
  *  match ANSES pregnancy guidance already uses) and passed in here rather
  *  than recomputed, so both callers agree on exactly one caffeine-source
  *  definition. */
-internal fun buildPairings(product: Product, lang: String, containsCaffeineSource: Boolean, healthConditions: Set<String> = emptySet()): Pair<List<String>, List<String>> {
+internal fun buildPairings(
+    product: Product,
+    lang: String,
+    containsCaffeineSource: Boolean,
+    healthConditions: Set<String> = emptySet(),
+    // User-requested: don't suggest a flavor pairing for a food category
+    // already logged today - same intent as DashboardGapAnalysis's own
+    // eatenCategories filter, applied here to findPairings()'s existing
+    // exclude mechanism instead of a new one.
+    todaysLoggedFoodNames: Set<String> = emptySet(),
+): Pair<List<String>, List<String>> {
     val en = lang == "en"
     val n = product.nutrition
     val pairWell = mutableListOf<String>()
@@ -30,7 +40,7 @@ internal fun buildPairings(product: Product, lang: String, containsCaffeineSourc
     // linked by a scanned or entered ingredient - this and the two identical
     // call sites in RecipesViewModel.kt explicitly capped below findPairings()'s
     // own default of 6.
-    val flavorPairs = fr.scanneat.domain.engine.planning.findPairings(product.name, limit = 8, preferFrench = !en)
+    val flavorPairs = fr.scanneat.domain.engine.planning.findPairings(product.name, limit = 8, exclude = todaysLoggedFoodNames, preferFrench = !en)
     if (flavorPairs.isNotEmpty()) {
         pairWell += if (en) "Goes well with: ${flavorPairs.joinToString(", ")} (flavor-pairing data)"
                     else "Se marie bien avec : ${flavorPairs.joinToString(", ")} (données d'accords culinaires)"
