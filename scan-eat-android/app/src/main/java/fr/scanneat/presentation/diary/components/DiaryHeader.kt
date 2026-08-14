@@ -84,13 +84,26 @@ internal fun BoxScope.DiaryHeader(
             .clip(headerShape)
             .hazeEffect(state = hazeState, style = FrostedGlassStyle)
             .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = AccentCoral)
-            .padding(horizontal = Spacing.L)
+            // User-reported: this still wasn't standard - a blanket Spacing.L (16dp)
+            // leading inset applied regardless of whether the back icon shows, unlike
+            // FloatingTopBar's own leading-inset logic (Spacing.XS + a fixed 48dp icon
+            // slot when there's a real back arrow, Spacing.L only in the no-icon case).
+            // With !isTabRoot showing a back icon, that put this header's arrow a full
+            // 16dp further from the edge than the same button renders everywhere else
+            // in the app - copied verbatim from FloatingTopBar's own two branches below
+            // instead of the previous single unconditional horizontal padding.
+            .padding(start = if (!isTabRoot) Spacing.XS else Spacing.L, end = Spacing.L)
             .padding(top = Spacing.M, bottom = Spacing.M),
     ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (!isTabRoot) {
-                        IconButton(onClick = onBack, modifier = Modifier.padding(end = Spacing.XS)) {
-                            Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground)
+                        // Fixed-width leading slot for the back arrow - matches
+                        // FloatingTopBar's own Box(Modifier.size(48.dp)) icon slot
+                        // exactly, instead of a bare IconButton with only end-padding.
+                        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                            IconButton(onClick = onBack) {
+                                Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground)
+                            }
                         }
                     }
                     // User-reported: was headlineSmall — every other screen's title
