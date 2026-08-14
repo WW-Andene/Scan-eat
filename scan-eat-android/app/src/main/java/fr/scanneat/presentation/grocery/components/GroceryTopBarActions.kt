@@ -70,12 +70,13 @@ internal fun GroceryTopBarActions(
         IconButton(onClick = onShare) {
             Icon(TablerIcons.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
         }
+        val (copyMenuAnchorWidth, copyMenuWidthTracker) = rememberTrackedWidth()
         Box {
-            IconButton(onClick = { onCopyMenuExpandedChange(true) }) {
+            IconButton(onClick = { onCopyMenuExpandedChange(true) }, modifier = copyMenuWidthTracker) {
                 Icon(TablerIcons.Copy, stringResource(R.string.common_copy), tint = AccentCoral)
             }
             // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-            ScanEatDropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }) {
+            ScanEatDropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }, anchorWidth = copyMenuAnchorWidth) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.grocery_copy_plain)) },
                     onClick = { onCopyMenuExpandedChange(false); onCopyPlain() },

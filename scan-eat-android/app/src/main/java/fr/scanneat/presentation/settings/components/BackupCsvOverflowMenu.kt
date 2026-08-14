@@ -22,6 +22,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
 import fr.scanneat.presentation.ui.theme.ScanEatOutlinedButton
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.rememberTrackedWidth
 
 /**
  * Weight/Activity/Hydration/Medication/Fasting/Prices/CustomFoods/MealTemplates/
@@ -49,16 +50,18 @@ internal fun BackupCsvOverflowMenu(
     onPreparePantryCsvExport: () -> Unit,
 ) {
     var moreCsvExpanded by remember { mutableStateOf(false) }
+    val (anchorWidth, widthTracker) = rememberTrackedWidth()
     Box {
         ScanEatOutlinedButton(
             onClick = { moreCsvExpanded = true },
             enabled = enabled,
+            modifier = widthTracker,
         ) {
             Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
             Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
         }
-        ScanEatDropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }) {
+        ScanEatDropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, anchorWidth = anchorWidth) {
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
                 onClick = { moreCsvExpanded = false; onPrepareWeightCsvExport() })
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },

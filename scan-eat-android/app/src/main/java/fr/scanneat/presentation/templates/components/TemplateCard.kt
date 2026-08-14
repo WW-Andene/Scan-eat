@@ -86,11 +86,12 @@ internal fun TemplateCard(
                 // Favorite/Manage-items/Log are the frequent actions and stay
                 // directly visible at full size.
                 var menuExpanded by remember { mutableStateOf(false) }
-                IconButton(onClick = { menuExpanded = true }) {
+                val (menuAnchorWidth, menuWidthTracker) = rememberTrackedWidth()
+                IconButton(onClick = { menuExpanded = true }, modifier = menuWidthTracker) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
                 // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorWidth = menuAnchorWidth) {
                     // The "💡 Bon à savoir" hint panel was previously reachable
                     // only from a scanned product's Result screen - a template's
                     // items already carry real per-100g nutrition (see

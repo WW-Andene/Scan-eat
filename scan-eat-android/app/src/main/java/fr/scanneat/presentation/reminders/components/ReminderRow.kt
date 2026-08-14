@@ -3,6 +3,7 @@ package fr.scanneat.presentation.reminders.components
 import compose.icons.tablericons.Bell
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
@@ -11,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Notifications
@@ -38,6 +41,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.reminders.CustomReminder
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
@@ -59,7 +63,12 @@ internal fun ReminderRow(
     // is a no-op without it) - a tapped bell that "does nothing" with zero explanation
     // left the user unsure whether their reminder was even configured correctly.
     val (permGranted, _, _) = permissionState()
-    Column(Modifier.fillMaxWidth()) {
+    Column(
+        Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(CardRadius.CONTROL))
+            .background(OnBackground.copy(alpha = 0.03f))
+            .padding(Spacing.M),
+    ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             if (onLabelChange != null) {
                 OutlinedTextField(
@@ -104,7 +113,14 @@ internal fun CustomReminderRow(
     var timeText  by remember(reminder.time)  { mutableStateOf(reminder.time) }
     val isValid = remember(timeText) { runCatching { java.time.LocalTime.parse(timeText) }.isSuccess }
     val (permGranted, _, _) = permissionState()
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(CardRadius.CONTROL))
+            .background(OnBackground.copy(alpha = 0.03f))
+            .padding(Spacing.M),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         OutlinedTextField(
             value = labelText,
             onValueChange = { labelText = it; onUpdate(reminder.copy(label = it)) },

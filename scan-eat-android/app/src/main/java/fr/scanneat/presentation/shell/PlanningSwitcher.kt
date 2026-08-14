@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
+import fr.scanneat.presentation.ui.theme.rememberTrackedWidth
 
 /**
  * Recipes, Meal Templates, Meal Plan, Grocery, and Custom Foods constantly
@@ -43,10 +44,11 @@ enum class PlanningDestination(val labelRes: Int, val icon: ImageVector) {
 @Composable
 fun PlanningSwitcherMenu(current: PlanningDestination, onNavigate: (PlanningDestination) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    IconButton(onClick = { expanded = true }) {
+    val (anchorWidth, widthTracker) = rememberTrackedWidth()
+    IconButton(onClick = { expanded = true }, modifier = widthTracker) {
         Icon(Icons.Default.SwapHoriz, stringResource(R.string.planning_switcher_cd), tint = OnBackground)
     }
-    ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+    ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, anchorWidth = anchorWidth) {
         PlanningDestination.entries.filter { it != current }.forEach { dest ->
             DropdownMenuItem(
                 text = { Text(stringResource(dest.labelRes)) },

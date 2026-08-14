@@ -20,12 +20,13 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> Unit, currentSort: HistorySort, onSortChange: (HistorySort) -> Unit) {
+    val (anchorWidth, widthTracker) = rememberTrackedWidth()
     Box {
-        IconButton(onClick = { onExpandedChange(true) }) {
+        IconButton(onClick = { onExpandedChange(true) }, modifier = widthTracker) {
             Icon(Icons.Rounded.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
         }
         // See ScanEatDropdownMenu's own doc comment - always positions below its trigger.
-        ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
+        ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }, anchorWidth = anchorWidth) {
             val options = listOf(
                 HistorySort.RECENT to stringResource(R.string.history_sort_recent),
                 HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),

@@ -163,6 +163,7 @@ internal fun BoxScope.DiaryHeader(
                     }
                     var tabMenuExpanded by remember { mutableStateOf(false) }
                     val overflowActive = activeTab in overflowTabs
+                    val (tabMenuAnchorWidth, tabMenuWidthTracker) = rememberTrackedWidth()
                     Box {
                         Surface(
                             onClick = {
@@ -171,6 +172,7 @@ internal fun BoxScope.DiaryHeader(
                             shape = RoundedCornerShape(CardRadius.CONTROL),
                             color = if (overflowActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
                             border = if (overflowActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+                            modifier = tabMenuWidthTracker,
                         ) {
                             Row(
                                 Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
@@ -196,7 +198,7 @@ internal fun BoxScope.DiaryHeader(
                             }
                         }
                         // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-                        ScanEatDropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }) {
+                        ScanEatDropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, anchorWidth = tabMenuAnchorWidth) {
                             overflowTabs.forEach { tab ->
                                 val isActive = tab == activeTab
                                 HoldToArmMenuItem(

@@ -3,12 +3,18 @@ package fr.scanneat.presentation.ui.theme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -19,6 +25,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+
+/**
+ * User-reported: `ScanEatDropdownMenu`'s popup width was decoupled from its
+ * trigger button's width (wrap-content Column), so the popup could render
+ * narrower or wider than the button that opened it, breaking the visual
+ * alignment expected of a menu anchored directly under its trigger. Each of
+ * the 11 call sites wraps its own trigger Surface/button, so this helper is
+ * attached to that trigger via `Modifier.then(...)` to measure its width in
+ * px and expose it as Dp, ready to pass into `ScanEatDropdownMenu`'s
+ * `anchorWidth` parameter - one shared implementation instead of duplicating
+ * the `onSizeChanged` + `LocalDensity` conversion boilerplate 11 times.
+ */
+@Composable
+fun rememberTrackedWidth(): Pair<Dp, Modifier> {
+    val density = LocalDensity.current
+    var widthPx by remember { mutableStateOf(0) }
+    val modifier = Modifier.onSizeChanged { widthPx = it.width }
+    val widthDp = with(density) { widthPx.toDp() }
+    return widthDp to modifier
+}
 
 /**
  * User-reported: Material3's `DropdownMenu` flips ABOVE its trigger whenever
@@ -60,6 +86,7 @@ private val MAX_MENU_HEIGHT: Dp = 384.dp
 fun ScanEatDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
+    anchorWidth: Dp = Dp.Unspecified,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     if (!expanded) return
@@ -74,7 +101,7 @@ fun ScanEatDropdownMenu(
             shape = RoundedCornerShape(CardRadius.CONTROL),
             color = SurfaceVariant.copy(alpha = StandardCardAlpha),
             shadowElevation = 0.dp,
-            modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
+            modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)).widthIn(min = anchorWidth),
         ) {
             Column(Modifier.heightIn(max = MAX_MENU_HEIGHT).verticalScroll(rememberScrollState())) {
                 content()

@@ -22,6 +22,7 @@ import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
+import fr.scanneat.presentation.ui.theme.rememberTrackedWidth
 
 /**
  * User-requested: "develop the tool" for Recipes - same shape as History's
@@ -36,12 +37,13 @@ internal fun RecipesSortMenu(
     currentSort: RecipesViewModel.RecipeSort,
     onSortChange: (RecipesViewModel.RecipeSort) -> Unit,
 ) {
+    val (anchorWidth, widthTracker) = rememberTrackedWidth()
     Box {
-        IconButton(onClick = { onExpandedChange(true) }) {
+        IconButton(onClick = { onExpandedChange(true) }, modifier = widthTracker) {
             Icon(Icons.Rounded.Sort, stringResource(R.string.recipes_sort_cd), tint = OnBackground)
         }
         ScanEatDropdownMenu(
-            expanded = expanded, onDismissRequest = { onExpandedChange(false) },
+            expanded = expanded, onDismissRequest = { onExpandedChange(false) }, anchorWidth = anchorWidth,
         ) {
             val options = listOf(
                 RecipesViewModel.RecipeSort.RECENT to stringResource(R.string.recipes_sort_recent),

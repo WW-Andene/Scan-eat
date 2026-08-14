@@ -60,6 +60,7 @@ fun CollapsibleFilterBar(
     // self-contained pill it now needs to carry that inset itself, matching
     // the search bar directly above it on every call site that doesn't
     // already provide one (see applyHorizontalInset above for the ones that do).
+    val (anchorWidth, widthTracker) = rememberTrackedWidth()
     Box(if (applyHorizontalInset) modifier.padding(horizontal = Spacing.L) else modifier) {
         Surface(
             onClick = onToggle,
@@ -69,6 +70,7 @@ fun CollapsibleFilterBar(
             shape = RoundedCornerShape(CardRadius.CONTROL),
             color = ChipBackgroundAccent,
             border = BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)),
+            modifier = widthTracker,
         ) {
             Row(
                 Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
@@ -87,6 +89,7 @@ fun CollapsibleFilterBar(
         ScanEatDropdownMenu(
             expanded = expanded,
             onDismissRequest = onToggle,
+            anchorWidth = anchorWidth,
             content = content,
         )
     }

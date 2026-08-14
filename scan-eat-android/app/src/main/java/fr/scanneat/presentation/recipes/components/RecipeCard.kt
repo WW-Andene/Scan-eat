@@ -59,6 +59,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.rememberTrackedWidth
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.Gold
@@ -104,10 +105,11 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 // compliant 48dp instead of being squeezed to fit seven-wide.
                 IconButton(onClick = onLog) { Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral) }
                 var menuExpanded by remember { mutableStateOf(false) }
-                IconButton(onClick = { menuExpanded = true }) {
+                val (menuAnchorWidth, menuWidthTracker) = rememberTrackedWidth()
+                IconButton(onClick = { menuExpanded = true }, modifier = menuWidthTracker) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
-                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorWidth = menuAnchorWidth) {
                     // Previously a recipe could only leave the app via the whole-database
                     // backup - no way to send just this one recipe to someone else.
                     DropdownMenuItem(
