@@ -48,7 +48,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
             )
         }
         // Bars overlaid with a dashed target line via Canvas
-        Box(Modifier.fillMaxWidth().height(64.dp)) {
+        Box(Modifier.fillMaxWidth().height(ChartRowHeight.STANDARD)) {
             Row(
                 modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.XS),

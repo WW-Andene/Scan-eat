@@ -88,7 +88,7 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
             rollup.daysLogged, rollup.days.size, daysOverTarget,
         )
         Row(
-            modifier              = Modifier.fillMaxWidth().height(64.dp)
+            modifier              = Modifier.fillMaxWidth().height(ChartRowHeight.STANDARD)
                 .semantics(mergeDescendants = true) { contentDescription = chartDescription },
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment     = Alignment.Bottom,

@@ -27,7 +27,7 @@ internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>, lan
         val barColor = Warm
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.activity_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-            Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+            Row(modifier = Modifier.fillMaxWidth().height(ChartRowHeight.STANDARD), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                 weeklyBurn.forEach { (date, kcal) ->
                     val frac = kcal.toFloat() / peak
                     // Same "Canvas/background box with no text underneath" shape as

@@ -58,7 +58,7 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
                 fr.scanneat.presentation.calendar.components.LegendDot(semanticAmber().copy(0.7f), stringResource(R.string.fasting_legend_partial))
                 fr.scanneat.presentation.calendar.components.LegendDot(semanticRed().copy(0.5f), stringResource(R.string.fasting_legend_missed))
             }
-            Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+            Row(modifier = Modifier.fillMaxWidth().height(ChartRowHeight.COMPACT), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                 (6 downTo 0).forEach { daysBack ->
                     val date = today.minusDays(daysBack.toLong())
                     val dateKey = date.toString()

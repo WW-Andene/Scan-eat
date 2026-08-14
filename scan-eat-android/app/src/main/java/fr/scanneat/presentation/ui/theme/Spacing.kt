@@ -68,3 +68,18 @@ object Spacing {
  * read from inside that one composable, not duplicated per call site.
  */
 val DROPDOWN_MENU_GAP: Dp = Spacing.M
+
+/**
+ * Design audit (§E2, visual rhythm): the app's ~8 "7-bar weekly chart"
+ * components (Mood/Fasting/Hydration/Sleep/Medication/Activity/Dashboard's
+ * weekly+monthly trend cards) each independently hardcoded a row height -
+ * three different values (32/48/64dp) in live use for the same visual role,
+ * none of them named. Six of the eight already agreed on 64dp and three on
+ * 48dp; named both tiers here instead of picking one arbitrarily, and
+ * Mood's 32dp (the one true outlier, matching none of its siblings) moves
+ * to COMPACT.
+ */
+object ChartRowHeight {
+    val COMPACT: Dp = 48.dp
+    val STANDARD: Dp = 64.dp
+}

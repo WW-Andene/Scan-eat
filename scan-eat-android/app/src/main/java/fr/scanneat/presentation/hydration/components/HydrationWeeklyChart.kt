@@ -46,7 +46,7 @@ internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goal
                     )
                 }
             }
-            Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+            Row(modifier = Modifier.fillMaxWidth().height(ChartRowHeight.COMPACT), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                 weeklyIntake.forEach { (date, ml) ->
                     val frac = (ml.toFloat() / peak).coerceIn(0f, 1f)
                     val isToday = date == java.time.LocalDate.now()

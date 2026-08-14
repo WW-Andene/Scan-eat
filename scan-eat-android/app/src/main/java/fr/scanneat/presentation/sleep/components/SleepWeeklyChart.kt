@@ -42,7 +42,7 @@ internal fun SleepWeeklyChart(weeklyDuration: List<Pair<LocalDate, Double>>, goa
     ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.sleep_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
-            Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+            Row(modifier = Modifier.fillMaxWidth().height(ChartRowHeight.COMPACT), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                 weeklyDuration.forEach { (date, hours) ->
                     val frac = (hours / peak).toFloat().coerceIn(0f, 1f)
                     val isToday = date == LocalDate.now()
