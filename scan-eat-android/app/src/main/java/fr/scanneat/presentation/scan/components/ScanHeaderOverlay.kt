@@ -124,10 +124,10 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
     // comment) - collapsed into one Box.
     Box(
         modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + Spacing.XXL * 3)
-            .shadow(elevation = 8.dp, shape = RoundedCornerShape(24.dp))
-            .clip(RoundedCornerShape(24.dp))
-            .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(24.dp))
-            .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
+            .clip(RoundedCornerShape(CardRadius.PROMINENT))
+            .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(CardRadius.PROMINENT))
+            .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.07f),
     ) {
             Column {
                 Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {

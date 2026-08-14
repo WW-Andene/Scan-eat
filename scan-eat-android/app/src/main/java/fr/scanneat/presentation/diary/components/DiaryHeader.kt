@@ -168,7 +168,7 @@ internal fun BoxScope.DiaryHeader(
                             onClick = {
                                 if (armedOverflowTab != null) armedOverflowTab = null else tabMenuExpanded = true
                             },
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
                             color = if (overflowActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
                             border = if (overflowActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
                         ) {
@@ -272,7 +272,7 @@ private fun DiaryTabButton(
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (isReplaceTarget) AccentCoral.copy(alpha = 0.16f) else if (isActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
         border = if (isReplaceTarget) BorderStroke(2.dp, AccentCoral.copy(alpha = 0.6f)) else if (isActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
     ) {

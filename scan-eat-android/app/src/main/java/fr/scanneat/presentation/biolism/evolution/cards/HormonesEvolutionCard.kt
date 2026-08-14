@@ -30,6 +30,7 @@ import fr.scanneat.presentation.biolism.evolution.HormoneTrends
 import fr.scanneat.presentation.biolism.evolution.LineTrendChart
 import fr.scanneat.presentation.biolism.evolution.NotEnoughDataNote
 import fr.scanneat.presentation.biolism.evolution.SexPrimaryHormone
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -62,7 +63,7 @@ fun HormonesEvolutionCard(today: HormoneResult?, trends: HormoneTrends, language
         // one-line caption was easy to scroll past before registering that.
         val warnColor = semanticAmber()
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
-            modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(8.dp)).padding(Spacing.S)) {
+            modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(CardRadius.CONTROL)).padding(Spacing.S)) {
             Icon(TablerIcons.AlertTriangle, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
             Text(
                 stringResource(R.string.biolism_evo_hormones_caption),

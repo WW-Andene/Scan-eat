@@ -150,7 +150,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                         // content height (label text + Spacing.S padding ≈ 32dp), well
                         // under the 48dp Material/WCAG minimum touch target.
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { role = Role.Tab; selected = isActive },
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
                         color = if (isActive) GoldHaze else OnBackground.copy(0.03f),
                         border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, GoldBorder) else null,
                     ) {

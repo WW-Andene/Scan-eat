@@ -46,7 +46,7 @@ internal fun MetCellGrid(items: List<Triple<String, String, String>>, accents: L
 
 @Composable
 internal fun MetCell(label: String, value: String, sub: String, accent: Color = OnBackground, modifier: Modifier = Modifier.fillMaxWidth()) {
-    Surface(shape = RoundedCornerShape(8.dp), color = OnBackground.copy(0.04f), modifier = modifier) {
+    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.04f), modifier = modifier) {
         // Spacing.S (8dp), not the literal 8.dp this had - one dp off the actual
         // scale for no reason, next to every other Biolism cell/row padding here.
         Column(Modifier.padding(Spacing.S)) {

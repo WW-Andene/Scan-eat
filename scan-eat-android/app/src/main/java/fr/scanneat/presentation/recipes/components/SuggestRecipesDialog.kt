@@ -206,11 +206,11 @@ internal fun SuggestRecipesDialog(
                     LazyColumn(modifier = Modifier.heightIn(max = 256.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         itemsIndexed(results, key = { index, idea -> "$index-${idea.name}" }) { _, idea ->
                             Surface(
-                                shape = RoundedCornerShape(12.dp), color = OnBackground.copy(0.05f),
+                                shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.05f),
                                 onClick = { onPick(idea) },
                                 modifier = Modifier.fillMaxWidth()
-                                    .shadow(elevation = 4.dp, shape = RoundedCornerShape(12.dp))
-                                    .clip(RoundedCornerShape(12.dp)),
+                                    .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                    .clip(RoundedCornerShape(CardRadius.CONTROL)),
                                 // app-audit §E5: matching AddDiaryEntryDialog's
                                 // list-row elevation - had none.
                                 shadowElevation = 0.dp,

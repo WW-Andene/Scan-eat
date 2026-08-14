@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.presentation.ui.theme.Background
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -63,10 +64,10 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
         // construction already fixed elsewhere (see ScanActionControls.kt's
         // own comment) - collapsed into one Box.
         Box(
-            Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(12.dp))
-                .clip(RoundedCornerShape(12.dp))
-                .background(Background.copy(0.7f), RoundedCornerShape(12.dp))
-                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp)),
+            Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                .clip(RoundedCornerShape(CardRadius.CONTROL))
+                .background(Background.copy(0.7f), RoundedCornerShape(CardRadius.CONTROL))
+                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL)),
         ) {
                 Column(Modifier.padding(horizontal = Spacing.SM, vertical = 8.dp)) {
                     Text(pluralStringResource(R.plurals.scan_photo_count, images.size, images.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))

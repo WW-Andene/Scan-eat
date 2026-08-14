@@ -61,7 +61,7 @@ import kotlin.random.Random
  */
 fun Modifier.glassSheen(
     edgeAlpha: Float = 0.28f,
-    shape: Shape = RoundedCornerShape(16.dp),
+    shape: Shape = RoundedCornerShape(CardRadius.CARD),
     glowTint: Color = Color.White,
     glowAlpha: Float = 0.05f,
     reliefAlpha: Float = 0.05f,

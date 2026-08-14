@@ -145,7 +145,7 @@ private fun SubScoreChip(label: String, score: Float, modifier: Modifier = Modif
         score >= 50 -> semanticAmber()
         else        -> semanticRed()
     }
-    Surface(shape = RoundedCornerShape(8.dp), color = color.copy(0.1f), modifier = modifier) {
+    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(0.1f), modifier = modifier) {
         Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
             Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = OnSurface.copy(0.6f))
             // "${score}" alone previously read as the raw measurement (e.g. "IMC: 0"),

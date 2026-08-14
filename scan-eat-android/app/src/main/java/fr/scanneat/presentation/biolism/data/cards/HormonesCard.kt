@@ -33,7 +33,7 @@ fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile:
         // routine footnotes elsewhere in this card.
         val warnColor = semanticAmber()
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
-            modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(8.dp)).padding(Spacing.S)) {
+            modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(CardRadius.CONTROL)).padding(Spacing.S)) {
             Icon(TablerIcons.AlertTriangle, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
             Text(stringResource(R.string.biolism_hormones_disclaimer),
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.85f), fontWeight = FontWeight.Medium)
