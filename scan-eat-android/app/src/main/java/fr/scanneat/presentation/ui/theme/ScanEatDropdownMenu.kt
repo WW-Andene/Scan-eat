@@ -54,7 +54,7 @@ private class AlwaysBelowPositionProvider(private val verticalGapPx: Int) : Popu
     }
 }
 
-private val MAX_MENU_HEIGHT: Dp = 320.dp
+private val MAX_MENU_HEIGHT: Dp = 384.dp
 
 @Composable
 fun ScanEatDropdownMenu(

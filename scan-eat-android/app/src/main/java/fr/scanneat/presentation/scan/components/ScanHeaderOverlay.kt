@@ -234,7 +234,7 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
     // User-requested: a bit bigger - was 152dp.
-    val panelWidth = 184.dp
+    val panelWidth = 196.dp
     val (xDp, yDp) = with(density) {
         val screenW = screenWidthDp.toPx()
         val screenH = configuration.screenHeightDp.dp.toPx()

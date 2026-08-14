@@ -28,7 +28,7 @@ import fr.scanneat.presentation.ui.theme.semanticAmber
 fun FactsCautionsColumn(facts: List<String>, cautions: List<String>) {
     val amber = semanticAmber()
     val neutral = OnBackground.copy(0.7f)
-    Column(modifier = Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState())) {
+    Column(modifier = Modifier.heightIn(max = 256.dp).verticalScroll(rememberScrollState())) {
         if (cautions.isNotEmpty()) {
             HintSection(stringResource(R.string.hint_section_risks), cautions, amber, TablerIcons.AlertTriangle)
         }

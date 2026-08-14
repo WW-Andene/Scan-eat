@@ -184,11 +184,11 @@ class TodayWidget : GlanceAppWidget() {
     }
 
     companion object {
-        val COMPACT_SIZE = DpSize(180.dp, 96.dp)
+        val COMPACT_SIZE = DpSize(196.dp, 96.dp)
         // Grew from 130dp when the macro (P/C/F) row was added below the streak line,
         // then again from 148dp for the meds-adherence row - see today_widget_info.xml's
         // matching minHeight bump.
-        val FULL_SIZE = DpSize(180.dp, 164.dp)
+        val FULL_SIZE = DpSize(196.dp, 196.dp)
     }
 }
 

@@ -184,7 +184,7 @@ internal fun OssLicensesDialog(onDismiss: () -> Unit) {
         title = { Text(stringResource(R.string.settings_licenses_dialog_title), color = OnBackground) },
         text = {
             LazyColumn(
-                modifier = Modifier.heightIn(max = 360.dp),
+                modifier = Modifier.heightIn(max = 384.dp),
                 verticalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
                 items(OSS_LIBRARIES, key = { it.first }) { (name, license) ->

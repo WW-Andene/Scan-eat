@@ -38,10 +38,10 @@ import fr.scanneat.presentation.ui.theme.*
  */
 @Composable
 internal fun ColumnScope.WelcomePage(onNext: () -> Unit) {
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(120.dp)) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(128.dp)) {
         Box(
             modifier = Modifier
-                .size(120.dp)
+                .size(128.dp)
                 .background(
                     Brush.radialGradient(listOf(AccentCoral.copy(alpha = 0.22f), Color.Transparent)),
                     CircleShape,

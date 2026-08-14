@@ -125,7 +125,7 @@ private fun ScanPickerColumn(
             if (query.isBlank()) emptyList() else items.filter { it.product.name.contains(query, ignoreCase = true) }.take(8)
         }
         if (matches.isNotEmpty()) {
-            LazyColumn(modifier = Modifier.heightIn(max = 160.dp)) {
+            LazyColumn(modifier = Modifier.heightIn(max = 128.dp)) {
                 items(matches, key = { it.dbId }) { result ->
                     Text(
                         "${result.product.name} · ${result.audit.grade.label}",

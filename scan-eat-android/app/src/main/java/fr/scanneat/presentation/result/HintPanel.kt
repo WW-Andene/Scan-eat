@@ -121,7 +121,7 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
             // scroll within a capped height instead of letting the dialog grow
             // past the viewport with no way to reach the close button.
             Column(
-                modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 460.dp).verticalScroll(rememberScrollState()),
+                modifier = Modifier.widthIn(max = 384.dp).heightIn(max = 512.dp).verticalScroll(rememberScrollState()),
             ) {
                 // Score header + pillar breakdown up top so a hint read in
                 // isolation still carries the score context it explains -

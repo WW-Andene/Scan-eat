@@ -103,7 +103,7 @@ internal fun ManualBarcodeEntry(onSubmit: (String) -> Unit) {
             // app's own scanEatTextFieldColors() - the one text input on this
             // fallback screen didn't match every other themed field in the app.
             colors = scanEatTextFieldColors(),
-            modifier = Modifier.width(220.dp),
+            modifier = Modifier.width(196.dp),
         )
         Spacer(Modifier.height(Spacing.M))
         ScanEatPrimaryButton(onClick = { onSubmit(digits) }, enabled = isValid) {

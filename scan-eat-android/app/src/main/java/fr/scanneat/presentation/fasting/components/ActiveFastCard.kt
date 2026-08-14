@@ -29,13 +29,13 @@ internal fun ActiveFastCard(fastingState: FastingState, language: String, person
     // art-direction-engine §ATMOSPHERE: HydrationRingAndControls' ring already gets a
     // radial-gradient glow backdrop behind it - this ring, the literal focal element
     // of an active fast in progress, had none and read as flatter than its sibling.
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(140.dp)) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(128.dp)) {
         Box(
-            modifier = Modifier.size(140.dp)
+            modifier = Modifier.size(128.dp)
                 .background(Brush.radialGradient(listOf(AccentCoral.copy(alpha = 0.18f), Color.Transparent)), CircleShape),
         )
         CircularProgressIndicator(
-            progress = { pct }, modifier = Modifier.size(120.dp),
+            progress = { pct }, modifier = Modifier.size(128.dp),
             color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
             trackColor = SurfaceVariant, strokeWidth = 12.dp,
         )

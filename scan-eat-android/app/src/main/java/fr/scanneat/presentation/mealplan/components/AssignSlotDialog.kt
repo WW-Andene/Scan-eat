@@ -49,7 +49,7 @@ internal fun AssignSlotDialog(
                 // routes through this shared icon+message component.
                 EmptyListState(TablerIcons.ClipboardList, stringResource(R.string.mealplan_assign_empty))
             } else {
-                LazyColumn(modifier = Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                LazyColumn(modifier = Modifier.heightIn(max = 384.dp), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     if (recipes.isNotEmpty()) {
                         item { Text(stringResource(R.string.recipes_title), style = MaterialTheme.typography.labelMedium, color = AccentCoral) }
                         items(recipes, key = { "r_${it.id}" }) { recipe ->

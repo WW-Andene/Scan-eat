@@ -162,7 +162,7 @@ internal fun AddExpenseDialog(
                 // category would have produced anyway.
                 if (nameQuery.isNotBlank() && suggestions.isNotEmpty() && nameText == nameQuery) {
                     LazyColumn(
-                        modifier = Modifier.heightIn(max = 160.dp),
+                        modifier = Modifier.heightIn(max = 128.dp),
                         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
                     ) {
                         items(suggestions, key = { it.name }) { entry ->

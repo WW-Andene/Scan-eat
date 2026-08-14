@@ -111,7 +111,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.diary_add_entry_title), color = OnBackground) },
         text = {
-            Column(modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 360.dp)) {
+            Column(modifier = Modifier.widthIn(max = 384.dp).heightIn(max = 384.dp)) {
                 OutlinedTextField(
                     value = query.value,
                     onValueChange = { viewModel.setSearchQuery(it) },

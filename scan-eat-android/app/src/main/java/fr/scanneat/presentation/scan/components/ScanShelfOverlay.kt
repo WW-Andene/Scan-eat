@@ -136,7 +136,7 @@ fun ScanShelfObjectOverlay(objects: List<DetectedBox>, imgW: Int, imgH: Int, onB
 fun BoxScope.ScanShelfPeekChip(peek: ShelfPeek, onDismiss: () -> Unit, onOpenResult: (Long) -> Unit) {
     val density = LocalDensity.current
     val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
-    val chipWidth = 172.dp
+    val chipWidth = 196.dp
     val xDp = with(density) { peek.anchor.x.toDp() } - (chipWidth / 2)
     val yDp = with(density) { peek.anchor.y.toDp() } + 12.dp
     val clampedX = xDp.coerceIn(Spacing.S, (screenWidthDp - chipWidth - Spacing.S).coerceAtLeast(Spacing.S))

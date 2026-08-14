@@ -47,7 +47,7 @@ fun GlassAlertDialog(
 ) {
     BasicAlertDialog(onDismissRequest = onDismissRequest) {
         ScanEatCard(
-            modifier = Modifier.widthIn(max = 560.dp),
+            modifier = Modifier.widthIn(max = 512.dp),
             shape = shape,
             contentPadding = androidx.compose.foundation.layout.PaddingValues(Spacing.L),
         ) {

@@ -4,7 +4,7 @@
 
 Toutes les dimensions dp (spacing, tailles d'icônes, rayons de coin, etc.)
 de l'app Android (`scan-eat-android/app`) doivent suivre une échelle unique
-en base 2 : `{2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128}` dp.
+en base 2 : `{2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 196, 256, 384, 512}` dp.
 
 Règles :
 

@@ -63,7 +63,7 @@ internal fun MultiFoodFoundDialog(
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Text(stringResource(R.string.scan_identify_multi_found_body), color = OnBackground.copy(0.7f))
                 HorizontalDivider(color = OnBackground.copy(0.1f))
-                LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                LazyColumn(modifier = Modifier.heightIn(max = 384.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     itemsIndexed(items, key = { _, (_, persistedId) -> persistedId }) { _, (result, persistedId) ->
                         val grade = gradeColor(result.audit.grade)
                         Surface(

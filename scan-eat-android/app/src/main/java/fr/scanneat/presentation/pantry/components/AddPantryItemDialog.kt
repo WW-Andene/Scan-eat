@@ -150,7 +150,7 @@ internal fun AddPantryItemDialog(
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.pantry_field_category), color = OnBackground) },
             text = {
-                LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+                LazyColumn(modifier = Modifier.heightIn(max = 384.dp), verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                     items(ProductCategory.entries, key = { it.key }) { c ->
                         Text(
                             c.displayLabel(),

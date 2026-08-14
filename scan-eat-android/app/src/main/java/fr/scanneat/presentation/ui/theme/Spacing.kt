@@ -7,9 +7,13 @@ import androidx.compose.ui.unit.dp
  * ## Base-2 spacing/dimension scale (official)
  *
  * All dp-based spacing, icon, and radius tokens across the app must draw
- * from this single scale: {2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128} dp.
- * Each doubling (or clean intermediate step) keeps the visual rhythm
- * predictable and makes every dimension traceable back to one system.
+ * from this single scale: {2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 196,
+ * 256, 384, 512} dp. Each doubling (or clean intermediate step) keeps the
+ * visual rhythm predictable and makes every dimension traceable back to one
+ * system. The 196/256/384/512 tier extends the scale above 128dp to cover
+ * large component widths/heights (dialog max sizes, ring diameters, widget
+ * dimensions) that a previous pass had left as ad hoc literals; those were
+ * folded onto the nearest scale value (ties rounded up) in this pass.
  *
  * Rules:
  * - Every ad hoc `.dp` literal in the codebase must be either a single
@@ -24,7 +28,7 @@ import androidx.compose.ui.unit.dp
  *   definition) and hairline borders (`1.dp` / `0.5.dp`) used for 1px
  *   dividers/strokes, which are legitimate and documented exceptions to
  *   keep line weight crisp rather than bumping it to 2.dp.
- */
+ *
  * Shared spacing scale — same idea as IconSize.kt, applied to padding/gaps
  * instead of icon sizes. New call sites should reach for one of these
  * instead of another ad hoc *.dp literal; existing call sites are migrated

@@ -45,7 +45,7 @@ private enum class BiolismTab(@androidx.annotation.StringRes val labelRes: Int) 
 // to match FloatingTopBar's 1(sides):2(top/bottom) ratio (FloatingChromeMargin,
 // vertical=32dp each edge) instead of its previous ad-hoc Spacing.S(6dp) — see
 // DiaryHeaderHeight's identical fix.
-private val BiolismHeaderHeight = 140.dp + 48.dp
+private val BiolismHeaderHeight = 128.dp + 48.dp
 
 @Composable
 fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {

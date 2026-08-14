@@ -53,10 +53,10 @@ internal fun HydrationRingAndControls(
     // rhythm, matching the outer LazyColumn's own Spacing.M gap.
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
     // Big ring
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(200.dp)) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(196.dp)) {
         Box(
             modifier = Modifier
-                .size(200.dp)
+                .size(196.dp)
                 .background(
                     Brush.radialGradient(listOf(semanticBlue().copy(alpha = 0.2f), Color.Transparent)),
                     CircleShape,
@@ -64,7 +64,7 @@ internal fun HydrationRingAndControls(
         )
         CircularProgressIndicator(
             progress = { pct.coerceIn(0f, 1f) },
-            modifier = Modifier.size(180.dp),
+            modifier = Modifier.size(196.dp),
             color = semanticBlue(),
             trackColor = SurfaceVariant,
             strokeWidth = 12.dp,
