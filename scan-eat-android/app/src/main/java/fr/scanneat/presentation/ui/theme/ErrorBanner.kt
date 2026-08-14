@@ -62,7 +62,7 @@ fun ErrorBanner(
     // color — Surface's own shadowElevation stays 0 so the two don't stack.
     Surface(
         modifier = modifier.fillMaxWidth()
-            .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 12.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL))
             .semantics { liveRegion = LiveRegionMode.Assertive },
         color = semanticRed().copy(alpha = 0.15f), shape = RoundedCornerShape(CardRadius.CONTROL),

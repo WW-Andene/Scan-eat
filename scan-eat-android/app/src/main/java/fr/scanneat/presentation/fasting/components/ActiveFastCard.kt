@@ -37,7 +37,7 @@ internal fun ActiveFastCard(fastingState: FastingState, language: String, person
         CircularProgressIndicator(
             progress = { pct }, modifier = Modifier.size(120.dp),
             color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
-            trackColor = SurfaceVariant, strokeWidth = 10.dp,
+            trackColor = SurfaceVariant, strokeWidth = 12.dp,
         )
     }
     val (h, m, _) = hmsFromSeconds(fs.elapsedMs / 1000)

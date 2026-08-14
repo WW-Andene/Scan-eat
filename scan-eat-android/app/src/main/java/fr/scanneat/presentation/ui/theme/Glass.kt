@@ -353,7 +353,7 @@ fun Modifier.glassPopupSurface(shape: Shape = RoundedCornerShape(CardRadius.CONT
     // Modifier.shadow renders as a solid, hard-edged grey rectangle instead of
     // a soft shadow on some OEM skins. Reverted to the neutral default shadow
     // color.
-    .shadow(elevation = 6.dp, shape = shape)
+    .shadow(elevation = 8.dp, shape = shape)
     .glassSheen(edgeAlpha = 0.22f, shape = shape, glowAlpha = 0.05f)
 
 private fun DrawScope.drawRippleRing(cycle: Float, center: Offset, maxRadius: Float, tint: Color) {

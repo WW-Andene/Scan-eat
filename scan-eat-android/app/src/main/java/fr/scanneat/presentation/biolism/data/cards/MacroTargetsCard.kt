@@ -31,7 +31,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
             stringResource(R.string.biolism_macro_fat_sub, met.essentialFatMinG), Warm, kcal = met.macroFatKcal)
 
         Spacer(Modifier.height(Spacing.S))
-        Surface(shape = RoundedCornerShape(10.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldBorder), modifier = Modifier.fillMaxWidth()) {
+        Surface(shape = RoundedCornerShape(12.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldBorder), modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.padding(Spacing.M), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
                     Text(stringResource(R.string.biolism_macro_total_min), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
@@ -45,7 +45,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
                 }
             }
         }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(12.dp))
         Label(stringResource(R.string.biolism_macro_extra_title), OnBackground.copy(0.4f))
         InfoRow(stringResource(R.string.biolism_macro_water), "≥ %.1f L".format(Locale.US, met.waterNeedL),
             if (profile.activityMeta.mult >= 1.55)

@@ -132,7 +132,7 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
                 progress    = { animatedProgress },
                 modifier    = Modifier.size(178.dp),
                 color       = color,
-                strokeWidth = 14.dp,
+                strokeWidth = 12.dp,
                 trackColor  = SurfaceVariant,
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -182,7 +182,7 @@ internal fun DualScoreRing(
             Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
                 Box(
                     modifier = Modifier
-                        .size(102.dp)
+                        .size(96.dp)
                         .background(
                             Brush.radialGradient(listOf(classicColor.copy(alpha = 0.20f * classicCompletion), Color.Transparent)),
                             CircleShape,
@@ -211,7 +211,7 @@ internal fun DualScoreRing(
             Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
                 Box(
                     modifier = Modifier
-                        .size(102.dp)
+                        .size(96.dp)
                         .background(
                             Brush.radialGradient(listOf(personalColor.copy(alpha = 0.20f * personalCompletion), Color.Transparent)),
                             CircleShape,

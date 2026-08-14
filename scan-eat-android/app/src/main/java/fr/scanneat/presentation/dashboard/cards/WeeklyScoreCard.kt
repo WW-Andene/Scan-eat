@@ -35,7 +35,7 @@ internal fun WeeklyScoreCard(summary: WeeklyScoreSummary) {
             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
                 Text(
                     summary.grade.label,
-                    modifier = Modifier.padding(horizontal = Spacing.SM, vertical = 6.dp),
+                    modifier = Modifier.padding(horizontal = Spacing.SM, vertical = 8.dp),
                     style = MaterialTheme.typography.titleMedium,
                     color = gradeColor,
                     fontWeight = FontWeight.Bold,

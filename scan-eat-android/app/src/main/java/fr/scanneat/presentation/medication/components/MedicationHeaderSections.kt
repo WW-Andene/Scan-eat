@@ -72,7 +72,7 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f),
         modifier = Modifier.fillMaxWidth()
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // app-audit §E5: a drug-interaction warning (anticoagulant/NSAID, MAOI/SSRI,
         // etc.) is exactly the safety-relevant surface ErrorBanner/CautionBanner
@@ -84,7 +84,7 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
         border = BorderStroke(1.dp, semanticRed().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
             Column {
                 Text(stringResource(R.string.medication_interaction_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
                 Text(message, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))
@@ -107,7 +107,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
         color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shadowElevation = 0.dp,
     ) {
@@ -133,7 +133,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
                                 if (taken) TablerIcons.Check else TablerIcons.X,
                                 null,
                                 tint = if (taken) Teal else OnSurface.copy(0.35f),
-                                modifier = Modifier.size(10.dp),
+                                modifier = Modifier.size(12.dp),
                             )
                             Text(
                                 m.name,
@@ -178,7 +178,7 @@ internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>,
                         else             -> semanticRed()
                     }
                     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
-                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.04f)).background(barColor, RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)))
+                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.04f)).background(barColor, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)))
                     }
                 }
             }

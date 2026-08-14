@@ -22,7 +22,7 @@ internal fun TemplatesStatsRow(count: Int, totalKcal: Int) {
         // app-audit §E5: matching the small-stat-tile elevation tier (3dp)
         // already applied to MonthSummaryBar/FastingHistorySection's near-
         // identical pills - these had no shadowElevation at all.
-        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
+        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
             Text(
                 stringResource(R.string.templates_stats_count, count),
                 modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
@@ -30,7 +30,7 @@ internal fun TemplatesStatsRow(count: Int, totalKcal: Int) {
             )
         }
         if (totalKcal > 0) {
-            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
+            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
                 Text(
                     stringResource(R.string.templates_stats_total_kcal, totalKcal),
                     modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),

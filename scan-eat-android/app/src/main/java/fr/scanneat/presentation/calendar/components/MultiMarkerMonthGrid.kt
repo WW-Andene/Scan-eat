@@ -93,7 +93,7 @@ internal fun MultiMarkerMonthGrid(
         if (month != java.time.YearMonth.from(today)) {
             androidx.compose.material3.TextButton(
                 onClick = { onMonthChange(java.time.YearMonth.from(today)); onDayClick(today) },
-                // Bug fix: was 40.dp, an off-scale value that didn't actually match
+                // Bug fix: was 48.dp, an off-scale value that didn't actually match
                 // the week-number column's real 48.dp width below - this button sat
                 // 8dp left of where the day-grid columns underneath it actually
                 // start. WeekNumberColumnWidth is the single source both now share.
@@ -141,7 +141,7 @@ internal fun MultiMarkerMonthGrid(
                     contentAlignment = Alignment.Center,
                 ) {
                     Box(
-                        Modifier.size(20.dp).clip(CircleShape)
+                        Modifier.size(24.dp).clip(CircleShape)
                             .background(if (ws != null && ws.totalKcal > 0) AccentCoral.copy(0.1f) else androidx.compose.ui.graphics.Color.Transparent),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -197,7 +197,7 @@ internal fun MultiMarkerMonthGrid(
                                         // total), comfortably fitting a day cell without a cap.
                                         Row(horizontalArrangement = Arrangement.spacedBy(1.dp)) {
                                             sources.sortedBy { it.ordinal }.forEach { s ->
-                                                Box(Modifier.size(3.dp).clip(CircleShape).background(colorFor(s)))
+                                                Box(Modifier.size(4.dp).clip(CircleShape).background(colorFor(s)))
                                             }
                                         }
                                     }

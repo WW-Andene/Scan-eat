@@ -22,7 +22,7 @@ import java.util.Locale
 internal fun MacroTargetRow(label: String, grams: Double, unit: String, note: String, color: Color, kcal: Double? = null) {
     // Spacing.XS - same reasoning as HormoneRow: MacroTargetsCard renders this
     // next to InfoRow (Spacing.XS), and the two previously had a visibly
-    // different vertical rhythm (6.dp vs 4.dp) despite being the same "label/
+    // different vertical rhythm (8.dp vs 4.dp) despite being the same "label/
     // value row" shape.
     Row(Modifier.fillMaxWidth().padding(vertical = Spacing.XS), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {

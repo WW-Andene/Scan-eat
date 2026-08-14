@@ -95,8 +95,8 @@ private fun SeasonMonthCell(
     val densityFill = AccentCoral.copy(alpha = 0.06f + density * 0.22f)
     val fill = if (isHighlighted) semanticGreen().copy(alpha = 0.28f) else densityFill
     val border = when {
-        isHighlighted -> BorderStroke(1.5.dp, semanticGreen())
-        isSelected -> BorderStroke(1.5.dp, AccentCoral)
+        isHighlighted -> BorderStroke(2.dp, semanticGreen())
+        isSelected -> BorderStroke(2.dp, AccentCoral)
         else -> null
     }
     // app-audit §G2: isSelected/isHighlighted were purely color/border-coded with no

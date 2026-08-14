@@ -31,7 +31,7 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult, lang: String = "fr")
             modifier = Modifier.fillMaxWidth().height(4.dp),
             color = phaseColor, trackColor = OnBackground.copy(0.06f),
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(12.dp))
         MetCellGrid(
             listOf(
                 Triple(stringResource(R.string.biolism_ketoproc_time_label), formatDuration(s.ketoElapsedMs), ""),

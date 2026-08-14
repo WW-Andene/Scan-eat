@@ -32,9 +32,9 @@ internal fun ModeCard(selected: Boolean, title: String, subtitle: String, onClic
         // colorScheme.outline gray - unrelated to the AccentCoral fill this
         // card already commits to when selected. A selected card showed a
         // coral tint with a plain gray border around it.
-        border  = if (selected) BorderStroke(1.5.dp, AccentCoral) else null,
+        border  = if (selected) BorderStroke(2.dp, AccentCoral) else null,
         modifier = Modifier.fillMaxWidth()
-            .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // design-aesthetic-audit §DH: this standalone selectable card had no
         // shadowElevation at all, unlike the rest of the card system.

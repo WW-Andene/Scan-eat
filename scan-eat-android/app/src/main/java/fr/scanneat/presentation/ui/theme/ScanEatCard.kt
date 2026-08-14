@@ -89,9 +89,9 @@ val PrismBorderAlpha: Float = 0.28f
 // doesn't expose - can still render at the HERO tier without re-declaring
 // (and risking drifting from) these same numbers as separate literals.
 internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val elevation: Dp)
-internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, elevation = 10.dp)
-private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, elevation = 6.dp)
-private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 3.dp)
+internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, elevation = 12.dp)
+private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, elevation = 8.dp)
+private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 4.dp)
 
 /**
  * The app's one card primitive — a translucent fill with a hairline top-edge

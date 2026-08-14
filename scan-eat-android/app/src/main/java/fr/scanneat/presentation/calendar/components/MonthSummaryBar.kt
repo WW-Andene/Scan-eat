@@ -58,7 +58,7 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
         ).forEach { (color, icon, label) ->
             Surface(
                 modifier = Modifier.weight(1f)
-                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                    .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 color = color.copy(0.08f),

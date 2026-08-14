@@ -36,7 +36,7 @@ internal fun SleepWeeklyChart(weeklyDuration: List<Pair<LocalDate, Double>>, goa
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shadowElevation = 0.dp,
     ) {
@@ -59,7 +59,7 @@ internal fun SleepWeeklyChart(weeklyDuration: List<Pair<LocalDate, Double>>, goa
                         Modifier
                             .weight(1f)
                             .fillMaxHeight(if (frac == 0f) 0.05f else frac.coerceAtLeast(0.05f))
-                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                             .background(color)
                             .semantics { contentDescription = barDescription },
                         contentAlignment = Alignment.TopCenter,

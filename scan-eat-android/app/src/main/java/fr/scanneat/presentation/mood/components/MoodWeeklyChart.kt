@@ -37,7 +37,7 @@ internal fun MoodWeeklyChart(weeklyMoodStress: List<Triple<LocalDate, Int, Int>>
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shadowElevation = 0.dp,
     ) {
@@ -69,7 +69,7 @@ private fun MoodBarRow(
     value: (Triple<LocalDate, Int, Int>) -> Int,
 ) {
     Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), fontSize = TextUnit(9f, TextUnitType.Sp))
-    Row(modifier = Modifier.fillMaxWidth().height(28.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+    Row(modifier = Modifier.fillMaxWidth().height(24.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
         weeklyMoodStress.forEach { entry ->
             val v = value(entry)
             val frac = (v / 5f).coerceIn(0f, 1f)
@@ -86,7 +86,7 @@ private fun MoodBarRow(
                 Modifier
                     .weight(1f)
                     .fillMaxHeight(if (frac == 0f) 0.05f else frac.coerceAtLeast(0.05f))
-                    .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                    .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                     .background(color)
                     .semantics { contentDescription = barDescription },
             )

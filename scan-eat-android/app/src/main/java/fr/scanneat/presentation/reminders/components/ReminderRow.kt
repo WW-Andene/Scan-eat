@@ -77,7 +77,7 @@ internal fun ReminderRow(
             OutlinedTextField(
                 value = timeText,
                 onValueChange = { timeText = it; if (runCatching { java.time.LocalTime.parse(it) }.isSuccess) onTimeChange(it) },
-                modifier = Modifier.width(90.dp),
+                modifier = Modifier.width(96.dp),
                 singleLine = true,
                 isError = !isValid,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
@@ -116,7 +116,7 @@ internal fun CustomReminderRow(
         OutlinedTextField(
             value = timeText,
             onValueChange = { timeText = it; if (runCatching { java.time.LocalTime.parse(it) }.isSuccess) onUpdate(reminder.copy(time = it)) },
-            modifier = Modifier.width(90.dp),
+            modifier = Modifier.width(96.dp),
             singleLine = true,
             isError = !isValid,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),

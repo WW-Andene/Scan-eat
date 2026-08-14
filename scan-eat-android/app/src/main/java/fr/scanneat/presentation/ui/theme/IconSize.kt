@@ -20,7 +20,8 @@ object IconSize {
      * onto the scale. Named at the exact existing value (zero visual change,
      * unlike a full-scale renumbering) so they can reference it directly.
      */
-    val Compact: Dp = 18.dp
+    // Base-2 scale migration: standardized from 18dp to 16dp.
+    val Compact: Dp = 16.dp
 
     /**
      * §E1/genre audit (icon sizes, round 2): 16.dp turned out to be even more
@@ -38,7 +39,8 @@ object IconSize {
      * indicators, inline delete/list icons in dialogs). Named at the exact
      * existing value, same zero-visual-change rationale as [Compact]/[Small].
      */
-    val Tiny: Dp = 14.dp
+    // Base-2 scale migration: standardized from 14dp to 12dp.
+    val Tiny: Dp = 12.dp
 
     /**
      * §E1/genre audit (icon sizes, round 4): 12.dp is the smallest recurring
@@ -50,11 +52,13 @@ object IconSize {
     val Micro: Dp = 12.dp
 
     /** Inline / label-adjacent icons (chip icons, list-row leading icons). */
-    val Inline: Dp = 20.dp
+    // Base-2 scale migration: standardized from 20dp to 24dp.
+    val Inline: Dp = 24.dp
 
     /** Navigation-bar icons — matches Material's native 24dp grid. */
     val Nav: Dp = 24.dp
 
     /** Empty-state icons — matches EmptyListState.kt's existing value. */
-    val EmptyState: Dp = 40.dp
+    // Base-2 scale migration: standardized from 40dp to 48dp.
+    val EmptyState: Dp = 48.dp
 }

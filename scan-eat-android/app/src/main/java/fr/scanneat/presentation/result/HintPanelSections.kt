@@ -43,7 +43,7 @@ internal fun ScoreHeader(summary: ScoreSummary) {
     val color = gradeColor(summary.grade)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
         Box(
-            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(CardRadius.PROMINENT)).background(color.copy(alpha = 0.18f)),
+            modifier = Modifier.size(48.dp).clip(RoundedCornerShape(CardRadius.PROMINENT)).background(color.copy(alpha = 0.18f)),
             contentAlignment = Alignment.Center,
         ) {
             Text(summary.grade.label, style = MaterialTheme.typography.titleMedium, color = color, fontWeight = FontWeight.Bold)
@@ -88,7 +88,7 @@ internal fun PillarBar(pillar: PillarSummary) {
             progress = { ratio },
             color = color,
             trackColor = OnBackground.copy(0.1f),
-            modifier = Modifier.fillMaxWidth().padding(top = Spacing.T2).height(6.dp).clip(RoundedCornerShape(50)),
+            modifier = Modifier.fillMaxWidth().padding(top = Spacing.T2).height(8.dp).clip(RoundedCornerShape(50)),
         )
     }
 }

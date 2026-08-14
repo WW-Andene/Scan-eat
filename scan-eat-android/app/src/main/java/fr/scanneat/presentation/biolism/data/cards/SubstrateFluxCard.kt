@@ -20,7 +20,7 @@ fun SubstrateFluxCard(met: MetabolicResult, s: TimerState) {
     BioCard(stringResource(R.string.biolism_flux_title), badge = {
         if (s.ketosisOn) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Box(Modifier.size(6.dp).clip(CircleShape).background(Teal)); TealBadge(stringResource(R.string.biolism_flux_badge))
+                Box(Modifier.size(8.dp).clip(CircleShape).background(Teal)); TealBadge(stringResource(R.string.biolism_flux_badge))
             }
         }
     }) {

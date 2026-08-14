@@ -124,7 +124,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
     // comment) - collapsed into one Box.
     Box(
         modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + Spacing.XXL * 3)
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp))
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(24.dp))
             .clip(RoundedCornerShape(24.dp))
             .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(24.dp))
             .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
@@ -245,7 +245,7 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
         val offY   = (screenH - imgH * scale) / 2f
         val centerX = offX + (box.rect.left + box.rect.right) / 2f * scale
         val top     = offY + box.rect.top * scale
-        (centerX.toDp() - panelWidth / 2) to (top.toDp() - 44.dp)
+        (centerX.toDp() - panelWidth / 2) to (top.toDp() - 48.dp)
     }
     val clampedX = xDp.coerceIn(Spacing.S, (screenWidthDp - panelWidth - Spacing.S).coerceAtLeast(Spacing.S))
     // Floor of just Spacing.S let the panel render under the status bar / behind

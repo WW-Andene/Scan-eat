@@ -184,7 +184,7 @@ class TodayWidget : GlanceAppWidget() {
     }
 
     companion object {
-        val COMPACT_SIZE = DpSize(180.dp, 90.dp)
+        val COMPACT_SIZE = DpSize(180.dp, 96.dp)
         // Grew from 130dp when the macro (P/C/F) row was added below the streak line,
         // then again from 148dp for the meds-adherence row - see today_widget_info.xml's
         // matching minHeight bump.
@@ -224,7 +224,7 @@ private fun TodayWidgetContent(
         Spacer(modifier = GlanceModifier.height(8.dp))
         if (targetKcal != null) {
             LinearProgressIndicator(
-                modifier = GlanceModifier.fillMaxWidth().height(6.dp),
+                modifier = GlanceModifier.fillMaxWidth().height(8.dp),
                 progress = progress,
                 color = ColorProvider(AccentCoralRaw),
                 backgroundColor = WidgetSurfaceVariant,
@@ -237,11 +237,11 @@ private fun TodayWidgetContent(
         // both are secondary to "how am I doing on calories today", the widget's
         // one-glance purpose - rather than letting them get silently clipped.
         if (!compact) {
-            Spacer(modifier = GlanceModifier.height(6.dp))
+            Spacer(modifier = GlanceModifier.height(8.dp))
             Text(streakLabel, style = TextStyle(color = ColorProvider(AccentCoralRaw), fontSize = 12.sp, fontWeight = FontWeight.Medium))
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(macroLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 11.sp))
-            Spacer(modifier = GlanceModifier.height(10.dp))
+            Spacer(modifier = GlanceModifier.height(12.dp))
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -267,7 +267,7 @@ private fun TodayWidgetContent(
             // never made it to the widget - a read-only row, since "take" isn't a single
             // undifferentiated tap the way logging a hydration glass is.
             if (medsLabel != null) {
-                Spacer(modifier = GlanceModifier.height(6.dp))
+                Spacer(modifier = GlanceModifier.height(8.dp))
                 Text(medsLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium))
             }
         }

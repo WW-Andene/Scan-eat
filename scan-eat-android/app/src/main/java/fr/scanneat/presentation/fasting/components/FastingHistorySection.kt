@@ -39,7 +39,7 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
         color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth()
             .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // app-audit §E5: this standalone chart card had no shadowElevation at all,
         // unlike its sibling stat tiles (FastingHistoryStatsCard, below) in this
@@ -91,7 +91,7 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
                         Modifier
                             .weight(1f)
                             .fillMaxHeight(if (frac == 0f) 0.06f else frac.coerceAtLeast(0.06f))
-                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                             .background(color)
                             .semantics { contentDescription = barDescription },
                     )
@@ -148,7 +148,7 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: St
             Surface(
                 modifier = Modifier.weight(1f)
                     .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                    .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).

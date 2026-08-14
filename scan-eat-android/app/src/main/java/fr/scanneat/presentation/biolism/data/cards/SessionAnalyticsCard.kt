@@ -47,7 +47,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
         )
 
         if (effScores.size > 1) {
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
             Label(stringResource(R.string.biolism_sessan_efficiency_chart, effScores.size), OnBackground.copy(0.4f))
             // design-aesthetic-audit §DC: the "best efficiency" stat cell above uses Gold,
             // but this chart of the same efficiency metric used Violet - mismatched color
@@ -56,7 +56,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
         }
 
         if (compHistory.size > 1) {
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
             // app-audit §E3: this panel's own tint/label are Violet, but the bar and
             // both InfoRow accents inside it were Teal - the same small-cluster accent
             // mixing bug class already fixed elsewhere this audit (SaveDestinationsPopup,
@@ -64,7 +64,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
             TintedPanel(Violet) {
                 Label(stringResource(R.string.biolism_sessan_body_comp_trend), Violet)
                 val last8 = compHistory.takeLast(8)
-                BarSparkline(last8, Violet, barHeight = 36.dp)
+                BarSparkline(last8, Violet, barHeight = 32.dp)
                 Spacer(Modifier.height(Spacing.S))
                 InfoRow(stringResource(R.string.biolism_sessan_fat_oxidised_cum), "%.1f g".format(Locale.US, totalFatLostKg * 1000), "", Violet)
                 InfoRow(stringResource(R.string.biolism_sessan_est_weight), dispWeight(latestWeight, useImperial), "", deltaColor)

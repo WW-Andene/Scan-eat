@@ -38,8 +38,8 @@ internal fun HeroCard(
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), emphasis = CardEmphasis.HERO, accent = heroColor) {
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                if (ketosisOn) Box(Modifier.size(6.dp).clip(CircleShape).background(Teal))
-                if (running)   Box(Modifier.size(6.dp).clip(CircleShape).background(Gold))
+                if (ketosisOn) Box(Modifier.size(8.dp).clip(CircleShape).background(Teal))
+                if (running)   Box(Modifier.size(8.dp).clip(CircleShape).background(Gold))
                 Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = if (running) GoldHaze else VioletHaze,
                     border = BorderStroke(1.dp, if (running) GoldGlow else VioletGlow)) {
                     Text(if (running) stringResource(R.string.biolism_hero_running) else stringResource(R.string.biolism_hero_paused), modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.S),
@@ -82,7 +82,7 @@ internal fun HeroCard(
             // gap here is Spacing.S via the outer Column), an inconsistency
             // scoped to just this one nested Column.
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
+                Row(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp))) {
                     Box(Modifier.weight(fatFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(if (ketosisOn) Teal else Warm))
                     Box(Modifier.weight(carbFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Gold.copy(0.6f)))
                     Box(Modifier.weight(protFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Violet.copy(0.7f)))
@@ -100,7 +100,7 @@ internal fun HeroCard(
 @Composable
 private fun SubstrateLegendItem(color: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-        Box(Modifier.size(6.dp).clip(CircleShape).background(color))
+        Box(Modifier.size(8.dp).clip(CircleShape).background(color))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
     }
 }

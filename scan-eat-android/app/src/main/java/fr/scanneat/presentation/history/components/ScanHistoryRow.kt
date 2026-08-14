@@ -72,7 +72,7 @@ internal fun ScanHistoryRow(
                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
                     Text(
                         scan.audit.grade.label,
-                        modifier = Modifier.padding(horizontal = Spacing.SM, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = Spacing.SM, vertical = 8.dp),
                         style = MaterialTheme.typography.labelLarge,
                         color = gradeColor, fontWeight = FontWeight.Bold,
                     )
@@ -122,11 +122,11 @@ internal fun ScanHistoryRow(
                     TablerIcons.Star,
                     stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
                     tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(16.dp),
                 )
             }
             IconButton(onClick = onDelete) {
-                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
             }
             Icon(TablerIcons.ChevronRight, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
         }

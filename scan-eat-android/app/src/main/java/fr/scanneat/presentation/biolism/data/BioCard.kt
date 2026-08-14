@@ -94,7 +94,7 @@ internal fun BioCard(
     // clip, background, border, and the glassSheen hairline in a single chain.
     Box(
         Modifier.fillMaxWidth()
-            .shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = cardShape)
+            .shadow(elevation = if (emphasized) 12.dp else 8.dp, shape = cardShape)
             .clip(cardShape)
             // design-aesthetic-audit: same fix as ScanEatCard.kt - SurfaceVariant sits
             // only ~1-3 RGB units from Background in Light theme, so this fill was

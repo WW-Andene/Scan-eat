@@ -40,7 +40,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 internal fun NeverTriedBanner(categories: List<ProductCategory>) {
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(TablerIcons.Bulb, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.Bulb, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
             Text(stringResource(R.string.foodsearch_never_tried_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {

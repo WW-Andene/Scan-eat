@@ -107,11 +107,11 @@ private fun MicroRow(label: String, value: Double, nrv: Double, unit: String, co
             label,
             style = MaterialTheme.typography.labelSmall,
             color = OnSurface.copy(0.7f),
-            modifier = Modifier.width(72.dp),
+            modifier = Modifier.width(64.dp),
         )
         LinearProgressIndicator(
             progress   = { pct },
-            modifier   = Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)),
+            modifier   = Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(4.dp)),
             color      = if (isLow) semanticAmber() else color,
             trackColor = OnSurface.copy(0.08f),
         )

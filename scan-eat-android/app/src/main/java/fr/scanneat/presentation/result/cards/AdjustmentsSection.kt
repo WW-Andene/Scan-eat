@@ -30,7 +30,7 @@ internal fun AdjustmentsSection(adjustments: List<PersonalAdjustment>) {
                 Text(
                     if (adj.points > 0) "+${adj.points.toInt()}" else "${adj.points.toInt()}",
                     style = MaterialTheme.typography.labelMedium, color = color,
-                    fontWeight = FontWeight.Bold, modifier = Modifier.width(28.dp),
+                    fontWeight = FontWeight.Bold, modifier = Modifier.width(24.dp),
                 )
                 Text(adj.reason, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f),
                     modifier = Modifier.weight(1f))

@@ -62,7 +62,7 @@ fun HormonesEvolutionCard(today: HormoneResult?, trends: HormoneTrends, language
         // one-line caption was easy to scroll past before registering that.
         val warnColor = semanticAmber()
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
-            modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(6.dp)).padding(Spacing.S)) {
+            modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(8.dp)).padding(Spacing.S)) {
             Icon(TablerIcons.AlertTriangle, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
             Text(
                 stringResource(R.string.biolism_evo_hormones_caption),

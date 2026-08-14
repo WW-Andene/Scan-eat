@@ -157,7 +157,7 @@ fun FloatingTopBar(
             .clip(headerShape)
             .hazeEffect(state = hazeState, style = FrostedGlassStyle)
             .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = accent)
-            .height(56.dp)
+            .height(48.dp)
             // User-reported: on tab-root screens (no back arrow), the leading
             // side previously got Spacing.XS (icon-slot case) or an
             // approximated Spacing.M spacer (~15dp, not an exact match to the
@@ -189,7 +189,7 @@ fun FloatingTopBar(
 }
 
 /** FloatingTopBar's own pill height (56dp title row + FloatingChromeMargin.vertical top/bottom) — not including the device's own status-bar inset, which [FloatingScreenScaffold] adds separately. */
-val FloatingTopBarHeight = 56.dp + FloatingChromeMargin.vertical * 2
+val FloatingTopBarHeight = 48.dp + FloatingChromeMargin.vertical * 2
 
 /** MainShell's floating bottom nav's own pill height (64dp NavigationBar + FloatingChromeMargin.vertical top/bottom) — not including the device's own navigation-bar inset. */
 val FloatingBottomNavHeight = 64.dp + FloatingChromeMargin.vertical * 2

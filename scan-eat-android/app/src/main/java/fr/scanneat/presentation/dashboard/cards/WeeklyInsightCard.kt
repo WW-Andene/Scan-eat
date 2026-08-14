@@ -60,7 +60,7 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useI
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Icon(
                 if (consistent) TablerIcons.CircleCheck else TablerIcons.AlertTriangle,
-                null, tint = color, modifier = Modifier.size(18.dp),
+                null, tint = color, modifier = Modifier.size(16.dp),
             )
             Text(stringResource(R.string.dashboard_insight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         }

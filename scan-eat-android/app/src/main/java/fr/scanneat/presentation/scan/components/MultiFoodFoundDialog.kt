@@ -71,7 +71,7 @@ internal fun MultiFoodFoundDialog(
                             color = OnBackground.copy(0.05f),
                             onClick = { onPick(persistedId) },
                             modifier = Modifier.fillMaxWidth()
-                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                                 .clip(RoundedCornerShape(CardRadius.CONTROL)),
                             // design-aesthetic-audit §DH: matching the dialog
                             // list-row elevation established elsewhere - had none.
@@ -85,7 +85,7 @@ internal fun MultiFoodFoundDialog(
                                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = grade.copy(0.2f)) {
                                     Text(
                                         result.audit.grade.label,
-                                        modifier = Modifier.padding(horizontal = Spacing.SM, vertical = 6.dp),
+                                        modifier = Modifier.padding(horizontal = Spacing.SM, vertical = 8.dp),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = grade, fontWeight = FontWeight.Bold,
                                     )

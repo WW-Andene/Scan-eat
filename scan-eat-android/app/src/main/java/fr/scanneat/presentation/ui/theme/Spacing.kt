@@ -4,6 +4,27 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
+ * ## Base-2 spacing/dimension scale (official)
+ *
+ * All dp-based spacing, icon, and radius tokens across the app must draw
+ * from this single scale: {2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128} dp.
+ * Each doubling (or clean intermediate step) keeps the visual rhythm
+ * predictable and makes every dimension traceable back to one system.
+ *
+ * Rules:
+ * - Every ad hoc `.dp` literal in the codebase must be either a single
+ *   value from this scale, or a reference to a named token (Spacing.*,
+ *   IconSize.*, CardRadius.*) that itself resolves to one.
+ * - A sum of tokens is allowed only when the code is already composing an
+ *   offset from parts (e.g. `16.dp + 8.dp`) — and only when every token in
+ *   the sum is a *distinct* value from the scale, used once. Repeating the
+ *   same token (`16.dp + 16.dp`) or multiplying to reach a value is not
+ *   allowed — pick the single closest scale value instead.
+ * - Exceptions: `0.dp` (the null/no-op value, outside the scale by
+ *   definition) and hairline borders (`1.dp` / `0.5.dp`) used for 1px
+ *   dividers/strokes, which are legitimate and documented exceptions to
+ *   keep line weight crisp rather than bumping it to 2.dp.
+ */
  * Shared spacing scale — same idea as IconSize.kt, applied to padding/gaps
  * instead of icon sizes. New call sites should reach for one of these
  * instead of another ad hoc *.dp literal; existing call sites are migrated
@@ -29,15 +50,16 @@ object Spacing {
     // would visibly loosen those already-cramped layouts.
     val T2: Dp = 2.dp
     val XS: Dp = 4.dp
-    val S: Dp = 6.dp
+    // Base-2 scale migration: standardized from 6dp to 8dp.
+    val S: Dp = 8.dp
     // Category E audit: 10dp was already the de facto standard for the
     // inner-item gap inside a card's own content column (Arrangement.spacedBy)
     // at ~35 call sites app-wide, just never named — closer to S than M and
     // used too consistently to be drift. Named here instead of snapped to S/M
     // so those call sites can move onto the token scale with zero visual change.
     val SM: Dp = 8.dp
-    // User-requested: standardized from 11dp to 10dp.
-    val M: Dp = 10.dp
+    // Base-2 scale migration: standardized from 10dp to 12dp.
+    val M: Dp = 12.dp
     val L: Dp = 16.dp
     // User-requested: standardized from 23dp to 24dp (even).
     val XL: Dp = 24.dp

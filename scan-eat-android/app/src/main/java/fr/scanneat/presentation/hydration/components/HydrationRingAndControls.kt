@@ -67,7 +67,7 @@ internal fun HydrationRingAndControls(
             modifier = Modifier.size(180.dp),
             color = semanticBlue(),
             trackColor = SurfaceVariant,
-            strokeWidth = 14.dp,
+            strokeWidth = 12.dp,
         )
         val editGoalCd = stringResource(R.string.hydration_edit_goal_title)
         Column(
@@ -115,19 +115,19 @@ internal fun HydrationRingAndControls(
         // own comment) - collapsed into one Box.
         Box(
             Modifier
-                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                 .clip(RoundedCornerShape(CardRadius.CONTROL))
                 .background(semanticGreen().copy(0.15f), RoundedCornerShape(CardRadius.CONTROL))
                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL)),
         ) {
             Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(16.dp))
                 Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())
             }
         }
     }
 
-    // User-reported: this row's gap was a bare 20.dp literal, not one of the
+    // User-reported: this row's gap was a bare 24.dp literal, not one of the
     // app's Spacing tokens (XS/SM/M/L/XL/XXL) every other spacedBy() in the
     // app draws from - standardized to the nearest token.
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XL), verticalAlignment = Alignment.CenterVertically) {
@@ -135,7 +135,7 @@ internal fun HydrationRingAndControls(
             onClick = onRemoveGlass,
             containerColor = if (intakeMl > 0) SurfaceVariant else SurfaceVariant.copy(alpha = 0.4f),
             shape = CircleShape,
-            modifier = Modifier.size(56.dp),
+            modifier = Modifier.size(48.dp),
         ) { Icon(TablerIcons.Minus, stringResource(R.string.common_remove), tint = if (intakeMl > 0) OnSurface else OnSurface.copy(0.3f)) }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -147,7 +147,7 @@ internal fun HydrationRingAndControls(
             onClick = onAddGlass,
             containerColor = semanticBlue(),
             shape = CircleShape,
-            modifier = Modifier.size(56.dp),
+            modifier = Modifier.size(48.dp),
         ) { Icon(TablerIcons.Plus, stringResource(R.string.common_add), tint = Color.Black) }
     }
 

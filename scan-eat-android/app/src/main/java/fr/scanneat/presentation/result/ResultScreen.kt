@@ -197,7 +197,7 @@ fun ResultScreen(
             // state visually sets up the score reveal instead of being a generic
             // spinner unrelated to what's about to appear.
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                ScanEatLoadingIndicator(size = 178.dp, strokeWidth = 14.dp, trackColor = SurfaceVariant)
+                ScanEatLoadingIndicator(size = 178.dp, strokeWidth = 12.dp, trackColor = SurfaceVariant)
             }
         } else {
             ResultContent(

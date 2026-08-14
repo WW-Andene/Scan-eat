@@ -42,14 +42,14 @@ internal fun DiaryProteinPerSlotCard(bySlot: Map<MealSlot, List<DiaryEntry>>) {
             val prot = bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
             if (prot > 0.0) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Text(slot.shortLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.width(36.dp))
+                    Text(slot.shortLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.width(32.dp))
                     LinearProgressIndicator(
                         progress = { (prot / maxSlotProt).toFloat().coerceIn(0f, 1f) },
-                        modifier = Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)),
+                        modifier = Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(4.dp)),
                         color = AccentCoral,
                         trackColor = OnSurface.copy(0.08f),
                     )
-                    Text("${prot.roundToInt()}g", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f), modifier = Modifier.width(30.dp))
+                    Text("${prot.roundToInt()}g", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f), modifier = Modifier.width(32.dp))
                 }
             }
         }
