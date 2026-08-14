@@ -380,7 +380,7 @@ private fun NavHostController.collapseToTabRoot() {
  * (Result, Calendar), not by a caller that's itself a tab root's direct child
  * (Dashboard, Biolism's PremiumGate).
  */
-private fun NavHostController.switchToTab(route: String, collapseFirst: Boolean = false) {
+internal fun NavHostController.switchToTab(route: String, collapseFirst: Boolean = false) {
     if (collapseFirst) collapseToTabRoot()
     navigate(route) {
         popUpTo(graph.findStartDestination().id) { saveState = true }

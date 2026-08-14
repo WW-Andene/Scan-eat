@@ -164,10 +164,14 @@ fun DiaryScreen(
             // (weight/water/activity/fasting) each already have their own add
             // affordance (a "+" button in their own embedded screen).
             if (activeTab == DiaryTab.MEALS) {
+                // User-reported: floated bottom-right with no relation to the
+                // header - moved to sit just below the header/tab row instead,
+                // same Spacing.M gap ScanEatDropdownMenu's own DROPDOWN_MENU_GAP
+                // uses between a trigger and what's anchored below it.
                 FloatingActionButton(
                     onClick = { showAddEntry = true },
                     containerColor = AccentCoral,
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomClearance + Spacing.L, end = Spacing.L),
+                    modifier = Modifier.align(Alignment.TopEnd).padding(top = topPadding + Spacing.M, end = Spacing.L),
                 ) {
                     Icon(TablerIcons.Plus, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
                 }

@@ -275,10 +275,13 @@ fun TrackerScreen(
 @Composable
 private fun EmptyProfilePrompt() {
     ScanEatCard(contentPadding = PaddingValues(Spacing.XXL)) {
+        // User-instructed: header-to-content gap here didn't match the app's
+        // standard Spacing.S convention for this exact role (already
+        // established in BiolismProfileOverviewCard.kt / DayDetailCard.kt).
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.M),
+            verticalArrangement = Arrangement.spacedBy(Spacing.S),
         ) {
             Icon(Icons.Outlined.MonitorHeart, null, tint = Gold, modifier = Modifier.size(IconSize.EmptyState))
             Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall,

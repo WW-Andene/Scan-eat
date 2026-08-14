@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -90,11 +91,12 @@ fun SleepScreen(
                             Text(
                                 stringResource(R.string.sleep_last_night_hours, night.durationHours),
                                 style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = OnBackground,
+                                textAlign = TextAlign.Center,
                             )
-                            Text(stringResource(R.string.sleep_quality_stars, night.quality), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.7f))
+                            Text(stringResource(R.string.sleep_quality_stars, night.quality), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.7f), textAlign = TextAlign.Center)
                         } else {
                             Icon(TablerIcons.Moon, null, tint = Violet.copy(0.5f), modifier = Modifier.size(IconSize.EmptyState))
-                            Text(stringResource(R.string.sleep_no_entry_today), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))
+                            Text(stringResource(R.string.sleep_no_entry_today), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
                         }
                         Button(onClick = { showAdd = true }, colors = ButtonDefaults.buttonColors(containerColor = Violet)) {
                             Text(stringResource(R.string.sleep_log_button))
@@ -102,6 +104,7 @@ fun SleepScreen(
                         Text(
                             stringResource(R.string.sleep_goal_label, goalHours.value),
                             style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
+                            textAlign = TextAlign.Center,
                         )
                     }
                 }

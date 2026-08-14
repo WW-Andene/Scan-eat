@@ -140,7 +140,6 @@ internal fun HydrationRingAndControls(
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.hydration_glass_ml, HYD_GLASS_ML), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
-            Text(stringResource(R.string.hydration_per_glass_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
         }
 
         FloatingActionButton(

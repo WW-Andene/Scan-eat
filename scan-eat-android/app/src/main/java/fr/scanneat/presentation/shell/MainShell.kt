@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.chrisbanes.haze.HazeState
@@ -193,11 +192,18 @@ fun MainShell(
                                         }
                                         armedNavTab = null
                                     } else {
-                                        navController.navigate(tab.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                            launchSingleTop = true
-                                            restoreState    = true
-                                        }
+                                        // User-reported: tapping a nav tab while deep in a
+                                        // sub-page (e.g. a detail screen pushed from within a
+                                        // tab) restored that same sub-page instead of the
+                                        // tab's own root - restoreState=true below faithfully
+                                        // restores whatever was saved, but nothing collapsed
+                                        // the tab's own back stack to its root before it got
+                                        // saved. Reuses switchToTab's own collapseFirst,
+                                        // already used by 6 internal deep-link call sites in
+                                        // AppNavGraph.kt for the same reason - here it must
+                                        // always run (collapseFirst = true) since a navbar tap
+                                        // can happen from any depth, not just one level deep.
+                                        navController.switchToTab(tab.route, collapseFirst = true)
                                     }
                                 },
                                 onLongClick = {

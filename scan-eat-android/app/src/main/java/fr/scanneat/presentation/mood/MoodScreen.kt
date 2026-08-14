@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -94,10 +95,11 @@ fun MoodScreen(
                             Text(
                                 stringResource(R.string.mood_today_summary, entry.mood, entry.stress),
                                 style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = OnBackground,
+                                textAlign = TextAlign.Center,
                             )
                         } else {
                             Icon(TablerIcons.Heart, null, tint = Violet.copy(0.5f), modifier = Modifier.size(IconSize.EmptyState))
-                            Text(stringResource(R.string.mood_no_entry_today), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))
+                            Text(stringResource(R.string.mood_no_entry_today), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
                         }
                         Button(onClick = { showAdd = true }, colors = ButtonDefaults.buttonColors(containerColor = Violet)) {
                             Text(stringResource(R.string.mood_log_button))

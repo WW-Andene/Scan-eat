@@ -40,7 +40,7 @@ import fr.scanneat.presentation.ui.theme.semanticBlue
 import kotlin.math.roundToInt
 
 /** Common container sizes, in mL - a "small cup" through a "large bottle". */
-private val CONTAINER_PRESETS_ML = listOf(150, 330, 500, 1000)
+private val CONTAINER_PRESETS_ML = listOf(330, 500, 1000)
 
 /**
  * User-requested: "develop the tool" for Hydration - one-tap logging for a

@@ -6,10 +6,9 @@ import compose.icons.TablerIcons
 import compose.icons.tablericons.Calendar
 import compose.icons.tablericons.Droplet
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,22 +18,18 @@ import androidx.compose.material.icons.rounded.RestaurantMenu
 import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.calendar.MonthSummary
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
+import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.Warm
@@ -56,26 +51,23 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
             Triple(Teal,        TablerIcons.Droplet,       stringResource(R.string.calendar_month_hydration, ms.hydrationMl)),
             Triple(Gold,        TablerIcons.Calendar,   stringResource(R.string.calendar_month_days, ms.activeDays)),
         ).forEach { (color, icon, label) ->
-            Surface(
-                modifier = Modifier.weight(1f)
-                    .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
-                    .clip(RoundedCornerShape(CardRadius.CONTROL)),
-                shape = RoundedCornerShape(CardRadius.CONTROL),
+            // User-instructed: these tiles must use the app's standard card
+            // style (ScanEatCard) - was a raw Surface with a manual shadow
+            // and CardRadius.CONTROL (wrong token role) instead of the
+            // standard CardRadius.CARD + hairline border + no-shadow chrome
+            // every other card in the app uses. The per-stat accent tint
+            // (color.copy(0.08f)) is kept - ScanEatCard already supports a
+            // custom color, this isn't style drift.
+            ScanEatCard(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(CardRadius.CARD),
                 color = color.copy(0.08f),
-                // art-direction-engine §CARDS: matching the small-stat-tile
-                // elevation tier already applied to FastingHistorySection/
-                // HistoryTopScannedRow - this was a plain flat Surface with
-                // no depth cue at all.
-                shadowElevation = 0.dp,
+                contentPadding = PaddingValues(horizontal = Spacing.XS, vertical = Spacing.S),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Spacing.T2),
             ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.S),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(Spacing.T2),
-                ) {
-                    Icon(icon, null, tint = color, modifier = Modifier.size(IconSize.Tiny))
-                    Text(label, style = MaterialTheme.typography.labelSmall, color = color, textAlign = TextAlign.Center)
-                }
+                Icon(icon, null, tint = color, modifier = Modifier.size(IconSize.Tiny))
+                Text(label, style = MaterialTheme.typography.labelSmall, color = color, textAlign = TextAlign.Center)
             }
         }
     }
