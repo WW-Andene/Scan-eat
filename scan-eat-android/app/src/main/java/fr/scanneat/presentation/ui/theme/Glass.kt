@@ -354,7 +354,14 @@ fun Modifier.glassPopupSurface(shape: Shape = RoundedCornerShape(CardRadius.CONT
     // a soft shadow on some OEM skins. Reverted to the neutral default shadow
     // color.
     .shadow(elevation = 8.dp, shape = shape)
-    .glassSheen(edgeAlpha = 0.22f, shape = shape, glowAlpha = 0.05f)
+    // User-instructed, literal: "all popup menu in the app should use the
+    // same style as Tableau header" - edgeAlpha was 0.22f, a hand-tuned
+    // value distinct from FloatingTopBar/MainShell's own shared 0.28f
+    // standard (glassSheen's own default). Real backdrop blur itself can't
+    // cross the Popup's separate window (see this function's own doc
+    // comment above) - this literal parameter is the one part of "the same
+    // style" actually achievable here, now matched exactly.
+    .glassSheen(edgeAlpha = 0.28f, shape = shape)
 
 private fun DrawScope.drawRippleRing(cycle: Float, center: Offset, maxRadius: Float, tint: Color) {
     if (cycle <= 0f || cycle >= 1f) return
