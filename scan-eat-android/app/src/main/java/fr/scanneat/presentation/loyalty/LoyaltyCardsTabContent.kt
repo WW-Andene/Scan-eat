@@ -89,7 +89,7 @@ fun LoyaltyCardsTabContent(viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
     }
 
     if (showAddDialog) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showAddDialog = false },
             title = { Text(stringResource(R.string.loyalty_add)) },
             text = {

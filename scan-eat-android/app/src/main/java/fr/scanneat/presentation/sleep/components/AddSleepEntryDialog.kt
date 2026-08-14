@@ -55,9 +55,8 @@ internal fun AddSleepEntryDialog(
     }
     val showError = bedtimeStr.isNotBlank() && wakeStr.isNotBlank() && computed == null
 
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
         title = { Text(stringResource(R.string.sleep_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {

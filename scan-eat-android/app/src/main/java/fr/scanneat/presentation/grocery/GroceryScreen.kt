@@ -403,7 +403,7 @@ fun GroceryScreen(
     }
 
     if (showNewListDialog) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showNewListDialog = false },
             title = { Text(stringResource(R.string.grocery_new_list)) },
             text = {
@@ -435,7 +435,7 @@ fun GroceryScreen(
     }
 
     renameListTarget?.let { target ->
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { renameListTarget = null },
             title = { Text(stringResource(R.string.grocery_rename_list)) },
             text = {
@@ -461,7 +461,7 @@ fun GroceryScreen(
     // item already checked off from onToggleChecked (this dialog never
     // un-checks it).
     priceLogItem?.let { item ->
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { priceLogItem = null },
             title = { Text(stringResource(R.string.grocery_log_price_title, item.name)) },
             text = {
