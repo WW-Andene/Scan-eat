@@ -1,5 +1,12 @@
 package fr.scanneat.presentation.result.cards
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +30,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.util.formatDecimal
 import kotlin.math.roundToInt
 import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
+import fr.scanneat.presentation.ui.theme.rememberReducedMotion
 
 @Composable
 internal fun NutritionTable(nutrition: NutritionPer100g) {
@@ -39,27 +47,38 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
         NRow(stringResource(R.string.result_nutri_fiber), "${fmt1(nutrition.fiberG)} g")
         NRow(stringResource(R.string.result_nutri_protein), "${fmt1(nutrition.proteinG)} g")
         NRow(stringResource(R.string.result_nutri_salt), "${fmt1(nutrition.saltG)} g")
-        if (expanded) {
-            nutrition.transFatG?.let { NRow(stringResource(R.string.result_nutri_transfat), "${fmt1(it)} g") }
-            // Fully parsed/merged from OFF (OffMapper.kt) but previously never displayed
-            // anywhere - the always-visible row above only ever showed saltG.
-            nutrition.sodiumMg?.let { NRow(stringResource(R.string.result_nutri_sodium), "${fmt1(it)} mg") }
-            nutrition.ironMg?.let { NRow(stringResource(R.string.result_nutri_iron), "${fmt1(it)} mg") }
-            nutrition.calciumMg?.let { NRow(stringResource(R.string.result_nutri_calcium), "${fmt1(it)} mg") }
-            nutrition.vitDUg?.let { NRow(stringResource(R.string.result_nutri_vitd), "${fmt1(it)} µg") }
-            nutrition.b12Ug?.let { NRow(stringResource(R.string.result_nutri_vitb12), "${fmt1(it)} µg") }
-            nutrition.vitCMg?.let { NRow(stringResource(R.string.result_nutri_vitc), "${fmt1(it)} mg") }
-            // MicronutrientEstimator.kt: this product's source (OFF/LLM) declared none
-            // of the mineral/vitamin fields above at all, so they're category-typical
-            // estimates, not this specific product's real measured values - never
-            // presented as fact without this note.
-            if (nutrition.micronutrientsEstimated) {
-                Text(
-                    stringResource(R.string.result_nutri_estimated_note),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = OnBackgroundMuted,
-                    modifier = Modifier.padding(top = Spacing.XS),
-                )
+        // User-reported (§E6 audit): this panel snapped in/out instantly while
+        // visually-identical expand/collapse rows elsewhere (BioCard,
+        // FoodSearchRow) animate - same AnimatedVisibility + reduced-motion
+        // gating as those.
+        val reduceMotion = rememberReducedMotion()
+        AnimatedVisibility(
+            visible = expanded,
+            enter = if (reduceMotion) EnterTransition.None else fadeIn() + expandVertically(),
+            exit = if (reduceMotion) ExitTransition.None else fadeOut() + shrinkVertically(),
+        ) {
+            Column {
+                nutrition.transFatG?.let { NRow(stringResource(R.string.result_nutri_transfat), "${fmt1(it)} g") }
+                // Fully parsed/merged from OFF (OffMapper.kt) but previously never displayed
+                // anywhere - the always-visible row above only ever showed saltG.
+                nutrition.sodiumMg?.let { NRow(stringResource(R.string.result_nutri_sodium), "${fmt1(it)} mg") }
+                nutrition.ironMg?.let { NRow(stringResource(R.string.result_nutri_iron), "${fmt1(it)} mg") }
+                nutrition.calciumMg?.let { NRow(stringResource(R.string.result_nutri_calcium), "${fmt1(it)} mg") }
+                nutrition.vitDUg?.let { NRow(stringResource(R.string.result_nutri_vitd), "${fmt1(it)} µg") }
+                nutrition.b12Ug?.let { NRow(stringResource(R.string.result_nutri_vitb12), "${fmt1(it)} µg") }
+                nutrition.vitCMg?.let { NRow(stringResource(R.string.result_nutri_vitc), "${fmt1(it)} mg") }
+                // MicronutrientEstimator.kt: this product's source (OFF/LLM) declared none
+                // of the mineral/vitamin fields above at all, so they're category-typical
+                // estimates, not this specific product's real measured values - never
+                // presented as fact without this note.
+                if (nutrition.micronutrientsEstimated) {
+                    Text(
+                        stringResource(R.string.result_nutri_estimated_note),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = OnBackgroundMuted,
+                        modifier = Modifier.padding(top = Spacing.XS),
+                    )
+                }
             }
         }
         TextButton(onClick = { expanded = !expanded }) {
