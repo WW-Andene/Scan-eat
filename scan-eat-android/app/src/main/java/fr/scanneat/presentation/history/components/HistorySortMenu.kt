@@ -26,7 +26,11 @@ internal fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> U
             Icon(Icons.Rounded.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
         }
         // See ScanEatDropdownMenu's own doc comment - always positions below its trigger.
-        ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }, anchorWidth = anchorWidth) {
+        // matchAnchorWidth = false: same exception as Journal's own "Plus" tab-
+        // overflow menu (DiaryHeader.kt) - trigger is a compact icon-only
+        // IconButton (~48dp), but items are full-length sort labels ("Score
+        // décroissant" etc.) that would wrap/clip if clamped to that width.
+        ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }, anchorWidth = anchorWidth, matchAnchorWidth = false) {
             val options = listOf(
                 HistorySort.RECENT to stringResource(R.string.history_sort_recent),
                 HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),

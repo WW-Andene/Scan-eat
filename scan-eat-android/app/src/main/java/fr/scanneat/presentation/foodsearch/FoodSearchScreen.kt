@@ -128,21 +128,28 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
             val showProducts = displayMode.value != SearchDisplayMode.LINKS
             val showLinks = displayMode.value != SearchDisplayMode.PRODUCTS
             if (showProducts) {
+                // User-reported: these two filter pills stacked vertically
+                // instead of sitting side by side - each was its own LazyColumn
+                // item{} with no shared Row, unlike every other filter-pill row
+                // in the app.
                 item {
-                    FiltersSection(
-                        expanded = filtersExpanded,
-                        onToggle = { filtersExpanded = !filtersExpanded },
-                        filter = filter.value,
-                        onFilterChange = viewModel::setFilter,
-                    )
-                }
-                item {
-                    GradeFilterSection(
-                        expanded = gradeFilterExpanded,
-                        onToggle = { gradeFilterExpanded = !gradeFilterExpanded },
-                        gradeFilter = gradeFilter.value,
-                        onGradeFilterChange = viewModel::setGradeFilter,
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = Spacing.L),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                    ) {
+                        FiltersSection(
+                            expanded = filtersExpanded,
+                            onToggle = { filtersExpanded = !filtersExpanded },
+                            filter = filter.value,
+                            onFilterChange = viewModel::setFilter,
+                        )
+                        GradeFilterSection(
+                            expanded = gradeFilterExpanded,
+                            onToggle = { gradeFilterExpanded = !gradeFilterExpanded },
+                            gradeFilter = gradeFilter.value,
+                            onGradeFilterChange = viewModel::setGradeFilter,
+                        )
+                    }
                 }
                 item {
                     SavedFiltersRow(

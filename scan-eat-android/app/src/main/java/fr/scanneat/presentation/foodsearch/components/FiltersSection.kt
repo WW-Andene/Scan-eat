@@ -36,10 +36,15 @@ internal fun FiltersSection(
     // Recipes' — CollapsibleFilterBar already applies Spacing.L horizontally
     // itself (see its own doc comment), so passing another Spacing.L here
     // doubled the inset. Kept only the vertical spacing this call site needs.
+    // applyHorizontalInset = false: this pill now sits in a Row alongside
+    // GradeFilterSection (FoodSearchScreen.kt) whose own Modifier already
+    // carries the Spacing.L outer margin - see CollapsibleFilterBar's own
+    // doc comment for this exact "parent already carries the inset" case.
     CollapsibleFilterBar(
         expanded = expanded, onToggle = onToggle,
         summaryLabel = stringResource(R.string.foodsearch_filters_label, filterOptions.first { it.first == filter }.second),
         modifier = Modifier.padding(vertical = Spacing.XS),
+        applyHorizontalInset = false,
     ) {
         filterOptions.forEach { (f, label) ->
             val isSelected = filter == f
@@ -68,10 +73,14 @@ internal fun GradeFilterSection(
     onGradeFilterChange: (Grade?) -> Unit,
 ) {
     val allLabel = stringResource(R.string.foodsearch_filter_all)
+    // applyHorizontalInset = false: same reasoning as FiltersSection above -
+    // this pill sits next to it in FoodSearchScreen.kt's own Row, which
+    // already carries the Spacing.L outer margin.
     CollapsibleFilterBar(
         expanded = expanded, onToggle = onToggle,
         summaryLabel = stringResource(R.string.foodsearch_grade_filter_label, gradeFilter?.label ?: allLabel),
         modifier = Modifier.padding(vertical = Spacing.XS),
+        applyHorizontalInset = false,
     ) {
         val options: List<Grade?> = listOf(null) + Grade.entries
         options.forEach { g ->

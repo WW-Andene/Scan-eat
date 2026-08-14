@@ -82,28 +82,32 @@ internal fun AddPantryItemDialog(
                 } else {
                     Text(name, style = MaterialTheme.typography.titleMedium, color = OnBackground)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    OutlinedTextField(
-                        value = quantityText, onValueChange = { quantityText = it },
-                        label = { Text(stringResource(R.string.pantry_field_quantity)) }, singleLine = true,
-                        isError = quantityText.isNotBlank() && (quantity == null || quantity <= 0),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        shape = RoundedCornerShape(CardRadius.CONTROL),
-                        colors = scanEatTextFieldColors(),
-                        modifier = Modifier.weight(1f),
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.pantry_field_unit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                            PantryUnit.entries.forEach { u ->
-                                val selected = unit == u
-                                FilterChip(
-                                    selected = selected,
-                                    onClick = { unit = u },
-                                    label = { Text(u.key, style = MaterialTheme.typography.labelSmall) },
-                                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
-                                )
-                            }
+                // User-reported: Quantité and Unité previously shared one Row at
+                // 50/50 weight, squeezing the 3 unit FilterChips (g/mL/unit) into
+                // roughly half the dialog's width - the third chip overflowed and
+                // got clipped by the dialog bounds, showing only its filled
+                // background with no visible label. Stacked full-width instead,
+                // so the chip row always has the dialog's whole width to work with.
+                OutlinedTextField(
+                    value = quantityText, onValueChange = { quantityText = it },
+                    label = { Text(stringResource(R.string.pantry_field_quantity)) }, singleLine = true,
+                    isError = quantityText.isNotBlank() && (quantity == null || quantity <= 0),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    colors = scanEatTextFieldColors(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    Text(stringResource(R.string.pantry_field_unit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                        PantryUnit.entries.forEach { u ->
+                            val selected = unit == u
+                            FilterChip(
+                                selected = selected,
+                                onClick = { unit = u },
+                                label = { Text(u.key, style = MaterialTheme.typography.labelSmall) },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                            )
                         }
                     }
                 }
