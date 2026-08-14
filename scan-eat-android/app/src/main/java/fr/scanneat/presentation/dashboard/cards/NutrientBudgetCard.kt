@@ -72,6 +72,11 @@ internal fun NutrientBudgetCard(totals: ConsumedNutrition, targets: DailyTargets
 private fun BudgetRow(label: String, value: Double, max: Double, unit: String, color: Color, idealCaption: String? = null) {
     val pct = (value / max.coerceAtLeast(0.1)).toFloat()
     val isOver = pct > 1f
+    // User-reported (§E8 audit, emotional safety): a binary red/not-red
+    // switch made "1g over" look as alarming as "300g over." Amber for a
+    // near/at-limit overage, red reserved for well past it (50%+ over).
+    val isWellOver = pct > 1.5f
+    val overColor = if (isWellOver) semanticRed() else semanticAmber()
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -87,13 +92,13 @@ private fun BudgetRow(label: String, value: Double, max: Double, unit: String, c
             LinearProgressIndicator(
                 progress   = { pct.coerceIn(0f, 1f) },
                 modifier   = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
-                color      = if (isOver) semanticRed() else color,
+                color      = if (isOver) overColor else color,
                 trackColor = OnSurface.copy(0.08f),
             )
             Text(
                 "${value.roundToInt()}/${max.roundToInt()}$unit",
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isOver) semanticRed() else OnSurface.copy(0.5f),
+                color = if (isOver) overColor else OnSurface.copy(0.5f),
                 fontWeight = if (isOver) FontWeight.SemiBold else FontWeight.Normal,
                 modifier = Modifier.width(BudgetValueWidth),
             )

@@ -36,7 +36,11 @@ import kotlin.math.roundToInt
 internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStreak: Int = 0) {
     val isSurplus = balance.net > 200
     val isDeficit = balance.net < -50
-    val balColor = if (isSurplus) semanticRed() else if (isDeficit) AccentCoral else semanticAmber()
+    // User-reported (§E8 audit, emotional safety): a calorie surplus is often
+    // a perfectly normal day, not a safety flag - alarm-red read as
+    // judgmental. Amber (the same tone already used for the "balanced"
+    // state) keeps this informational instead of alarming.
+    val balColor = if (isSurplus) semanticAmber() else if (isDeficit) AccentCoral else semanticAmber()
     val statusRes = if (isSurplus) R.string.dashboard_calorie_surplus
         else if (isDeficit) R.string.dashboard_calorie_deficit
         else R.string.dashboard_calorie_balanced
@@ -153,7 +157,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 LinearProgressIndicator(
                     progress   = { pct.coerceIn(0f, 1f) },
                     modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                    color      = if (isSurplus) semanticRed() else AccentCoral,
+                    color      = if (isSurplus) semanticAmber() else AccentCoral,
                     trackColor = SurfaceVariant.copy(alpha = 0.3f),
                 )
                 Text(
