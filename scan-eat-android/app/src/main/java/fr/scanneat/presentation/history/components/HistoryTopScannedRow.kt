@@ -17,6 +17,7 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun HistoryTopScannedRow(topScanned: List<Triple<String, Int, Long>>, onOpenResult: (Long) -> Unit) {
+    val isPrism = LocalThemeName.current == "prism"
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
@@ -30,7 +31,7 @@ internal fun HistoryTopScannedRow(topScanned: List<Triple<String, Int, Long>>, o
                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape    = RoundedCornerShape(CardRadius.CONTROL),
                 // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-                color    = SurfaceVariant.copy(alpha = StandardCardAlpha),
+                color    = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
                 shadowElevation = 0.dp,
             ) {
                 Column(

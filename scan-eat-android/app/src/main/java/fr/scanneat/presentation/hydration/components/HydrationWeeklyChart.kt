@@ -25,10 +25,11 @@ internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goal
     val locale = remember(language) { Locale(language) }
     val goalMlCoerced = goalMl.coerceAtLeast(1)
     val peak = weeklyIntake.maxOfOrNull { it.second }?.coerceAtLeast(goalMlCoerced) ?: goalMlCoerced
+    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),

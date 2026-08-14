@@ -33,9 +33,10 @@ import java.util.Locale
 @Composable
 internal fun MoodWeeklyChart(weeklyMoodStress: List<Triple<LocalDate, Int, Int>>, language: String) {
     val locale = remember(language) { Locale(language) }
+    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),

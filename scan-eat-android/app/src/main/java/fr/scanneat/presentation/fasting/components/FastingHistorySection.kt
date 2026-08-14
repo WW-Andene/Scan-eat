@@ -33,10 +33,11 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
     val today = LocalDate.now()
     // Map date-string → FastCompletion for quick lookup (one entry per day)
     val byDate = history.associateBy { it.date }
+    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth()
             .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
@@ -136,6 +137,7 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: St
     // avoids the crash entirely rather than relying on every future call
     // site remembering the same guard.
     val longestH = completed.maxOfOrNull { it.achievedHours } ?: 0.0
+    val isPrism = LocalThemeName.current == "prism"
     Text(stringResource(R.string.fasting_history_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(Spacing.S))
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -152,7 +154,7 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: St
                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
                 shadowElevation = 0.dp,
             ) {
                 // fillMaxWidth() - without it this Column only wraps its widest

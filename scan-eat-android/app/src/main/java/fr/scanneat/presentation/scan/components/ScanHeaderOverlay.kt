@@ -122,11 +122,12 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
     // User-reported: same two-layer Box(glassSheen)+Surface(shadow/clip)
     // construction already fixed elsewhere (see ScanActionControls.kt's own
     // comment) - collapsed into one Box.
+    val isPrism = LocalThemeName.current == "prism"
     Box(
         modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + Spacing.XXL * 3)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp))
             .clip(RoundedCornerShape(24.dp))
-            .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(24.dp))
+            .background(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(24.dp))
             .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
     ) {
             Column {
@@ -254,9 +255,10 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
     // instead, matching ScanHeaderBar/ScanBarcodeChip's own inset math.
     val clampedY = yDp.coerceAtLeast(topInset + Spacing.L + 32.dp)
 
+    val isPrism = LocalThemeName.current == "prism"
     Box(modifier = Modifier.align(Alignment.TopStart).padding(start = clampedX, top = clampedY).width(panelWidth)) {
         // same raw-literal drift as above - matches CardRadius.CARD exactly.
-        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant.copy(alpha = StandardCardAlpha)) {
+        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha)) {
             Row(
                 modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.SM),
                 verticalAlignment = Alignment.CenterVertically,

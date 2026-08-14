@@ -241,9 +241,10 @@ private fun IntakeSleepMoodLinkCard(link: IntakeSleepMoodLink) {
 
 @Composable
 private fun MoodHistoryRow(entry: MoodEntry, onDelete: () -> Unit) {
+    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(

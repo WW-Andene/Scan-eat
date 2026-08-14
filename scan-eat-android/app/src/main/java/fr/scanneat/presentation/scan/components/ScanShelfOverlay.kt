@@ -141,10 +141,11 @@ fun BoxScope.ScanShelfPeekChip(peek: ShelfPeek, onDismiss: () -> Unit, onOpenRes
     val yDp = with(density) { peek.anchor.y.toDp() } + 14.dp
     val clampedX = xDp.coerceIn(Spacing.S, (screenWidthDp - chipWidth - Spacing.S).coerceAtLeast(Spacing.S))
 
+    val isPrism = LocalThemeName.current == "prism"
     Box(modifier = Modifier.align(Alignment.TopStart).padding(start = clampedX, top = yDp).widthIn(max = chipWidth)) {
         Surface(
             shape = RoundedCornerShape(CardRadius.CONTROL),
-            color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+            color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
             onClick = { if (peek.status is ShelfPeekStatus.Ready) onOpenResult(peek.status.resultId) else onDismiss() },
             modifier = Modifier
                 .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))

@@ -232,9 +232,10 @@ private fun PantryItemRow(item: PantryItem, recalled: Boolean = false, healthCon
         else -> OnBackground.copy(0.5f)
     }
     val flagged = recalled || healthConflict
+    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = androidx.compose.foundation.shape.RoundedCornerShape(CardRadius.CONTROL),
-        color = if (flagged) semanticRed().copy(alpha = 0.08f) else SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (flagged) semanticRed().copy(alpha = 0.08f) else if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
         onClick = onEdit,
         border = if (flagged) androidx.compose.foundation.BorderStroke(2.dp, semanticRed().copy(alpha = 0.4f)) else null,

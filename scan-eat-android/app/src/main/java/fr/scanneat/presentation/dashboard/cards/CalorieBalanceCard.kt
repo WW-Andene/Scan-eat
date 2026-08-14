@@ -92,6 +92,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         // intensity (~10% alpha), rendered on top of the flat surface fill
         // rather than left flat. Reserved for this card alone, not every card.
         run {
+            val isPrism = LocalThemeName.current == "prism"
             // Wrapping Box (not fillMaxSize/matchParentSize on its own) so it
             // sizes to its content like Surface previously did directly, while
             // giving the nested blurred-fill Box below a BoxScope to resolve
@@ -107,7 +108,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                     // User-requested: one standard glass config app-wide - see
                     // StandardCardAlpha's own doc comment (ScanEatCard.kt).
                     Modifier.matchParentSize().clip(RoundedCornerShape(CardRadius.PROMINENT))
-                        .background(SurfaceVariant.copy(alpha = StandardCardAlpha)),
+                        .background(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha)),
                 )
                 Column(
                     modifier = Modifier

@@ -98,9 +98,10 @@ fun NonFoodHistoryScreen(viewModel: NonFoodHistoryViewModel = hiltViewModel(), o
 
 @Composable
 private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Unit, onDelete: () -> Unit) {
+    val isPrism = LocalThemeName.current == "prism"
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        color = if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
