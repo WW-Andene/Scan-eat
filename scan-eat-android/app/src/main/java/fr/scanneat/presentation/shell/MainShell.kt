@@ -50,6 +50,15 @@ fun MainShell(
 
     val showNav = HIDDEN_NAV_ROUTES.none { currentRoute == it }
     val bottomNavHazeState = remember { HazeState() }
+    // User-instructed: popup menus (ScanEatDropdownMenu) get real backdrop
+    // blur - the same FrostedGlassStyle/hazeEffect treatment the header/
+    // footer use - by rendering into this same-window overlay instead of a
+    // separate-window Popup (see PopupOverlayController's own doc comment
+    // for why Popup can't share a blur source). Reuses bottomNavHazeState as
+    // the blur source itself - the popup is blurring the exact same on-
+    // screen content the bottom nav already does, so a second HazeState
+    // would just be a second consumer of identical content.
+    val popupOverlay = remember { PopupOverlayController() }
 
     // User-requested: long-press a nav tab to arm it, then tap another one
     // to swap their positions - persisted via MainShellViewModel/
@@ -77,7 +86,7 @@ fun MainShell(
     // LocalBottomNavHazeState provided below (a different composable subtree
     // than this one, hence the CompositionLocal instead of a direct param).
     Box(Modifier.fillMaxSize().background(Background)) {
-        CompositionLocalProvider(LocalBottomNavHazeState provides bottomNavHazeState) {
+        CompositionLocalProvider(LocalBottomNavHazeState provides bottomNavHazeState, LocalPopupOverlay provides popupOverlay) {
             AppNavGraph(
                 navController    = navController,
                 startDestination = when {
@@ -212,5 +221,11 @@ fun MainShell(
                 }
             }
         }
+
+        // Rendered last (highest z-order) so an open popup menu always sits
+        // above both the screen content and the floating header/nav chrome -
+        // see PopupOverlayController's own doc comment for why this exists
+        // instead of ScanEatDropdownMenu's previous Popup-based rendering.
+        popupOverlay.content?.invoke()
     }
 }

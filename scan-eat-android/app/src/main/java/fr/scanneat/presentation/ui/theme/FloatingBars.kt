@@ -7,7 +7,11 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -103,6 +107,28 @@ val FrostedGlassStyle: HazeStyle
  * only matters for previews/tests that never wire the real provider.
  */
 val LocalBottomNavHazeState = compositionLocalOf { HazeState() }
+
+/**
+ * User-instructed, literal: "all popup menu in the app should use the same
+ * style as Tableau header" - real backdrop blur (hazeEffect) cannot reach a
+ * Compose `Popup`, which renders in its own separate Android window (see
+ * ScanEatDropdownMenu.kt's own doc comment on this exact limitation). The
+ * only way to give a popup menu the SAME real-time blur FloatingTopBar/
+ * MainShell's nav use is to stop using `Popup` and render the menu as a
+ * same-window overlay instead - this controller is that overlay's host,
+ * provided once by MainShell (same level [LocalBottomNavHazeState] is
+ * provided at) so any `ScanEatDropdownMenu` anywhere in the app can push
+ * its expanded content into it, positioned in MainShell's own root
+ * coordinate space (shared by every screen, so the same anchor-position math
+ * works regardless of which screen's tree a given dropdown is called from).
+ */
+class PopupOverlayController {
+    var content by mutableStateOf<(@Composable () -> Unit)?>(null)
+        private set
+    fun show(popup: @Composable () -> Unit) { content = popup }
+    fun hide() { content = null }
+}
+val LocalPopupOverlay = staticCompositionLocalOf<PopupOverlayController?> { null }
 
 /**
  * The app-wide "floating header" — a detached, glassy pill instead of the
