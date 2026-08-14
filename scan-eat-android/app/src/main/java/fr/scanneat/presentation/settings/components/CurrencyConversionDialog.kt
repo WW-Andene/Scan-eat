@@ -8,10 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
-
 /**
  * User-requested: changing currency should convert already-logged prices, not
  * just relabel them - this confirms that conversion before it's actually
@@ -30,7 +29,7 @@ fun CurrencyConversionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        containerColor = dialogContainerColor,
         title = { Text(stringResource(R.string.settings_currency_convert_title), color = OnBackground) },
         text = {
             Text(

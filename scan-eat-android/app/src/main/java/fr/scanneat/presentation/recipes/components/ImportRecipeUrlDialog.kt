@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ErrorBanner
@@ -27,7 +28,6 @@ import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.ScanEatLoadingIndicator
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
@@ -56,7 +56,7 @@ internal fun ImportRecipeUrlDialog(
         // they'd cancelled. Only the dismiss button was ever gated by isLoading;
         // this closes the same gap for the implicit dismiss paths.
         onDismissRequest = { if (!isLoading) onDismiss() },
-        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        containerColor = dialogContainerColor,
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_import_url_title), color = OnBackground) },

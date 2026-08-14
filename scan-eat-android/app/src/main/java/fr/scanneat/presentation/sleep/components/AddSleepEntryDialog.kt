@@ -57,7 +57,7 @@ internal fun AddSleepEntryDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        containerColor = dialogContainerColor,
         title = { Text(stringResource(R.string.sleep_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {

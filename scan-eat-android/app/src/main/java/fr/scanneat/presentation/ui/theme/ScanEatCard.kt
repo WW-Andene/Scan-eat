@@ -83,6 +83,17 @@ val CameraOverlayDialogAlpha: Float @Composable get() = if (isLightBackground())
 val PrismFillColor: Color get() = Color.White.copy(alpha = 0.25f)
 val PrismBorderAlpha: Float = 0.28f
 
+/**
+ * Design audit (§E3): every AlertDialog/popup container in the app
+ * independently wrote `SurfaceVariant.copy(alpha = StandardCardAlpha)`
+ * with no Prism branch - the exact "not transparent, not standard" gap this
+ * file's own [PrismFillColor] doc comment already fixed for cards/chrome,
+ * just never applied to dialogs. One shared helper instead of ~50 call
+ * sites each needing the same isPrism check added individually.
+ */
+val dialogContainerColor: Color
+    @Composable get() = if (LocalThemeName.current == "prism") PrismFillColor else SurfaceVariant.copy(alpha = StandardCardAlpha)
+
 // internal (not private) so a card that can't use ScanEatCard directly - e.g.
 // CalorieBalanceCard, which overlays a streak badge on the outer Box via
 // BoxScope.align, a slot ScanEatCard's content: ColumnScope.() -> Unit
@@ -91,7 +102,9 @@ val PrismBorderAlpha: Float = 0.28f
 internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val elevation: Dp)
 internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, elevation = 12.dp)
 private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, elevation = 6.dp)
-private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 3.dp)
+// User-requested: all sizes must sit on a base-2 scale
+// (2/4/6/8/12/16/24/32/48/64/96/128) - 3dp isn't a member, snapped to 2dp.
+private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 2.dp)
 
 /**
  * The app's one card primitive — a translucent fill with a hairline top-edge

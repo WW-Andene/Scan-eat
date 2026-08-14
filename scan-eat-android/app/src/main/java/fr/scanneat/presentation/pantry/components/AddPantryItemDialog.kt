@@ -64,7 +64,7 @@ internal fun AddPantryItemDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        containerColor = dialogContainerColor,
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (lockName) R.string.pantry_edit_dialog_title else R.string.pantry_add_dialog_title), color = OnBackground) },
@@ -145,7 +145,7 @@ internal fun AddPantryItemDialog(
     if (showCategoryPicker) {
         AlertDialog(
             onDismissRequest = { showCategoryPicker = false },
-            containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+            containerColor = dialogContainerColor,
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.pantry_field_category), color = OnBackground) },

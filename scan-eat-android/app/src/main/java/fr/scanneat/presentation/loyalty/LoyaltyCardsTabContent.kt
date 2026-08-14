@@ -59,7 +59,7 @@ fun LoyaltyCardsTabContent(viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
                 items(cards.value, key = { it.id }) { card ->
                     Card(
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(CardRadius.CONTROL),
-                        colors = CardDefaults.cardColors(containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha)),
+                        colors = CardDefaults.cardColors(containerColor = dialogContainerColor),
                     ) {
                         Row(
                             Modifier.fillMaxWidth().padding(Spacing.L),

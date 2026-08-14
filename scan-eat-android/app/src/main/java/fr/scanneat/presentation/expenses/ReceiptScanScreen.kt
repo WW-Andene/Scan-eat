@@ -112,7 +112,7 @@ fun ReceiptScanScreen(onBack: () -> Unit, viewModel: ReceiptScanViewModel = hilt
             }
             s is ReceiptScanState.Processing -> {
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    CircularProgressIndicator(color = AccentCoral)
+                    ScanEatLoadingIndicator()
                     Spacer(Modifier.height(Spacing.M))
                     Text(stringResource(R.string.receipt_scan_processing), color = OnBackground)
                 }

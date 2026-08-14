@@ -21,11 +21,11 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.SeasonalProduce
 import fr.scanneat.domain.engine.planning.findPairings
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 
 /** Extracted from SeasonalProduceScreen (§T1 composition-root split). */
@@ -36,7 +36,7 @@ internal fun SeasonalPairingsDialog(produce: SeasonalProduce, isFrench: Boolean,
     val pairs = remember(produce, isFrench) { findPairings(produce.nameFr, limit = 8, preferFrench = isFrench) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        containerColor = dialogContainerColor,
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(name, color = OnBackground) },

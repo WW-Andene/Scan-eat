@@ -58,7 +58,7 @@ internal fun GroceryFrequentSuggestionsRow(suggestions: List<String>, onAdd: (St
                 label = { Text(name, style = MaterialTheme.typography.labelMedium) },
                 shape = RoundedCornerShape(CardRadius.BADGE),
                 colors = SuggestionChipDefaults.suggestionChipColors(
-                    containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+                    containerColor = dialogContainerColor,
                     labelColor = OnSurface,
                 ),
                 border = null,
