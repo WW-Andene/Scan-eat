@@ -431,6 +431,19 @@ private val LightSafeBlue   = Color(0xFF01579B)
 @Composable
 internal fun isLightBackground(): Boolean = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
+/**
+ * User-requested: "j'ai dit TOUTS les thèmes de couleur" - a one-by-one walk
+ * of every colorAccent's own palette (not just a generic pattern check)
+ * found that Elite's AccentCoral resolves to its `secondary` field
+ * (0xFF2B1F16, a near-black ebony), unlike every other accent's secondary
+ * (all light/bright). Several FABs hardcode `tint = Color.Black` on top of
+ * an `AccentCoral` container assuming it's always bright enough for that -
+ * true for the base theme and 8 of 9 accents, but under Elite specifically
+ * that's a near-invisible black-on-near-black icon. Luminance-based instead
+ * of a fixed literal so it self-corrects for any current or future accent.
+ */
+fun contentColorFor(background: Color): Color = if (background.luminance() > 0.5f) Color.Black else Color.White
+
 /** Good / positive / success signal. */
 @Composable
 fun semanticGreen(): Color = when (LocalColorblindMode.current) {

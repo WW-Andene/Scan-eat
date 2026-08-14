@@ -175,7 +175,7 @@ fun MedicationScreen(
                 onClick = { showAdd = true },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = AccentCoral,
-            ) { Icon(TablerIcons.Plus, stringResource(R.string.common_add), tint = androidx.compose.ui.graphics.Color.Black) }
+            ) { Icon(TablerIcons.Plus, stringResource(R.string.common_add), tint = contentColorFor(AccentCoral)) }
             ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
