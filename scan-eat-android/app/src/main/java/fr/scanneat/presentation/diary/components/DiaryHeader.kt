@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.diary.components
 
-import compose.icons.tablericons.ArrowLeft
 import compose.icons.tablericons.Check
 import compose.icons.tablericons.ChevronDown
 import compose.icons.TablerIcons
@@ -24,7 +23,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.chrisbanes.haze.HazeState
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.delay
@@ -36,16 +34,17 @@ import kotlinx.coroutines.delay
 private const val ARM_AUTO_CANCEL_MS = 10_000L
 
 /**
- * Merged floating glass header - title row + tab row in one card, both
- * registered against the same hazeState the content Box in DiaryScreen feeds,
- * matching BiolismScreen's own internal header instead of a separate
- * flat, non-blurred ScanEatCard sitting underneath a title-only bar.
+ * User-requested: "j'ai dit exactement le même en tout point" - DiaryHeader
+ * used to own the whole floating pill (title row + chrome), a second,
+ * bespoke construction of FloatingTopBar's own chrome that kept drifting
+ * from it (wrong leading-icon inset, stale glassSheen alpha, an accent
+ * override Tableau's own header never had...). DiaryScreen now calls
+ * FloatingScreenScaffold directly - the exact same call Dashboard makes -
+ * and passes this composable in as its extraContent slot, so this file
+ * owns only the tab row's own content, never the chrome around it.
  */
 @Composable
-internal fun BoxScope.DiaryHeader(
-    hazeState: HazeState,
-    isTabRoot: Boolean,
-    onBack: () -> Unit,
+internal fun ColumnScope.DiaryTabRow(
     activeTab: DiaryTab,
     onTabChange: (DiaryTab) -> Unit,
     // User-requested: the three always-visible tabs were a fixed literal
@@ -56,31 +55,7 @@ internal fun BoxScope.DiaryHeader(
     primaryTabs: List<DiaryTab>,
     onPrimaryTabsChange: (List<DiaryTab>) -> Unit,
 ) {
-    // User-requested: "utilise exactement le même header de Tableau pour
-    // Journal" - this no longer hand-rolls the chrome (shadow/clip/
-    // hazeEffect/glassSheen/margin/leading-icon-slot) a second time. Every
-    // one of those hand-copies is exactly where this header kept drifting
-    // from the real standard (wrong leading-icon inset, stale glassSheen
-    // alpha, etc.) - calling FloatingTopBar directly, the same composable
-    // Tableau/every other screen uses, makes that drift structurally
-    // impossible instead of something to keep re-auditing by hand. The tab
-    // row is FloatingTopBar's own extraContent slot, added specifically for
-    // this call site so it renders inside the exact same glass container.
-    FloatingTopBar(
-        title = {
-            // User-reported: was headlineSmall — every other screen's title
-            // (via FloatingTopBar, Dashboard being the cited reference) renders
-            // at titleLarge; FloatingTopBar's own ProvideTextStyle already
-            // applies titleLarge, so this no longer needs its own style override.
-            Text(stringResource(R.string.diary_header), color = OnBackground, fontWeight = FontWeight.Bold)
-        },
-        hazeState = hazeState,
-        modifier = Modifier.align(Alignment.TopCenter),
-        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
-        hasNavigationIcon = !isTabRoot,
-        accent = AccentCoral,
-        extraContent = {
-                // User-reported (2nd round): the single button below (showing only the
+    // User-reported (2nd round): the single button below (showing only the
                 // active tab, everything else behind a DropdownMenu) read as "one tab"
                 // instead of a real tab row - MEALS/WEIGHT/WATER (the three most-used
                 // trackers) are now always-visible, real tab buttons; ACTIVITY/FASTING/
@@ -196,8 +171,6 @@ internal fun BoxScope.DiaryHeader(
                         }
                     }
                 }
-        },
-    )
 }
 
 /**

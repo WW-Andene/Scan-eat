@@ -11,7 +11,6 @@ import compose.icons.TablerIcons
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.saveable.Saver
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 
 internal enum class DiaryTab(val labelRes: Int, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
@@ -46,16 +45,3 @@ internal fun serializePrimaryDiaryTabs(tabs: List<DiaryTab>): String = tabs.join
  *  otherwise silently reset whichever Journal sub-tab (Weight/Water/Activity/
  *  Fasting/Treatment) the user was on back to Meals with no indication anything moved. */
 internal val DiaryTabSaver = Saver<DiaryTab, String>(save = { it.name }, restore = { DiaryTab.valueOf(it) })
-
-// Taller than FloatingTopBarHeight (title row + tab row, not just a single
-// title row) - not including the device's own status-bar inset, which is
-// added separately via windowInsetsPadding below, same as FloatingTopBar/
-// BiolismScreen's own equivalent constant.
-//
-// User-reported: bumped +52dp after DiaryHeader's own outer margin was fixed
-// to match FloatingTopBar's 1(sides):2(top/bottom) ratio (FloatingChromeMargin,
-// vertical=32dp each edge) instead of its previous ad-hoc Spacing.S(6dp) -
-// this hardcoded approximation of the header's real measured height needed
-// the same +26dp top / +26dp bottom the margin change actually added, or
-// content below would start sliding up under the now-taller header.
-internal val DiaryHeaderHeight = 128.dp + 48.dp

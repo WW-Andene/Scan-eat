@@ -248,6 +248,18 @@ fun FloatingScreenScaffold(
     actions: @Composable RowScope.() -> Unit = {},
     accent: Color = Color.White,
     showBottomNavClearance: Boolean = false,
+    // User-requested: "exactement le même [header] en tout point" - Journal
+    // previously reimplemented this entire scaffold by hand (its own Box/
+    // hazeSource/topInset-bottomInset wiring) purely to fit its tab row,
+    // instead of calling this composable like every other bottom-nav-tab
+    // screen (Dashboard included). extraContent/extraContentHeight let a
+    // caller add FloatingTopBar's own extra-row slot (see that composable's
+    // own doc comment) through this wrapper too, so a tab row no longer
+    // forces a screen to opt out of the shared scaffold at all.
+    // extraContentHeight sizes the content's own top clearance to match -
+    // FloatingTopBarHeight alone assumes the title-row-only case.
+    extraContent: (@Composable ColumnScope.() -> Unit)? = null,
+    extraContentHeight: Dp = 0.dp,
     // Mirrors Scaffold's own snackbarHost slot — a handful of screens show a
     // SnackbarHost here (e.g. undo-delete, action-failed toasts); rendered as
     // its own bottom-center overlay so callers don't each have to re-solve
@@ -275,7 +287,7 @@ fun FloatingScreenScaffold(
             Box(Modifier.fillMaxSize().hazeSource(headerHazeState)) {
                 content(
                     PaddingValues(
-                        top    = topInset + FloatingTopBarHeight,
+                        top    = topInset + FloatingTopBarHeight + extraContentHeight,
                         bottom = bottomInset + if (showBottomNavClearance) FloatingBottomNavHeight else 0.dp,
                     ),
                 )
@@ -288,6 +300,7 @@ fun FloatingScreenScaffold(
             hasNavigationIcon = hasNavigationIcon,
             actions           = actions,
             accent            = accent,
+            extraContent      = extraContent,
             modifier          = Modifier.align(Alignment.TopCenter),
         )
         // Previously omitted "+ bottomInset" here even though content's own

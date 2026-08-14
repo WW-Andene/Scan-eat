@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.diary
 
+import compose.icons.tablericons.ArrowLeft
 import compose.icons.tablericons.Plus
 import compose.icons.TablerIcons
 import androidx.compose.foundation.layout.*
@@ -10,15 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
 import fr.scanneat.R
 import fr.scanneat.presentation.activity.ActivityScreen
 import fr.scanneat.presentation.diary.components.AddDiaryEntryDialog
-import fr.scanneat.presentation.diary.components.DiaryHeader
-import fr.scanneat.presentation.diary.components.DiaryHeaderHeight
+import fr.scanneat.presentation.diary.components.DiaryTabRow
 import fr.scanneat.presentation.diary.components.DiaryTab
 import fr.scanneat.presentation.diary.components.DiaryTabSaver
 import fr.scanneat.presentation.diary.components.MealsTab
@@ -38,12 +37,11 @@ import fr.scanneat.presentation.weight.WeightScreen
  * (this screen's original scope), weight, water, activity, and fasting.
  * These used to be scattered across Dashboard's launcher-tile grid, one tap
  * removed from a screen that was supposed to be a glance-and-go overview,
- * not a hub. Internal tab-row pattern mirrors BiolismScreen's: title + tab
- * row merged into one floating glass header (own HazeState/hazeEffect)
- * instead of FloatingScreenScaffold's title-only bar with a second, flat,
- * non-blurred ScanEatCard underneath for the tabs - that arrangement let
- * scrolled content clip hard against the tab card's opaque edge instead of
- * fading/blurring under it like every other floating chrome in the app.
+ * not a hub. User-requested: uses FloatingScreenScaffold directly, the exact
+ * same call Dashboard makes, with the tab row riding in its extraContent slot
+ * (see FloatingTopBar's own doc comment) - previously a bespoke reimplementation
+ * of that same chrome by hand, which is exactly how this header kept drifting
+ * from the real standard over several rounds of separate fixes.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,30 +115,38 @@ fun DiaryScreen(
             viewModel.clearLoggedDuringFast()
         }
     }
-    val hazeState = remember { HazeState() }
-    val bottomNavHazeState = LocalBottomNavHazeState.current
-    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val bottomClearance = bottomInset + FloatingBottomNavHeight
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .hazeSource(bottomNavHazeState)
-            .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
-    ) {
-        // No Modifier.padding here (previously top/bottom padded this whole Box) -
-        // that would shrink this Box's own layout bounds, meaning each tab's
-        // LazyColumn could never draw above/below those bounds even while
-        // scrolling, permanently leaving nothing for the floating header/nav to
-        // blur over. topPadding/bottomClearance below are threaded into each
-        // tab's own LazyColumn contentPadding instead, so scrolled items visually
-        // start below/above the chrome but can still scroll into those regions.
-        val topPadding = topInset + DiaryHeaderHeight
+    // User-requested: "j'ai dit exactement le même [header] en tout point" -
+    // calls FloatingScreenScaffold directly now, the exact same composable
+    // Dashboard calls, instead of hand-rolling its own Box/hazeSource/inset
+    // wiring purely to fit a tab row. extraContent is FloatingTopBar's own
+    // slot for exactly this (see its own doc comment); extraContentHeight
+    // (64dp, base-2 scale) reserves the tab row's own height in content's
+    // top padding since FloatingTopBarHeight alone only accounts for the
+    // title row.
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.diary_header), color = OnBackground) },
+        navigationIcon = {
+            if (!isTabRoot) {
+                IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) }
+            }
+        },
+        hasNavigationIcon = !isTabRoot,
+        showBottomNavClearance = isTabRoot,
+        extraContent = {
+            DiaryTabRow(
+                activeTab = activeTab,
+                onTabChange = { activeTab = it },
+                primaryTabs = primaryTabs,
+                onPrimaryTabsChange = { viewModel.setPrimaryDiaryTabsOrder(serializePrimaryDiaryTabs(it)) },
+            )
+        },
+        extraContentHeight = 64.dp,
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
+    ) { padding ->
+        val topPadding = padding.calculateTopPadding()
+        val bottomClearance = padding.calculateBottomPadding()
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeSource(hazeState),
+            Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
         ) {
             when (activeTab) {
                 DiaryTab.MEALS    -> MealsTab(viewModel, snackbarHostState, topPadding = topPadding, bottomPadding = bottomClearance, onOpenProductDetail = onOpenResult)
@@ -153,33 +159,19 @@ fun DiaryScreen(
                 DiaryTab.SLEEP    -> SleepScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.MOOD     -> MoodScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
             }
-        }
 
-        DiaryHeader(
-            hazeState = hazeState,
-            isTabRoot = isTabRoot,
-            onBack = onBack,
-            activeTab = activeTab,
-            onTabChange = { activeTab = it },
-            primaryTabs = primaryTabs,
-            onPrimaryTabsChange = { viewModel.setPrimaryDiaryTabsOrder(serializePrimaryDiaryTabs(it)) },
-        )
-
-        // Only Meals has a manual "search and log" entry point — the other tabs
-        // (weight/water/activity/fasting) each already have their own add
-        // affordance (a "+" button in their own embedded screen).
-        if (activeTab == DiaryTab.MEALS) {
-            FloatingActionButton(
-                onClick = { showAddEntry = true },
-                containerColor = AccentCoral,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomClearance + Spacing.L, end = Spacing.L),
-            ) {
-                Icon(TablerIcons.Plus, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
+            // Only Meals has a manual "search and log" entry point — the other tabs
+            // (weight/water/activity/fasting) each already have their own add
+            // affordance (a "+" button in their own embedded screen).
+            if (activeTab == DiaryTab.MEALS) {
+                FloatingActionButton(
+                    onClick = { showAddEntry = true },
+                    containerColor = AccentCoral,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomClearance + Spacing.L, end = Spacing.L),
+                ) {
+                    Icon(TablerIcons.Plus, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
+                }
             }
-        }
-
-        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = bottomClearance)) {
-            ScanEatSnackbarHost(snackbarHostState)
         }
     }
 
