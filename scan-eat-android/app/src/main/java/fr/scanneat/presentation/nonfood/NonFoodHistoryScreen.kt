@@ -100,7 +100,7 @@ fun NonFoodHistoryScreen(viewModel: NonFoodHistoryViewModel = hiltViewModel(), o
 private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Unit, onDelete: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = PrismFillColor,
+        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
@@ -154,7 +154,7 @@ private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Uni
             IconButton(onClick = onToggleFavorite) {
                 Icon(
                     TablerIcons.Heart, stringResource(R.string.common_favorite),
-                    tint = if (item.favorite) AccentCoral else OnBackgroundMuted,
+                    tint = if (item.favorite) AccentCoral else OnBackground.copy(0.4f),
                 )
             }
             IconButton(onClick = onDelete) { Icon(TablerIcons.Trash, stringResource(R.string.common_delete), tint = OnBackground.copy(0.5f)) }

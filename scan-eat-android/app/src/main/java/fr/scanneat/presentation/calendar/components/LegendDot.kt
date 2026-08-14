@@ -18,7 +18,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 
 @Composable
 internal fun LegendDot(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
         Box(Modifier.size(6.dp).clip(CircleShape).background(color))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
     }

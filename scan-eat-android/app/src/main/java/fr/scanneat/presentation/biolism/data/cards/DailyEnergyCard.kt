@@ -22,12 +22,8 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
         badge = { if (s.ketosisOn) TealBadge(stringResource(R.string.biolism_energy_keto_badge, ((1.0 - met.ketoSupprFactor) * 100).toInt())) }
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.S)) {
-            Text(stringResource(R.string.biolism_energy_tdee_label), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted, letterSpacing = 1.sp)
-            // User-requested: hero-number sizes snapped onto the type scale's
-            // own display/headline steps (44/40/36/32/28/24) - 34sp matched
-            // none of them, nearest is 32sp (headlineLarge, the same tier
-            // CalorieBalanceCard's equivalent dominant number already uses).
-            Text(met.tdeeDay.formatDecimal(), style = HeroNumberStyle.copy(fontSize = 32.sp), color = Gold)
+            Text(stringResource(R.string.biolism_energy_tdee_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), letterSpacing = 1.sp)
+            Text(met.tdeeDay.formatDecimal(), style = HeroNumberStyle.copy(fontSize = 34.sp), color = Gold)
             Text(stringResource(R.string.biolism_energy_tdee_sub, met.tdeeDay / met.bmrDay.coerceAtLeast(1.0)), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         }
         // Previously the bare English activityMeta.label/.note regardless of app language.

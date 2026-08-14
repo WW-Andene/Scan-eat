@@ -72,7 +72,7 @@ fun PhysiologicalMetricsCard(
                     // resting-to-max-effort human heart rates with margin either side.
                     value = hrText, onValueChange = { hrText = it; it.toIntOrNull()?.let { bpm -> if (bpm in 30..300) onSaveManualHR(bpm) } },
                     label = { Text(stringResource(R.string.biolism_physio_hr_input_label)) }, singleLine = true,
-                    modifier = Modifier.width(128.dp), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.width(140.dp), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     // design-aesthetic-audit §DC3: cursorColor/focusedLabelColor weren't
                     // set, so both fell back to Material's default primary (Gold in this
                     // theme) while the border was explicitly Violet - a focused field
@@ -93,7 +93,7 @@ fun PhysiologicalMetricsCard(
                             style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold,
                             color = if (abs(diff) <= 10) semanticGreen() else if (abs(diff) <= 20) semanticAmber() else semanticRed())
                         Text(stringResource(R.string.biolism_physio_sv_implied, met.vo2PerMin * 1000 / (mhr * 0.05)),
-                            style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
+                            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                     }
                 }
             }

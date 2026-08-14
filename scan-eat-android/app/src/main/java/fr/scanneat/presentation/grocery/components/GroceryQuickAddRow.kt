@@ -26,7 +26,7 @@ internal fun GroceryQuickAddRow(quickAddText: String, onQuickAddTextChange: (Str
             value = quickAddText,
             onValueChange = onQuickAddTextChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text(stringResource(R.string.grocery_quick_add_placeholder), color = OnBackgroundMuted) },
+            placeholder = { Text(stringResource(R.string.grocery_quick_add_placeholder), color = OnBackground.copy(0.4f)) },
             singleLine = true,
             shape = RoundedCornerShape(CardRadius.CONTROL),
             colors = scanEatTextFieldColors(),
@@ -58,7 +58,7 @@ internal fun GroceryFrequentSuggestionsRow(suggestions: List<String>, onAdd: (St
                 label = { Text(name, style = MaterialTheme.typography.labelMedium) },
                 shape = RoundedCornerShape(CardRadius.BADGE),
                 colors = SuggestionChipDefaults.suggestionChipColors(
-                    containerColor = dialogContainerColor,
+                    containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
                     labelColor = OnSurface,
                 ),
                 border = null,

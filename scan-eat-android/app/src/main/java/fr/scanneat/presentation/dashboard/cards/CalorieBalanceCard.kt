@@ -36,11 +36,7 @@ import kotlin.math.roundToInt
 internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStreak: Int = 0) {
     val isSurplus = balance.net > 200
     val isDeficit = balance.net < -50
-    // User-reported (§E8 audit, emotional safety): a calorie surplus is often
-    // a perfectly normal day, not a safety flag - alarm-red read as
-    // judgmental. Amber (the same tone already used for the "balanced"
-    // state) keeps this informational instead of alarming.
-    val balColor = if (isSurplus) semanticAmber() else if (isDeficit) AccentCoral else semanticAmber()
+    val balColor = if (isSurplus) semanticRed() else if (isDeficit) AccentCoral else semanticAmber()
     val statusRes = if (isSurplus) R.string.dashboard_calorie_surplus
         else if (isDeficit) R.string.dashboard_calorie_deficit
         else R.string.dashboard_calorie_balanced
@@ -67,7 +63,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
     // Box carrying shadow, clip, and the glassSheen hairline in a single chain.
     Box(
         modifier = Modifier.fillMaxWidth()
-            .shadow(elevation = 12.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
+            .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
             .clip(RoundedCornerShape(CardRadius.PROMINENT))
             .glassSheen(
                 edgeAlpha = HeroGlassSpec.edgeAlpha,
@@ -83,8 +79,8 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         Box(
             Modifier
                 .matchParentSize()
-                .offset(x = -8.dp, y = 8.dp)
-                .blur(12.dp)
+                .offset(x = -7.dp, y = 9.dp)
+                .blur(10.dp)
                 .background(ShadowTint.copy(alpha = 0.4f), RoundedCornerShape(CardRadius.PROMINENT)),
         )
         // This is the Dashboard's one focal metric — the Part B6 atmosphere
@@ -99,7 +95,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             Box {
                 // User-reported: a visibly separate, lighter rounded rectangle
                 // floating inside this card - same root cause as ScanEatCard.kt's
-                // own fix (see its doc comment): blur(2.dp) below had nothing
+                // own fix (see its doc comment): blur(3.dp) below had nothing
                 // behind it to actually blur, so it faded the opaque fill inward
                 // from its own clipped edge, shrinking it to a smaller box sitting
                 // inside the card's real boundary. Dropped, same fix.
@@ -107,7 +103,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                     // User-requested: one standard glass config app-wide - see
                     // StandardCardAlpha's own doc comment (ScanEatCard.kt).
                     Modifier.matchParentSize().clip(RoundedCornerShape(CardRadius.PROMINENT))
-                        .background(PrismFillColor),
+                        .background(SurfaceVariant.copy(alpha = StandardCardAlpha)),
                 )
                 Column(
                     modifier = Modifier
@@ -137,7 +133,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(stringResource(R.string.dashboard_calorie_balance_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(sourceRes), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted)
+                    Text(stringResource(sourceRes), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
                 }
 
                 Text(
@@ -156,8 +152,8 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 val pct = (balance.kcalIn / effectiveTdee).toFloat().coerceIn(0f, 1.2f)
                 LinearProgressIndicator(
                     progress   = { pct.coerceIn(0f, 1f) },
-                    modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(2.dp)),
-                    color      = if (isSurplus) semanticAmber() else AccentCoral,
+                    modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                    color      = if (isSurplus) semanticRed() else AccentCoral,
                     trackColor = SurfaceVariant.copy(alpha = 0.3f),
                 )
                 Text(
@@ -170,7 +166,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 if (longestStreak > streak) {
                     Text(
                         pluralStringResource(R.plurals.dashboard_streak_record, longestStreak, longestStreak),
-                        style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted,
+                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f),
                     )
                 }
                 // Activité previously had zero visible connection to this card - a
@@ -179,7 +175,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 if (balance.exerciseKcal > 0) {
                     Text(
                         stringResource(R.string.dashboard_calorie_exercise, balance.exerciseKcal),
-                        style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted,
+                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f),
                     )
                 }
                 // User-requested: is logged activity actually connected to the calorie
@@ -201,10 +197,8 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         Surface(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                // User-requested: all sizes must sit on a base-2 scale
-                // (2/4/6/8/12/16/24/32/48/64/96/128) - 10dp isn't a member, snapped to 12dp.
-                .offset(x = 8.dp, y = (-12).dp)
-                .size(48.dp)
+                .offset(x = 8.dp, y = (-10).dp)
+                .size(46.dp)
                 .shadow(elevation = 6.dp, shape = RoundedCornerShape(50)),
             shape = RoundedCornerShape(50),
             color = AccentCoral,
@@ -212,14 +206,6 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Verification pass: flagged as an off-scale HeroNumberStyle
-                    // fontSize (44/40/36/32/28/24 are the display/headline
-                    // scale steps that fix targeted) - but this is a small
-                    // digit inside a 48dp circular badge, not a dominant "hero"
-                    // number; HeroNumberStyle is reused here only for its Black
-                    // weight/tabular-figures, at a size that actually fits the
-                    // badge. Left as a documented exception rather than forced
-                    // onto a scale step meant for a much larger role.
                     Text("$streak", style = HeroNumberStyle.copy(fontSize = 14.sp), color = Color.Black)
                     Text(
                         pluralStringResource(R.plurals.dashboard_streak_unit, streak),

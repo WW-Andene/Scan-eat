@@ -87,7 +87,7 @@ fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile:
         if (modifiers.isNotEmpty()) {
             Spacer(Modifier.height(Spacing.S))
             TintedPanel(OnBackground) {
-                Label(stringResource(R.string.biolism_hormones_modifiers_title), OnBackgroundMuted)
+                Label(stringResource(R.string.biolism_hormones_modifiers_title), OnBackground.copy(0.4f))
                 modifiers.forEach { (label, tags, color) ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))

@@ -29,7 +29,7 @@ internal fun ActivityGoalEditorDialog(
     val goalValid = goalText.toIntOrNull()?.let { it in 1..2000 } == true
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.activity_edit_goal_title), color = OnBackground) },

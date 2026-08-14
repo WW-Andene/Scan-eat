@@ -39,7 +39,7 @@ internal fun AssignSlotDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.mealplan_assign_title, mealLabel), color = OnBackground) },

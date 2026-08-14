@@ -132,7 +132,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
         Text(
             stringResource(R.string.biolism_health_score_footer),
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-            color = OnSurfaceMuted,
+            color = OnSurface.copy(0.4f),
         )
     }
     }

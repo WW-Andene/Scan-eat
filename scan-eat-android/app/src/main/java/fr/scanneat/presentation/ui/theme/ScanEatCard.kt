@@ -83,28 +83,15 @@ val CameraOverlayDialogAlpha: Float @Composable get() = if (isLightBackground())
 val PrismFillColor: Color get() = Color.White.copy(alpha = 0.25f)
 val PrismBorderAlpha: Float = 0.28f
 
-/**
- * Design audit (§E3): every AlertDialog/popup container in the app
- * independently wrote `SurfaceVariant.copy(alpha = StandardCardAlpha)` -
- * the exact "not transparent, not standard" gap this file's own
- * [PrismFillColor] doc comment already fixed for cards/chrome, just never
- * applied to dialogs. One shared helper instead of ~50 call sites each
- * needing the same fill added individually.
- */
-val dialogContainerColor: Color
-    @Composable get() = PrismFillColor
-
 // internal (not private) so a card that can't use ScanEatCard directly - e.g.
 // CalorieBalanceCard, which overlays a streak badge on the outer Box via
 // BoxScope.align, a slot ScanEatCard's content: ColumnScope.() -> Unit
 // doesn't expose - can still render at the HERO tier without re-declaring
 // (and risking drifting from) these same numbers as separate literals.
 internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val elevation: Dp)
-internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, elevation = 12.dp)
+internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, elevation = 10.dp)
 private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, elevation = 6.dp)
-// User-requested: all sizes must sit on a base-2 scale
-// (2/4/6/8/12/16/24/32/48/64/96/128) - 3dp isn't a member, snapped to 2dp.
-private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 2.dp)
+private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 3.dp)
 
 /**
  * The app's one card primitive — a translucent fill with a hairline top-edge
@@ -149,7 +136,7 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
 fun ScanEatCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(CardRadius.CARD),
-    color: Color = PrismFillColor,
+    color: Color = SurfaceVariant.copy(alpha = StandardCardAlpha),
     contentPadding: PaddingValues = PaddingValues(Spacing.L),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
@@ -165,17 +152,26 @@ fun ScanEatCard(
     }
     val interactionSource = remember { MutableInteractionSource() }
     val indication = LocalIndication.current
-    // User-requested: every card app-wide uses the same faint frosted-glass
-    // tint - [PrismFillColor] (0.25, white hue) - instead of each theme
-    // picking its own opaque [color] fill, so they all read as one
-    // consistent glass system (FeatureTile, FloatingTopBar, MainShell's
-    // bottom nav, dialogs, and every other card share the same treatment).
-    // The border alpha is brightened to match ([PrismBorderAlpha]) for the
-    // same legibility reason.
+    // User-reported: "pourquoi les carte ne sont pas transparentes" (Prism
+    // theme) - the whole point of that theme's full-bleed background image
+    // (ambientGloom's isPrism branch, Glass.kt) is for it to show through;
+    // every other theme keeps its own considered [color] fill. User-reported
+    // round 2: fully Color.Transparent, paired with the border's already-low
+    // 0.14 alpha, left the card with no visible fill or edge at all against
+    // Prism's busy polygon artwork - a card that reads as "nothing here"
+    // instead of "a card." A faint frosted-glass tint (not the opaque
+    // [color] every other theme uses) keeps the background legible through
+    // it while still giving the card a visible boundary/fill, and the
+    // border is brightened to match for the same legibility reason.
+    // User-requested: 0.10, then 0.20, still too faint - now [PrismFillColor]
+    // (0.25, same white hue) shared with every other piece of card-style
+    // chrome in the app (FeatureTile, FloatingTopBar, MainShell's bottom
+    // nav) so they all read as one consistent glass system.
+    val isPrism = LocalThemeName.current == "prism"
     val hairlineBrush = Brush.horizontalGradient(
         colors = listOf(Color.Transparent, Color.White.copy(alpha = spec.edgeAlpha), Color.Transparent),
     )
-    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = PrismBorderAlpha)
+    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = if (isPrism) PrismBorderAlpha else 0.14f)
     // User-reported: putting the chrome (clip/background/border/hairline) AND
     // the content layout on the exact same Column node made the fill read as
     // "masked" wherever content sat - the card's own paint and the content's
@@ -188,8 +184,8 @@ fun ScanEatCard(
         modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(color, shape)
-            .border(BorderStroke(2.dp, borderColor), shape)
+            .background(if (isPrism) PrismFillColor else color, shape)
+            .border(BorderStroke(1.dp, borderColor), shape)
             .drawWithCache {
                 onDrawWithContent {
                     drawContent()

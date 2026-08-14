@@ -40,16 +40,15 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.IconSize
-import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 // RecipeComponent isn't a type rememberSaveable's default Bundle-backed Saver knows
 // how to store - round-tripping through the same Moshi JSON adapter shape
@@ -102,7 +101,7 @@ internal fun AddRecipeDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (isEdit) R.string.recipes_edit_dialog_title else R.string.recipes_add_dialog_title), color = OnBackground) },
@@ -150,7 +149,7 @@ internal fun AddRecipeDialog(
                 if (selectedFood == null && newIngName.isNotBlank()) {
                     Text(
                         stringResource(R.string.recipes_manual_ingredient_hint),
-                        style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted,
+                        style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f),
                     )
                 }
                 // FOOD_DB + custom-food search results - previously this dialog had no

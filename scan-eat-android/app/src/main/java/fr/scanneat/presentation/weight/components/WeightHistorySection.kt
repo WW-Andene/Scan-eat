@@ -108,7 +108,7 @@ internal fun WeightSummaryCard(
                 Text(stringResource(R.string.weight_bmi_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                     Text(bmi.formatDecimal(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = bmiColor)
-                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = bmiColor.copy(0.15f), border = BorderStroke(2.dp, bmiColor.copy(alpha = STATUS_BORDER_ALPHA))) {
+                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = bmiColor.copy(0.15f), border = BorderStroke(1.dp, bmiColor.copy(alpha = STATUS_BORDER_ALPHA))) {
                         Text(bmiLabel, style = MaterialTheme.typography.labelSmall, color = bmiColor, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2))
                     }
                 }
@@ -205,7 +205,7 @@ internal fun WeeklyAverageCard(thisWeek: Double, lastWeek: Double, useImperial: 
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = PrismFillColor,
+        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth()
             .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
@@ -246,11 +246,11 @@ internal fun WeightEntryRow(entry: WeightEntry, delta: Double?, useImperial: Boo
             Column(Modifier.weight(1f)) {
                 Text(e.date.format(fmt), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                 if (e.notes.isNotBlank()) {
-                    Text(e.notes, style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted)
+                    Text(e.notes, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
                 }
             }
             if (delta != null) {
-                val dColor = if (delta < -0.05) semanticGreen() else if (delta > 0.05) semanticRed() else OnSurfaceMuted
+                val dColor = if (delta < -0.05) semanticGreen() else if (delta > 0.05) semanticRed() else OnSurface.copy(0.4f)
                 val sign = if (delta >= 0) "+" else ""
                 Text(
                     "$sign${(if (useImperial) delta * KG_TO_LB else delta).formatDecimal()}",

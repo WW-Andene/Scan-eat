@@ -175,7 +175,7 @@ fun SleepScreen(
 private fun SleepHistoryRow(entry: SleepEntry, onDelete: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = PrismFillColor,
+        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(

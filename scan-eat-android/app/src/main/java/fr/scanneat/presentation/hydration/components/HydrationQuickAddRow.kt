@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.ML_TO_FLOZ
@@ -99,7 +98,7 @@ private fun HydrationCustomAmountDialog(useImperial: Boolean, onConfirm: (Int) -
     val ml = typed?.let { if (useImperial) (it / ML_TO_FLOZ).roundToInt() else it }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.hydration_quick_add_custom_title), color = OnBackground) },

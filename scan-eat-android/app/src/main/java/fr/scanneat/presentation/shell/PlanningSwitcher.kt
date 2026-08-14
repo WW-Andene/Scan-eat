@@ -16,14 +16,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
-import fr.scanneat.presentation.ui.theme.reportWidthTo
 
 /**
  * Recipes, Meal Templates, Meal Plan, Grocery, and Custom Foods constantly
@@ -46,11 +43,10 @@ enum class PlanningDestination(val labelRes: Int, val icon: ImageVector) {
 @Composable
 fun PlanningSwitcherMenu(current: PlanningDestination, onNavigate: (PlanningDestination) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    var triggerWidth by remember { mutableStateOf(0.dp) }
-    IconButton(onClick = { expanded = true }, modifier = Modifier.reportWidthTo { triggerWidth = it }) {
+    IconButton(onClick = { expanded = true }) {
         Icon(Icons.Default.SwapHoriz, stringResource(R.string.planning_switcher_cd), tint = OnBackground)
     }
-    ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, anchorWidth = triggerWidth) {
+    ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
         PlanningDestination.entries.filter { it != current }.forEach { dest ->
             DropdownMenuItem(
                 text = { Text(stringResource(dest.labelRes)) },

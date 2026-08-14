@@ -41,7 +41,6 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
-import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 @Composable
 internal fun ReminderRow(
@@ -66,7 +65,7 @@ internal fun ReminderRow(
                 OutlinedTextField(
                     value = labelText,
                     onValueChange = { labelText = it; onLabelChange(it) },
-                    placeholder = { Text(defaultLabel, style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted) },
+                    placeholder = { Text(defaultLabel, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f)) },
                     modifier = Modifier.weight(1f).padding(end = Spacing.S),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium,
@@ -78,7 +77,7 @@ internal fun ReminderRow(
             OutlinedTextField(
                 value = timeText,
                 onValueChange = { timeText = it; if (runCatching { java.time.LocalTime.parse(it) }.isSuccess) onTimeChange(it) },
-                modifier = Modifier.width(96.dp),
+                modifier = Modifier.width(90.dp),
                 singleLine = true,
                 isError = !isValid,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
@@ -117,7 +116,7 @@ internal fun CustomReminderRow(
         OutlinedTextField(
             value = timeText,
             onValueChange = { timeText = it; if (runCatching { java.time.LocalTime.parse(it) }.isSuccess) onUpdate(reminder.copy(time = it)) },
-            modifier = Modifier.width(96.dp),
+            modifier = Modifier.width(90.dp),
             singleLine = true,
             isError = !isValid,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),

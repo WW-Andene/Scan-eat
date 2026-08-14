@@ -54,7 +54,7 @@ internal fun StartFastForm(
             OutlinedTextField(
                 value = customStart, onValueChange = onCustomStartChange,
                 label = { Text(stringResource(R.string.fasting_custom_start_label)) },
-                singleLine = true, modifier = Modifier.width(96.dp),
+                singleLine = true, modifier = Modifier.width(110.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
                 isError = showError,
                 // app-audit §E6: had no colors at all - fell back fully to Material's
@@ -65,7 +65,7 @@ internal fun StartFastForm(
             OutlinedTextField(
                 value = customEnd, onValueChange = onCustomEndChange,
                 label = { Text(stringResource(R.string.fasting_custom_end_label)) },
-                singleLine = true, modifier = Modifier.width(96.dp),
+                singleLine = true, modifier = Modifier.width(110.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
                 isError = showError,
                 colors = scanEatTextFieldColors(),

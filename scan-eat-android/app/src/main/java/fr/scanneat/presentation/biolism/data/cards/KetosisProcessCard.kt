@@ -22,7 +22,7 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult, lang: String = "fr")
     val phaseColor = colorFromToken(phase.colorToken)
     BioCard(stringResource(R.string.biolism_ketoproc_title), badge = { Badge(phase.label.uppercase(), phaseColor) }) {
         Text(formatDuration(s.ketoElapsedMs), style = HeroNumberStyle.copy(fontSize = 24.sp), color = phaseColor)
-        Text(stringResource(R.string.biolism_ketoproc_elapsed_label), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
+        Text(stringResource(R.string.biolism_ketoproc_elapsed_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
         Spacer(Modifier.height(Spacing.S))
         Text(phase.description, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         Spacer(Modifier.height(Spacing.S))
@@ -31,7 +31,7 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult, lang: String = "fr")
             modifier = Modifier.fillMaxWidth().height(4.dp),
             color = phaseColor, trackColor = OnBackground.copy(0.06f),
         )
-        Spacer(Modifier.height(Spacing.M))
+        Spacer(Modifier.height(10.dp))
         MetCellGrid(
             listOf(
                 Triple(stringResource(R.string.biolism_ketoproc_time_label), formatDuration(s.ketoElapsedMs), ""),

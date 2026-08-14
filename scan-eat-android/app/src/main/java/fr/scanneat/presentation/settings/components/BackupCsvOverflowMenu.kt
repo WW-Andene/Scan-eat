@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Table
 import fr.scanneat.R
@@ -23,7 +22,6 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
 import fr.scanneat.presentation.ui.theme.ScanEatOutlinedButton
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.reportWidthTo
 
 /**
  * Weight/Activity/Hydration/Medication/Fasting/Prices/CustomFoods/MealTemplates/
@@ -52,17 +50,15 @@ internal fun BackupCsvOverflowMenu(
 ) {
     var moreCsvExpanded by remember { mutableStateOf(false) }
     Box {
-        var triggerWidth by remember { mutableStateOf(0.dp) }
         ScanEatOutlinedButton(
             onClick = { moreCsvExpanded = true },
             enabled = enabled,
-            modifier = Modifier.reportWidthTo { triggerWidth = it },
         ) {
             Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
             Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
         }
-        ScanEatDropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, anchorWidth = triggerWidth) {
+        ScanEatDropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }) {
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
                 onClick = { moreCsvExpanded = false; onPrepareWeightCsvExport() })
             DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },

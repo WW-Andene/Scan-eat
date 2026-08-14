@@ -85,7 +85,7 @@ internal fun AddWeightDialog(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).clickable(onClick = onPickDate),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     color = Color.Transparent,
-                    border = BorderStroke(2.dp, OnBackground.copy(0.2f)),
+                    border = BorderStroke(1.dp, OnBackground.copy(0.2f)),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.M),
@@ -108,7 +108,7 @@ internal fun AddWeightDialog(
             ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
@@ -178,7 +178,7 @@ internal fun WeightGoalEditorDialog(
     fun confirm() { if (isValid) onConfirm(kgValue) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.weight_goal_dialog_title), color = OnBackground) },

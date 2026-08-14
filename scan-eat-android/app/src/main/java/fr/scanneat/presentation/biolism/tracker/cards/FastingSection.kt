@@ -30,7 +30,7 @@ internal fun FastingRow(
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (active && fastingHours > 0) VioletHaze else VioletTrace,
-        border = BorderStroke(2.dp, if (active && fastingHours > 0) VioletBorder else VioletTrace),
+        border = BorderStroke(1.dp, if (active && fastingHours > 0) VioletBorder else VioletTrace),
         // art-direction-engine §CARDS: top-level Biolism tracker card with no
         // shadowElevation at all, unlike the rest of the card system.
         shadowElevation = 0.dp,
@@ -51,7 +51,7 @@ internal fun FastingRow(
                 if (active) {
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         if (fastFmt != null) {
-                            Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = VioletHaze, border = BorderStroke(2.dp, VioletGlow)) {
+                            Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = VioletHaze, border = BorderStroke(1.dp, VioletGlow)) {
                                 Text(fastFmt, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                                     style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold)
                             }
@@ -60,7 +60,7 @@ internal fun FastingRow(
                             modifier = Modifier.clip(RoundedCornerShape(CardRadius.BADGE)).clickable { onLogMeal() },
                             shape = RoundedCornerShape(CardRadius.BADGE),
                             color = VioletHaze,
-                            border = BorderStroke(2.dp, Violet.copy(alpha = CHIP_BORDER_ALPHA)),
+                            border = BorderStroke(1.dp, Violet.copy(alpha = CHIP_BORDER_ALPHA)),
                         ) {
                             Text(stringResource(R.string.biolism_fasting_log_meal), modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                                 style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold)
@@ -92,7 +92,7 @@ internal fun FastingRow(
                     modifier = Modifier.clip(RoundedCornerShape(CardRadius.BADGE)).clickable { onImportRealFast() },
                     shape = RoundedCornerShape(CardRadius.BADGE),
                     color = VioletHaze,
-                    border = BorderStroke(2.dp, Violet.copy(alpha = CHIP_BORDER_ALPHA)),
+                    border = BorderStroke(1.dp, Violet.copy(alpha = CHIP_BORDER_ALPHA)),
                 ) {
                     Text(
                         stringResource(R.string.biolism_fasting_import_real, realFastHours),

@@ -15,7 +15,6 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ErrorBanner
@@ -23,6 +22,7 @@ import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.ScanEatLoadingIndicator
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 
 @Composable
@@ -68,7 +68,7 @@ internal fun RecipesImportStateDialogs(
         when (importState) {
             is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
                 onDismissRequest = {},
-                containerColor = dialogContainerColor,
+                containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 text = {
@@ -81,7 +81,7 @@ internal fun RecipesImportStateDialogs(
             )
             is RecipesViewModel.ImportUiState.Error -> AlertDialog(
                 onDismissRequest = onClearImportState,
-                containerColor = dialogContainerColor,
+                containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 // F21 (docs/design-audit-step8-components-shape.md): was a bare

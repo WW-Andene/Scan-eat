@@ -34,7 +34,7 @@ internal fun SleepWeeklyChart(weeklyDuration: List<Pair<LocalDate, Double>>, goa
     val peak = weeklyDuration.maxOfOrNull { it.second }?.coerceAtLeast(goalCoerced) ?: goalCoerced
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = PrismFillColor,
+        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
@@ -42,7 +42,7 @@ internal fun SleepWeeklyChart(weeklyDuration: List<Pair<LocalDate, Double>>, goa
     ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.sleep_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
-            Row(modifier = Modifier.fillMaxWidth().height(ChartRowHeight.COMPACT), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+            Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                 weeklyDuration.forEach { (date, hours) ->
                     val frac = (hours / peak).toFloat().coerceIn(0f, 1f)
                     val isToday = date == LocalDate.now()
@@ -59,7 +59,7 @@ internal fun SleepWeeklyChart(weeklyDuration: List<Pair<LocalDate, Double>>, goa
                         Modifier
                             .weight(1f)
                             .fillMaxHeight(if (frac == 0f) 0.05f else frac.coerceAtLeast(0.05f))
-                            .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
                             .background(color)
                             .semantics { contentDescription = barDescription },
                         contentAlignment = Alignment.TopCenter,

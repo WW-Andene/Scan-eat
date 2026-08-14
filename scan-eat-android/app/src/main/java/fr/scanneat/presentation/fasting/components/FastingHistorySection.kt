@@ -36,7 +36,7 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = PrismFillColor,
+        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth()
             .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
@@ -58,7 +58,7 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
                 fr.scanneat.presentation.calendar.components.LegendDot(semanticAmber().copy(0.7f), stringResource(R.string.fasting_legend_partial))
                 fr.scanneat.presentation.calendar.components.LegendDot(semanticRed().copy(0.5f), stringResource(R.string.fasting_legend_missed))
             }
-            Row(modifier = Modifier.fillMaxWidth().height(ChartRowHeight.COMPACT), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+            Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                 (6 downTo 0).forEach { daysBack ->
                     val date = today.minusDays(daysBack.toLong())
                     val dateKey = date.toString()
@@ -91,7 +91,7 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
                         Modifier
                             .weight(1f)
                             .fillMaxHeight(if (frac == 0f) 0.06f else frac.coerceAtLeast(0.06f))
-                            .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
                             .background(color)
                             .semantics { contentDescription = barDescription },
                     )
@@ -148,11 +148,11 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: St
             Surface(
                 modifier = Modifier.weight(1f)
                     .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = PrismFillColor,
+        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
                 shadowElevation = 0.dp,
             ) {
                 // fillMaxWidth() - without it this Column only wraps its widest

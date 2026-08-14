@@ -126,7 +126,7 @@ fun LogSheet(
         onDismissRequest = onDismiss,
         // User-requested: one standard glass config app-wide - see
         // StandardCardAlpha's own doc comment (ScanEatCard.kt).
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(shape),
         shape = shape,
         title = {

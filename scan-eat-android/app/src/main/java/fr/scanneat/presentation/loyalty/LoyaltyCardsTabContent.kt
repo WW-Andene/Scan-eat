@@ -59,7 +59,7 @@ fun LoyaltyCardsTabContent(viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
                 items(cards.value, key = { it.id }) { card ->
                     Card(
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(CardRadius.CONTROL),
-                        colors = CardDefaults.cardColors(containerColor = dialogContainerColor),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha)),
                     ) {
                         Row(
                             Modifier.fillMaxWidth().padding(Spacing.L),
@@ -89,7 +89,7 @@ fun LoyaltyCardsTabContent(viewModel: LoyaltyCardsViewModel = hiltViewModel()) {
     }
 
     if (showAddDialog) {
-        GlassAlertDialog(
+        AlertDialog(
             onDismissRequest = { showAddDialog = false },
             title = { Text(stringResource(R.string.loyalty_add)) },
             text = {

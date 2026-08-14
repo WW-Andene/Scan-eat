@@ -36,9 +36,8 @@ object Spacing {
     // used too consistently to be drift. Named here instead of snapped to S/M
     // so those call sites can move onto the token scale with zero visual change.
     val SM: Dp = 8.dp
-    // User-requested: all sizes must sit on a base-2 scale
-    // (2/4/6/8/12/16/24/32/48/64/96/128) - 10dp isn't a member, snapped to 12dp.
-    val M: Dp = 12.dp
+    // User-requested: standardized from 11dp to 10dp.
+    val M: Dp = 10.dp
     val L: Dp = 16.dp
     // User-requested: standardized from 23dp to 24dp (even).
     val XL: Dp = 24.dp
@@ -68,30 +67,3 @@ object Spacing {
  * read from inside that one composable, not duplicated per call site.
  */
 val DROPDOWN_MENU_GAP: Dp = Spacing.M
-
-/**
- * Design audit (§E2, visual rhythm): the app's ~8 "7-bar weekly chart"
- * components (Mood/Fasting/Hydration/Sleep/Medication/Activity/Dashboard's
- * weekly+monthly trend cards) each independently hardcoded a row height -
- * three different values (32/48/64dp) in live use for the same visual role,
- * none of them named. Six of the eight already agreed on 64dp and three on
- * 48dp; named both tiers here instead of picking one arbitrarily, and
- * Mood's 32dp (the one true outlier, matching none of its siblings) moves
- * to COMPACT.
- */
-object ChartRowHeight {
-    val COMPACT: Dp = 48.dp
-    val STANDARD: Dp = 64.dp
-}
-
-/**
- * Verification pass: `0.6.dp`/`1.6.dp` hairline dividers and selected-state
- * borders were independently hardcoded as the same two sub-pixel values in
- * 6 different files - the base-2 dp scale doesn't accommodate anything
- * this thin, so named here as the scale's one sanctioned exception instead
- * of leaving 6 undocumented copies of the same two magic numbers.
- */
-object BorderWidth {
-    val HAIRLINE: Dp = 0.6.dp
-    val SELECTED: Dp = 1.6.dp
-}

@@ -58,7 +58,7 @@ fun ScanEatSearchField(
         // TextSecondary (theme-tuned, clears 4.5:1 AA everywhere) fixes every
         // instance at once.
         placeholder = { Text(placeholder, style = MaterialTheme.typography.bodyMedium, color = TextSecondary) },
-        leadingIcon = { Icon(TablerIcons.Search, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
+        leadingIcon = { Icon(TablerIcons.Search, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(18.dp)) },
         trailingIcon = {
             // IconButton kept at its default 48dp touch target (Material/WCAG
             // minimum) even though the field itself is compacted - only the
@@ -67,7 +67,7 @@ fun ScanEatSearchField(
             // Diary tab row above.
             if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
-                    Icon(TablerIcons.X, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f), modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.X, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f), modifier = Modifier.size(18.dp))
                 }
             }
         },

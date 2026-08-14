@@ -53,10 +53,10 @@ internal fun HydrationRingAndControls(
     // rhythm, matching the outer LazyColumn's own Spacing.M gap.
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
     // Big ring
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(128.dp)) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(200.dp)) {
         Box(
             modifier = Modifier
-                .size(128.dp)
+                .size(200.dp)
                 .background(
                     Brush.radialGradient(listOf(semanticBlue().copy(alpha = 0.2f), Color.Transparent)),
                     CircleShape,
@@ -64,7 +64,7 @@ internal fun HydrationRingAndControls(
         )
         CircularProgressIndicator(
             progress = { pct.coerceIn(0f, 1f) },
-            modifier = Modifier.size(128.dp),
+            modifier = Modifier.size(180.dp),
             color = semanticBlue(),
             trackColor = SurfaceVariant,
             strokeWidth = 14.dp,
@@ -115,19 +115,19 @@ internal fun HydrationRingAndControls(
         // own comment) - collapsed into one Box.
         Box(
             Modifier
-                .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                 .clip(RoundedCornerShape(CardRadius.CONTROL))
                 .background(semanticGreen().copy(0.15f), RoundedCornerShape(CardRadius.CONTROL))
                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL)),
         ) {
             Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(IconSize.Compact))
+                Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
                 Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())
             }
         }
     }
 
-    // User-reported: this row's gap was a bare 24.dp literal, not one of the
+    // User-reported: this row's gap was a bare 20.dp literal, not one of the
     // app's Spacing tokens (XS/SM/M/L/XL/XXL) every other spacedBy() in the
     // app draws from - standardized to the nearest token.
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XL), verticalAlignment = Alignment.CenterVertically) {
@@ -135,26 +135,26 @@ internal fun HydrationRingAndControls(
             onClick = onRemoveGlass,
             containerColor = if (intakeMl > 0) SurfaceVariant else SurfaceVariant.copy(alpha = 0.4f),
             shape = CircleShape,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(56.dp),
         ) { Icon(TablerIcons.Minus, stringResource(R.string.common_remove), tint = if (intakeMl > 0) OnSurface else OnSurface.copy(0.3f)) }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.hydration_glass_ml, HYD_GLASS_ML), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
-            Text(stringResource(R.string.hydration_per_glass_label), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
+            Text(stringResource(R.string.hydration_per_glass_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
         }
 
         FloatingActionButton(
             onClick = onAddGlass,
             containerColor = semanticBlue(),
             shape = CircleShape,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(56.dp),
         ) { Icon(TablerIcons.Plus, stringResource(R.string.common_add), tint = Color.Black) }
     }
 
     Text(
         stringResource(R.string.hydration_goal_footer, goalMl),
         style = MaterialTheme.typography.bodySmall,
-        color = OnBackgroundMuted,
+        color = OnBackground.copy(0.4f),
     )
     }
 }

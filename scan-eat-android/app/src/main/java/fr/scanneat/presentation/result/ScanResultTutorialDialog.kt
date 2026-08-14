@@ -23,11 +23,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 
 /**
@@ -56,7 +56,7 @@ fun ScanResultTutorialDialog(onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(titleRes), color = OnBackground) },
@@ -90,7 +90,7 @@ private fun StepDots(total: Int, active: Int) {
         repeat(total) { i ->
             Box(
                 Modifier
-                    .size(if (i == active) 24.dp else 8.dp, 8.dp)
+                    .size(if (i == active) 20.dp else 8.dp, 8.dp)
                     .clip(RoundedCornerShape(50))
                     .background(if (i == active) AccentCoral else OnBackground.copy(0.2f)),
             )

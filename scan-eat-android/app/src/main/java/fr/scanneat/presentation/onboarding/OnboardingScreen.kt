@@ -102,7 +102,7 @@ fun OnboardingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(40.dp))
 
             // Pages 0-1 (Welcome/Value proposition) had no exit at all short of
             // abandoning the app entirely - every later page already reaches its own
@@ -182,7 +182,7 @@ fun OnboardingScreen(
                             val active = step == page
                             Box(
                                 Modifier
-                                    .size(if (active) 24.dp else 8.dp, 8.dp)
+                                    .size(if (active) 20.dp else 8.dp, 8.dp)
                                     .clip(RoundedCornerShape(50))
                                     .background(if (active) AccentCoral else OnBackground.copy(0.2f)),
                             )

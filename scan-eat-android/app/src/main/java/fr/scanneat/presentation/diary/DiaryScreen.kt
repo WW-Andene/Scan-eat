@@ -174,7 +174,7 @@ fun DiaryScreen(
                 containerColor = AccentCoral,
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomClearance + Spacing.L, end = Spacing.L),
             ) {
-                Icon(TablerIcons.Plus, stringResource(R.string.diary_add_entry_title), tint = scanEatContrastColorFor(AccentCoral))
+                Icon(TablerIcons.Plus, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
             }
         }
 

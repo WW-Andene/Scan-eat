@@ -48,7 +48,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
             )
         }
         // Bars overlaid with a dashed target line via Canvas
-        Box(Modifier.fillMaxWidth().height(ChartRowHeight.STANDARD)) {
+        Box(Modifier.fillMaxWidth().height(64.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
@@ -79,7 +79,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(if (day.count == 0) 0.05f else frac.coerceAtLeast(0.05f))
-                            .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
                             .background(color)
                             .semantics { contentDescription = barDescription },
                         contentAlignment = Alignment.TopCenter,
@@ -104,7 +104,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                         color = dashColor,
                         start = Offset(0f, y),
                         end   = Offset(size.width, y),
-                        strokeWidth = 2.dp.toPx(),
+                        strokeWidth = 1.dp.toPx(),
                         pathEffect  = PathEffect.dashPathEffect(floatArrayOf(6f, 4f), 0f),
                     )
                 }
@@ -123,7 +123,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                         .replaceFirstChar { it.uppercaseChar() },
                     modifier  = Modifier.weight(1f),
                     style     = MaterialTheme.typography.labelSmall,
-                    color     = if (day.date == java.time.LocalDate.now()) AccentCoral else OnSurfaceMuted,
+                    color     = if (day.date == java.time.LocalDate.now()) AccentCoral else OnSurface.copy(0.4f),
                     textAlign = TextAlign.Center,
                     fontSize  = 9.sp,
                 )

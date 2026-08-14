@@ -88,9 +88,9 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
             rollup.daysLogged, rollup.days.size, daysOverTarget,
         )
         Row(
-            modifier              = Modifier.fillMaxWidth().height(ChartRowHeight.STANDARD)
+            modifier              = Modifier.fillMaxWidth().height(56.dp)
                 .semantics(mergeDescendants = true) { contentDescription = chartDescription },
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalArrangement = Arrangement.spacedBy(1.dp),
             verticalAlignment     = Alignment.Bottom,
         ) {
             rollup.days.forEach { day ->
@@ -106,7 +106,7 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(if (day.count == 0) 0.05f else frac.coerceAtLeast(0.05f))
-                        .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                        .clip(RoundedCornerShape(topStart = 1.dp, topEnd = 1.dp))
                         .background(color),
                 )
             }
@@ -115,12 +115,12 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
         // start/end are printed, same information WeeklyBarsCard conveys
         // per-bar but compressed to fit a month at a glance.
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(rollup.days.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted, fontSize = 9.sp)
+            Text(rollup.days.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp)
             Text(
                 stringResource(R.string.dashboard_month_days_logged, rollup.daysLogged, rollup.days.size),
-                style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted, fontSize = 9.sp, textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp, textAlign = TextAlign.Center,
             )
-            Text(rollup.days.last().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted, fontSize = 9.sp)
+            Text(rollup.days.last().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp)
         }
   }
 }

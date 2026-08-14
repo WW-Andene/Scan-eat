@@ -24,14 +24,13 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
-import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.dispWeight
@@ -52,7 +51,7 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
             Text(stringResource(R.string.diary_totals_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             if (isLowCarbDiet) {
                 IconButton(onClick = { showLowCarbInfo = true }) {
-                    Icon(Icons.Rounded.Info, stringResource(R.string.diary_low_carb_hint_cd), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
+                    Icon(Icons.Rounded.Info, stringResource(R.string.diary_low_carb_hint_cd), tint = OnSurface.copy(0.5f), modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -84,7 +83,7 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
     if (showLowCarbInfo) {
         AlertDialog(
             onDismissRequest = { showLowCarbInfo = false },
-            containerColor = dialogContainerColor,
+            containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.diary_totals_title), color = OnBackground) },

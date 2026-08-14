@@ -105,7 +105,7 @@ internal fun ProfileSwitcherCard(
         var name by rememberSaveable { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showCreate = false },
-            containerColor = dialogContainerColor,
+            containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.profile_switcher_add_title), color = OnBackground) },

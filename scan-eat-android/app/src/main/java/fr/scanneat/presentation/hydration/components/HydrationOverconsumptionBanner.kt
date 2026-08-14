@@ -37,10 +37,10 @@ internal fun HydrationOverconsumptionBanner(warning: OverhydrationWarning) {
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shadowElevation = 0.dp,
-        border = BorderStroke(2.dp, semanticRed().copy(alpha = 0.35f)),
+        border = BorderStroke(1.dp, semanticRed().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
             Column {
                 Text(stringResource(R.string.hydration_overconsumption_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
                 Text(stringResource(messageRes, warning.totalMl), style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))

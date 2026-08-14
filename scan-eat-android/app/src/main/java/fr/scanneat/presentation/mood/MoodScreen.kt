@@ -243,7 +243,7 @@ private fun IntakeSleepMoodLinkCard(link: IntakeSleepMoodLink) {
 private fun MoodHistoryRow(entry: MoodEntry, onDelete: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = PrismFillColor,
+        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(

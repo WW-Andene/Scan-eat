@@ -24,7 +24,6 @@ import fr.scanneat.presentation.ui.theme.GLOW_BORDER_ALPHA
 import fr.scanneat.presentation.ui.theme.GLOW_HAZE_ALPHA
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 /** Small display-primitive helpers shared across the Biolism Data screen's cards. */
 
@@ -48,10 +47,10 @@ internal fun MetCellGrid(items: List<Triple<String, String, String>>, accents: L
 @Composable
 internal fun MetCell(label: String, value: String, sub: String, accent: Color = OnBackground, modifier: Modifier = Modifier.fillMaxWidth()) {
     Surface(shape = RoundedCornerShape(8.dp), color = OnBackground.copy(0.04f), modifier = modifier) {
-        // Spacing.S (8dp), not the literal 8.dp this had - one dp off the actual
+        // Spacing.S (8dp), not the literal 9.dp this had - one dp off the actual
         // scale for no reason, next to every other Biolism cell/row padding here.
         Column(Modifier.padding(Spacing.S)) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted, fontWeight = FontWeight.Bold)
+            Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), fontWeight = FontWeight.Bold)
             Text(value, style = MaterialTheme.typography.bodySmall, color = accent, fontWeight = FontWeight.SemiBold)
             // Bumped from 0.3f - a UI/UX audit flagged this as real informational
             // content (not decorative) rendered too faint against the dark surface.
@@ -74,7 +73,7 @@ internal fun InfoRow(label: String, value: String, note: String, color: Color = 
 }
 
 @Composable
-internal fun Label(text: String, color: Color = OnBackgroundMuted) {
+internal fun Label(text: String, color: Color = OnBackground.copy(0.4f)) {
     Text(text, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp, modifier = Modifier.padding(bottom = Spacing.S))
 }
@@ -88,7 +87,7 @@ internal fun TintedPanel(color: Color, content: @Composable ColumnScope.() -> Un
     // independent alpha scale across most of the Data tab regardless of
     // which accent color a card passed in.
     Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(GLOW_HAZE_ALPHA),
-        border = BorderStroke(2.dp, color.copy(GLOW_BORDER_ALPHA)), modifier = Modifier.fillMaxWidth()) {
+        border = BorderStroke(1.dp, color.copy(GLOW_BORDER_ALPHA)), modifier = Modifier.fillMaxWidth()) {
         // Inner spacing now matches this Column's own Spacing.S padding, instead of
         // a literal 6.dp that didn't agree with the container it sits inside.
         Column(Modifier.padding(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S), content = content)

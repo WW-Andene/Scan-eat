@@ -122,11 +122,11 @@ internal fun ScanHistoryRow(
                     TablerIcons.Star,
                     stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
                     tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
-                    modifier = Modifier.size(IconSize.Compact),
+                    modifier = Modifier.size(18.dp),
                 )
             }
             IconButton(onClick = onDelete) {
-                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(18.dp))
             }
             Icon(TablerIcons.ChevronRight, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
         }

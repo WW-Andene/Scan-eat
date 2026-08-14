@@ -48,7 +48,7 @@ internal fun DiaryKcalBreakdownCard(totalKcal: Double, bySlot: Map<MealSlot, Lis
         contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         Text(stringResource(R.string.diary_kcal_breakdown_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-        Row(Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp))) {
+        Row(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))) {
             MealSlot.values().forEach { slot ->
                 val slotKcal = bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0
                 val frac = (slotKcal / total).toFloat().coerceAtLeast(0f)
@@ -65,8 +65,8 @@ internal fun DiaryKcalBreakdownCard(totalKcal: Double, bySlot: Map<MealSlot, Lis
             MealSlot.values().forEach { slot ->
                 val slotKcal = (bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0)
                 if (slotKcal > 0) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Box(Modifier.size(6.dp).background(slotColors[slot] ?: OnSurface.copy(0.3f), RoundedCornerShape(2.dp)))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Box(Modifier.size(6.dp).background(slotColors[slot] ?: OnSurface.copy(0.3f), RoundedCornerShape(3.dp)))
                         Text(
                             "${slot.shortLabel()} ${slotKcal.roundToInt()}kcal",
                             style = MaterialTheme.typography.labelSmall,

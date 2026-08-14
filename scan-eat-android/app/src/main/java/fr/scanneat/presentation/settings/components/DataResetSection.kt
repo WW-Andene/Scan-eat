@@ -27,7 +27,7 @@ internal fun DataResetSection(onShowResetDialog: () -> Unit) {
     SettingsSection(stringResource(R.string.settings_section_reset), icon = TablerIcons.Trash) {
         Text(stringResource(R.string.settings_reset_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         ScanEatOutlinedButton(onClick = onShowResetDialog) {
-            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
+            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_reset_button), color = semanticRed())
         }
@@ -45,7 +45,7 @@ internal fun ResetConfirmDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.settings_reset_dialog_title), color = OnBackground) },

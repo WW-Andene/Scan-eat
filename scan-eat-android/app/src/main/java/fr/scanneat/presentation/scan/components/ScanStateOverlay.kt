@@ -116,7 +116,7 @@ internal fun BoxScope.ScanStateOverlay(
                 if (s.needsPhoto) {
                     Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + Spacing.XXL * 3)
                         .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-                        .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                        .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                         .clip(RoundedCornerShape(CardRadius.CONTROL)),
                         color = SurfaceVariant.copy(alpha = 0.42f), shape = RoundedCornerShape(CardRadius.CONTROL), shadowElevation = 0.dp) {
                         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {

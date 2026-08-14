@@ -43,7 +43,6 @@ import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnSurface
-import fr.scanneat.presentation.ui.theme.PrismFillColor
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -127,7 +126,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
         modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + Spacing.XXL * 3)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp))
             .clip(RoundedCornerShape(24.dp))
-            .background(PrismFillColor, RoundedCornerShape(24.dp))
+            .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(24.dp))
             .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
     ) {
             Column {
@@ -246,7 +245,7 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
         val offY   = (screenH - imgH * scale) / 2f
         val centerX = offX + (box.rect.left + box.rect.right) / 2f * scale
         val top     = offY + box.rect.top * scale
-        (centerX.toDp() - panelWidth / 2) to (top.toDp() - 48.dp)
+        (centerX.toDp() - panelWidth / 2) to (top.toDp() - 44.dp)
     }
     val clampedX = xDp.coerceIn(Spacing.S, (screenWidthDp - panelWidth - Spacing.S).coerceAtLeast(Spacing.S))
     // Floor of just Spacing.S let the panel render under the status bar / behind
@@ -257,7 +256,7 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
 
     Box(modifier = Modifier.align(Alignment.TopStart).padding(start = clampedX, top = clampedY).width(panelWidth)) {
         // same raw-literal drift as above - matches CardRadius.CARD exactly.
-        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = PrismFillColor) {
+        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant.copy(alpha = StandardCardAlpha)) {
             Row(
                 modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.SM),
                 verticalAlignment = Alignment.CenterVertically,

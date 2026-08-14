@@ -98,18 +98,6 @@ val OnBackground:   Color @Composable get() = MaterialTheme.colorScheme.onBackgr
 val SurfaceVariant: Color @Composable get() = MaterialTheme.colorScheme.surfaceVariant
 val OnSurface:      Color @Composable get() = MaterialTheme.colorScheme.onSurface
 
-/**
- * Design audit (§E3, contrast): every "muted caption" text app-wide reused
- * the same `OnBackground.copy(alpha = 0.4f)`/`OnSurface.copy(alpha = 0.4f)`
- * literal regardless of scheme brightness. That alpha is legible for light
- * text dimmed on a dark background, but the identical 0.4 on Light/Prism
- * (both light schemes) drops small caption text well under WCAG AA's
- * 4.5:1 contrast floor. Boosted only for light schemes; dark schemes keep
- * the original, already-legible 0.4.
- */
-val OnBackgroundMuted: Color @Composable get() = OnBackground.copy(alpha = if (isLightBackground()) 0.65f else 0.4f)
-val OnSurfaceMuted: Color @Composable get() = OnSurface.copy(alpha = if (isLightBackground()) 0.65f else 0.4f)
-
 // ── Scan'eat accent ───────────────────────────────────────────────────────────
 // User-reported: selecting a color theme (Matcha/Lavande/Sunflower/Lazulite)
 // left some elements stuck on the base coral instead of picking up the new
@@ -430,19 +418,6 @@ private val LightSafeBlue   = Color(0xFF01579B)
 
 @Composable
 internal fun isLightBackground(): Boolean = MaterialTheme.colorScheme.background.luminance() > 0.5f
-
-/**
- * User-requested: "j'ai dit TOUTS les thèmes de couleur" - a one-by-one walk
- * of every colorAccent's own palette (not just a generic pattern check)
- * found that Elite's AccentCoral resolves to its `secondary` field
- * (0xFF2B1F16, a near-black ebony), unlike every other accent's secondary
- * (all light/bright). Several FABs hardcode `tint = Color.Black` on top of
- * an `AccentCoral` container assuming it's always bright enough for that -
- * true for the base theme and 8 of 9 accents, but under Elite specifically
- * that's a near-invisible black-on-near-black icon. Luminance-based instead
- * of a fixed literal so it self-corrects for any current or future accent.
- */
-fun scanEatContrastColorFor(background: Color): Color = if (background.luminance() > 0.5f) Color.Black else Color.White
 
 /** Good / positive / success signal. */
 @Composable

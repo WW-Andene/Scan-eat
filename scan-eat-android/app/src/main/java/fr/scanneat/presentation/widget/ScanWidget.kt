@@ -145,10 +145,10 @@ private fun ScanWidgetContent(
                     Text(" $score/100", style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 13.sp))
                 }
             }
-            Spacer(modifier = GlanceModifier.height(12.dp))
+            Spacer(modifier = GlanceModifier.height(10.dp))
         } else {
             Text(emptyLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 12.sp))
-            Spacer(modifier = GlanceModifier.height(12.dp))
+            Spacer(modifier = GlanceModifier.height(10.dp))
         }
         Row(
             modifier = GlanceModifier.fillMaxWidth(),

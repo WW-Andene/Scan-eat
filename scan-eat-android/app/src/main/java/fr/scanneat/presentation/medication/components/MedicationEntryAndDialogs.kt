@@ -94,7 +94,7 @@ internal fun MedicationEntryRow(
                 Icon(
                     if (takenToday != null) Icons.Rounded.CheckCircle else Icons.Rounded.CheckCircleOutline,
                     stringResource(if (takenToday != null) R.string.medication_cd_undo_taken else R.string.medication_cd_taken_today),
-                    tint = if (takenToday != null) Teal else OnSurfaceMuted,
+                    tint = if (takenToday != null) Teal else OnSurface.copy(0.4f),
                 )
             }
             // Was the only toggle in this row with no haptic feedback - the adjacent
@@ -114,7 +114,7 @@ internal fun MedicationEntryRow(
                 Icon(
                     TablerIcons.Bell,
                     stringResource(R.string.medication_reminder_cd),
-                    tint = if (m.reminderOn) Teal else OnSurfaceMuted,
+                    tint = if (m.reminderOn) Teal else OnSurface.copy(0.4f),
                 )
             }
             // A fresh UX audit flagged Medication as the one tracker whose Edit
@@ -128,12 +128,11 @@ internal fun MedicationEntryRow(
                 Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f))
             }
             var menuExpanded by remember { mutableStateOf(false) }
-            var menuTriggerWidth by remember { mutableStateOf(0.dp) }
-            IconButton(onClick = { menuExpanded = true }, modifier = Modifier.reportWidthTo { menuTriggerWidth = it }) {
+            IconButton(onClick = { menuExpanded = true }) {
                 Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
             }
             // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-            ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorWidth = menuTriggerWidth) {
+            ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.common_delete)) },
                     leadingIcon = { Icon(TablerIcons.X, contentDescription = null) },
@@ -158,7 +157,7 @@ internal fun AddMedicationDialog(
     var scheduleNote by rememberSaveable { mutableStateOf(initialScheduleNote) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (isEdit) R.string.medication_edit_dialog_title else R.string.medication_add_dialog_title), color = OnBackground) },
@@ -210,7 +209,7 @@ internal fun MedicationReminderDialog(
     val locale = remember(language) { java.util.Locale(language) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.medication_reminder_dialog_title, m.name), color = OnBackground) },
@@ -326,7 +325,7 @@ internal fun MedicationDetailDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(m.name, color = OnBackground) },

@@ -10,13 +10,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
@@ -27,7 +22,6 @@ import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
-import fr.scanneat.presentation.ui.theme.reportWidthTo
 
 /**
  * User-requested: "develop the tool" for Recipes - same shape as History's
@@ -43,12 +37,11 @@ internal fun RecipesSortMenu(
     onSortChange: (RecipesViewModel.RecipeSort) -> Unit,
 ) {
     Box {
-        var triggerWidth by remember { mutableStateOf(0.dp) }
-        IconButton(onClick = { onExpandedChange(true) }, modifier = Modifier.reportWidthTo { triggerWidth = it }) {
+        IconButton(onClick = { onExpandedChange(true) }) {
             Icon(Icons.Rounded.Sort, stringResource(R.string.recipes_sort_cd), tint = OnBackground)
         }
         ScanEatDropdownMenu(
-            expanded = expanded, onDismissRequest = { onExpandedChange(false) }, anchorWidth = triggerWidth,
+            expanded = expanded, onDismissRequest = { onExpandedChange(false) },
         ) {
             val options = listOf(
                 RecipesViewModel.RecipeSort.RECENT to stringResource(R.string.recipes_sort_recent),

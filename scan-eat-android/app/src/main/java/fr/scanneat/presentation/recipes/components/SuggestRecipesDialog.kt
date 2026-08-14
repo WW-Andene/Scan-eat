@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
@@ -46,6 +45,7 @@ import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.ScanEatLoadingIndicator
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
@@ -90,7 +90,7 @@ internal fun SuggestRecipesDialog(
         // out from under the still-running coroutine, or its eventual Success/Error
         // pops a dialog the user already thought they'd cancelled out of.
         onDismissRequest = { if (!isLoading) onDismiss() },
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_suggest_title), color = OnBackground) },
@@ -124,7 +124,7 @@ internal fun SuggestRecipesDialog(
                         if (pantryItemNames.isNotEmpty()) {
                             Text(stringResource(R.string.recipes_suggest_pantry_chips_hint), color = OnBackground.copy(0.6f))
                             LazyColumn(
-                                modifier = Modifier.heightIn(max = 128.dp),
+                                modifier = Modifier.heightIn(max = 120.dp),
                                 verticalArrangement = Arrangement.spacedBy(Spacing.S),
                                 contentPadding = PaddingValues(vertical = Spacing.XS),
                             ) {
@@ -206,11 +206,11 @@ internal fun SuggestRecipesDialog(
                     LazyColumn(modifier = Modifier.heightIn(max = 280.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         itemsIndexed(results, key = { index, idea -> "$index-${idea.name}" }) { _, idea ->
                             Surface(
-                                shape = RoundedCornerShape(12.dp), color = OnBackground.copy(0.05f),
+                                shape = RoundedCornerShape(10.dp), color = OnBackground.copy(0.05f),
                                 onClick = { onPick(idea) },
                                 modifier = Modifier.fillMaxWidth()
-                                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(12.dp))
-                                    .clip(RoundedCornerShape(12.dp)),
+                                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(10.dp))
+                                    .clip(RoundedCornerShape(10.dp)),
                                 // app-audit §E5: matching AddDiaryEntryDialog's
                                 // list-row elevation - had none.
                                 shadowElevation = 0.dp,

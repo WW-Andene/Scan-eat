@@ -40,7 +40,7 @@ internal fun BudgetEditDialog(
     var perMealText by remember { mutableStateOf(perMealInitial?.formatDecimal(0) ?: "") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_edit_budget), color = OnBackground) },
@@ -142,7 +142,7 @@ internal fun AddExpenseDialog(
     val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_add_entry), color = OnBackground) },
@@ -176,7 +176,7 @@ internal fun AddExpenseDialog(
                                 color = SurfaceVariant.copy(alpha = 0.42f),
                                 modifier = Modifier.fillMaxWidth()
                                     .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-                                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                                 shadowElevation = 0.dp,
                             ) {
@@ -246,7 +246,7 @@ internal fun EditExpenseDialog(
     val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_edit_entry_title), color = OnBackground) },
@@ -301,11 +301,10 @@ internal fun ExpenseCategoryPicker(category: ProductCategory, onCategoryChange: 
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
         Text(stringResource(R.string.expenses_add_entry_category_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
         Box {
-            var triggerWidth by remember { mutableStateOf(0.dp) }
             OutlinedButton(
                 onClick = { expanded = true },
                 shape = RoundedCornerShape(CardRadius.CONTROL),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).reportWidthTo { triggerWidth = it },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                 // Was missing - fell back to Material's default colorScheme.primary
                 // for the border/ripple, which is blue under the Lazulite color-accent
                 // (Theme.kt), even though the label text was already themed OnBackground.
@@ -316,7 +315,6 @@ internal fun ExpenseCategoryPicker(category: ProductCategory, onCategoryChange: 
             ScanEatDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                anchorWidth = triggerWidth,
             ) {
                 ProductCategory.entries.forEach { c ->
                     DropdownMenuItem(

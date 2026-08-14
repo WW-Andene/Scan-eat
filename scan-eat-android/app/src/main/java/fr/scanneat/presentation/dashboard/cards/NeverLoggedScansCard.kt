@@ -24,7 +24,6 @@ import fr.scanneat.presentation.ui.theme.ChipBackgroundAccent
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.ScanEatCard
-import fr.scanneat.presentation.ui.theme.minTouchTarget
 
 /**
  * DashboardViewModel already injected both ConsumptionRepository and
@@ -58,7 +57,7 @@ internal fun NeverLoggedScansCard(scans: List<ScanResult>, onLogClick: (ScanResu
                 )
                 Surface(
                     shape = RoundedCornerShape(CardRadius.CONTROL), color = ChipBackgroundAccent,
-                    modifier = Modifier.clickable { onLogClick(scan) }.minTouchTarget(),
+                    modifier = Modifier.clickable { onLogClick(scan) },
                 ) {
                     Text(
                         stringResource(R.string.dashboard_never_logged_action),

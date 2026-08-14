@@ -35,7 +35,7 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
         onClick = onClick,
     ) {
-        Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(24.dp))
+        Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(26.dp))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.8f))
     }
 }

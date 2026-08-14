@@ -3,13 +3,6 @@ package fr.scanneat.presentation.result.cards
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ChevronDown
 import compose.icons.tablericons.ChevronUp
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,7 +41,6 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.rememberReducedMotion
 import fr.scanneat.util.formatDecimal
 import kotlin.math.abs
 
@@ -107,20 +99,11 @@ private fun PillarRow(pillar: PillarScore) {
         Spacer(Modifier.height(Spacing.XS))
         LinearProgressIndicator(
             progress   = { ratio },
-            modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(2.dp)),
+            modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
             color      = color,
             trackColor = SurfaceVariant,
         )
-        // User-reported (§E6 audit): this reason list snapped in/out instantly
-        // despite this row already carrying careful accessibility semantics
-        // above - same AnimatedVisibility + reduced-motion gating as BioCard/
-        // FoodSearchRow/NutritionTable.
-        val reduceMotion = rememberReducedMotion()
-        AnimatedVisibility(
-            visible = expanded,
-            enter = if (reduceMotion) EnterTransition.None else fadeIn() + expandVertically(),
-            exit = if (reduceMotion) ExitTransition.None else fadeOut() + shrinkVertically(),
-        ) {
+        if (expanded) {
             Column(modifier = Modifier.padding(top = Spacing.XS), verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                 reasons.forEach { d -> ReasonRow(d) }
             }

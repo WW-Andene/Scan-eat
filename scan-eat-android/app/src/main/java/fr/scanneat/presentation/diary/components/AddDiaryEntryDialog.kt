@@ -106,7 +106,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
 
     AlertDialog(
         onDismissRequest = { viewModel.clearSearch(); onDismiss() },
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.diary_add_entry_title), color = OnBackground) },
@@ -116,7 +116,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                     value = query.value,
                     onValueChange = { viewModel.setSearchQuery(it) },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.diary_add_entry_search_hint), color = OnBackgroundMuted) },
+                    placeholder = { Text(stringResource(R.string.diary_add_entry_search_hint), color = OnBackground.copy(0.4f)) },
                     leadingIcon = { Icon(TablerIcons.Search, null, tint = OnBackground.copy(0.5f)) },
                     trailingIcon = {
                         if (query.value.isNotEmpty()) {
@@ -148,7 +148,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                             color = SurfaceVariant.copy(alpha = 0.42f),
                             modifier = Modifier.fillMaxWidth()
                                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-                                .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                                 .clip(RoundedCornerShape(CardRadius.CONTROL)),
                             shadowElevation = 0.dp,
                         ) {
@@ -175,7 +175,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                             color = SurfaceVariant.copy(alpha = 0.42f),
                             modifier = Modifier.fillMaxWidth()
                                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-                                .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                                 .clip(RoundedCornerShape(CardRadius.CONTROL)),
                             shadowElevation = 0.dp,
                         ) {
@@ -198,7 +198,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                             color = SurfaceVariant.copy(alpha = 0.42f),
                             modifier = Modifier.fillMaxWidth()
                                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-                                .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                                 .clip(RoundedCornerShape(CardRadius.CONTROL)),
                             shadowElevation = 0.dp,
                         ) {

@@ -24,12 +24,12 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.MenuDish
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.dialogContainerColor
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 
 /**
@@ -44,7 +44,7 @@ import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_menu_dialog_title), color = OnBackground) },
@@ -57,7 +57,7 @@ internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit)
                         Surface(
                             shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.05f),
                             modifier = Modifier.fillMaxWidth()
-                                .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                                 .clip(RoundedCornerShape(CardRadius.CONTROL)),
                             // app-audit §E5: matching the dialog list-row
                             // elevation established elsewhere - had none.

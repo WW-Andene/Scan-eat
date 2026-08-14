@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.settings.components
 
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -7,9 +8,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
+
 /**
  * User-requested: changing currency should convert already-logged prices, not
  * just relabel them - this confirms that conversion before it's actually
@@ -26,8 +28,9 @@ fun CurrencyConversionDialog(
     onConvert: () -> Unit,
     onRelabelOnly: () -> Unit,
 ) {
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         title = { Text(stringResource(R.string.settings_currency_convert_title), color = OnBackground) },
         text = {
             Text(

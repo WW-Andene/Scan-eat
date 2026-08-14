@@ -59,13 +59,11 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.ScanEatDropdownMenu
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.reportWidthTo
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
-import fr.scanneat.presentation.ui.theme.OnSurfaceMuted
 
 @Composable
 internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit, onDuplicate: () -> Unit, onEditIngredients: () -> Unit) {
@@ -106,11 +104,10 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 // compliant 48dp instead of being squeezed to fit seven-wide.
                 IconButton(onClick = onLog) { Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral) }
                 var menuExpanded by remember { mutableStateOf(false) }
-                var menuTriggerWidth by remember { mutableStateOf(0.dp) }
-                IconButton(onClick = { menuExpanded = true }, modifier = Modifier.reportWidthTo { menuTriggerWidth = it }) {
+                IconButton(onClick = { menuExpanded = true }) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
-                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorWidth = menuTriggerWidth) {
+                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     // Previously a recipe could only leave the app via the whole-database
                     // backup - no way to send just this one recipe to someone else.
                     DropdownMenuItem(
@@ -179,7 +176,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
             Text(stringResource(R.string.templates_item_summary, c.productName, c.grams.toInt(), c.kcal.toInt()),
                 style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
         }
-        if (recipe.components.size > 3) Text(stringResource(R.string.templates_more_items, recipe.components.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurfaceMuted)
+        if (recipe.components.size > 3) Text(stringResource(R.string.templates_more_items, recipe.components.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
         // Macro strip — protein/carbs/fat totals per serving were previously
         // invisible on the card; a user judging whether a recipe fits their
         // macros had to tap Log just to see the numbers.
@@ -191,7 +188,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
         // 1/4 of the dish). Only shown when there's more than one serving to
         // avoid a redundant label on the common single-serving case.
         if (recipe.servings > 1) {
-            Text(stringResource(R.string.recipes_macro_per_serving_label), style = MaterialTheme.typography.labelSmall, color = OnSurfaceMuted)
+            Text(stringResource(R.string.recipes_macro_per_serving_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
             val servings = recipe.servings.coerceAtLeast(1)

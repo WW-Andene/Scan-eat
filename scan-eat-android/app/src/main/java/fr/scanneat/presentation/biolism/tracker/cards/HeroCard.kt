@@ -41,7 +41,7 @@ internal fun HeroCard(
                 if (ketosisOn) Box(Modifier.size(6.dp).clip(CircleShape).background(Teal))
                 if (running)   Box(Modifier.size(6.dp).clip(CircleShape).background(Gold))
                 Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = if (running) GoldHaze else VioletHaze,
-                    border = BorderStroke(2.dp, if (running) GoldGlow else VioletGlow)) {
+                    border = BorderStroke(1.dp, if (running) GoldGlow else VioletGlow)) {
                     Text(if (running) stringResource(R.string.biolism_hero_running) else stringResource(R.string.biolism_hero_paused), modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.S),
                         style = MaterialTheme.typography.labelSmall, color = if (running) Gold else Violet, fontWeight = FontWeight.Bold)
                 }
@@ -51,12 +51,9 @@ internal fun HeroCard(
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
                 letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
 
-            // User-requested: hero-number sizes snapped onto the type scale's
-            // own display/headline steps (44/40/36/32/28/24) - 42sp matched
-            // none of them, nearest is 40sp (displayMedium).
             Text(
                 if (precision) displayValue.formatDecimal(4) else displayValue.formatDecimal(2),
-                style = HeroNumberStyle.copy(fontSize = 40.sp),
+                style = HeroNumberStyle.copy(fontSize = 42.sp),
                 color = heroColor,
             )
             // Toggle between total burned and burn rate per second
@@ -73,19 +70,19 @@ internal fun HeroCard(
 
             TextButton(onClick = onPrecision) {
                 Text(if (precision) stringResource(R.string.biolism_hero_precision_low) else stringResource(R.string.biolism_hero_precision_high),
-                    style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
+                    style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
             }
 
             // Elapsed
             Text(formatElapsed(elapsedSec), style = MaterialTheme.typography.labelMedium,
-                color = OnBackgroundMuted, fontWeight = FontWeight.Medium)
+                color = OnBackground.copy(0.4f), fontWeight = FontWeight.Medium)
 
             // Substrate bar - Spacing.S, not XS: the bar-to-legend gap read as
             // cramped next to the rest of this card's own rhythm (every other
             // gap here is Spacing.S via the outer Column), an inconsistency
             // scoped to just this one nested Column.
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(2.dp))) {
+                Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
                     Box(Modifier.weight(fatFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(if (ketosisOn) Teal else Warm))
                     Box(Modifier.weight(carbFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Gold.copy(0.6f)))
                     Box(Modifier.weight(protFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Violet.copy(0.7f)))

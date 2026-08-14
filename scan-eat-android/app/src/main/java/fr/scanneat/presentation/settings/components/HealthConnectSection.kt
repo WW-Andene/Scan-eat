@@ -48,7 +48,7 @@ internal fun HealthConnectSection(availability: HealthConnectAvailability, conne
             HealthConnectAvailability.NOT_INSTALLED -> {
                 val context = LocalContext.current
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    Text(stringResource(R.string.settings_healthconnect_not_installed), style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted)
+                    Text(stringResource(R.string.settings_healthconnect_not_installed), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                     ScanEatOutlinedButton(onClick = {
                         val uri = Uri.parse("market://details?id=com.google.android.apps.healthdata")
                         try {
@@ -61,7 +61,7 @@ internal fun HealthConnectSection(availability: HealthConnectAvailability, conne
                     }
                 }
             }
-            HealthConnectAvailability.UNSUPPORTED   -> Text(stringResource(R.string.settings_healthconnect_unsupported), style = MaterialTheme.typography.bodySmall, color = OnBackgroundMuted)
+            HealthConnectAvailability.UNSUPPORTED   -> Text(stringResource(R.string.settings_healthconnect_unsupported), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
         }
     }
 }

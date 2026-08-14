@@ -54,7 +54,7 @@ import fr.scanneat.presentation.ui.theme.minTouchTarget
 @Composable
 internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, onRemovePhoto: (Int) -> Unit) {
     Column(
-        // Was a bare 96.dp (16+8+64, a 3-term off-scale sum) - Spacing.XXL*3 is a
+        // Was a bare 88.dp (16+8+64, a 3-term off-scale sum) - Spacing.XXL*3 is a
         // single clean multiple of one token instead.
         modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = topInset + Spacing.XXL * 3)
             .padding(horizontal = Spacing.L),
@@ -63,10 +63,10 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
         // construction already fixed elsewhere (see ScanActionControls.kt's
         // own comment) - collapsed into one Box.
         Box(
-            Modifier.shadow(elevation = 2.dp, shape = RoundedCornerShape(12.dp))
-                .clip(RoundedCornerShape(12.dp))
-                .background(Background.copy(0.7f), RoundedCornerShape(12.dp))
-                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp)),
+            Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .background(Background.copy(0.7f), RoundedCornerShape(10.dp))
+                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(10.dp)),
         ) {
                 Column(Modifier.padding(horizontal = Spacing.SM, vertical = 6.dp)) {
                     Text(pluralStringResource(R.plurals.scan_photo_count, images.size, images.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
@@ -87,7 +87,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                         // single photo capture.
                         itemsIndexed(images, key = { _, payload -> payload.base64 }) { index, payload ->
                             Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
-                                .border(2.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
+                                .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
                                 val bmp = remember(payload) { payload.thumbnail }
                                 if (bmp != null) {
                                     Image(bitmap = bmp.asImageBitmap(), contentDescription = stringResource(R.string.scan_photo_index, index + 1),
@@ -103,7 +103,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                                 // Modifier.size() calls so the 64dp thumbnail isn't visually overrun.
                                 IconButton(onClick = { onRemovePhoto(index) },
                                     modifier = Modifier.align(Alignment.TopEnd).minTouchTarget()) {
-                                    Box(Modifier.size(24.dp).background(Background.copy(0.6f), CircleShape), contentAlignment = Alignment.Center) {
+                                    Box(Modifier.size(20.dp).background(Background.copy(0.6f), CircleShape), contentAlignment = Alignment.Center) {
                                         Icon(TablerIcons.X, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(IconSize.Micro))
                                     }
                                 }

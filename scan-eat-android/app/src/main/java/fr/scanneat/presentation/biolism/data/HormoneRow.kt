@@ -28,7 +28,6 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.STATUS_BORDER_ALPHA
 import fr.scanneat.presentation.ui.theme.Spacing
 import java.util.Locale
-import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 @Composable
 internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
@@ -36,7 +35,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
     val barPct = (h.value / (h.refHigh * 1.3)).coerceIn(0.0, 1.0).toFloat()
     // Spacing.XS, matching InfoRow's own vertical padding - this and InfoRow render
     // the same "label/value row in a list" shape in the same cards (e.g.
-    // HormonesCard), and previously used a different literal padding (6.dp vs
+    // HormonesCard), and previously used a different literal padding (5.dp vs
     // InfoRow's Spacing.XS/4dp) for no reason, giving the two row types a visibly
     // different rhythm next to each other.
     Column(Modifier.padding(vertical = Spacing.XS)) {
@@ -53,14 +52,14 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 // reference range just below) implied a level of accuracy this
                 // doesn't have. Whole numbers, matching the ref range's own format.
                 Text("%.0f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
-                Surface(shape = RoundedCornerShape(2.dp), color = color.copy(0.15f),
-                    border = BorderStroke(2.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
+                Surface(shape = RoundedCornerShape(3.dp), color = color.copy(0.15f),
+                    border = BorderStroke(1.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
                     Text(h.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                         style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
                 }
             }
         }
-        Spacer(Modifier.height(2.dp))
+        Spacer(Modifier.height(3.dp))
         // design-aesthetic-audit §DC3: the reference band below was a hardcoded
         // Color.White at low alpha - readable on the dark/OLED themes it was
         // eyeballed against, but nearly invisible on the Light theme's near-white
@@ -69,7 +68,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
         // below) isn't itself a @Composable context and can't read it directly.
         val referenceBandColor = OnBackground
         // Fix 12: Canvas draws track, normal-range band, and value bar correctly
-        Canvas(modifier = Modifier.fillMaxWidth().height(2.dp)) {
+        Canvas(modifier = Modifier.fillMaxWidth().height(3.dp)) {
             val w   = size.width
             val h3  = size.height
             val top = 1.5f    // half-height — used for RoundedCornerShape approximation via cornerRadius
@@ -96,6 +95,6 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
         }
         // Bumped from 0.25f - a UI/UX audit flagged a clinically meaningful reference
         // range rendered at the lowest alpha found anywhere in the app.
-        Text(stringResource(R.string.biolism_common_ref_range, h.refLow, h.refHigh, h.unit), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
+        Text(stringResource(R.string.biolism_common_ref_range, h.refLow, h.refHigh, h.unit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
     }
 }

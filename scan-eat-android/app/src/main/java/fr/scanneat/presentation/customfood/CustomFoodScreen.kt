@@ -103,7 +103,7 @@ fun CustomFoodScreen(
                     modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
-                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
                         Text(
                             stringResource(R.string.customfood_stats_count, foods.value.size),
                             modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
@@ -111,7 +111,7 @@ fun CustomFoodScreen(
                         )
                     }
                     avgKcal.value?.let { avg ->
-                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
+                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
                             Text(
                                 stringResource(R.string.customfood_stats_avg_kcal, avg),
                                 modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
@@ -131,7 +131,7 @@ fun CustomFoodScreen(
                     color = AccentCoral.copy(0.1f),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS)
-                        .shadow(elevation = 2.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                        .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                         .clip(RoundedCornerShape(CardRadius.CONTROL)),
                     shadowElevation = 0.dp,
                 ) {

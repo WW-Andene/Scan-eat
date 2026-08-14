@@ -24,7 +24,7 @@ internal fun HistoryGradeDistributionSection(gradeDistribution: List<Pair<String
         color = OnBackground.copy(0.5f),
         modifier = Modifier.padding(top = Spacing.S, bottom = Spacing.XS),
     )
-    Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(2.dp))) {
+    Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
         gradeDistribution.forEach { (grade, count) ->
             // Was a second, independent grade->color mapping (green/amber/coral/red)
             // that could silently disagree with gradeColor()'s own colorblind-safe
@@ -42,8 +42,8 @@ internal fun HistoryGradeDistributionSection(gradeDistribution: List<Pair<String
             // palettes - this section's bands ("A"/"B"/"C"/"D") already line up
             // 1:1 with Grade's own labels, so route through the shared accessor.
             val color = gradeColor(Grade.fromLabel(grade))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                Box(Modifier.size(6.dp).background(color, RoundedCornerShape(2.dp)))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                Box(Modifier.size(6.dp).background(color, RoundedCornerShape(3.dp)))
                 Text("$grade $count", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
             }
         }

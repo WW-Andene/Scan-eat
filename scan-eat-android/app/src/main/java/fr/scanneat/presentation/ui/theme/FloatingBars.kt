@@ -81,11 +81,14 @@ val FrostedGlassStyle: HazeStyle
         // shadowElevation shadow (both of which DO have real contrast in Light
         // theme) as the only visible shape - a disconnected rectangle instead of a
         // whole glass pill.
+        val tintAlpha = if (isLightBackground()) 0.82f else 0.55f
         // User-requested: header/footer should use the same card-glass style as
-        // every other card - PrismFillColor, app-wide.
+        // every other card - PrismFillColor instead of a separately-tuned tint,
+        // on Prism specifically (every other theme keeps its own considered tint).
+        val isPrism = LocalThemeName.current == "prism"
         HazeStyle(
             backgroundColor = Background,
-            tint            = HazeTint(PrismFillColor),
+            tint            = HazeTint(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = tintAlpha)),
             blurRadius      = 16.dp,
             noiseFactor     = 0f,
         )
@@ -154,9 +157,7 @@ fun FloatingTopBar(
             .clip(headerShape)
             .hazeEffect(state = hazeState, style = FrostedGlassStyle)
             .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = accent)
-            // User-requested: all sizes must sit on a base-2 scale
-            // (2/4/6/8/12/16/24/32/48/64/96/128) - 56dp isn't a member, snapped to 64dp.
-            .height(64.dp)
+            .height(56.dp)
             // User-reported: on tab-root screens (no back arrow), the leading
             // side previously got Spacing.XS (icon-slot case) or an
             // approximated Spacing.M spacer (~15dp, not an exact match to the
@@ -187,8 +188,8 @@ fun FloatingTopBar(
     }
 }
 
-/** FloatingTopBar's own pill height (64dp title row + FloatingChromeMargin.vertical top/bottom) — not including the device's own status-bar inset, which [FloatingScreenScaffold] adds separately. */
-val FloatingTopBarHeight = 64.dp + FloatingChromeMargin.vertical * 2
+/** FloatingTopBar's own pill height (56dp title row + FloatingChromeMargin.vertical top/bottom) — not including the device's own status-bar inset, which [FloatingScreenScaffold] adds separately. */
+val FloatingTopBarHeight = 56.dp + FloatingChromeMargin.vertical * 2
 
 /** MainShell's floating bottom nav's own pill height (64dp NavigationBar + FloatingChromeMargin.vertical top/bottom) — not including the device's own navigation-bar inset. */
 val FloatingBottomNavHeight = 64.dp + FloatingChromeMargin.vertical * 2

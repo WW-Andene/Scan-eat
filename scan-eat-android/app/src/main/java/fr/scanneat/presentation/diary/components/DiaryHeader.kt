@@ -60,37 +60,6 @@ internal fun BoxScope.DiaryHeader(
     primaryTabs: List<DiaryTab>,
     onPrimaryTabsChange: (List<DiaryTab>) -> Unit,
 ) {
-    // User-reported (2nd round): the single button below (showing only the
-    // active tab, everything else behind a DropdownMenu) read as "one tab"
-    // instead of a real tab row - MEALS/WEIGHT/WATER (the three most-used
-    // trackers) are now always-visible, real tab buttons; ACTIVITY/FASTING/
-    // TREATMENT/EXPENSES stay behind the same popup pattern as before, now
-    // as the 4th slot instead of the only one. Was a fixed Row with each tab
-    // forced to Modifier.weight(1f) before that (see history) - a full
-    // horizontally-scrollable 7-tab row still didn't reliably fit any phone
-    // width, which is why only 3 are direct buttons here, not all 7.
-    val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs }
-
-    // User-requested: hold-to-arm-then-tap-to-replace instead of a
-    // continuous drag. A continuous drag out of the "more" dropdown
-    // below is unreliable — DropdownMenu renders in its own Android
-    // popup window, a separate window from this Row, so tracking one
-    // finger's motion across that window boundary in real time (and
-    // surviving the popup dismissing mid-gesture) never worked
-    // consistently. Long-pressing an item "arms" it (the popup closes,
-    // haptic feedback fires), then a normal tap on any of the three
-    // primary tab buttons below completes the swap - two independent,
-    // ordinary gestures instead of one gesture that has to survive a
-    // window handoff.
-    var armedOverflowTab by remember { mutableStateOf<DiaryTab?>(null) }
-    val haptics = LocalHapticFeedback.current
-    LaunchedEffect(armedOverflowTab) {
-        if (armedOverflowTab != null) {
-            delay(ARM_AUTO_CANCEL_MS)
-            armedOverflowTab = null
-        }
-    }
-
     val headerShape = RoundedCornerShape(CardRadius.PROMINENT)
     // User-reported: this header is not standard, use Tableau's (FloatingTopBar)
     // as the reference - it had the same outer-Box(glassSheen)+inner-Surface
@@ -115,10 +84,7 @@ internal fun BoxScope.DiaryHeader(
             .clip(headerShape)
             .hazeEffect(state = hazeState, style = FrostedGlassStyle)
             .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = AccentCoral)
-            // User-reported: side padding (was Spacing.L) didn't match the
-            // top/title-to-tabs/bottom paddings (all Spacing.M) - all four are
-            // now the same value.
-            .padding(horizontal = Spacing.M)
+            .padding(horizontal = Spacing.L)
             .padding(top = Spacing.M, bottom = Spacing.M),
     ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -133,6 +99,36 @@ internal fun BoxScope.DiaryHeader(
                     Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(Spacing.M))
+                // User-reported (2nd round): the single button below (showing only the
+                // active tab, everything else behind a DropdownMenu) read as "one tab"
+                // instead of a real tab row - MEALS/WEIGHT/WATER (the three most-used
+                // trackers) are now always-visible, real tab buttons; ACTIVITY/FASTING/
+                // TREATMENT/EXPENSES stay behind the same popup pattern as before, now
+                // as the 4th slot instead of the only one. Was a fixed Row with each tab
+                // forced to Modifier.weight(1f) before that (see history) - a full
+                // horizontally-scrollable 7-tab row still didn't reliably fit any phone
+                // width, which is why only 3 are direct buttons here, not all 7.
+                val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs }
+
+                // User-requested: hold-to-arm-then-tap-to-replace instead of a
+                // continuous drag. A continuous drag out of the "more" dropdown
+                // below is unreliable — DropdownMenu renders in its own Android
+                // popup window, a separate window from this Row, so tracking one
+                // finger's motion across that window boundary in real time (and
+                // surviving the popup dismissing mid-gesture) never worked
+                // consistently. Long-pressing an item "arms" it (the popup closes,
+                // haptic feedback fires), then a normal tap on any of the three
+                // primary tab buttons below completes the swap - two independent,
+                // ordinary gestures instead of one gesture that has to survive a
+                // window handoff.
+                var armedOverflowTab by remember { mutableStateOf<DiaryTab?>(null) }
+                val haptics = LocalHapticFeedback.current
+                LaunchedEffect(armedOverflowTab) {
+                    if (armedOverflowTab != null) {
+                        delay(ARM_AUTO_CANCEL_MS)
+                        armedOverflowTab = null
+                    }
+                }
 
                 if (armedOverflowTab != null) {
                     Text(
@@ -165,50 +161,58 @@ internal fun BoxScope.DiaryHeader(
                             },
                         )
                     }
+                    var tabMenuExpanded by remember { mutableStateOf(false) }
+                    val overflowActive = activeTab in overflowTabs
+                    Box {
+                        Surface(
+                            onClick = {
+                                if (armedOverflowTab != null) armedOverflowTab = null else tabMenuExpanded = true
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (overflowActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
+                            border = if (overflowActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+                        ) {
+                            Row(
+                                Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                            ) {
+                                // User-requested: this used to also show the active overflow
+                                // tab's text label next to its icon, which was often wide
+                                // enough that the whole tab row needed the horizontalScroll
+                                // above just to reach it - icon-only reads unambiguously
+                                // enough on its own (same as every primary tab button when
+                                // scrolled off-screen) without forcing that scroll.
+                                if (overflowActive) {
+                                    Icon(activeTab.icon, contentDescription = stringResource(activeTab.labelRes), tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
+                                } else {
+                                    Text(
+                                        stringResource(R.string.diary_tab_more),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = OnBackground.copy(0.7f),
+                                    )
+                                }
+                                Icon(TablerIcons.ChevronDown, contentDescription = null, tint = if (overflowActive) AccentCoral else OnBackground.copy(0.7f))
+                            }
+                        }
+                        // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
+                        ScanEatDropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }) {
+                            overflowTabs.forEach { tab ->
+                                val isActive = tab == activeTab
+                                HoldToArmMenuItem(
+                                    tab = tab,
+                                    isActive = isActive,
+                                    onTap = { onTabChange(tab); tabMenuExpanded = false },
+                                    onArmed = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        armedOverflowTab = tab
+                                        tabMenuExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
                 }
-    }
-    // User-requested: this "more tabs" trigger used to sit at the end of the
-    // tab row, labeled "Plus" - now icon-only (the down-chevron alone, no
-    // label, no active-tab icon substitution) and moved below the whole
-    // header pill instead of inside it, per user request.
-    var tabMenuExpanded by remember { mutableStateOf(false) }
-    val overflowActive = activeTab in overflowTabs
-    var overflowTriggerWidth by remember { mutableStateOf(0.dp) }
-    Box(
-        Modifier
-            .align(Alignment.TopEnd)
-            .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(top = DiaryHeaderHeight, end = FloatingChromeMargin.horizontal + Spacing.M),
-    ) {
-        Surface(
-            onClick = {
-                if (armedOverflowTab != null) armedOverflowTab = null else tabMenuExpanded = true
-            },
-            shape = RoundedCornerShape(8.dp),
-            color = if (overflowActive) ChipBackgroundAccent else PrismFillColor,
-            border = if (overflowActive) BorderStroke(2.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
-            modifier = Modifier.reportWidthTo { overflowTriggerWidth = it },
-        ) {
-            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                Icon(TablerIcons.ChevronDown, contentDescription = stringResource(R.string.diary_tab_more), tint = if (overflowActive) AccentCoral else OnBackground.copy(0.7f))
-            }
-        }
-        // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-        ScanEatDropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, anchorWidth = overflowTriggerWidth) {
-            overflowTabs.forEach { tab ->
-                val isActive = tab == activeTab
-                HoldToArmMenuItem(
-                    tab = tab,
-                    isActive = isActive,
-                    onTap = { onTabChange(tab); tabMenuExpanded = false },
-                    onArmed = {
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        armedOverflowTab = tab
-                        tabMenuExpanded = false
-                    },
-                )
-            }
-        }
     }
 }
 
@@ -266,14 +270,11 @@ private fun DiaryTabButton(
     onClick: () -> Unit,
     isReplaceTarget: Boolean = false,
 ) {
-    // Inactive fill uses PrismFillColor, matching every other piece of
-    // card-style chrome in the app (ScanEatCard/BioCard/FloatingTopBar/
-    // MainShell's nav - see their own doc comments).
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
-        color = if (isReplaceTarget) AccentCoral.copy(alpha = 0.16f) else if (isActive) ChipBackgroundAccent else PrismFillColor,
-        border = if (isReplaceTarget) BorderStroke(2.dp, AccentCoral.copy(alpha = 0.6f)) else if (isActive) BorderStroke(2.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+        color = if (isReplaceTarget) AccentCoral.copy(alpha = 0.16f) else if (isActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
+        border = if (isReplaceTarget) BorderStroke(2.dp, AccentCoral.copy(alpha = 0.6f)) else if (isActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
     ) {
         Row(
             Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),

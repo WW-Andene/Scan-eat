@@ -27,13 +27,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
-import fr.scanneat.presentation.ui.theme.BorderWidth
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
-import fr.scanneat.presentation.ui.theme.ChartRowHeight
 
 // ── Shared chart primitives for the Evolution tab ──────────────────────────
 // Generalizes the Canvas polyline WeightScreen.kt already draws for weight
@@ -53,7 +50,7 @@ internal fun NotEnoughDataNote() {
     Text(
         stringResource(R.string.biolism_evo_not_enough_data),
         style = MaterialTheme.typography.labelSmall,
-        color = OnBackgroundMuted,
+        color = OnBackground.copy(0.4f),
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center,
     )
@@ -123,7 +120,7 @@ internal fun LineTrendChart(
             val isLast = i == n - 1
             drawCircle(
                 color = if (isLast) color else color.copy(0.4f),
-                radius = if (isLast) 6.dp.toPx() else 2.dp.toPx(),
+                radius = if (isLast) 5.dp.toPx() else 3.dp.toPx(),
                 center = Offset(xAt(i), yAt(e.second)),
             )
         }
@@ -134,7 +131,7 @@ internal fun LineTrendChart(
                 color = targetColor.copy(0.7f),
                 start = Offset(0f, ty),
                 end   = Offset(w, ty),
-                strokeWidth = BorderWidth.SELECTED.toPx(),
+                strokeWidth = 1.5.dp.toPx(),
                 pathEffect  = PathEffect.dashPathEffect(floatArrayOf(8f, 6f)),
             )
         }
@@ -153,7 +150,7 @@ internal fun LineTrendChart(
  * too heavy.
  */
 @Composable
-internal fun BarSparkline(values: List<Double>, color: Color, barHeight: Dp = ChartRowHeight.COMPACT) {
+internal fun BarSparkline(values: List<Double>, color: Color, barHeight: Dp = 32.dp) {
     if (values.isEmpty()) {
         NotEnoughDataNote()
         return

@@ -27,7 +27,7 @@ internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>, lan
         val barColor = Warm
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.activity_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-            Row(modifier = Modifier.fillMaxWidth().height(ChartRowHeight.STANDARD), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+            Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                 weeklyBurn.forEach { (date, kcal) ->
                     val frac = kcal.toFloat() / peak
                     // Same "Canvas/background box with no text underneath" shape as
@@ -41,7 +41,7 @@ internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>, lan
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .fillMaxHeight(frac.coerceAtLeast(0.02f))
-                                .background(barColor.copy(if (date == LocalDate.now()) 1f else 0.4f), RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                                .background(barColor.copy(if (date == LocalDate.now()) 1f else 0.4f), RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
                                 .semantics { contentDescription = barDescription },
                         )
                     }

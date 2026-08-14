@@ -112,7 +112,7 @@ fun ReceiptScanScreen(onBack: () -> Unit, viewModel: ReceiptScanViewModel = hilt
             }
             s is ReceiptScanState.Processing -> {
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    ScanEatLoadingIndicator()
+                    CircularProgressIndicator(color = AccentCoral)
                     Spacer(Modifier.height(Spacing.M))
                     Text(stringResource(R.string.receipt_scan_processing), color = OnBackground)
                 }
@@ -196,7 +196,7 @@ private fun ReceiptReviewList(lines: List<ReceiptReviewLine>, onBack: () -> Unit
                             onValueChange = { priceText = it; it.replace(',', '.').toDoubleOrNull()?.let { p -> viewModel.updateLine(line.id, line.name, p) } },
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.width(96.dp),
+                            modifier = Modifier.width(84.dp),
                         )
                     }
                     // User-requested: when a line doesn't exactly match a known

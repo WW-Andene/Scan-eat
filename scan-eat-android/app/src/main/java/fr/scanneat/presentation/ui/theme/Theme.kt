@@ -519,42 +519,26 @@ fun ScanEatTheme(
             // recognizably "that" accent) before use here, so an accent
             // can be combined with High Contrast without undercutting the
             // one thing that theme exists for.
-            val boostedPrimary = accent.primary.boostedForHighContrast()
-            val boostedSecondary = accent.secondary.boostedForHighContrast()
-            val boostedTertiary = accent.tertiary.boostedForHighContrast()
             baseColorScheme.copy(
-                primary = boostedPrimary, secondary = boostedSecondary, tertiary = boostedTertiary,
+                primary = accent.primary.boostedForHighContrast(),
+                secondary = accent.secondary.boostedForHighContrast(),
+                tertiary = accent.tertiary.boostedForHighContrast(),
                 surface = accent.surface, surfaceVariant = accent.surfaceVariant, outline = accent.outline,
-                onPrimary = scanEatContrastColorFor(boostedPrimary), onSecondary = scanEatContrastColorFor(boostedSecondary), onTertiary = scanEatContrastColorFor(boostedTertiary),
             )
         } else if (resolvedTheme == "oled") {
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
                 surface = accent.surface, surfaceVariant = accent.surfaceVariant, outline = accent.outline,
-                onPrimary = scanEatContrastColorFor(accent.primary), onSecondary = scanEatContrastColorFor(accent.secondary), onTertiary = scanEatContrastColorFor(accent.tertiary),
             )
         } else if (resolvedTheme == "light" || resolvedTheme == "low_contrast") {
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
-                onPrimary = scanEatContrastColorFor(accent.primary), onSecondary = scanEatContrastColorFor(accent.secondary), onTertiary = scanEatContrastColorFor(accent.tertiary),
             )
         } else {
-            // Verification pass ("j'ai dit TOUTS les thèmes de couleur"): a
-            // one-by-one walk of every accent's own palette found that
-            // colorAccent only ever swapped primary/secondary/tertiary
-            // themselves, never their onPrimary/onSecondary/onTertiary
-            // companions - those stayed fixed at the base (Dark/OLED/etc.)
-            // scheme's own values, tuned for the base coral/gold/teal.
-            // Elite's secondary (a near-black ebony) combined with Dark's
-            // fixed onSecondary=Color.Black produced invisible black-on-
-            // near-black text/icons on any AccentCoral-filled button -
-            // every accent now computes its own on-colors by luminance
-            // instead of inheriting the base theme's assumption.
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
                 background = accent.background, surface = accent.surface, surfaceVariant = accent.surfaceVariant,
                 outline = accent.outline,
-                onPrimary = scanEatContrastColorFor(accent.primary), onSecondary = scanEatContrastColorFor(accent.secondary), onTertiary = scanEatContrastColorFor(accent.tertiary),
             )
         }
     } else baseColorScheme

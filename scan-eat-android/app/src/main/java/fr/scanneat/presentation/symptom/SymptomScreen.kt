@@ -134,7 +134,7 @@ internal fun symptomTypeLabel(type: SymptomType): String = stringResource(
 private fun SymptomRow(entry: SymptomEntry, onDelete: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = PrismFillColor,
+        color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
@@ -199,7 +199,7 @@ private fun AddSymptomDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = dialogContainerColor,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.symptom_add_dialog_title), color = OnBackground) },

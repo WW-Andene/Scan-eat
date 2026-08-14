@@ -86,12 +86,11 @@ internal fun TemplateCard(
                 // Favorite/Manage-items/Log are the frequent actions and stay
                 // directly visible at full size.
                 var menuExpanded by remember { mutableStateOf(false) }
-                var menuTriggerWidth by remember { mutableStateOf(0.dp) }
-                IconButton(onClick = { menuExpanded = true }, modifier = Modifier.reportWidthTo { menuTriggerWidth = it }) {
+                IconButton(onClick = { menuExpanded = true }) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
                 // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorWidth = menuTriggerWidth) {
+                ScanEatDropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     // The "💡 Bon à savoir" hint panel was previously reachable
                     // only from a scanned product's Result screen - a template's
                     // items already carry real per-100g nutrition (see
@@ -143,7 +142,7 @@ internal fun TemplateCard(
                 style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
         }
         if (template.items.size > 3) {
-            Text(stringResource(R.string.templates_more_items, template.items.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurfaceMuted)
+            Text(stringResource(R.string.templates_more_items, template.items.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
         }
         // Diet/allergen check previously only ever ran on Recipes/Grocery -
         // a template built from ingredients the user's own profile forbids
@@ -162,7 +161,7 @@ internal fun TemplateCard(
             HorizontalDivider(color = OnSurface.copy(0.07f))
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 @Composable fun M(label: String, v: Int, color: androidx.compose.ui.graphics.Color) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f))
                         Text("${v}g", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
                     }

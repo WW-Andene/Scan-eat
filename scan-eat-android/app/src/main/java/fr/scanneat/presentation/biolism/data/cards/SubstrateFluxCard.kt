@@ -24,7 +24,7 @@ fun SubstrateFluxCard(met: MetabolicResult, s: TimerState) {
             }
         }
     }) {
-        Label(stringResource(R.string.biolism_flux_ox_rate_title), OnBackgroundMuted)
+        Label(stringResource(R.string.biolism_flux_ox_rate_title), OnBackground.copy(0.4f))
         MetCellGrid(
             listOf(
                 Triple(stringResource(R.string.biolism_flux_fat_ox), "%.4f g/min".format(Locale.US, met.fatOxGPerMin), stringResource(R.string.biolism_flux_fat_kcal_g)),

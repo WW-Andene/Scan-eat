@@ -45,9 +45,7 @@ private enum class BiolismTab(@androidx.annotation.StringRes val labelRes: Int) 
 // to match FloatingTopBar's 1(sides):2(top/bottom) ratio (FloatingChromeMargin,
 // vertical=32dp each edge) instead of its previous ad-hoc Spacing.S(6dp) — see
 // DiaryHeaderHeight's identical fix.
-// User-requested: all sizes must sit on a base-2 scale
-// (2/4/6/8/12/16/24/32/48/64/96/128) - 140dp/52dp aren't members, snapped to 128dp/48dp.
-private val BiolismHeaderHeight = 128.dp + 48.dp
+private val BiolismHeaderHeight = 140.dp + 52.dp
 
 @Composable
 fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
@@ -138,10 +136,8 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                 Text(stringResource(R.string.tab_biolism), style = MaterialTheme.typography.titleLarge, color = LocalGoldAccent.current, fontWeight = FontWeight.Bold)
             }
             Text(stringResource(R.string.biolism_subtitle), style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
-            Spacer(Modifier.height(Spacing.M))
-            // Sub-tab row - inactive fill uses PrismFillColor, matching every
-            // other piece of card-style chrome in the app (ScanEatCard/BioCard/
-            // FloatingTopBar/MainShell's nav - see their own doc comments).
+            Spacer(Modifier.height(10.dp))
+            // Sub-tab row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.S),
@@ -155,8 +151,8 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                         // under the 48dp Material/WCAG minimum touch target.
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { role = Role.Tab; selected = isActive },
                         shape = RoundedCornerShape(8.dp),
-                        color = if (isActive) GoldHaze else PrismFillColor,
-                        border = if (isActive) androidx.compose.foundation.BorderStroke(2.dp, GoldBorder) else null,
+                        color = if (isActive) GoldHaze else OnBackground.copy(0.03f),
+                        border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, GoldBorder) else null,
                     ) {
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Text(

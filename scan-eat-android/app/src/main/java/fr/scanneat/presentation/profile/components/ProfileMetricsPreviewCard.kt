@@ -140,7 +140,7 @@ internal fun ProfileMetricsPreviewCard(
                 }
                 LinearProgressIndicator(
                     progress = { progress },
-                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(2.dp)),
+                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
                     color = AccentCoral,
                     trackColor = OnSurface.copy(0.1f),
                 )

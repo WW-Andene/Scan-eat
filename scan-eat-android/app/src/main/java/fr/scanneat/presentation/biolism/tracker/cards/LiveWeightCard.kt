@@ -25,7 +25,6 @@ import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.KG_TO_LB
 import fr.scanneat.util.formatDecimal
-import fr.scanneat.presentation.ui.theme.OnBackgroundMuted
 
 /** 1 ounce (avoirdupois) in grams - used only to give this card's gram-scale deltas
  *  (fat/glycogen lost, live delta) an imperial-equivalent small unit, matching kg's
@@ -45,7 +44,7 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = color.copy(0.04f),
-        border = BorderStroke(2.dp, color.copy(0.15f)),
+        border = BorderStroke(1.dp, color.copy(0.15f)),
         modifier = Modifier.fillMaxWidth()
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
@@ -66,7 +65,7 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
                 Text(stringResource(R.string.biolism_liveweight_delta, (smallValue(deltaG).formatDecimal(4)), smallUnit), style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = color.copy(0.8f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Text(stringResource(R.string.biolism_liveweight_base, (mainValue(baseWeight).formatDecimal(3)), mainUnit), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
+                Text(stringResource(R.string.biolism_liveweight_base, (mainValue(baseWeight).formatDecimal(3)), mainUnit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                 Text("−", color = TextMuted)
                 Text(stringResource(R.string.biolism_liveweight_fat_lost, (smallValue(fatLostKg * 1000).formatDecimal(4)), smallUnit), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
                 if (ketosisOn && glycoLostKg > 0) {

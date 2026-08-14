@@ -10,10 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -75,12 +71,11 @@ internal fun GroceryTopBarActions(
             Icon(TablerIcons.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
         }
         Box {
-            var triggerWidth by remember { mutableStateOf(0.dp) }
-            IconButton(onClick = { onCopyMenuExpandedChange(true) }, modifier = Modifier.reportWidthTo { triggerWidth = it }) {
+            IconButton(onClick = { onCopyMenuExpandedChange(true) }) {
                 Icon(TablerIcons.Copy, stringResource(R.string.common_copy), tint = AccentCoral)
             }
             // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-            ScanEatDropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }, anchorWidth = triggerWidth) {
+            ScanEatDropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.grocery_copy_plain)) },
                     onClick = { onCopyMenuExpandedChange(false); onCopyPlain() },

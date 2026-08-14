@@ -7,12 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -26,12 +21,11 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> Unit, currentSort: HistorySort, onSortChange: (HistorySort) -> Unit) {
     Box {
-        var triggerWidth by remember { mutableStateOf(0.dp) }
-        IconButton(onClick = { onExpandedChange(true) }, modifier = Modifier.reportWidthTo { triggerWidth = it }) {
+        IconButton(onClick = { onExpandedChange(true) }) {
             Icon(Icons.Rounded.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
         }
         // See ScanEatDropdownMenu's own doc comment - always positions below its trigger.
-        ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }, anchorWidth = triggerWidth) {
+        ScanEatDropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
             val options = listOf(
                 HistorySort.RECENT to stringResource(R.string.history_sort_recent),
                 HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),

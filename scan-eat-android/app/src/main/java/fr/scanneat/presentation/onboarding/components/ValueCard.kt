@@ -19,7 +19,7 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun ValueCard(icon: ImageVector, title: String, body: String) {
     ScanEatCard {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
-            Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(32.dp))
+            Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(28.dp))
             Column {
                 Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                 Text(body, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))

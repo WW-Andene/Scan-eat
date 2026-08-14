@@ -31,7 +31,7 @@ internal fun KetosisToggleRow(
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = bgColor,
-        border = BorderStroke(2.dp, borderColor),
+        border = BorderStroke(1.dp, borderColor),
         // app-audit §E5: top-level Biolism tracker card with no shadowElevation
         // at all, unlike the rest of the card system.
         shadowElevation = 0.dp,
@@ -60,7 +60,7 @@ internal fun KetosisToggleRow(
                     }
                 }
                 Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = TealHaze,
-                    border = BorderStroke(2.dp, TealGlow)) {
+                    border = BorderStroke(1.dp, TealGlow)) {
                     Text(if (active) stringResource(R.string.biolism_ketosis_oxi_active, fatPct, npRq)
                          else stringResource(R.string.biolism_ketosis_nprq_inactive, npRq),
                         modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
@@ -96,7 +96,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
             .clip(RoundedCornerShape(CardRadius.CONTROL)).clickable { onToggle() },
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (active) GoldHaze else GoldTrace,
-        border = BorderStroke(2.dp, if (active) GoldBorder else GoldTrace),
+        border = BorderStroke(1.dp, if (active) GoldBorder else GoldTrace),
         shadowElevation = 0.dp,
     ) {
         Row(Modifier.fillMaxWidth().padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
@@ -124,18 +124,18 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Text(stringResource(R.string.biolism_ketosis_adapted_label), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
                         if (threeWeeks) {
-                            Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = GoldHaze, border = BorderStroke(2.dp, GoldGlow)) {
+                            Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
                                 Text(stringResource(R.string.biolism_ketosis_auto_badge), modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                                     style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold)
                             }
                         } else {
-                            Text(stringResource(R.string.biolism_ketosis_3weeks_required), style = MaterialTheme.typography.labelSmall, color = OnBackgroundMuted)
+                            Text(stringResource(R.string.biolism_ketosis_3weeks_required), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                         }
                     }
                     Text(stringResource(R.string.biolism_ketosis_adapted_desc), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                 }
             }
-            Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = GoldHaze, border = BorderStroke(2.dp, GoldGlow)) {
+            Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
                 Text(if (active) "RQ→0.715" else "RQ→0.720", modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                     style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold, softWrap = false)
             }

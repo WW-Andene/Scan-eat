@@ -30,10 +30,10 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
     var text by remember(slot) { mutableStateOf((slot as? MealPlanSlot.NoteSlot)?.text ?: "") }
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-        // Was width(64.dp) - fit "Déjeuner"/"Dîner"/"Collation" on one line but
+        // Was width(72.dp) - fit "Déjeuner"/"Dîner"/"Collation" on one line but
         // forced "Petit-déjeuner" (the longest meal label) to wrap onto two
         // cramped lines, the only one of the four that did.
-        Text(meal, style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f), maxLines = 1, modifier = Modifier.width(96.dp))
+        Text(meal, style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f), maxLines = 1, modifier = Modifier.width(88.dp))
         if (editing) {
             OutlinedTextField(
                 value = text, onValueChange = { text = it },
@@ -51,7 +51,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // minimum) below - a UI/UX audit found this row forcing every control
             // to 32dp. The inner Icon's own smaller size keeps the glyph compact.
             IconButton(onClick = { onEdit(text); editing = false }) {
-                Icon(TablerIcons.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
+                Icon(TablerIcons.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(18.dp))
             }
             IconButton(onClick = { editing = false }) {
                 Icon(TablerIcons.X, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
@@ -92,7 +92,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // template is assigned; a note has no nutrition to log.
             if (slot is MealPlanSlot.RecipeSlot || slot is MealPlanSlot.TemplateSlot) {
                 IconButton(onClick = { onLog(slot) }) {
-                    Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
+                    Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(18.dp))
                 }
             }
             // Lets a saved Recipe/Template actually be planned onto this slot — until

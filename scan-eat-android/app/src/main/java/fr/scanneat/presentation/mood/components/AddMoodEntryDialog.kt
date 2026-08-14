@@ -21,8 +21,9 @@ internal fun AddMoodEntryDialog(
     var stress by remember { mutableFloatStateOf(3f) }
     var notes by remember { mutableStateOf("") }
 
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         title = { Text(stringResource(R.string.mood_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
