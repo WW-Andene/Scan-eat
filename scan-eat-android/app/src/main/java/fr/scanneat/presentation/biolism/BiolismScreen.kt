@@ -140,6 +140,11 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
             Text(stringResource(R.string.biolism_subtitle), style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
             Spacer(Modifier.height(Spacing.M))
             // Sub-tab row
+            // User-reported: this sub-tab row's inactive fill didn't switch to
+            // PrismFillColor under the Prism theme, unlike every other piece of
+            // card-style chrome in the app (ScanEatCard/BioCard/FloatingTopBar/
+            // MainShell's nav - see their own doc comments).
+            val isPrism = LocalThemeName.current == "prism"
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.S),
@@ -153,7 +158,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                         // under the 48dp Material/WCAG minimum touch target.
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { role = Role.Tab; selected = isActive },
                         shape = RoundedCornerShape(8.dp),
-                        color = if (isActive) GoldHaze else OnBackground.copy(0.03f),
+                        color = if (isActive) GoldHaze else if (isPrism) PrismFillColor else OnBackground.copy(0.03f),
                         border = if (isActive) androidx.compose.foundation.BorderStroke(2.dp, GoldBorder) else null,
                     ) {
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {

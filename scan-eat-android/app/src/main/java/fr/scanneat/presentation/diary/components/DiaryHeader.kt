@@ -174,6 +174,8 @@ internal fun BoxScope.DiaryHeader(
     var tabMenuExpanded by remember { mutableStateOf(false) }
     val overflowActive = activeTab in overflowTabs
     var overflowTriggerWidth by remember { mutableStateOf(0.dp) }
+    // Same Prism-fill fix as DiaryTabButton above.
+    val isPrismOverflow = LocalThemeName.current == "prism"
     Box(
         Modifier
             .align(Alignment.TopEnd)
@@ -185,7 +187,7 @@ internal fun BoxScope.DiaryHeader(
                 if (armedOverflowTab != null) armedOverflowTab = null else tabMenuExpanded = true
             },
             shape = RoundedCornerShape(8.dp),
-            color = if (overflowActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
+            color = if (overflowActive) ChipBackgroundAccent else if (isPrismOverflow) PrismFillColor else SurfaceVariant.copy(alpha = 0.4f),
             border = if (overflowActive) BorderStroke(2.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
             modifier = Modifier.reportWidthTo { overflowTriggerWidth = it },
         ) {
@@ -266,10 +268,15 @@ private fun DiaryTabButton(
     onClick: () -> Unit,
     isReplaceTarget: Boolean = false,
 ) {
+    // User-reported: this tab chip's inactive fill didn't switch to
+    // PrismFillColor under the Prism theme, unlike every other piece of
+    // card-style chrome in the app (ScanEatCard/BioCard/FloatingTopBar/
+    // MainShell's nav - see their own doc comments).
+    val isPrism = LocalThemeName.current == "prism"
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
-        color = if (isReplaceTarget) AccentCoral.copy(alpha = 0.16f) else if (isActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
+        color = if (isReplaceTarget) AccentCoral.copy(alpha = 0.16f) else if (isActive) ChipBackgroundAccent else if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = 0.4f),
         border = if (isReplaceTarget) BorderStroke(2.dp, AccentCoral.copy(alpha = 0.6f)) else if (isActive) BorderStroke(2.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
     ) {
         Row(
