@@ -6,26 +6,27 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Shared corner-radius scale — same idea as Spacing.kt/IconSize.kt, applied to
- * RoundedCornerShape() literals. An app-wide audit found 12 distinct radius
- * values in circulation with no documented scale; most of that spread was
- * accidental drift between near-identical values (10/12/14dp) rather than
- * a real design need. Three role-based tiers cover the actual usage:
- *   - CONTROL: buttons, text fields, chips, badges, list-row cards, banners —
- *     the app's overwhelming default (the vast majority of call sites already
- *     agree on this value).
- *   - CARD: ScanEatCard's default and the plain-Surface "dashboard widget"
- *     cards (GapCloserCard, WeeklyBarsCard, WeightSummaryCard, ...).
- *   - PROMINENT: bottom sheets/modals and hero/featured cards that
- *     deliberately want a larger, softer radius than an ordinary card.
- * Small decorative radii (progress-bar segments, tick marks, tiny dots) and
- * one-off shapes (pills, camera overlays) are intentionally not folded into
- * this scale — those are a different role, not drift.
+ * RoundedCornerShape() literals.
+ *
+ * User-requested (app-wide, every tab, not theme-specific): CONTROL/CARD/
+ * PROMINENT previously carried three different values (12/16/24dp) across
+ * three role tiers (control vs. card vs. hero/header/footer). That produced
+ * exactly the inconsistency reported — the floating header/bottom-nav chrome
+ * (PROMINENT) read visibly rounder than an ordinary content card (CARD),
+ * which in turn read rounder than a button or text field (CONTROL), so
+ * "some cards look round, others look rectangular" depending only on which
+ * role happened to render them, not on any deliberate per-surface choice.
+ * All three now share one value so every rounded-rectangle surface in the
+ * app — buttons, fields, chips, ordinary cards, bottom sheets, and the
+ * floating header/footer chrome alike — reads as the same one shape. Kept
+ * as three separate names (rather than collapsing to one constant) purely
+ * so the ~600 existing call sites keep their own semantic role in the code
+ * without a mechanical rename; only the value converged.
  */
 object CardRadius {
-    val CONTROL: Dp = 12.dp
+    val CONTROL: Dp = 16.dp
     val CARD: Dp = 16.dp
-    // Base-2 scale migration: standardized from 20dp to 24dp.
-    val PROMINENT: Dp = 24.dp
+    val PROMINENT: Dp = 16.dp
 
     // genre audit (shape/corners): 4.dp turned out to be the single most
     // common tinted-badge Surface radius in the app (13 exact-match sites:
