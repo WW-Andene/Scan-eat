@@ -86,18 +86,27 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
     // never registered MainShell's shared bottomNavHazeState, so the bottom
     // nav's hazeEffect had nothing to blur here and rendered as a no-op.
     val bottomNavHazeState = LocalBottomNavHazeState.current
+    // User-reported: use Tableau (FloatingScreenScaffold) as the reference - it
+    // registers bottomNavHazeState and its own header hazeState on two
+    // INDEPENDENTLY NESTED Box nodes (outer -> bottomNavHazeState, inner ->
+    // headerHazeState), never both hazeSource() calls chained on one Modifier
+    // chain. This screen instead chained both on a single Box, a different
+    // structure from every other bottom-nav-tab screen (Dashboard/Diary both
+    // nest), which is what made Métabolisme's footer glass render differently
+    // from Tableau's. Nested to match exactly.
     Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeSource(hazeState)
-                .hazeSource(bottomNavHazeState),
-        ) {
-            when (activeTab) {
-                BiolismTab.TRACKER   -> TrackerScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
-                BiolismTab.DATA      -> DataScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
-                BiolismTab.EVOLUTION -> EvolutionScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
-                BiolismTab.PROFILE   -> BiolismProfileScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
+        Box(modifier = Modifier.fillMaxSize().hazeSource(bottomNavHazeState)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeSource(hazeState),
+            ) {
+                when (activeTab) {
+                    BiolismTab.TRACKER   -> TrackerScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
+                    BiolismTab.DATA      -> DataScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
+                    BiolismTab.EVOLUTION -> EvolutionScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
+                    BiolismTab.PROFILE   -> BiolismProfileScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
+                }
             }
         }
 
