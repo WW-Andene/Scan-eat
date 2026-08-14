@@ -154,7 +154,7 @@ internal fun ColumnScope.DiaryTabRow(
                             }
                         }
                         // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-                        ScanEatDropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, anchorWidth = tabMenuAnchorWidth) {
+                        ScanEatDropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, anchorWidth = tabMenuAnchorWidth, matchAnchorWidth = false) {
                             overflowTabs.forEach { tab ->
                                 val isActive = tab == activeTab
                                 HoldToArmMenuItem(

@@ -7,8 +7,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -93,6 +94,12 @@ fun ScanEatDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     anchorWidth: Dp = Dp.Unspecified,
+    // User-instructed: every popup's width should match its trigger's width
+    // exactly - except Journal's own "Plus" tab-overflow menu (DiaryHeader.kt),
+    // whose items are the other tab labels (e.g. "Dépenses", "Traitement"),
+    // routinely wider than the compact icon-only "Plus" trigger itself -
+    // clamping to that trigger's width would truncate/wrap every label.
+    matchAnchorWidth: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val overlay = LocalPopupOverlay.current
@@ -110,6 +117,7 @@ fun ScanEatDropdownMenu(
                 PopupOverlayMenu(
                     anchorCoordinates = anchorCoordinates,
                     anchorWidth = anchorWidth,
+                    matchAnchorWidth = matchAnchorWidth,
                     hazeState = hazeState,
                     onDismissRequest = onDismissRequest,
                     content = content,
@@ -132,6 +140,7 @@ fun ScanEatDropdownMenu(
 private fun PopupOverlayMenu(
     anchorCoordinates: LayoutCoordinates?,
     anchorWidth: Dp,
+    matchAnchorWidth: Boolean,
     hazeState: HazeState,
     onDismissRequest: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
@@ -168,7 +177,17 @@ private fun PopupOverlayMenu(
                 }
                 .hazeEffect(state = hazeState, style = FrostedGlassStyle)
                 .glassSheen(edgeAlpha = 0.28f, shape = shape)
-                .widthIn(min = anchorWidth)
+                // User-instructed: the popup's width should match its trigger
+                // button's width exactly, not just a floor it can grow past -
+                // widthIn(min=) let a menu with wider text (e.g. a long label)
+                // grow past its trigger, no longer aligned edge-to-edge.
+                .then(
+                    when {
+                        anchorWidth == Dp.Unspecified -> Modifier
+                        matchAnchorWidth -> Modifier.width(anchorWidth)
+                        else -> Modifier.widthIn(min = anchorWidth)
+                    }
+                )
                 // Consumes taps landing on the menu's own padding/background
                 // (not on a specific item) so they don't fall through to the
                 // scrim behind it and dismiss the menu unintentionally.
