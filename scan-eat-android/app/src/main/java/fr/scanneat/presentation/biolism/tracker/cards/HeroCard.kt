@@ -51,9 +51,12 @@ internal fun HeroCard(
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
                 letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
 
+            // User-requested: hero-number sizes snapped onto the type scale's
+            // own display/headline steps (44/40/36/32/28/24) - 42sp matched
+            // none of them, nearest is 40sp (displayMedium).
             Text(
                 if (precision) displayValue.formatDecimal(4) else displayValue.formatDecimal(2),
-                style = HeroNumberStyle.copy(fontSize = 42.sp),
+                style = HeroNumberStyle.copy(fontSize = 40.sp),
                 color = heroColor,
             )
             // Toggle between total burned and burn rate per second

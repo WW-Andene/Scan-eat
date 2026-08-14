@@ -196,7 +196,10 @@ internal fun DualScoreRing(
                     trackColor  = SurfaceVariant,
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(classicGrade.label, style = HeroNumberStyle.copy(fontSize = 26.sp), color = classicColor)
+                    // User-requested: hero-number sizes snapped onto the type
+                    // scale's own display/headline steps (44/40/36/32/28/24) -
+                    // 26sp matched none of them, nearest is 24sp (headlineSmall).
+                    Text(classicGrade.label, style = HeroNumberStyle.copy(fontSize = 24.sp), color = classicColor)
                     Text(stringResource(R.string.result_score_out_of_100, classicScore), style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
                 }
             }
@@ -229,7 +232,7 @@ internal fun DualScoreRing(
                     modifier = if (veto) Modifier.clearAndSetSemantics { contentDescription = vetoDescription } else Modifier,
                 ) {
                     Text(if (veto) "✗" else personalGrade.label,
-                        style = HeroNumberStyle.copy(fontSize = 26.sp),
+                        style = HeroNumberStyle.copy(fontSize = 24.sp),
                         color = personalColor)
                     // A numeric "0/100" under the veto ✗ read as just a bad score rather than
                     // "unsafe regardless of score" - the whole point of the veto distinction. A
