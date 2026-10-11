@@ -239,7 +239,8 @@ internal fun barcodeCandidates(barcode: String): List<String> {
 private fun gtin14ToEan13(code: String): String? {
     if (code.length != 14 || !code.all { it.isDigit() }) return null
     val payload12 = code.substring(1, 13)
-    return "0$payload12" + ean13CheckDigit(payload12)
+    // payload + recomputed check = the 13-digit EAN-13 (an extra leading "0" made it 14 digits).
+    return payload12 + ean13CheckDigit(payload12)
 }
 
 /** Standard mod-10 EAN-13 check digit for a 12-digit payload. */
