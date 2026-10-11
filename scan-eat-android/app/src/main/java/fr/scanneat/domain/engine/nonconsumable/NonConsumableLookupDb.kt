@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.nonconsumable
 
 import android.content.Context
+import fr.scanneat.util.parseCsvLine
 
 // ============================================================================
 // NON-CONSUMABLE PRODUCT LOOKUP DB — sourced from Open Products Facts
@@ -76,25 +77,6 @@ private object NonConsumableStore {
     }
 }
 
-/** Same minimal RFC4180-style parser as MedicationLookupDb (kept file-local to avoid a cross-module dependency for one tiny helper). */
-private fun parseCsvLine(line: String): List<String> {
-    val out = ArrayList<String>()
-    val sb = StringBuilder()
-    var inQuotes = false
-    var i = 0
-    while (i < line.length) {
-        val c = line[i]
-        when {
-            inQuotes && c == '"' && i + 1 < line.length && line[i + 1] == '"' -> { sb.append('"'); i++ }
-            c == '"' -> inQuotes = !inQuotes
-            c == ',' && !inQuotes -> { out.add(sb.toString()); sb.setLength(0) }
-            else -> sb.append(c)
-        }
-        i++
-    }
-    out.add(sb.toString())
-    return out
-}
 
 fun findNonConsumableByBarcode(context: Context, barcode: String): NonConsumableDbEntry? =
     NonConsumableStore.get(context)[barcode.filter { it.isDigit() }]
