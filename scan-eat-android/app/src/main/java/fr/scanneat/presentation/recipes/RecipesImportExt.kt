@@ -3,22 +3,13 @@ package fr.scanneat.presentation.recipes
 import androidx.lifecycle.viewModelScope
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
-import fr.scanneat.util.serverUnreachableMessage
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 
-// ── Import from URL — wires up the server's fetch-recipe route (SSRF-guarded
-// HTML fetch + schema.org Recipe JSON-LD extraction), which existed with no
-// Android caller at all: every recipe previously had to be typed in by hand.
-// ────────────────────────────────────────────────────────────────────────
-//
-// Extracted verbatim out of RecipesViewModel - the cohesive "URL/photo recipe
-// import + LLM suggest" concern, same purely-structural split ScanRepository
-// already went through for ScanOffLookup/ScanServerClient. RecipesViewModel's
-// own public API is unchanged; these are extension functions on it rather than
-// a delegate class since they need viewModelScope + the ViewModel's own
-// StateFlows directly, same as every other function still in that file.
+// Recipe import (web link, photo) and recipe ideas - all handled on the device
+// by RecipeRepository. Extension functions rather than a delegate class since
+// they need viewModelScope + the ViewModel's own StateFlows directly.
 
 fun RecipesViewModel.importRecipeFromUrl(url: String) {
     if (url.isBlank()) return
@@ -33,9 +24,8 @@ fun RecipesViewModel.importRecipeFromUrl(url: String) {
 }
 
 /**
- * Photo counterpart to [importRecipeFromUrl] — wires up the server's
- * identify-recipe route (recipe card / cookbook page photo → structured recipe
- * via Groq vision), previously unreachable from the app. Shares the same
+ * Photo counterpart to [importRecipeFromUrl] — a recipe card / cookbook page is
+ * read on the device (text recognition) into a structured recipe. Shares the same
  * ImportUiState/AddRecipeDialog prefill flow as the URL import.
  */
 fun RecipesViewModel.importRecipeFromPhotos(images: List<ImagePayload>) {
@@ -45,25 +35,6 @@ fun RecipesViewModel.importRecipeFromPhotos(images: List<ImagePayload>) {
         val lang = language.value
         repo.identifyRecipeFromPhotos(images, lang).fold(
             onSuccess = { _importState.value = RecipesViewModel.ImportUiState.Success(it) },
-            onFailure = { e -> _importState.value = RecipesViewModel.ImportUiState.Error(importErrorMessage(e, lang)) },
-        )
-    }
-}
-
-/**
- * Restaurant menu photo -> estimated dishes (IdentifyMenuRoute.kt), previously
- * unreachable from the app. Unlike [importRecipeFromPhotos], a successful result
- * lands in [ImportUiState.MenuSuccess] rather than [ImportUiState.Success] - these
- * dishes are external restaurant items with nothing to save/log, so they never
- * feed AddRecipeDialog's prefill.
- */
-fun RecipesViewModel.identifyMenuFromPhotos(images: List<ImagePayload>) {
-    if (images.isEmpty()) return
-    viewModelScope.launch {
-        _importState.value = RecipesViewModel.ImportUiState.Loading
-        val lang = language.value
-        repo.identifyMenuFromPhotos(images, lang).fold(
-            onSuccess = { _importState.value = RecipesViewModel.ImportUiState.MenuSuccess(it) },
             onFailure = { e -> _importState.value = RecipesViewModel.ImportUiState.Error(importErrorMessage(e, lang)) },
         )
     }
@@ -120,11 +91,9 @@ private fun importErrorMessage(e: Throwable, lang: String): String = when {
         if (lang == "en") "Too many requests — try again in a minute" else "Trop de requêtes — réessayez dans une minute"
     e is HttpException && e.code() == 400 ->
         if (lang == "en") "Invalid or unreachable URL" else "URL invalide ou inaccessible"
-    // A no-connection/DNS-failure/timeout against the app's own configured server
-    // (fetchRecipeFromUrl/identify-recipe both go through it, see this file's own
-    // header comment) previously fell straight through to e.message, surfacing a
-    // raw OkHttp string like "Unable to resolve host" - the exact failure mode
-    // serverUnreachableMessage() was already built for on the scan/server-URL path.
-    e is IOException -> serverUnreachableMessage(lang)
+    // No connection / DNS failure / timeout while downloading the recipe page -
+    // a raw OkHttp string ("Unable to resolve host") would otherwise reach the user.
+    e is IOException ->
+        if (lang == "en") "Couldn't reach this page — check your connection" else "Impossible de joindre cette page — vérifiez votre connexion"
     else -> e.message ?: (if (lang == "en") "Import failed" else "Échec de l'import")
 }

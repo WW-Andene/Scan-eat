@@ -311,7 +311,7 @@ fun ScanScreen(
             // gets the plain bounding box above - there's nothing cached to show for
             // it before it's actually been scanned once.
             // User-requested: Premium-gated - this is a passive, no-tap overlay (unlike
-            // instant mode/identify-multi, which route to Settings on a blocked tap), so
+            // instant mode, which routes to Settings on a blocked tap), so
             // for a non-Premium user it simply doesn't render rather than routing
             // anywhere - there's no tap to intercept. ──
             if (isPremium.value) {
@@ -344,19 +344,11 @@ fun ScanScreen(
 
             // ── Identify-without-label action — only relevant with photos queued and
             // no barcode held (fresh produce, a plated dish: nothing to OCR a label
-            // from). Routes to OcrParser.identifyFood, which previously had no caller
-            // anywhere in the app despite already being implemented. ──
+            // from). Recognised on the device (OnDeviceFoodIdentifier). ──
             if (images.value.isNotEmpty() && barcode.value == null && state.value !is ScanUiState.Scanning) {
                 ScanIdentifyFoodAction(
                     bottomNavClearance = bottomNavClearance,
                     onClick = { viewModel.identifyFromPhotos() },
-                    // Long-press: same photos, but routes to /api/identify-multi so a
-                    // plate with several distinct foods returns one item per food
-                    // instead of collapsing the whole plate into a single result.
-                    // Premium-gated (see UserPreferences.isPremium) - identifyMultiFromPhotos()
-                    // already no-ops for a non-Premium user, but routing to Settings here
-                    // instead of silently doing nothing tells the user why.
-                    onLongClick = { if (isPremium.value) viewModel.identifyMultiFromPhotos() else onPremiumBlocked() },
                 )
             }
 
@@ -443,11 +435,6 @@ fun ScanScreen(
             onDismissError = { viewModel.dismissError() },
             onDismissFound = { viewModel.dismissFound() },
             onSaveDetectedMedication = { entry -> viewModel.saveDetectedMedication(entry) },
-            // Same "consumed" cleanup the single-item Success path runs after
-            // navigating (see the LaunchedEffect(state.value) above) - without it,
-            // MultiFoodFound would stay current and the picked item's dialog (or a
-            // stale photo queue) would still be there on returning to this screen.
-            onPickMultiFood = { id -> onResultReady(id); viewModel.resultConsumed() },
             onReportMisclassification = { barcode, name, brand, current, corrected, note ->
                 viewModel.reportMisclassification(barcode, name, brand, current, corrected, note)
             },

@@ -2,7 +2,16 @@ package fr.scanneat.data.repository.planning
 
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import com.squareup.moshi.Moshi
-import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.scan.OnDeviceLabelReader
+import fr.scanneat.domain.engine.planning.parseRecipeText
+import fr.scanneat.domain.engine.planning.parseSchemaOrgRecipe
+import fr.scanneat.domain.engine.planning.suggestOfficialRecipes
+import fr.scanneat.util.ioCatching
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import fr.scanneat.data.remote.api.*
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
@@ -21,19 +30,17 @@ import javax.inject.Singleton
 //
 // Room entity + DAO defined inline (small schema, no shared DAO file impact).
 //
-// Domain types (Recipe/RecipeComponent/FetchedRecipeResult/MenuDish and their
-// extension functions) live in RecipeModels.kt; Recipe<->RecipeEntity mapping
-// lives in RecipeEntityMapping.kt; the server-mode import calls (URL/photo/AI)
-// are grouped in the RecipeServerImportClient delegate below - same
-// purely-structural split ScanRepository/HealthConnectRepository already went
-// through. Nothing about this class's public API changes.
+// Domain types (Recipe/RecipeComponent/FetchedRecipeResult and their extension
+// functions) live in RecipeModels.kt; Recipe<->RecipeEntity mapping lives in
+// RecipeEntityMapping.kt. Import (web link, photo) and recipe ideas run on the
+// device - see the bottom of this class.
 // ============================================================================
 
 @Singleton
 class RecipeRepository @Inject constructor(private val dao: RecipeDao,
     moshi: Moshi,
-    prefs: UserPreferences,
-    serverApiProvider: ServerScanApiProvider,
+    private val okHttp: OkHttpClient,
+    private val labelReader: OnDeviceLabelReader,
 ) {
     // Internal (not private) so RecipeEntityMapping.kt's toEntity()/toDomain()
     // extension functions can reach it - same reasoning as HealthConnectRepository's
@@ -41,8 +48,6 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
     internal val componentsAdapter = moshi.adapter<List<RecipeComponent>>(
         com.squareup.moshi.Types.newParameterizedType(List::class.java, RecipeComponent::class.java)
     )
-
-    private val serverImport = RecipeServerImportClient(prefs, serverApiProvider)
 
     fun observeAll(profileId: String = "default"): Flow<List<Recipe>> =
         dao.observeAll(profileId).map { it.mapNotNull { e -> e.toDomain(componentsAdapter) } }
@@ -103,6 +108,8 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
 
     private companion object {
         const val MAX_ROWS = 5000
+        /** Recipe pages are far smaller; caps a pathological download. */
+        const val MAX_PAGE_BYTES = 3L * 1024 * 1024
     }
 
     suspend fun delete(id: String) = dao.delete(id)
@@ -130,20 +137,38 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
         )
     }
 
-    // ---- Server-mode import (URL / photo / AI suggestion) — delegated to RecipeServerImportClient ----
+    // ---- Import & suggestions — all on the device, no server or AI ----
 
-    suspend fun fetchRecipeFromUrl(url: String, lang: String): Result<FetchedRecipeResult> =
-        serverImport.fetchRecipeFromUrl(url, lang)
+    /** Downloads the page the user asked to import and reads its schema.org Recipe data. */
+    suspend fun fetchRecipeFromUrl(url: String, lang: String): Result<FetchedRecipeResult> = ioCatching {
+        val en = lang == "en"
+        val httpUrl = url.trim().toHttpUrlOrNull()?.takeIf { it.scheme == "http" || it.scheme == "https" }
+            ?: error(if (en) "This isn't a valid web link" else "Ce n'est pas un lien web valide")
+        val html = withContext(Dispatchers.IO) {
+            okHttp.newCall(Request.Builder().url(httpUrl).header("Accept", "text/html").build()).execute().use { resp ->
+                if (!resp.isSuccessful) error(if (en) "The page couldn't be loaded (${resp.code})" else "La page n'a pas pu être chargée (${resp.code})")
+                // Recipe pages are well under this; guards against a huge download.
+                resp.body?.source()?.let { src -> src.request(MAX_PAGE_BYTES); src.buffer.clone().readUtf8() }.orEmpty()
+            }
+        }
+        parseSchemaOrgRecipe(html, httpUrl.toString())
+            ?: error(if (en) "No recipe found on this page — the site doesn't publish its recipe data" else "Aucune recette trouvée sur cette page — le site ne publie pas ses données de recette")
+    }
 
-    suspend fun identifyRecipeFromPhotos(images: List<ImagePayload>, lang: String): Result<FetchedRecipeResult> =
-        serverImport.identifyRecipeFromPhotos(images, lang)
+    /** Reads a photographed recipe card / cookbook page with on-device text recognition. */
+    suspend fun identifyRecipeFromPhotos(images: List<ImagePayload>, lang: String): Result<FetchedRecipeResult> = ioCatching {
+        parseRecipeText(labelReader.readLines(images))
+            ?: error(if (lang == "en") "No recipe could be read — photograph the ingredients and steps, sharp and well lit"
+                     else "Aucune recette lisible — photographiez les ingrédients et les étapes, nets et bien éclairés")
+    }
 
-    suspend fun identifyMenuFromPhotos(images: List<ImagePayload>, lang: String): Result<List<MenuDish>> =
-        serverImport.identifyMenuFromPhotos(images, lang)
+    /** Built-in recipes that use [ingredient]. */
+    suspend fun suggestRecipes(ingredient: String, lang: String): Result<List<FetchedRecipeResult>> = ioCatching {
+        suggestOfficialRecipes(listOf(ingredient), english = lang == "en")
+    }
 
-    suspend fun suggestRecipes(ingredient: String, lang: String): Result<List<FetchedRecipeResult>> =
-        serverImport.suggestRecipes(ingredient, lang)
-
-    suspend fun suggestFromPantry(items: List<String>, lang: String): Result<List<FetchedRecipeResult>> =
-        serverImport.suggestFromPantry(items, lang)
+    /** Built-in recipes that make the most of what's in the pantry. */
+    suspend fun suggestFromPantry(items: List<String>, lang: String): Result<List<FetchedRecipeResult>> = ioCatching {
+        suggestOfficialRecipes(items, english = lang == "en")
+    }
 }

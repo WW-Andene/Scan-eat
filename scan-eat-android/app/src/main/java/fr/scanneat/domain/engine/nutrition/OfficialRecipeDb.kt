@@ -32,7 +32,7 @@ data class OfficialRecipeIngredient(val foodName: String, val grams: Double)
 // case-insensitive Map built once and shared by every OfficialRecipe
 // instance. putIfAbsent (not associateBy, which keeps the LAST duplicate)
 // preserves firstOrNull's original "first match wins" semantics exactly.
-private val FOOD_DB_BY_NAME: Map<String, FoodEntry> by lazy {
+internal val FOOD_DB_BY_NAME: Map<String, FoodEntry> by lazy {
     val map = LinkedHashMap<String, FoodEntry>()
     for (entry in FOOD_DB) map.putIfAbsent(entry.name.lowercase(), entry)
     map

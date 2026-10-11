@@ -77,13 +77,8 @@ fun RecipesScreen(
     var logOfficialTarget by remember { mutableStateOf<OfficialRecipe?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
-    // Restaurant menu photo -> estimated dishes (IdentifyMenuRoute.kt), previously
-    // unreachable from the app. Mirrors the recipe-photo-import path exactly - the
-    // system photo picker is the whole "input" step, loading/result/error surface
-    // via importState either way.
     val photoLaunchers = rememberRecipesPhotoLaunchers(
         onRecipePhotos = { viewModel.importRecipeFromPhotos(it) },
-        onMenuPhotos = { viewModel.identifyMenuFromPhotos(it) },
         onDecodeFailed = { viewModel.photoDecodeFailed() },
     )
 
@@ -128,7 +123,6 @@ fun RecipesScreen(
                 onSuggest = { showSuggest = true },
                 onImportUrl = { showImportUrl = true },
                 onImportPhoto = photoLaunchers.photoImportLaunch,
-                onMenuScan = photoLaunchers.menuScanLaunch,
                 onNew = { showAdd = true },
             )
         },

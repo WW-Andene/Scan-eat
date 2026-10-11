@@ -52,10 +52,9 @@ import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 private enum class SuggestMode { INGREDIENT, PANTRY, HISTORY }
 
 /**
- * Entry dialog for RecipesViewModel.suggestRecipes()/suggestFromPantry() — wires up
- * the server's suggest-recipes route family (single ingredient, or a free-typed list
- * of what's on hand -> Groq-generated ideas), previously unreachable from the app.
- * Unlike URL/photo import, this shows a pickable list of ideas rather than pre-filling
+ * Entry dialog for RecipesViewModel.suggestRecipes()/suggestFromPantry() — one
+ * ingredient, or a list of what's on hand, matched against the app's built-in
+ * recipe collection. Unlike URL/photo import, this shows a pickable list of ideas rather than pre-filling
  * directly — tapping one calls [onPick], which feeds the exact same AddRecipeDialog
  * prefill path the other imports use.
  *

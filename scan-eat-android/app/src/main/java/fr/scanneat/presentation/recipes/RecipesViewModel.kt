@@ -7,7 +7,6 @@ import fr.scanneat.presentation.common.ActionFailureViewModel
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.MealTemplateRepository
-import fr.scanneat.data.repository.planning.MenuDish
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.data.repository.scan.ScanRepository
@@ -34,7 +33,7 @@ class RecipesViewModel @Inject constructor(
     // Widened from private to internal so RecipesImportExt.kt's extension
     // functions (the URL/photo import + suggest flow, extracted verbatim into
     // that sibling file) can still reach it - same structural-only split
-    // ScanRepository already went through with ScanOffLookup/ScanServerClient.
+    // ScanRepository already went through with ScanOffLookup.
     internal val repo: RecipeRepository,
     // Widened from private to internal - RecipesOperationsExt.kt's extension
     // functions (the save/delete/scale/log/clone operations, extracted verbatim
@@ -273,7 +272,7 @@ class RecipesViewModel @Inject constructor(
     // rename/updateNotes/scale/undoScale/log/logOfficial/cloneOfficial now live in
     // RecipesOperationsExt.kt (see that file) - extracted verbatim as extension
     // functions on RecipesViewModel, same cohesive "recipe CRUD + logging" concern
-    // ScanRepository's own split pulled ScanOffLookup/ScanServerClient out for.
+    // ScanRepository's own split pulled ScanOffLookup out for.
 
     // ── Import from URL — wires up the server's fetch-recipe route (SSRF-guarded
     // HTML fetch + schema.org Recipe JSON-LD extraction), which existed with no
@@ -285,12 +284,6 @@ class RecipesViewModel @Inject constructor(
         data class Success(val result: FetchedRecipeResult) : ImportUiState()
         /** suggestRecipes()/suggestFromPantry() return several ideas to pick from, unlike the single-result URL/photo import. */
         data class SuggestSuccess(val results: List<FetchedRecipeResult>) : ImportUiState()
-        /**
-         * identifyMenuFromPhotos() result — unlike [Success]/[SuggestSuccess], these dishes
-         * are external restaurant items with nothing to save/log, so they get their own
-         * variant rather than reusing [Success]'s AddRecipeDialog-prefill handoff.
-         */
-        data class MenuSuccess(val dishes: List<MenuDish>) : ImportUiState()
         data class Error(val message: String) : ImportUiState()
     }
 
@@ -304,5 +297,5 @@ class RecipesViewModel @Inject constructor(
     // suggestFromPantry/pickSuggestion/clearImportState/photoDecodeFailed/importErrorMessage
     // now live in RecipesImportExt.kt (see that file) - extracted verbatim as extension
     // functions on RecipesViewModel, same cohesive "URL/photo import + suggest" concern
-    // ScanRepository's own split pulled ScanOffLookup/ScanServerClient out for.
+    // ScanRepository's own split pulled ScanOffLookup out for.
 }

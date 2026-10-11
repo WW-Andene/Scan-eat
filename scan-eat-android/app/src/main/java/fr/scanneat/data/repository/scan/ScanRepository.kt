@@ -10,7 +10,6 @@ import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
 import fr.scanneat.data.local.db.scan.TopScannedRow
-import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.*
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
@@ -26,7 +25,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import fr.scanneat.util.ioCatching
-import fr.scanneat.util.serverUrlMissingMessage
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,7 +41,7 @@ class ProductNotFoundException(message: String) : Exception(message)
  * so this file has no dependency on that package.
  */
 // [ingredientsText] added 13/08/2026 - a real gap found alongside the static-
-// CSV enrichment fix: both throw sites (ScanOffLookup.kt, ScanServerClient.kt)
+// CSV enrichment fix: the throw site (ScanOffLookup.kt)
 // already had the OFF product's own ingredients_text in hand at the exact
 // point they threw this exception, but were discarding it - meaning every one
 // of the six per-category functional scores (and CosmeticTransparencyScore)
@@ -53,16 +51,11 @@ class ProductNotFoundException(message: String) : Exception(message)
 // fetched - see both throw sites' own comments).
 class NonFoodProductException(val productName: String, val brand: String, val category: String, val ingredientsText: String? = null) : Exception()
 
-// These reach the user verbatim (ScanViewModel shows e.message directly in the
-// error banner) — "Groq API key not configured" was leaking straight to a
-// French-first UI in English, and neither message respected the [lang]
-// parameter these functions already thread through for exactly this purpose.
+// Reaches the user verbatim (ScanViewModel shows e.message in the error banner),
+// so it's localized via [lang].
 private fun offlineMessage(lang: String) =
     if (lang == "en") "No internet connection" else "Pas de connexion internet"
 
-private fun missingApiKeyMessage(lang: String) =
-    if (lang == "en") "Missing Groq API key — set it up in Settings"
-    else "Clé API Groq manquante — configurez-la dans Réglages"
 
 @Singleton
 class ScanRepository @Inject constructor(
@@ -73,10 +66,10 @@ class ScanRepository @Inject constructor(
     private val scoreHistoryDao: ScanScoreHistoryDao,
     private val onlineSearchCacheDao: OnlineSearchCacheDao,
     private val prefs: UserPreferences,
-    private val ocrParser: OcrParser,
+    private val labelReader: OnDeviceLabelReader,
+    private val foodIdentifier: OnDeviceFoodIdentifier,
     private val moshi: Moshi,                  // singleton from AppModule
     private val customFoodRepo: CustomFoodRepository,
-    private val serverApiProvider: ServerScanApiProvider,
     private val db: AppDatabase,
 ) {
     private val productAdapter = moshi.adapter(Product::class.java)
@@ -85,12 +78,8 @@ class ScanRepository @Inject constructor(
         com.squareup.moshi.Types.newParameterizedType(List::class.java, String::class.java)
     )
 
-    // Cohesive network concerns delegated to their own files (ScanServerClient,
-    // ScanOffLookup) verbatim - same retry/backoff, same request/response
-    // shapes, same exception signalling as before the split. Purely a
-    // structural extraction: ScanRepository's own public API is unchanged.
-    private val serverClient = ScanServerClient(serverApiProvider)
-    private val offLookup = ScanOffLookup(offApi, ocrParser)
+    // Open Food Facts lookups (with on-device label reading for sparse records) live in ScanOffLookup.
+    private val offLookup = ScanOffLookup(offApi, labelReader)
 
     // ---- History ----
     //
@@ -283,10 +272,6 @@ class ScanRepository @Inject constructor(
         online: Boolean = true,
         profileId: String = "default",
     ): Result<Pair<ScanResult, Long>> = ioCatching {
-        val apiMode   = prefs.apiMode.first()
-        val apiKey    = prefs.groqApiKey.first()
-        val cerebrasKey = prefs.cerebrasApiKey.first()
-        val serverUrl = prefs.serverUrl.first()
 
         // A barcode already scanned before is served straight from the local
         // cache — only a genuinely new lookup needs a connection, so this check
@@ -333,10 +318,7 @@ class ScanRepository @Inject constructor(
         if (!online) error(offlineMessage(lang))
 
         val result = try {
-            when (apiMode) {
-                ApiMode.SERVER -> serverClient.scoreViaServer(serverUrl, apiKey, images, barcode, lang, DEFAULT_MODEL)
-                ApiMode.DIRECT -> offLookup.scoreDirectBarcode(barcode, images, apiKey, cerebrasKey, lang, ::missingApiKeyMessage)
-            }
+            offLookup.scoreDirectBarcode(barcode, images, lang)
         } catch (e: Exception) {
             // A cancelled scan (user already left the screen) must propagate as
             // cancellation, not be reinterpreted as "lookup failed" - otherwise a
@@ -351,7 +333,7 @@ class ScanRepository @Inject constructor(
             // keep surfacing forever. A harmless no-op when there was no prior row
             // (a genuinely first-time scan of a non-food barcode).
             if (e is NonFoodProductException) purgeNonFoodEntry(barcode, profileId)
-            // Last-resort fallback: neither OFF nor the vision LLM could identify
+            // Last-resort fallback: neither OFF nor the label photo could identify
             // this barcode (or the lookup itself failed after exhausting its own
             // retries) — but the user may have already manually taught the app
             // this exact product (CustomFoodRepository.save()'s barcode param,
@@ -381,20 +363,17 @@ class ScanRepository @Inject constructor(
     }
 
     /**
-     * [identifyMode] routes to OcrParser.identifyFood instead of parseLabel — for
-     * fresh produce, plated dishes, or anything else with no printed nutrition
-     * label to OCR. identifyFood existed since the OcrParser port but had no
-     * caller anywhere in the app; this was the missing wiring (see ScanViewModel.
-     * identifyFromPhotos / ScanScreen's "identify without label" action).
+     * Scores a product from photos, entirely on the device. [identifyMode] is
+     * for fresh produce or plain dishes with no printed label: the food is
+     * recognised (OnDeviceFoodIdentifier) instead of its label being read.
      */
     suspend fun scoreFromImages(
         images: List<ImagePayload>,
         lang: String = "fr",
-        online: Boolean = true,
         identifyMode: Boolean = false,
         profileId: String = "default",
     ): Result<Pair<ScanResult, Long>> = ioCatching {
-        val result = identifyOrScoreFromImages(images, lang, online, identifyMode).getOrThrow()
+        val result = identifyOrScoreFromImages(images, lang, identifyMode).getOrThrow()
         Pair(result, persist(result, profileId))
     }
 
@@ -402,84 +381,43 @@ class ScanRepository @Inject constructor(
      * Same identify/score logic scoreFromImages uses, without persisting - lets a
      * caller inspect the result (e.g. check its product name against the
      * medication/non-consumable lookup DBs) before deciding whether it's worth a
-     * scan_history row at all. Previously ScanViewModel.identifyFromPhotos() made
-     * a *separate* identifyProductName vision-LLM call just to get a name to check
-     * first, then this same identification work ran a second time via
-     * scoreFromImages(identifyMode = true) whenever the name didn't match either
-     * DB (the common case: fresh produce, plated dishes) - a second full image
-     * upload + model call for the exact same photos. Exposing the un-persisted
-     * result here lets the caller reuse one call for both purposes.
+     * scan_history row at all.
      */
     suspend fun identifyOrScoreFromImages(
         images: List<ImagePayload>,
         lang: String = "fr",
-        online: Boolean = true,
         identifyMode: Boolean = false,
     ): Result<ScanResult> = ioCatching {
-        if (!online) error(offlineMessage(lang))
-        val apiMode   = prefs.apiMode.first()
-        val apiKey    = prefs.groqApiKey.first()
-        val cerebrasKey = prefs.cerebrasApiKey.first()
-        val serverUrl = prefs.serverUrl.first()
-
-        when (apiMode) {
-            ApiMode.SERVER -> if (identifyMode) {
-                serverClient.identifyViaServer(serverUrl, apiKey, images, lang)
-            } else {
-                serverClient.scoreViaServer(serverUrl, apiKey, images, barcode = null, lang = lang, model = DEFAULT_MODEL)
-            }
-            ApiMode.DIRECT -> {
-                if (apiKey.isBlank() && cerebrasKey.isBlank()) error(missingApiKeyMessage(lang))
-                val parsed = if (identifyMode) {
-                    ocrParser.identifyFood(images, apiKey, cerebrasKey, lang = lang)
-                } else {
-                    ocrParser.parseLabel(images, apiKey, cerebrasKey, lang = lang)
-                }
-                ScanResult(
-                    product  = parsed.product,
-                    audit    = scoreProduct(parsed.product, lang),
-                    warnings = parsed.warnings,
-                    source   = ScanSource.LLM,
-                    barcode  = parsed.barcode,
+        // Entirely on-device (ML Kit), so this works offline too.
+        if (identifyMode) {
+            val food = foodIdentifier.identify(images)
+            if (food != null) {
+                val product = foodIdentifier.toResultProduct(food)
+                return@ioCatching ScanResult(
+                    product = product, audit = scoreProduct(product, lang),
+                    warnings = listOf(if (lang == "en") "Recognised on this device from the photo — values from the built-in food table" else "Reconnu sur l'appareil depuis la photo — valeurs de la table d'aliments intégrée"),
+                    source = ScanSource.LLM, barcode = null,
                 )
             }
+            // No recognisable food: the photo may still show a label, try reading it.
+            val parsed = runCatching { labelReader.parseLabel(images, lang) }.getOrNull()
+                ?: throw ProductNotFoundException(
+                    if (lang == "en") "This food wasn't recognised — search it by name instead"
+                    else "Aliment non reconnu — recherchez-le plutôt par son nom",
+                )
+            return@ioCatching ScanResult(parsed.product, scoreProduct(parsed.product, lang), parsed.warnings, ScanSource.LLM, parsed.barcode)
         }
+        val parsed = labelReader.parseLabel(images, lang)
+        ScanResult(
+            product  = parsed.product,
+            audit    = scoreProduct(parsed.product, lang),
+            warnings = parsed.warnings,
+            source   = ScanSource.LLM,
+            barcode  = parsed.barcode,
+        )
     }
 
-    // ---- Server mode ----
-    //
-    // scoreViaServer/identifyViaServer and their shared retry/backoff now live
-    // in ScanServerClient (see serverClient above) - extracted verbatim, same
-    // retry policy, same request/response shapes.
-
-    /**
-     * SERVER-mode counterpart to identifyViaServer(), for a plate holding several
-     * distinct foods - calls the server's own POST /api/identify-multi (see
-     * scan-eat-server's IdentifyRoute), which already existed but was never
-     * called from here: a user photographing a plate with several different
-     * foods could previously only ever identify one item at a time via
-     * identifyOrScoreFromImages/identify. DIRECT mode's ocrParser.identifyFood()
-     * has no multi-item equivalent (it always returns a single Product), so this
-     * skips the ApiMode branch entirely and goes straight to the server - same
-     * "Server-mode only import" shape as RecipeRepository's fetchRecipeFromUrl/
-     * identifyRecipeFromPhotos, which likewise have no DIRECT-mode counterpart
-     * and never check prefs.apiMode either. Same retry/backoff policy as
-     * scoreViaServer/identifyViaServer. Each returned item is rescored locally
-     * via ServerIdentifyResponse.toDomain(), same as the single-item path.
-     */
-    suspend fun identifyMultiFromImages(
-        images: List<ImagePayload>,
-        lang: String = "fr",
-        online: Boolean = true,
-    ): Result<List<ScanResult>> = ioCatching {
-        if (!online) error(offlineMessage(lang))
-        val serverUrl = prefs.serverUrl.first()
-        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
-        val apiKey = prefs.groqApiKey.first()
-        serverClient.identifyMulti(serverUrl, apiKey, images, lang)
-    }
-
-    // ---- Direct mode ----
+    // ---- Open Food Facts ----
     //
     // fetchOffProduct/scoreDirectBarcode now live in ScanOffLookup (see
     // offLookup above) - extracted verbatim, same OFF candidate-encoding

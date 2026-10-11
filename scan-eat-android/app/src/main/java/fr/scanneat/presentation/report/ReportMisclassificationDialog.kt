@@ -30,8 +30,7 @@ import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
  * mal classé" - e.g. a shampoo scored as food (classifyNonFood missed it), or
  * a real food product landing in ScanStateOverlay's non-food dialog. See
  * MisclassificationReportEntity's own doc comment on why this is a local log
- * rather than a real server-submitted community correction - scan-eat-server
- * has no user-data database to submit to. Shared by both entry points
+ * rather than a server-submitted community correction - the app has no backend. Shared by both entry points
  * (ResultScreen for "this scored as food but shouldn't have",
  * ScanStateOverlay's NonConsumableFound dialog for "this isn't actually
  * <category>") so the reported shape stays consistent regardless of which

@@ -28,7 +28,7 @@ Légende : ✅ déjà fait dans le code · 🛠️ préparé dans ce commit, à 
 
 ## 3. Politique de confidentialité
 
-- 🛠️ `PRIVACY_POLICY.md` créé à la racine du repo (FR + EN) — décrit précisément : données stockées localement, ce qui part vers Open Food Facts, ce qui part vers Groq/Cerebras (uniquement si activé), Health Connect.
+- 🛠️ `PRIVACY_POLICY.md` créé à la racine du repo (FR + EN) — décrit précisément : données stockées localement, ce qui part vers Open Food Facts, ce qui part vers les sites de recettes (import par lien), Health Connect ; les photos restent sur l'appareil.
 - 🔴 **Cette politique doit être hébergée à une URL publique** pour être acceptée par Play Console (le texte in-app dans Réglages ne suffit pas). Options simples :
   - **GitHub Pages** : activez Pages sur ce repo (Settings > Pages), servez `PRIVACY_POLICY.md` (ou copiez-le en `docs/index.html`/`index.md` selon la config Pages) → URL du type `https://ww-andene.github.io/Scan-eat/`.
   - Ou un simple gist/page statique sur un domaine que vous contrôlez.

@@ -35,6 +35,7 @@ class UserPreferences @Inject constructor(
         if (java.util.Locale.getDefault().language == "fr") "fr" else "en"
 
     companion object {
+        // Legacy AI/server settings - only kept so clearLegacyAiSettings() can remove them.
         val KEY_API_KEY              = stringPreferencesKey("groq_api_key")
         val KEY_CEREBRAS_API_KEY     = stringPreferencesKey("cerebras_api_key")
         val KEY_GROQ_MODEL           = stringPreferencesKey("groq_model")
@@ -130,29 +131,6 @@ class UserPreferences @Inject constructor(
     // DataStore re-emit ALL of these flows, not just the one that changed.
     // Without dedup, every unrelated write re-fires every collector here with
     // an unchanged value.
-    val groqApiKey: Flow<String> = storeData.map { prefs ->
-        val stored = prefs[KEY_API_KEY] ?: return@map ""
-        SecureFieldCipher.decryptOrNull(stored) ?: stored.also { plaintext ->
-            store.edit { it[KEY_API_KEY] = SecureFieldCipher.encrypt(plaintext) }
-        }
-    }.distinctUntilChanged()
-    /** Empty string means "use the built-in default" (see OcrParser.DEFAULT_MODEL). */
-    val groqModel: Flow<String>   = storeData.map { it[KEY_GROQ_MODEL] ?: "" }.distinctUntilChanged()
-    /**
-     * Second provider, same purpose as groqApiKey — OcrParser tries Groq's model
-     * list first and only falls through to Cerebras if every Groq attempt fails
-     * (missing/invalid key, rate-limited, or the pinned models retired), so a
-     * single vendor outage doesn't take scanning down entirely. Empty means
-     * "not configured", which OcrParser treats as "skip this provider".
-     */
-    val cerebrasApiKey: Flow<String> = storeData.map { prefs ->
-        val stored = prefs[KEY_CEREBRAS_API_KEY] ?: return@map ""
-        SecureFieldCipher.decryptOrNull(stored) ?: stored.also { plaintext ->
-            store.edit { it[KEY_CEREBRAS_API_KEY] = SecureFieldCipher.encrypt(plaintext) }
-        }
-    }.distinctUntilChanged()
-    val apiMode: Flow<ApiMode>    = storeData.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }.distinctUntilChanged()
-    val serverUrl: Flow<String>   = storeData.map { it[KEY_SERVER_URL] ?: "" }.distinctUntilChanged()
     // Only fr/en are shipped (values/ and values-en/), so a device locale other than
     // French previously still got forced into French UI on first launch - the hardcoded
     // "fr" fallback ignored the device's own language entirely. Falls back to the
@@ -235,11 +213,14 @@ class UserPreferences @Inject constructor(
         prefs[KEY_SLEEP_GOAL_HOURS] = hours.coerceIn(1.0, 16.0).toFloat()
     }
 
-    suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = SecureFieldCipher.encrypt(key) }
-    suspend fun setCerebrasApiKey(key: String) = store.edit { it[KEY_CEREBRAS_API_KEY] = SecureFieldCipher.encrypt(key) }
-    suspend fun setGroqModel(model: String) = store.edit { it[KEY_GROQ_MODEL] = model }
-    suspend fun setApiMode(mode: ApiMode)   = store.edit { it[KEY_API_MODE]   = mode.key }
-    suspend fun setServerUrl(url: String)   = store.edit { it[KEY_SERVER_URL] = url }
+    /**
+     * The app no longer uses an AI provider or a companion server; wipes the API
+     * keys and server URL earlier versions stored so no stale secret lingers on
+     * the device. Idempotent - called at startup.
+     */
+    suspend fun clearLegacyAiSettings() = store.edit { p ->
+        listOf(KEY_API_KEY, KEY_CEREBRAS_API_KEY, KEY_GROQ_MODEL, KEY_API_MODE, KEY_SERVER_URL).forEach { p.remove(it) }
+    }
     suspend fun setLanguage(lang: String)   = store.edit { it[KEY_LANGUAGE]   = lang }
     suspend fun setTheme(theme: String)     = store.edit { it[KEY_THEME]      = theme }
     suspend fun setColorAccent(accent: String) = store.edit { it[KEY_COLOR_ACCENT] = accent }
@@ -456,11 +437,3 @@ class UserPreferences @Inject constructor(
     suspend fun setBudgetMonthlyEuros(v: Double?) = store.edit { p -> v?.let { p[KEY_BUDGET_MONTHLY] = it.toFloat() } ?: p.remove(KEY_BUDGET_MONTHLY) }
 }
 
-enum class ApiMode(val key: String) {
-    DIRECT("direct"),
-    SERVER("server");
-
-    companion object {
-        fun fromKey(k: String): ApiMode = values().firstOrNull { it.key == k } ?: DIRECT
-    }
-}

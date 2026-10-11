@@ -126,11 +126,8 @@
     <string name="scan_capture">Capture</string>
     <string name="scan_capture_error">Photo capture failed — try again</string>
     <string name="scan_instant_toggle">Instant mode</string>
-    <string name="scan_identify_multi_hint">Long-press: multiple foods</string>
     <string name="scan_shelf_mode_toggle">Shelf mode</string>
     <string name="scan_shelf_peek_loading">Identifying…</string>
-    <string name="scan_identify_multi_found_title">Multiple foods detected</string>
-    <string name="scan_identify_multi_found_body">Select the food to view:</string>
 
     <!-- ── Hydration screen ───────────────────────────────────────────────── -->
     <string name="hydration_title">Hydration</string>
@@ -163,7 +160,6 @@
     <string name="hydration_quick_add_custom">Other</string>
     <string name="hydration_quick_add_custom_title">Add an amount</string>
     <string name="hydration_export_csv">Export (CSV)</string>
-    <string name="settings_server_url">Server URL</string>
     <string name="result_log_it">Log it</string>
     <string name="dashboard_title">Dashboard</string>
 
@@ -1148,18 +1144,7 @@
     <string name="onboarding_value_safety_title">Built-in safety checks</string>
     <string name="onboarding_value_safety_body">Every score is checked against your own allergens, and your medications are screened for known interaction risks — automatically, not as a separate step.</string>
     <string name="onboarding_start_button">Get started</string>
-    <string name="onboarding_config_title">Configuration</string>
-    <string name="onboarding_config_body">Scan\'eat uses an AI vision model to read labels. Choose how to call it:</string>
-    <string name="onboarding_mode_direct_title">Direct Mode</string>
-    <string name="onboarding_mode_direct_subtitle">Your own Groq key (free). Data processed by Groq.</string>
-    <string name="onboarding_mode_server_title">Server Mode</string>
-    <string name="onboarding_mode_server_subtitle">Your own Ktor backend. No data leaves your infrastructure.</string>
-    <string name="onboarding_api_key_label">Groq key (gsk_…)</string>
-    <string name="onboarding_api_key_hint">Free key at console.groq.com</string>
-    <string name="onboarding_server_url_hint">e.g. https://my-server.example.com:8080</string>
-    <string name="onboarding_server_url_error">The address must start with http:// or https://</string>
     <string name="onboarding_continue_button">Continue</string>
-    <string name="onboarding_api_skip">Skip, scan without AI for now</string>
     <string name="onboarding_profile_title">Personalization</string>
     <string name="onboarding_profile_body">A few quick details power a personal score and targets. Diet, allergens, and other details can be set later from the Profile tab.</string>
     <string name="onboarding_profile_cta">More options (diet, allergens…)</string>
@@ -1286,30 +1271,17 @@
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Settings</string>
     <string name="settings_section_premium">Premium</string>
-    <string name="settings_premium_active">Premium active — metabolism tracking and AI photo scanning unlocked.</string>
-    <string name="settings_premium_pitch">Everything in Scan\'eat is free, except metabolism tracking (Biolism) and AI-assisted photo scanning.</string>
+    <string name="settings_premium_active">Premium active — metabolism tracking and photo scanning unlocked.</string>
+    <string name="settings_premium_pitch">Everything in Scan\'eat is free, except metabolism tracking (Biolism) and photo scanning.</string>
     <string name="settings_premium_upgrade_hint">Unlock these two features.</string>
     <string name="settings_premium_downgrade_hint">You can disable Premium at any time.</string>
     <string name="settings_premium_enable_button">Go Premium</string>
     <string name="settings_premium_disable_button">Disable</string>
     <string name="settings_premium_required_biolism">Metabolism tracking (Biolism) is a Premium feature.</string>
-    <string name="settings_premium_required_ai_scan">AI-assisted photo scanning is a Premium feature.</string>
     <string name="scan_premium_required_generic">Premium feature — tap to upgrade to Premium.</string>
     <string name="scan_import_photo_cd">Scan a barcode from a photo</string>
     <string name="scan_import_photo_not_found">No barcode detected in this photo.</string>
     <string name="settings_premium_go_to_settings">See Premium in Settings</string>
-    <string name="settings_section_api_mode">API Mode</string>
-    <string name="settings_api_mode_hint">Barcode scanning always works with nothing configured here. This only affects AI recognition — photographing a label for a product with no barcode, or one whose listing is incomplete.</string>
-    <string name="settings_mode_direct">Direct</string>
-    <string name="settings_mode_server">Server</string>
-    <string name="settings_mode_direct_desc">Calls Groq directly with your key.</string>
-    <string name="settings_mode_server_desc">Calls your Ktor backend at the URL below.</string>
-    <string name="settings_section_groq_key">Groq Key</string>
-    <string name="settings_groq_key_placeholder">gsk_…</string>
-    <string name="settings_section_cerebras_key">Cerebras key (backup)</string>
-    <string name="settings_cerebras_key_hint">Optional backup provider — used automatically if Groq is unavailable. The model is picked automatically, no need to select one.</string>
-    <string name="settings_cerebras_key_placeholder">Cerebras API key</string>
-    <string name="settings_server_url_placeholder">https://…</string>
     <string name="settings_section_language">Language</string>
     <string name="settings_lang_fr">Français</string>
     <string name="settings_lang_en">English</string>
@@ -1384,7 +1356,7 @@
     <string name="settings_legal_title_liability">Liability</string>
     <string name="settings_legal_liability">The publisher accepts no liability for health decisions made solely on information from this app.</string>
     <string name="settings_legal_title_privacy">Privacy</string>
-    <string name="settings_legal_privacy">Your data (profile, history, medications) is stored locally on your device. Scanning a barcode sends it to Open Food Facts to look up the product — that\'s core to scanning itself, not an optional feature. Photo/AI-based scoring additionally sends the image to the AI provider only when you use that feature.</string>
+    <string name="settings_legal_privacy">Your data (profile, history, medications) is stored locally on your device. Scanning a barcode sends it to Open Food Facts to look up the product — that\'s core to scanning itself. Photos (labels, foods, recipes) are analysed on the device and never uploaded. Importing a recipe from a link downloads that page from its website.</string>
     <string name="settings_about_version">Scan\'eat v%1$s · Scoring engine v%2$s</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
     <string name="settings_about_licenses_button">Open source licenses</string>
@@ -1392,7 +1364,7 @@
     <string name="settings_about_no_crash_log">No crash has been recorded on this device</string>
     <string name="settings_about_export_diagnostic">Export a bug report</string>
     <string name="settings_diagnostic_header">Scan\'eat diagnostic report</string>
-    <string name="settings_diagnostic_settings">Settings: theme=%1$s, language=%2$s, colorblind mode=%3$s, API mode=%4$s</string>
+    <string name="settings_diagnostic_settings">Settings: theme=%1$s, language=%2$s, colorblind mode=%3$s</string>
     <string name="settings_diagnostic_recent_scans_header">Recent scans:</string>
     <string name="settings_diagnostic_no_recent_scans">No recent scans</string>
     <string name="settings_diagnostic_crash_header">Last crash:</string>
@@ -1447,7 +1419,7 @@
     <string name="settings_reset_clear_all">Erase all app data</string>
     <string name="settings_reset_confirm_body">This action is irreversible and will delete your entire scan history. Confirm?</string>
     <string name="settings_reset_confirm_body_fasting">This action is irreversible and will delete your entire fasting history. Confirm?</string>
-    <string name="settings_reset_confirm_body_all">This action is irreversible and will delete ALL app data — profile, history, preferences, API keys. The app will restart as if freshly installed. Confirm?</string>
+    <string name="settings_reset_confirm_body_all">This action is irreversible and will delete ALL app data — profile, history, preferences. The app will restart as if freshly installed. Confirm?</string>
     <string name="settings_reset_confirm_button">Yes, clear it</string>
     <string name="settings_reset_confirm_button_scans">Clear scan history</string>
     <string name="settings_reset_confirm_button_fasting">Clear fasting history</string>
@@ -1627,7 +1599,7 @@
     <string name="recipes_import_photo_loading">Analyzing photo…</string>
     <string name="recipes_cd_suggest">Suggest recipes</string>
     <string name="recipes_suggest_title">Recipe ideas</string>
-    <string name="recipes_suggest_hint">Give it one ingredient, and the AI proposes a few ideas.</string>
+    <string name="recipes_suggest_hint">Give it one ingredient, and the app suggests recipes from its built-in collection that use it.</string>
     <string name="recipes_suggest_placeholder">Ingredient</string>
     <string name="recipes_suggest_button">Suggest</string>
     <string name="recipes_suggest_empty">No ideas found for that ingredient.</string>
@@ -1637,13 +1609,8 @@
     <string name="recipes_suggest_pantry_chips_hint">Pick what you want to use from your pantry:</string>
     <string name="recipes_suggest_pantry_placeholder">E.g. chicken, rice, broccoli…</string>
     <string name="recipes_suggest_mode_history">My history</string>
-    <string name="recipes_suggest_history_hint">Pick one or more products you\'ve already scanned, and the AI proposes a few ideas.</string>
+    <string name="recipes_suggest_history_hint">Pick one or more products you\'ve already scanned, and the app suggests recipes from its built-in collection that use them.</string>
     <string name="recipes_suggest_history_empty">No scans in your history yet.</string>
-    <string name="recipes_cd_menu_scan">Scan a restaurant menu</string>
-    <string name="recipes_menu_dialog_title">Menu dishes</string>
-    <string name="recipes_menu_empty">No dishes detected in this photo.</string>
-    <string name="recipes_menu_kcal_value">%1$d kcal</string>
-    <string name="recipes_menu_protein_value">%1$dg protein</string>
     <string name="recipes_import_url_title">Import a recipe</string>
     <string name="recipes_import_url_hint">Paste a recipe link (blog, cooking site…)</string>
     <string name="recipes_import_url_placeholder">https://…</string>
@@ -1822,7 +1789,7 @@
     <string name="result_price_title">Price</string>
     <string name="result_source_off">Open Food Facts database</string>
     <string name="result_source_photo">Photo recognition</string>
-    <string name="result_source_merged">Label + AI</string>
+    <string name="result_source_merged">Label + photo</string>
     <string name="result_source_manual">Manual entry</string>
     <string name="result_price_add">Add a price</string>
     <string name="result_price_empty">No price logged for this product yet</string>

@@ -482,7 +482,7 @@ class ScanViewModel @Inject constructor(
                 val result = if (barcode != null) {
                     scanRepo.scoreBarcode(barcode, imgs, lang, online, profileId = activeProfileId.value)
                 } else {
-                    scanRepo.scoreFromImages(imgs, lang, online, profileId = activeProfileId.value)
+                    scanRepo.scoreFromImages(imgs, lang, profileId = activeProfileId.value)
                 }
                 result.fold(
                     onSuccess = { (scanResult, id) ->
@@ -694,8 +694,8 @@ class ScanViewModel @Inject constructor(
     // this shape (caller builds the payload, off Main) replaced accepting a raw Bitmap.
     suspend fun identifyShelfBox(payload: ImagePayload): Result<Pair<ScanResult, Long>> {
         val lang = prefs.language.first()
-        if (!isOnline()) return Result.failure(Exception(offlineMessage(lang)))
-        return scanRepo.identifyOrScoreFromImages(listOf(payload), lang, true, identifyMode = true)
+        // On-device recognition - works offline.
+        return scanRepo.identifyOrScoreFromImages(listOf(payload), lang, identifyMode = true)
             .mapCatching { scanResult -> scanResult to scanRepo.persist(scanResult, activeProfileId.value) }
     }
 

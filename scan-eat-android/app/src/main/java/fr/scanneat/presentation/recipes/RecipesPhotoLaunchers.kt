@@ -14,7 +14,6 @@ import kotlinx.coroutines.withContext
 
 class RecipesPhotoLaunchers internal constructor(
     val photoImportLaunch: () -> Unit,
-    val menuScanLaunch: () -> Unit,
 )
 
 private fun launchPicker(launcher: androidx.activity.result.ActivityResultLauncher<PickVisualMediaRequest>) {
@@ -23,17 +22,10 @@ private fun launchPicker(launcher: androidx.activity.result.ActivityResultLaunch
     )
 }
 
-/**
- * RecipesScreen's two photo-picker entry points — recipe-photo import and
- * restaurant-menu scan (IdentifyMenuRoute.kt). Both follow the identical
- * "system photo picker -> decode off Main -> hand to ViewModel" shape;
- * extracted together (§T1 composition-root split) rather than duplicated
- * inline twice in the screen body.
- */
+/** RecipesScreen's recipe-photo picker: system photo picker -> decode off Main -> hand to the ViewModel. */
 @Composable
 fun rememberRecipesPhotoLaunchers(
     onRecipePhotos: (List<fr.scanneat.data.remote.api.ImagePayload>) -> Unit,
-    onMenuPhotos: (List<fr.scanneat.data.remote.api.ImagePayload>) -> Unit,
     onDecodeFailed: () -> Unit,
 ): RecipesPhotoLaunchers {
     val context = LocalContext.current
@@ -50,12 +42,8 @@ fun rememberRecipesPhotoLaunchers(
     val photoImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         handlePicked(uri, coroutineScope, onRecipePhotos)
     }
-    val menuScanLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        handlePicked(uri, coroutineScope, onMenuPhotos)
-    }
 
     return RecipesPhotoLaunchers(
         photoImportLaunch = { launchPicker(photoImportLauncher) },
-        menuScanLaunch = { launchPicker(menuScanLauncher) },
     )
 }
