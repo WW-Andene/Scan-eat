@@ -142,8 +142,18 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
     /** Downloads the page the user asked to import and reads its schema.org Recipe data. */
     suspend fun fetchRecipeFromUrl(url: String, lang: String): Result<FetchedRecipeResult> = ioCatching {
         val en = lang == "en"
-        val httpUrl = url.trim().toHttpUrlOrNull()?.takeIf { it.scheme == "http" || it.scheme == "https" }
+        val parsed = url.trim().toHttpUrlOrNull()?.takeIf { it.scheme == "http" || it.scheme == "https" }
             ?: error(if (en) "This isn't a valid web link" else "Ce n'est pas un lien web valide")
+        // Cleartext traffic is disabled app-wide (manifest + network security config), so a pasted
+        // http:// link could only fail with an opaque "CLEARTEXT communication not permitted".
+        // Recipe sites serve https, so upgrade the scheme (and the implicit http port) up front.
+        // Hosts network_security_config.xml deliberately allows over cleartext keep their http scheme.
+        val cleartextAllowedHost = parsed.host.let { h ->
+            h == "localhost" || h == "127.0.0.1" || h == "10.0.2.2" || h == "local" || h.endsWith(".local")
+        }
+        val httpUrl = if (parsed.scheme == "http" && !cleartextAllowedHost) {
+            parsed.newBuilder().scheme("https").apply { if (parsed.port == 80) port(443) }.build()
+        } else parsed
         val html = withContext(Dispatchers.IO) {
             okHttp.newCall(Request.Builder().url(httpUrl).header("Accept", "text/html").build()).execute().use { resp ->
                 if (!resp.isSuccessful) error(if (en) "The page couldn't be loaded (${resp.code})" else "La page n'a pas pu être chargée (${resp.code})")
