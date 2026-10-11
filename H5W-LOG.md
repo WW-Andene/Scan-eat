@@ -1053,3 +1053,12 @@ wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
   but unfilterable). Doc example `sucre<5` was never supported (FoodSearchItem has no sugar field; adding
   one touches every constructor site) — comment corrected, sugar filter remains a gap. Checked via a
   standalone harness over the real source; the JUnit file is unrun (Hilt-bound module).
+
+### Cycle 13 — real Gradle verification
+Installed the Android SDK (platform 35, build-tools 34) in a scratch dir and ran
+`./gradlew :app:testDebugUnitTest`: BUILD SUCCESSFUL, 261 tests / 38 suites, 0 failures, 0 errors
+(includes the Hilt-bound tests the JVM runner can't compile: medication brands, food-search query,
+scan view model). The whole debug Kotlin/KSP/Hilt compile passed. Not run: instrumented/UI tests,
+release/R8 build, on-device behaviour.
+Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request burst; a local
+`~/.gradle/init.d` script pointing Central at `maven-central.storage-download.googleapis.com/maven2/` fixed it.
