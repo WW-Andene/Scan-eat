@@ -378,7 +378,7 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // only caught indirectly if the name also happened to contain "escalope"
     // or "steak" (e.g. "Escalope de veau" matched, but "Rôti de veau" or
     // "Blanquette de veau" didn't).
-    Regex("""\bpoulet\b|\bb[oœ]uf\b|\bporc\b|\bagneau\b|\bdinde\b|\bcanard\b|\bveau\b|\blapin\b|viande hach[eé]e|\bsteaks?\b|escalope|magret""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_MEAT,
+    Regex("""\bpoulet\b|\bb(?:œ|oe)uf\b|\bporc\b|\bagneau\b|\bdinde\b|\bcanard\b|\bveau\b|\blapin\b|viande hach[eé]e|\bsteaks?\b|escalope|magret""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_MEAT,
     Regex("""\bpain\b|\bbread\b|baguette|brioche|focaccia|ciabatta|\btoasts?\b|\bpita\b|tortilla|\bcracotte""", RegexOption.IGNORE_CASE) to ProductCategory.BREAD,
     // User-reported: "Céleri moutarde" is a real deli barquette dish (grated
     // celeriac in a mustard-mayonnaise dressing, "céleri rémoulade" - sold

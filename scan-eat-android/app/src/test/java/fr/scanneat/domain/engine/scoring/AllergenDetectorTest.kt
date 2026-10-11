@@ -172,4 +172,11 @@ class AllergenDetectorTest {
         assertTrue("molluscs" in keys("calmars"))
         assertTrue("molluscs" in keys("seiche"))
     }
+
+    @Test
+    fun `noix de boeuf is a beef cut not a tree nut`() {
+        assertFalse("nuts" in keys("noix de bœuf"))
+        assertFalse("nuts" in keys("noix de boeuf"))
+        assertTrue("nuts" in keys("noix de cajou"))
+    }
 }
