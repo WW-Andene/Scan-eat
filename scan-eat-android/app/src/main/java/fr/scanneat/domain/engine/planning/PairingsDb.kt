@@ -2,6 +2,10 @@ package fr.scanneat.domain.engine.planning
 
 import java.text.Normalizer
 
+// Declared before any top-level initializer that calls normalizePairing() (FR_TO_EN).
+private val COMBINING_MARKS = Regex("[\\u0300-\\u036f]")
+private val WHITESPACE = Regex("\\s+")
+
 // ============================================================================
 // PAIRINGS DATABASE — port of public/data/pairings.js
 //
@@ -340,7 +344,7 @@ private val PAIRINGS: Map<String, PairingsResult> =
 
 private fun normalizePairing(s: String): String =
     Normalizer.normalize(s.trim().lowercase(), Normalizer.Form.NFD)
-        .replace(Regex("[\\u0300-\\u036f]"), "")
+        .replace(COMBINING_MARKS, "")
         .replace("_", " ")
 
 /**
@@ -352,7 +356,7 @@ fun resolveIngredient(name: String): String? {
     val q = normalizePairing(name)
     if (q.length < 2) return null
     FR_TO_EN[q]?.let { return it }
-    val tokens = q.split(Regex("\\s+")).filter { it.length >= 2 }
+    val tokens = q.split(WHITESPACE).filter { it.length >= 2 }
     // A branded/multi-word product name (e.g. "Coca-Cola Vanille") can contain an
     // incidental flavor word ("vanille") that happens to key an ingredient, even
     // though the product itself isn't that ingredient at all. Requiring the

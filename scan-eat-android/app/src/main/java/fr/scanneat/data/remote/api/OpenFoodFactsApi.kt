@@ -48,7 +48,11 @@ val OFF_FIELDS = listOf(
 // knows the barcode it asked for.
 val OFF_SEARCH_FIELDS = "$OFF_FIELDS,code"
 
-const val OFF_USER_AGENT = "ScanEat/0.1 (Android; +https://github.com/scanneat)"
+// Open Food Facts asks API clients for an accurate app name, version and contact
+// URL. Version is passed in (BuildConfig.VERSION_NAME) rather than hardcoded so
+// it can't drift from the shipped build the way a literal "0.1" did.
+fun offUserAgent(versionName: String): String =
+    "ScanEat/$versionName (Android; +https://github.com/WW-Andene/Scan-eat)"
 
 @JsonClass(generateAdapter = true)
 data class OffResponse(

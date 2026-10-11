@@ -56,9 +56,11 @@ data class GroceryComponent(
     val grams: Double,
 )
 
+private val COMBINING_MARKS = Regex("[\\u0300-\\u036f]")
+
 fun normalizeKey(name: String): String =
     Normalizer.normalize(name.trim().lowercase(), Normalizer.Form.NFD)
-        .replace(Regex("[\\u0300-\\u036f]"), "")
+        .replace(COMBINING_MARKS, "")
 
 private class GroceryAcc(val name: String, var grams: Double, val sources: MutableList<String>)
 

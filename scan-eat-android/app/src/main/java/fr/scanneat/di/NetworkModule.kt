@@ -34,35 +34,38 @@ object NetworkModule {
         .build()
 
     @Provides @Singleton
-    fun provideOkHttp(): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
-        // OkHttp defaults to [MODERN_TLS, COMPATIBLE_TLS], silently allowing a
-        // fallback to legacy TLS/cipher suites (e.g. against a MITM proxy that
-        // only supports them). The API key and scanned health data never need
-        // to travel over anything but modern TLS.
-        .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS))
-        .addInterceptor { chain ->
-            chain.proceed(
-                chain.request().newBuilder()
-                    .header("User-Agent", OFF_USER_AGENT)
-                    .build()
-            )
-        }
-        .apply {
-            // Debug-only: every request/response line (URLs, status, timing) was
-            // logging to Logcat unconditionally, including release builds.
-            // Level.BASIC doesn't include headers/body, so the API key itself
-            // was never exposed — but production has no reason to log network
-            // activity at all.
-            if (BuildConfig.DEBUG) {
-                addInterceptor(HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BASIC
-                })
+    fun provideOkHttp(): OkHttpClient {
+        val userAgent = offUserAgent(BuildConfig.VERSION_NAME)
+        return OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            // OkHttp defaults to [MODERN_TLS, COMPATIBLE_TLS], silently allowing a
+            // fallback to legacy TLS/cipher suites (e.g. against a MITM proxy that
+            // only supports them). The API key and scanned health data never need
+            // to travel over anything but modern TLS.
+            .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS))
+            .addInterceptor { chain ->
+                chain.proceed(
+                    chain.request().newBuilder()
+                        .header("User-Agent", userAgent)
+                        .build()
+                )
             }
-        }
-        .build()
+            .apply {
+                // Debug-only: every request/response line (URLs, status, timing) was
+                // logging to Logcat unconditionally, including release builds.
+                // Level.BASIC doesn't include headers/body, so the API key itself
+                // was never exposed — but production has no reason to log network
+                // activity at all.
+                if (BuildConfig.DEBUG) {
+                    addInterceptor(HttpLoggingInterceptor().apply {
+                        level = HttpLoggingInterceptor.Level.BASIC
+                    })
+                }
+            }
+            .build()
+    }
 
     @Provides @Singleton @Named("off")
     fun provideOffRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
