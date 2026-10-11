@@ -86,12 +86,12 @@ private val INTERACTION_GROUPS = mapOf(
     ),
     DrugGroup.ANTIPLATELETS  to listOf(
         "aspirine", "aspirin", "acide acétylsalicylique", "clopidogrel", "prasugrel", "ticagrelor",
-        "kardégic", "kardegic", "plavix", "efient", "brilique", "duoplavin",
+        "kardégic", "kardegic", "aspégic", "aspegic", "plavix", "efient", "brilique", "duoplavin",
     ),
     DrugGroup.NSAIDS         to listOf(
         "ibuprofène", "ibuprofen", "naproxène", "naproxen", "kétoprofène", "ketoprofen", "diclofénac", "diclofenac", "indométacine", "indomethacin", "méloxicam", "meloxicam",
         "célécoxib", "celecoxib", "étoricoxib", "etoricoxib", "piroxicam", "flurbiprofène", "acide méfénamique",
-        "advil", "nurofen", "spedifen", "antarène", "voltarène", "voltarene", "bi-profénid", "profénid", "apranax", "celebrex",
+        "advil", "nurofen", "spedifen", "antarène", "voltarène", "voltarene", "bi-profénid", "profénid", "apranax", "celebrex", "arcoxia", "mobic", "toprec", "nureflex", "naprosyne",
     ),
     DrugGroup.SSRI_SNRI      to listOf(
         "sertraline", "fluoxétine", "fluoxetine", "paroxétine", "paroxetine", "venlafaxine", "duloxétine", "duloxetine", "escitalopram", "citalopram", "fluvoxamine", "milnacipran",
