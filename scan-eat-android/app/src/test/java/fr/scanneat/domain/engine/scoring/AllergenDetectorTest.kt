@@ -164,4 +164,12 @@ class AllergenDetectorTest {
     fun `gomasio is detected as sesame`() {
         assertTrue("sesame" in keys("gomasio"))
     }
+
+    @Test
+    fun `calamari spellings are molluscs`() {
+        assertTrue("molluscs" in keys("anneaux de calamars"))
+        assertTrue("molluscs" in keys("calamari"))
+        assertTrue("molluscs" in keys("calmars"))
+        assertTrue("molluscs" in keys("seiche"))
+    }
 }

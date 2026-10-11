@@ -101,7 +101,7 @@ private val RULES: List<AllergenRule> = listOf(
         a("crevettes?|crabes?|homards?|langoustes?|langoustines?|[eé]crevisses?|crustac[eé]s?|shrimps?|prawns?|lobsters?|crayfish|gambas?|scampi|krill|tourteaux?")),
 
     AllergenRule("molluscs", "Mollusques", "Molluscs",
-        a("hu[iî]tres?|moules?|coquilles?|calmars?|encornets?|poulpes?|p[eé]toncles?|palourdes?|bigorneaux?|bulots?|mollusques?|oysters?|mussels?|squids?|clams?|scallops?|coquillages?|saint[- ]jacques|seiches?|cuttlefish|octopus|escargots?|snails?|praires?|ormeaux?|abalone|cockles?|whelks?")),
+        a("hu[iî]tres?|moules?|coquilles?|cal(?:a)?mars?|calamari|seiches?|ormeaux?|praires?|encornets?|poulpes?|p[eé]toncles?|palourdes?|bigorneaux?|bulots?|mollusques?|oysters?|mussels?|squids?|clams?|scallops?|coquillages?|saint[- ]jacques|seiches?|cuttlefish|octopus|escargots?|snails?|praires?|ormeaux?|abalone|cockles?|whelks?")),
 
     AllergenRule("sesame", "Sésame", "Sesame",
         a("s[eé]same|gomasio|gomashio|tahini|tahin")),
