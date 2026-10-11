@@ -72,6 +72,39 @@ internal fun checkPregnancyCondition(
     return veto to dietReason
 }
 
+/** Breastfeeding: alcohol passes into breast milk and caffeine accumulates in
+ *  infants, so both get a disclosed point deduction. Not a veto (unlike
+ *  pregnancy) - guidance is to avoid alcohol or wait before nursing, and
+ *  keep caffeine moderate (EFSA 2015: up to ~200 mg/day is not a concern).
+ *  Skipped when pregnancy is also selected (its own, stricter check applies). */
+internal fun checkBreastfeedingCondition(
+    product: Product,
+    conditions: Set<String>,
+    lang: String,
+    alcoholHit: Boolean,
+    adjustments: MutableList<PersonalAdjustment>,
+) {
+    if ("breastfeeding" !in conditions || "pregnancy" in conditions) return
+    if (alcoholHit) {
+        adjustments += PersonalAdjustment(
+            points = -6.0,
+            reason = if (lang == "en") "Contains alcohol — passes into breast milk; avoid or wait before nursing"
+                     else "Contient de l'alcool — passe dans le lait maternel ; à éviter ou à espacer avant la tétée",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
+    val containsCaffeineSource = product.nutrition.caffeineMg?.let { it >= 20.0 }
+        ?: product.ingredients.any { ing -> CAFFEINE_SOURCE_PATTERN.containsMatchIn(normalizeForMatching(ing.name)) }
+    if (containsCaffeineSource) {
+        adjustments += PersonalAdjustment(
+            points = -2.0,
+            reason = if (lang == "en") "May contain caffeine — keep total daily intake under about 200 mg while breastfeeding"
+                     else "Peut contenir de la caféine — limiter l'apport total à environ 200 mg/jour pendant l'allaitement",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
+}
+
 /** Cancer, depression and epilepsy's shared alcohol caution, plus depression's
  *  own sugar/ultra-processed prospective-risk checks. */
 internal fun checkCancerDepressionEpilepsyConditions(

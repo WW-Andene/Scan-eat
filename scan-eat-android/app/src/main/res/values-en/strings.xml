@@ -803,6 +803,7 @@
     <string name="condition_diabetes">Diabetes</string>
     <string name="condition_hypertension">Hypertension</string>
     <string name="condition_pregnancy">Pregnancy</string>
+    <string name="condition_breastfeeding">Breastfeeding</string>
     <string name="condition_kidney_disease">Kidney disease</string>
     <string name="condition_ibs">Irritable bowel syndrome (IBS)</string>
     <string name="condition_crohn_ibd">Crohn\'s disease / IBD</string>

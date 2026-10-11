@@ -199,7 +199,9 @@ class HydrationRepository @Inject constructor(
         val waterNeedL = BiolismEngine.computeWaterNeedL(biolismSex, mult, weightKg)
         // EFSA 2010 AI: +0.3L/day during pregnancy on top of the sex/activity baseline.
         val pregnancyBonusL = if ("pregnancy" in healthConditions) 0.3 else 0.0
-        return ((waterNeedL + pregnancyBonusL) * 1000).toInt() + exerciseBonusMl
+        // EFSA 2010 AI: +0.7L/day while lactating (not stacked on pregnancy).
+        val lactationBonusL = if ("breastfeeding" in healthConditions && "pregnancy" !in healthConditions) 0.7 else 0.0
+        return ((waterNeedL + pregnancyBonusL + lactationBonusL) * 1000).toInt() + exerciseBonusMl
     }
 
     // ---- Backup export/import ----

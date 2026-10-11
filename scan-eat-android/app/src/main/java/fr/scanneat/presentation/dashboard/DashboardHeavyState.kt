@@ -61,7 +61,7 @@ internal suspend fun buildHeavyDashboardState(
     // a plain kcal swap left TodayMacroCard's macro rings computed from the
     // stale profile-only kcal, so they no longer summed to the balance above.
     val targets = (if (hasMinimalProfile(profile)) dailyTargets(profile) else null)
-        ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.goal, currentPregnancyTrimester(profile)) else it }
+        ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.goal, currentPregnancyTrimester(profile), isLactating(profile)) else it }
     val thisWeek  = weeklyRollup(allEntries, date)
     val priorWeek = weeklyRollup(allEntries, date.minusDays(7))
     val thisMonth = monthlyRollup(allEntries, date)

@@ -37,7 +37,7 @@ internal val FOOD_DB_FATS_SWEETS_AND_MEALS: List<FoodEntry> = listOf(
     FoodEntry("mayonnaise",      680.0, 1.1, 1.7,  75.0, 0.0, saturatedFatG = 6.0, sugarsG = 1.0, typicalPortionG = 100.0, category = ProductCategory.OIL_FAT),
 
     // Sucreries / snacks (suite)
-    FoodEntry("pâte à tartiner", 539.0, 6.3, 57.0, 31.0, 3.4, saturatedFatG = 11.0, sugarsG = 56.0, aliases = listOf("chocolate spread"), category = ProductCategory.SPREAD_SWEET),
+    FoodEntry("pâte à tartiner", 539.0, 6.3, 57.0, 31.0, 3.4, saturatedFatG = 11.0, sugarsG = 56.0, aliases = listOf("chocolate spread"), category = ProductCategory.SNACK_SWEET),
     FoodEntry("confiture",       278.0, 0.3, 69.0,  0.1, 1.0, sugarsG = 68.0, typicalPortionG = 15.0, aliases = listOf("jam"), category = ProductCategory.SPREAD_SWEET),
     FoodEntry("chips",           536.0, 6.6, 53.0, 34.0, 4.4, saturatedFatG = 3.0, sugarsG = 0.5, saltG = 1.5, aliases = listOf("potato chips"), category = ProductCategory.SNACK_SALTY),
     FoodEntry("pop-corn",        387.0, 12.0, 78.0, 4.5, 14.5, saturatedFatG = 0.6, sugarsG = 0.5, aliases = listOf("popcorn"), category = ProductCategory.SNACK_SALTY),
