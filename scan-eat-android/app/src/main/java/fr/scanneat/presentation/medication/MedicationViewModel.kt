@@ -259,7 +259,7 @@ class MedicationViewModel @Inject constructor(
                     // successes instead of freezing them at the deactivation date.
                     // wasActiveOn() checks createdAt/deactivatedAt against [date]
                     // itself, independent of the medication's current active state.
-                    val relevantMeds = allMeds.filter { med -> med.wasActiveOn(date) }
+                    val relevantMeds = allMeds.filter { med -> med.wasActiveOn(date) && med.isScheduledOn(date.dayOfWeek) }
                     if (relevantMeds.all { (dosesById[it.id] ?: 0) >= it.dosesPerDay }) { streak++; date = date.minusDays(1) }
                     else return@map streak
                 }
@@ -285,7 +285,7 @@ class MedicationViewModel @Inject constructor(
                 (6 downTo 0).map { i ->
                     val date = today.minusDays(i.toLong())
                     // Same wasActiveOn() fix as adherenceStreak above - see its comment.
-                    val relevantMeds = allMeds.filter { med -> med.wasActiveOn(date) }
+                    val relevantMeds = allMeds.filter { med -> med.wasActiveOn(date) && med.isScheduledOn(date.dayOfWeek) }
                     if (relevantMeds.isEmpty()) {
                         DayAdherence(date, null)
                     } else {

@@ -100,7 +100,7 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
 
 @Composable
 internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTaken: List<MedicationLogEntry>) {
-    val active = medications.filter { it.active }
+    val active = medications.filter { it.active && it.isScheduledOn(java.time.LocalDate.now().dayOfWeek) }  // off-schedule days aren't "not taken"
     val dosesById = todayTaken.groupingBy { it.medicationId }.eachCount()
     val allTaken = active.isNotEmpty() && active.all { m -> (dosesById[m.id] ?: 0) >= m.dosesPerDay }
     Surface(

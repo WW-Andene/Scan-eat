@@ -129,7 +129,7 @@ class TodayWidget : GlanceAppWidget() {
         val hydrationMl = hydrationRepo.observe(today, profile.id).first()
         // Same taken/active join DashboardViewModel.otherTrackers already does for its
         // "meds: taken/active" glance card - the widget just never surfaced it.
-        val activeMeds = medicationRepo.observeAll(profile.id).first().filter { it.active }
+        val activeMeds = medicationRepo.observeAll(profile.id).first().filter { it.active && it.isScheduledOn(today.dayOfWeek) }
         val dosesById = medicationRepo.observeLogByDate(today, profile.id).first().groupingBy { it.medicationId }.eachCount()
         val medsTakenCount = activeMeds.count { (dosesById[it.id] ?: 0) >= it.dosesPerDay }
         val medsActiveCount = activeMeds.size
