@@ -437,7 +437,7 @@ Classify the app's current visual language against this taxonomy. One primary st
 
 | Style School | Visual Signatures | Common Mistakes | Correct Reference |
 |---|---|---|---|
-| **Minimal / Flat** | Maximum whitespace, no shadows or decorations, type-forward, monochromatic or 2-color | Too much space without rhythm; no focal point | Linear, Vercel, Stripe |
+| **Minimal / Flat** | Maximum whitespace, no shadows or decorations, type-forward, monochromatic or 2-color | Too much space without rhythm; no focal point | Linear, Stripe |
 | **Material / Elevation** | Layered surfaces, directional shadows, Z-axis depth, consistent light source | Inconsistent shadow angle; shadow over-use | Google Material 3, Notion |
 | **Glassmorphism** | Frosted-glass blur, translucency, bright backdrop required, thin borders | Illegible text over texture; blur on dark backgrounds produces muddiness | Arc browser, iOS Control Center |
 | **Neo-Brutalist** | Raw utility aesthetic, intentional visual tension, heavy borders, stark typography | Accidentally ugly vs intentionally raw | Gumroad (old), Figma community |
@@ -1105,7 +1105,7 @@ Every product has an implicit archetype — a personality model that governs how
 | **The Companion** | Warm tones, rounded elements, generous spacing, conversational copy | Headspace, Calm, Notion |
 | **The Authority** | Serif typography, high contrast, structured grid, minimal color | NYT, Financial Times, Stripe |
 | **The Creator** | Expressive typography, vibrant accent, flexible layout, playful motion | Figma, Framer, Are.na |
-| **The Innovator** | Gradient meshes, glassmorphism, bold accent, forward-leaning typography | Arc, Vercel, Linear |
+| **The Innovator** | Gradient meshes, glassmorphism, bold accent, forward-leaning typography | Arc, Linear |
 | **The Craftsman** | Textured surfaces, warm neutrals, editorial spacing, considered motion | Bear, iA Writer, Notion |
 
 **Assess:** Which archetype does the current design evidence support? Is it the right archetype for the product's audience and purpose? If the design sends mixed archetype signals (Expert typography + Companion colors), flag the conflict.

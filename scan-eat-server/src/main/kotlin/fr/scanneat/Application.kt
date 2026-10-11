@@ -24,7 +24,7 @@ import java.util.Properties
 // ============================================================================
 // SCAN'EAT KTOR SERVER
 //
-// Routes mirror api/*.ts Vercel functions exactly:
+// Routes:
 //   POST /api/score              — barcode + optional images → ScoreAudit
 //   POST /api/identify           — images → identified food (fresh/unpackaged)
 //   POST /api/identify-multi     — images → multiple foods on a plate
