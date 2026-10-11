@@ -467,7 +467,7 @@ Tech Stack:
   State management:   # Zustand, Redux, Context, ViewModel, BLoC, Provider
   Router/Navigation:  # Next.js App Router, React Router, Navigation Component, GoRouter
   Styling:            # Tailwind, CSS Modules, XML themes, ThemeData
-  CI/CD:              # GitHub Actions, Vercel, Netlify, Fastlane
+  CI/CD:              # GitHub Actions, Netlify, Fastlane
 
 Codebase Metrics:
   Total files:        # `find src -type f | wc -l` (or equivalent)
@@ -491,7 +491,7 @@ Current Structure:
 
 ```yaml
 User Context:
-  Deployment target:  # Vercel, Netlify, Play Store, App Store, self-hosted
+  Deployment target:  # Netlify, Play Store, App Store, self-hosted
   Team size:          # solo, 2-3, small team, large team
   Users:              # personal, internal, public
   Growth expectation: # stable, moderate growth, rapid scaling
@@ -506,7 +506,7 @@ Restructuring Intent:
 Constraints:
   Breaking changes OK: # can the restructuring change public APIs/URLs/routes?
   Downtime OK:         # can the app be broken temporarily during restructuring?
-  Deployment limits:   # any CI/CD constraints (e.g., Vercel deploy limits)
+  Deployment limits:   # any CI/CD constraints
   Git strategy:        # main branch, feature branches, how they deploy
 ```
 

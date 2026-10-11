@@ -1,6 +1,6 @@
 # Scan'eat Server
 
-Ktor backend for the Scan'eat Android app. Replaces the Vercel/TypeScript `api/*.ts` functions with a single deployable JVM service.
+Ktor backend for the Scan'eat Android app. A single deployable JVM service.
 
 ## Endpoints
 
