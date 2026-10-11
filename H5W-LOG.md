@@ -1048,3 +1048,8 @@ wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
   `MIGRATION_n_n+1` (all 39 are plain `execSQL` literals) from the v15 snapshot in SQLite and diffs against
   `schemas/40.json`: 0 differences in tables, columns, types, nullability, defaults and indices. Destructive
   fallback is debug-only. (Snapshots 20-24 omit an index that 15->16 creates; harmless, `IF NOT EXISTS`.)
+- **Food search nutrient query:** `sodium<200` compared 200 to grams of salt (alias to saltG); sodium is now
+  mg (= salt g x 400). Added filters for magnesium/potassium/zinc/vit C/A/E/K/B6/folate (already on the item
+  but unfilterable). Doc example `sucre<5` was never supported (FoodSearchItem has no sugar field; adding
+  one touches every constructor site) — comment corrected, sugar filter remains a gap. Checked via a
+  standalone harness over the real source; the JUnit file is unrun (Hilt-bound module).
