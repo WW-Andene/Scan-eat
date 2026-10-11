@@ -1068,6 +1068,6 @@ Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request b
 - **Sugar filter added:** `FoodSearchItem.sugarsG` (defaulted) filled from FoodEntry/scan nutrition; `sucre<5`/`sugars>=20` work (explicit operator only). Gradle unit tests green (262, 0 failures).
 - **Hydration goal:** a pregnant profile with sex "not specified" skipped the +300 mL EFSA pregnancy bonus (early
   return); bonus now applied on both paths and computed in integer mL (no float truncation). Compiles; 262 Gradle
-  tests green; no unit test added (HydrationRepository needs DataStore deps to construct).
+  tests green; goal math extracted to pure `hydrationGoalMl` + `HydrationGoalTest` (fail-first verified; 266 Gradle tests green).
 - **View-model sweep done** (pantry expiry urgency, grocery/receipt word matching, medication adherence,
   tracker logic): no other defects found. UI/instrumented tests remain unrun (need a device/emulator).
