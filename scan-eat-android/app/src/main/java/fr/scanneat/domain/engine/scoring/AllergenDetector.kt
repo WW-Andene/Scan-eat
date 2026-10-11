@@ -62,40 +62,40 @@ val ANNEX_II_KEYS: List<String> = listOf(
 )
 
 /** Matches an ingredient explicitly declaring gluten-free oats. */
-private val GLUTEN_FREE_OATS_QUALIFIER = Regex("avoine[^,;.]*(sans gluten|gluten[- ]free)|(sans gluten|gluten[- ]free)[^,;.]*avoine", RegexOption.IGNORE_CASE)
+private val GLUTEN_FREE_OATS_QUALIFIER = Regex("(avoine|oats?)[^,;.]*(sans gluten|gluten[- ]free)|(sans gluten|gluten[- ]free)[^,;.]*(avoine|oats?)", RegexOption.IGNORE_CASE)
 
 /** Any OTHER gluten cereal term (no gluten-free variant exists for these) - if present, don't suppress. */
-private val GLUTEN_CEREAL_EXCL_OATS = a("gluten|bl[eé]|froment|seigle|orge|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge")
+private val GLUTEN_CEREAL_EXCL_OATS = a("gluten|bl[eé]|froment|seigle|orge|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge|wheat|barley|rye|spelt|semolina|durum|seitan")
 
 private val RULES: List<AllergenRule> = listOf(
     AllergenRule("gluten", "Gluten", "Gluten",
-        a("gluten|bl[eé]|froment|seigle|orge|avoine|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge")),
+        a("gluten|bl[eé]|froment|seigle|orge|avoine|oats?|wheat|barley|rye|spelt|semolina|durum|seitan|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge")),
 
     AllergenRule("lactose", "Lactose / Lait", "Lactose / Milk",
-        a("lait|lactose|lactos[eé]rum|petit[- ]lait|cr[eè]me|beurre|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|caseine|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait")),
+        a("laits?(?! (?:de |d'|d’)(?:coco|amandes?|soja|avoine|riz|noisettes?|cajou|ch[aâ]taigne))|lactose|lactos[eé]rum|petit[- ]lait|cr[eè]mes?(?! de (?:tartre|marrons?|coco))|beurres?(?! de (?:cacao|karit[eé]|cacahu[eè]tes?|arachides?|noix|amandes?|noisettes?|coco|cajou|pomme))|babeurre|fromages?|yaourts?|yoghourts?|skyr|k[eé]fir|cas[eé]ines?|cas[eé]inates?|lactalbumine|lactoglobuline|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mozzarella|parmesan|parmigiano|emmental|ricotta|mascarpone|cheddar|gouda|comt[eé]|feta|gruy[eè]re|cr[eè]me fra[iî]che|(?<!coconut |almond |oat |soy |soya |rice |cashew |hazelnut )milk|buttermilk|(?<!peanut |cocoa |shea |nut |almond |apple |cashew |hazelnut )butter|cream(?! of tartar)|cheeses?|whey|yog(?:h)?urts?|caseinates?|caseins?|lactoserum")),
 
     // "albumine" alone added - egg-white protein is commonly labeled just
     // "albumine" on French ingredient lists (charcuterie binders, some baked
     // goods), not always "ovalbumine"/"blanc d'oeuf". Missing it was a real
     // false-negative risk on a mandatory Annex II allergen (item 3).
     AllergenRule("eggs", "Œufs", "Eggs",
-        a("oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|albumine|lysozyme")),
+        a("eggs?|oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|albumine|lysozyme")),
 
     AllergenRule("nuts", "Fruits à coque", "Tree nuts",
-        a("noix(?! de coco| de muscade)|amandes?|noisettes?|pistaches?|cajou|p[eé]can|pecan|noix du br[eé]sil|macadamia")),
+        a("noix(?! de coco| de muscade)|amandes?|almonds?|noisettes?|hazelnuts?|walnuts?|pistaches?|pistachios?|cajou|cashews?|p[eé]cans?|noix du br[eé]sil|brazil nuts?|macadamias?|pralin[eé]?|pralines?|massepain|marzipan|gianduja|frangipane|tree nuts?")),
 
     AllergenRule("peanuts", "Arachides", "Peanuts",
-        a("arachide|cacahu[eè]te|peanut|beurre de cacahu[eè]te")),
+        a("arachides?|cacahu[eè]tes?|peanuts?|groundnuts?|beurre de cacahu[eè]tes?")),
 
     AllergenRule("soy", "Soja", "Soy",
-        a("soja|tofu|tempeh|edamame|l[eé]cithine de soja")),
+        a("soja|soy|soya|soybeans?|tofu|tempeh|edamame|miso|tamari|l[eé]cithine de soja")),
 
     // Species list broadened - truite/colin/lieu/dorade/sole/flétan/eglefin/
     // lotte/tilapia previously absent, so a product listing only e.g. "truite
     // fumée" with no other fish word matched nothing at all, a false negative
     // on a mandatory Annex II allergen (item 4) with real anaphylaxis risk.
     AllergenRule("fish", "Poisson", "Fish",
-        a("poisson|saumon|thon|cabillaud|merlu|sardine|maquereau|hareng|anchois|morue|filet de bar|darne de bar|truite|colin|lieu|dorade|sole|fl[eé]tan|[eé]glefin|lotte|tilapia|trout|pollock|haddock|halibut")),
+        a("poissons?|saumons?|thons?|cabillauds?|merlus?|sardines?|maquereaux?|harengs?|anchois|morues?|filet de bar|darne de bar|truites?|colin|lieu|dorades?|sole|fl[eé]tan|[eé]glefin|lotte|tilapia|surimi|nuoc[- ]?m[aâ]m|fish|salmon|tuna|cod|anchov(?:y|ies)|sardines?|mackerel|herrings?|trout|pollock|haddock|halibut")),
 
     AllergenRule("crustaceans", "Crustacés", "Crustaceans",
         a("crevettes?|crabes?|homards?|langoustes?|langoustines?|[eé]crevisses?|crustac[eé]s?|shrimps?|prawns?|lobsters?|crayfish")),
@@ -107,7 +107,7 @@ private val RULES: List<AllergenRule> = listOf(
         a("s[eé]same|tahini|tahin")),
 
     AllergenRule("celery", "Céleri", "Celery",
-        a("c[eé]leri|celery")),
+        a("c[eé]leri|celery|celeriac")),
 
     AllergenRule("mustard", "Moutarde", "Mustard",
         a("moutarde|graines? de moutarde|mustard")),
@@ -118,10 +118,10 @@ private val RULES: List<AllergenRule> = listOf(
     // asthma/anaphylactoid reactions, so a missed spaced E-number is a real
     // detection gap on a mandatory Annex II allergen (item 12).
     AllergenRule("sulfites", "Sulfites", "Sulfites",
-        a("sulfites?|dioxyde de soufre|anhydride sulfureux|E[- ]?22[0-8]|m[eé]tabisulfite|bisulfite")),
+        a("sul(?:f|ph)ites?|dioxyde de soufre|anhydride sulfureux|sul(?:f|ph)ur dioxide|E[- ]?22[0-8]|m[eé]tabisul(?:f|ph)ites?|bisul(?:f|ph)ites?|disul(?:f|ph)ites?")),
 
     AllergenRule("lupin", "Lupin", "Lupin",
-        a("lupin|farine de lupin")),
+        a("lupins?|lupine|farine de lupin")),
 )
 
 // OFF's own curated allergens_tags → our ANNEX_II keys. OFF verifies these
