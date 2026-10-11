@@ -72,7 +72,7 @@ internal fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, useImperia
                 // types, reused here instead.
                 val activityTypeLabels = typeLabels()
                 detail.activities.forEach { a ->
-                    Text("· ${activityTypeLabels[a.type] ?: a.type.name} (${a.minutes} min)", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                    Text("· ${activityTypeLabels[a.type] ?: a.type.name} (${stringResource(R.string.calendar_month_minutes, a.minutes)})", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 }
             }
             if (detail.hydrationMl > 0) {
