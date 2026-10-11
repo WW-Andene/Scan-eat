@@ -119,7 +119,8 @@ class FastingRepository @Inject constructor(
         store.edit { prefs ->
             val start  = prefs[keyStartMs(profileId)] ?: return@edit
             val target = prefs[keyTargetHours(profileId)] ?: 16
-            val achieved = (now - start) / 3_600_000.0
+            // Clamped like FastingState.elapsedMs: a backward clock change must not store a negative duration.
+            val achieved = ((now - start) / 3_600_000.0).coerceAtLeast(0.0)
 
             val completion = FastCompletion(
                 date          = LocalDate.now().toString(),

@@ -1101,3 +1101,7 @@ Found by code reading, fixed with small edits; regression tests added but NOT ru
   dried fruit/veg (`jus d'orange` was Produce, `beurre de cacahuète` Dairy, `sauce tomate` Produce).
 - Reviewed, no change: CSV export (formula-injection guard on every free-text field), metabolics formulas
   (Navy/Deurenberg/Katch-McArdle/DuBois/IBW/BAI), water-need formula, date/timezone handling, network client config.
+- **Medication adherence streak** counted every day with no medication due (incl. all days before the first
+  medication existed) as a perfect day because `all{}` on an empty list is true: a medication added yesterday showed
+  a streak up to 30. Such days are now neutral, and the run ends before any medication existed (matches
+  `weeklyAdherence`, which already excluded them). Fast `stop()` also clamps a negative duration on backward clock change.
