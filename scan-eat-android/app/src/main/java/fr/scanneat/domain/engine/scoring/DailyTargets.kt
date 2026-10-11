@@ -73,19 +73,22 @@ fun pregnancyTrimester(startDate: java.time.LocalDate, today: java.time.LocalDat
     }
 }
 
-/** Extra kcal/day on top of maintenance TDEE - IOM 2005 EER pregnancy
- *  increments, commonly rounded to +0 / +340 / +450. */
+/** Extra kcal/day on top of maintenance TDEE - EFSA DRV for energy (2013):
+ *  +70 / +260 / +500 kcal/day by trimester. Was the US IOM 2005 +0/+340/+450;
+ *  the app's sourcing rule prefers the European reference where one exists. */
 private fun pregnancyKcalBonus(trimester: PregnancyTrimester): Double = when (trimester) {
-    PregnancyTrimester.FIRST  -> 0.0
-    PregnancyTrimester.SECOND -> 340.0
-    PregnancyTrimester.THIRD  -> 450.0
+    PregnancyTrimester.FIRST  -> 70.0
+    PregnancyTrimester.SECOND -> 260.0
+    PregnancyTrimester.THIRD  -> 500.0
 }
 
-/** Extra protein g/day - IOM 2005 RDA bump (+25 g/day), applied from the
- *  second trimester on (first-trimester needs are close to non-pregnant
- *  baseline in most guidance). */
-private fun pregnancyProteinBonus(trimester: PregnancyTrimester): Double =
-    if (trimester == PregnancyTrimester.FIRST) 0.0 else 25.0
+/** Extra protein g/day - EFSA DRV for protein (2012): +1 / +9 / +28 g/day by
+ *  trimester (was the US IOM flat +25 g/day from the second trimester). */
+private fun pregnancyProteinBonus(trimester: PregnancyTrimester): Double = when (trimester) {
+    PregnancyTrimester.FIRST  -> 1.0
+    PregnancyTrimester.SECOND -> 9.0
+    PregnancyTrimester.THIRD  -> 28.0
+}
 
 /** Same gating [dailyTargets] applies internally - UI call sites (Profile's
  *  trimester badge) read this instead of re-deriving the same "pregnancy" +
@@ -147,18 +150,15 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     // isn't currently menstruating (menopause, pregnancy, hormonal
     // contraception, amenorrhea) got the wrong 16 mg target from the age
     // heuristic alone, and the checkbox answer had no effect anywhere.
-    // Pregnancy overrides both: 27 mg/day (IOM 2001 RDA, commonly cited),
-    // higher than either non-pregnant figure for the whole pregnancy, not
-    // just later trimesters - iron-deficiency risk rises from early
-    // pregnancy on as blood volume expands.
-    val ironTarget = if (trimester != null) 27.0 else if (p.sex == Sex.FEMALE && p.isMenstruating) 16.0 else 11.0
+    // Pregnancy: EFSA (2015) sets no increment over the premenopausal-women
+    // PRI of 16 mg/day (stores + absorption upregulation cover it; the US IOM
+    // 27 mg/day previously used here is not the European reference).
+    val ironTarget = if (trimester != null) 16.0 else if (p.sex == Sex.FEMALE && p.isMenstruating) 16.0 else 11.0
     // Sex-specific zinc: women 7.5 mg/day (EFSA 2014)
     val zincTarget = if (p.sex == Sex.FEMALE) 7.5 else 9.4
-    // Older adults: higher vitD target 20 µg/day ≥75y. Value unchanged, but the
-    // source citation was wrong - this is the IOM/NAM Dietary Reference Intakes
-    // (2011) higher-elderly-RDA figure, not an EFSA one; EFSA's own 2016 DRV
-    // opinion sets a single flat 15 µg/day for all adults with no age bump.
-    val vitDTarget = if ((p.ageYears ?: 0) >= 75) 20.0 else 15.0
+    // EFSA DRV (2016): a single 15 µg/day AI for all adults, no age bump (the
+    // previous ≥75y 20 µg/day was the US IOM 2011 RDA).
+    val vitDTarget = 15.0
     // Sex-specific vitamin C: 110 mg/day men, 95 mg/day women (EFSA DRV 2013) -
     // same sex-adjustment pattern as ironTarget/zincTarget/magnesiumMgTarget
     // above/below; vitCMgTarget previously stayed a flat 95mg for everyone.

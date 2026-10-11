@@ -157,10 +157,10 @@ class PersonalScoreEngineTest {
     }
 
     @Test
-    fun `dailyTargets raises vitamin D target for the elderly`() {
+    fun `dailyTargets uses the flat EFSA vitamin D AI for the elderly`() {
         val elderly = femaleProfile().copy(ageYears = 80)
         val targets = dailyTargets(elderly)!!
-        assertEquals(20.0, targets.vitDUgTarget, 0.01)
+        assertEquals(15.0, targets.vitDUgTarget, 0.01)
     }
 
     // ---- dailyTargets: Goal kcal adjustment ----
