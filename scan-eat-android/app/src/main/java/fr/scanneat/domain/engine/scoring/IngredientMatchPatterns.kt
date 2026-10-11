@@ -13,7 +13,7 @@ package fr.scanneat.domain.engine.scoring
 // as a whole word regardless of what follows or doesn't follow it, while
 // still not matching "vinaigre"/"vinaigrette".
 internal val ALCOHOL_INGREDIENT_PATTERN = Regex(
-    """\b(?:alcool|alcohol|vin|wine|bi[eè]re|beer)\b""",
+    """\b(?:alcools?|alcohols?|vins?|wines?|bi[eè]res?|beers?|rhums?|rums?|whisky|whiskey|vodka|gin|liqueurs?|cognac|armagnac|calvados|kirsch|porto|cidres?|ciders?|champagne|eau[- ]de[- ]vie|marsala|mad[eè]re|brandy|cointreau|amaretto|grand marnier)\b""",
     RegexOption.IGNORE_CASE,
 )
 
@@ -40,7 +40,7 @@ internal val CAFFEINE_SOURCE_PATTERN = Regex(
 // since the underlying risk (foodborne illness during pregnancy) is the same
 // category of harm regardless of which specific food carries it.
 internal val PREGNANCY_LISTERIA_RISK_PATTERN = Regex(
-    """\b(?:tartare|carpaccio|viande crue|steak tartare|raw meat|rare beef|sushi|sashimi|saumon fume|smoked salmon|poisson cru|raw fish|ceviche|thon|espadon|requin|lamproie|tuna|swordfish|shark|marlin|lait cru|fromage au lait cru|fromage a pate molle|raw milk|unpasteurized|soft cheese|foie|pate|liver|foie gras|jambon cru|charcuterie|salami|chorizo|cured meat|deli meat|prosciutto|germes crus|pousses crues|graines germees|raw sprouts|alfalfa sprouts)\b""",
+    """\b(?:tartare|carpaccio|viande crue|steak tartare|tartares|raw meat|rare beef|sushi|sashimi|saumon fume|smoked salmon|poisson cru|raw fish|ceviche|thon|espadon|requin|lamproie|tuna|swordfish|shark|marlin|lait cru|fromages? au lait cru|fromages? a pate molle|rillettes?|terrines?|huitres?|oysters?|coquillages? crus?|fruits de mer crus|raw shellfish|sushis?|raw milk|unpasteurized|soft cheese|foie|pate|liver|foie gras|jambon cru|charcuterie|salami|chorizo|cured meat|deli meat|prosciutto|germes crus|pousses crues|graines germees|raw sprouts|alfalfa sprouts)\b""",
 )
 
 // Sugar alcohols (polyols) - matched against normalizeForMatching()'d ingredient
@@ -76,7 +76,7 @@ internal val HIGH_FODMAP_PATTERN = Regex(
 // American Migraine Foundation trigger-food guidance) - aged cheese and
 // cured/fermented meats/condiments are its most common dietary sources.
 internal val TYRAMINE_SOURCE_PATTERN = Regex(
-    """\b(?:fromage affine|aged cheese|parmesan|roquefort|bleu|blue cheese|cheddar affine|gruyere|comte|salami|pepperoni|jambon cru|prosciutto|saucisson|choucroute|sauerkraut|kimchi|sauce soja|soy sauce|miso)\b""",
+    """\b(?:fromages? affines?|aged cheeses?|parmesan|roquefort|bleu|blue cheese|cheddar affine|gruyere|comte|salamis?|pepperonis?|jambon cru|prosciutto|saucissons?|choucroute|sauerkraut|kimchi|sauce soja|soy sauce|miso)\b""",
 )
 
 // EU additive codes for cured/processed-meat nitrite/nitrate preservatives,
