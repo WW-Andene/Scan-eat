@@ -137,7 +137,16 @@ fun ResultScreen(
                     // in the app (see UnitConversion.kt's own doc comment) - without it, a
                     // device set to a locale with non-Latin digits (Arabic-Indic, Persian)
                     // would render the score using those digits in the shared text alone.
-                    val text = String.format(Locale.US, shareTemplate, scan.product.name, scan.audit.score, scan.audit.grade.label)
+                    val headline = String.format(Locale.US, shareTemplate, scan.product.name, scan.audit.score, scan.audit.grade.label)
+                    // The why behind the grade, already computed (and localized) by the engine.
+                    val a = scan.audit
+                    val text = buildList {
+                        add(headline)
+                        if (a.veto.triggered) add("⚠ ${a.veto.reason}")
+                        a.redFlags.take(3).forEach { add("− $it") }
+                        a.greenFlags.take(3).forEach { add("+ $it") }
+                        add(listOfNotNull("NOVA ${scan.product.novaClass.value}", a.nutriscoreGrade?.let { "Nutri-Score ${it.uppercase()}" }, a.eco?.grade?.let { "Eco-Score ${it.uppercase()}" }).joinToString(" · "))
+                    }.joinToString("\n")
                     val sendIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
                         putExtra(Intent.EXTRA_TEXT, text)
