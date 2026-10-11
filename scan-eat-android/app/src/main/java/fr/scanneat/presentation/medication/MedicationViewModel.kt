@@ -260,6 +260,11 @@ class MedicationViewModel @Inject constructor(
                     // wasActiveOn() checks createdAt/deactivatedAt against [date]
                     // itself, independent of the medication's current active state.
                     val relevantMeds = allMeds.filter { med -> med.wasActiveOn(date) && med.isScheduledOn(date.dayOfWeek) }
+                    // Before any medication existed there is nothing to adhere to: stop.
+                    // A day with medications but none scheduled (weekly off-day) is
+                    // skipped, neither counted nor breaking the run.
+                    if (allMeds.none { it.wasActiveOn(date) }) return@map streak
+                    if (relevantMeds.isEmpty()) { date = date.minusDays(1); return@repeat }
                     if (relevantMeds.all { (dosesById[it.id] ?: 0) >= it.dosesPerDay }) { streak++; date = date.minusDays(1) }
                     else return@map streak
                 }
