@@ -53,15 +53,19 @@ internal class ScanHistoryQueries(
     private val serializeProduct: (fr.scanneat.domain.model.Product) -> String,
     private val serializeAudit: (fr.scanneat.domain.model.ScoreAudit) -> String,
 ) {
+    /** Math-only rescore of a row scored by an older engine, so lists don't show a pre-calibration grade. */
+    private fun current(r: ScanResult): ScanResult =
+        if (r.audit.engineVersion != ENGINE_VERSION) r.copy(audit = scoreProduct(r.product, if (java.util.Locale.getDefault().language == "fr") "fr" else "en")) else r
+
     fun observeHistory(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeRecent(profileId = profileId, limit = limit).map { entities ->
-            entities.mapNotNull { toDomain(it) }
+            entities.mapNotNull { toDomain(it)?.let(::current) }
         }
 
     /** See ScanHistoryDao.observeRecentChecked's own doc comment. */
     fun observeHistoryChecked(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeRecentChecked(profileId = profileId, limit = limit).map { entities ->
-            entities.mapNotNull { toDomain(it) }
+            entities.mapNotNull { toDomain(it)?.let(::current) }
         }
 
     /**
