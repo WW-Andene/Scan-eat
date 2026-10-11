@@ -44,7 +44,7 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
         return NovaInference(NovaClass.UNPROCESSED, NovaConfidence.HIGH)
 
     if (ings.size <= 3 && additives.isEmpty() && upfMarkers.isEmpty()) {
-        val onlyCulinary = ings.all { Regex("""^(sucre|sel|huile|beurre|graisse|miel|vinaigre|eau)""", RegexOption.IGNORE_CASE).containsMatchIn(it.name.trim()) }
+        val onlyCulinary = ings.all { CULINARY_INGREDIENT.containsMatchIn(it.name.trim()) }
         if (onlyCulinary) return NovaInference(NovaClass.CULINARY, NovaConfidence.HIGH)
     }
 
@@ -73,6 +73,9 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
     val hasPositiveEvidence = cosmetics.isNotEmpty() || upfMarkers.isNotEmpty()
     return NovaInference(NovaClass.ULTRA_PROCESSED, if (hasPositiveEvidence) NovaConfidence.MEDIUM else NovaConfidence.LOW)
 }
+
+private val CULINARY_INGREDIENT = Regex("""^(sucre|sel|huile|beurre|graisse|miel|vinaigre|eau)""", RegexOption.IGNORE_CASE)
+private val FRIED_PATTERN = Regex("""\bfrit(?:e|es|s)?\b|\bfried\b|friture|deep[-\s]?fried""", RegexOption.IGNORE_CASE)
 
 fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
@@ -154,7 +157,7 @@ fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
     // explicit frying/cooking-method keyword are present — a heuristic
     // caution, not a certainty, unlike the additive/nutrient checks above.
     val friedStarchy = product.category == ProductCategory.SNACK_SALTY &&
-        Regex("""\bfrit(?:e|es|s)?\b|\bfried\b|friture|deep[-\s]?fried""", RegexOption.IGNORE_CASE)
+        FRIED_PATTERN
             .let { re -> re.containsMatchIn(product.name) || product.ingredients.any { re.containsMatchIn(it.name) } }
     if (friedStarchy) {
         score -= 1

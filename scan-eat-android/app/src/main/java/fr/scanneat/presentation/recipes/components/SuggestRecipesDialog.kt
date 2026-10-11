@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -38,10 +37,8 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
-import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ErrorBanner
-import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.ScanEatLoadingIndicator
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing

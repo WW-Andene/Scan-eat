@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CameraAlt
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -77,7 +74,6 @@ import fr.scanneat.presentation.result.FactsCautionsColumn
 import fr.scanneat.presentation.scan.ScanUiState
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
-import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ErrorBanner
 import fr.scanneat.presentation.ui.theme.IconSize

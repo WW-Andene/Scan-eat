@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.model.MealSlot

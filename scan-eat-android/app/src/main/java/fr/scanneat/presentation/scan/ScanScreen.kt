@@ -43,7 +43,6 @@ import fr.scanneat.presentation.scan.components.ScanShelfObjectOverlay
 import fr.scanneat.presentation.scan.components.ScanShelfPeekChip
 import fr.scanneat.presentation.scan.components.ScanStateOverlay
 import fr.scanneat.presentation.scan.components.ShelfPeek
-import fr.scanneat.presentation.scan.components.ShelfPeekStatus
 import fr.scanneat.presentation.scan.components.handleShelfBoxTapped
 import fr.scanneat.presentation.ui.theme.*
 import dev.chrisbanes.haze.hazeSource

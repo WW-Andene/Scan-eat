@@ -32,7 +32,6 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.ambientGloom
 
 // Orchestrator only, mirrors DataScreen.kt — each section lives in cards/*.kt,

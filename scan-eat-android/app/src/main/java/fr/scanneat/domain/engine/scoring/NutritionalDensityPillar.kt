@@ -30,6 +30,8 @@ private val NRV_TARGETS = mapOf(
     "zinc"      to Pair("zincMg",    10.0),
 )
 
+private val OMEGA3_INGREDIENT = Regex("""\blin\b|\bchia\b|\bnoix\b|\bsaumon\b|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE)
+
 private fun getNutrientValue(n: NutritionPer100g, key: String): Double? = when (key) {
     "proteinG"    -> n.proteinG
     "fiberG"      -> n.fiberG
@@ -132,7 +134,7 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
     // declared percentage - the declared omega3G branch is untouched since
     // that's already a real measured quantity, not a position proxy.
     val hasOmega3 = (n.omega3G ?: 0.0) > 0.5 || product.ingredients.take(5).any { ing ->
-        Regex("""\blin\b|\bchia\b|\bnoix\b|\bsaumon\b|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
+        OMEGA3_INGREDIENT.containsMatchIn(ing.name)
     }
     if (hasOmega3) {
         score += 3

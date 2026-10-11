@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.Gold
-import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.TextMuted

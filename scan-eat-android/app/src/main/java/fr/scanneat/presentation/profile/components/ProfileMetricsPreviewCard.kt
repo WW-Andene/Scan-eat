@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DietKey
-import fr.scanneat.domain.model.BodyCompositionLevel
 import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.presentation.ui.theme.*

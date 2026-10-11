@@ -36,7 +36,6 @@ import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.ScanEatSnackbarHost
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.OnBackground
-import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.ambientGloom
 
 // Orchestrator only — each card section lives in cards/*.kt (one file per

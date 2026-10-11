@@ -6,11 +6,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.health.connect.client.PermissionController
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,7 +33,6 @@ import fr.scanneat.presentation.settings.components.ProfileSection
 import fr.scanneat.presentation.settings.components.RemindersSection
 import fr.scanneat.presentation.settings.components.ResetConfirmDialog
 import fr.scanneat.presentation.settings.components.ResetTarget
-import fr.scanneat.presentation.settings.components.SettingsSection
 import fr.scanneat.presentation.settings.components.ThemeSection
 import fr.scanneat.presentation.settings.components.UnitsSection
 import fr.scanneat.presentation.settings.components.rememberBackupImportLauncher
