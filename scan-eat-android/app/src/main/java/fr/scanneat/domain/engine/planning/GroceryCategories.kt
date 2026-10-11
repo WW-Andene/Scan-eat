@@ -77,7 +77,8 @@ private fun wordBoundaryMatch(key: String, needle: String): Boolean =
 fun groceryCategoryFor(name: String): GroceryCategory {
     val key = normalizeKey(name)
     for ((category, keywords) in CATEGORY_KEYWORDS) {
-        if (keywords.any { wordBoundaryMatch(key, it) }) return category
+        // Plural forms too ("tomates", "oeufs", "choux") - the keyword list is singular.
+        if (keywords.any { wordBoundaryMatch(key, it) || wordBoundaryMatch(key, it + "s") || wordBoundaryMatch(key, it + "x") }) return category
     }
     return GroceryCategory.OTHER
 }
