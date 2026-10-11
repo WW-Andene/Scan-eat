@@ -1,10 +1,9 @@
 name: Android Build
 
 on:
+  # Every merge (push) to main builds the APKs, whatever files changed.
   push:
-    paths:
-      - "scan-eat-android/**"
-      - ".github/workflows/android-build.yml"
+    branches: [main]
   pull_request:
     paths:
       - "scan-eat-android/**"
