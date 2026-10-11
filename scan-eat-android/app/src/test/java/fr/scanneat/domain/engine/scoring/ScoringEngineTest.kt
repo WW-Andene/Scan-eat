@@ -696,4 +696,17 @@ class ScoringEngineTest {
         assertNotNull("Two genuinely distinct hidden-sugar aliases should still trigger the deduction",
             pillar.deductions.firstOrNull { it.reason.contains("sugar source", ignoreCase = true) || it.reason.contains("sources de sucre", ignoreCase = true) })
     }
+
+    // Regression: salt derived from sodiumMg (saltG missing) is a product of floating-point
+    // arithmetic and was interpolated raw into the user-visible deduction text.
+    @Test fun `Salt deduction text from a sodium-only product shows at most 2 decimals`() {
+        val base = nutrition(300.0, 5.0, 1.0, 40.0, 2.0, 2.0, 8.0, 0.0)
+        val p = product(
+            name = "Sodium-only (test)", category = ProductCategory.PROCESSED_MEAT, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("jambon")),
+            nutrition = base.copy(saltG = 0.0, sodiumMg = 3210.0),
+        )
+        val reason = scoreNegativeNutrients(p).deductions.first { it.reason.startsWith("Salt") }.reason
+        assertTrue(reason, Regex("""^Salt \d+(\.\d{1,2})?g/100g""").containsMatchIn(reason))
+    }
 }

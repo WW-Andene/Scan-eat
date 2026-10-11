@@ -143,7 +143,7 @@ internal fun GroceryItemRow(
 @Composable
 private fun EditGroceryQuantityDialog(itemName: String, initialGrams: Double, onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {
     var text by remember { mutableStateOf(if (initialGrams > 0) initialGrams.toInt().toString() else "") }
-    val grams = text.toDoubleOrNull()?.takeIf { it in 0.0..50000.0 }
+    val grams = text.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.0..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(itemName, color = OnBackground) },
