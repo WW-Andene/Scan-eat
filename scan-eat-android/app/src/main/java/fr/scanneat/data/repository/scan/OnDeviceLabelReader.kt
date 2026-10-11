@@ -7,6 +7,7 @@ import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import fr.scanneat.data.remote.api.ImagePayload
+import fr.scanneat.domain.engine.nutrition.LabelInconsistency
 import fr.scanneat.domain.engine.nutrition.OcrLine
 import fr.scanneat.domain.engine.nutrition.parseLabelText
 import fr.scanneat.domain.model.Product
@@ -39,7 +40,8 @@ class OnDeviceLabelReader @javax.inject.Inject constructor() {
                 else "Aucun texte d'étiquette lisible — photographiez la liste d'ingrédients et le tableau nutritionnel, nets et bien éclairés",
             )
         }
-        return ParseLabelResult(parsed.product, warnings(parsed.nutrientsRead, parsed.ingredientsRead, lang), parsed.barcode)
+        val warnings = warnings(parsed.nutrientsRead, parsed.ingredientsRead, lang) + parsed.inconsistencies.map { inconsistencyMessage(it, lang) }
+        return ParseLabelResult(parsed.product, warnings, parsed.barcode)
     }
 
     /** Every recognised text line across [images]. Several photos (front + back)
@@ -59,6 +61,18 @@ class OnDeviceLabelReader @javax.inject.Inject constructor() {
             yOffset += bitmap.height + 1
         }
         return lines
+    }
+
+    private fun inconsistencyMessage(i: LabelInconsistency, lang: String): String {
+        val en = lang == "en"
+        val what = when (i) {
+            LabelInconsistency.SUGARS_ABOVE_CARBS -> if (en) "sugars are higher than carbohydrates" else "les sucres dépassent les glucides"
+            LabelInconsistency.SATURATED_ABOVE_FAT -> if (en) "saturated fat is higher than total fat" else "les acides gras saturés dépassent les matières grasses"
+            LabelInconsistency.MACROS_ABOVE_100G -> if (en) "the nutrients add up to more than 100 g" else "les nutriments dépassent 100 g au total"
+            LabelInconsistency.ENERGY_MISMATCH -> if (en) "the energy doesn't match the nutrients" else "l'énergie ne correspond pas aux nutriments"
+        }
+        return if (en) "Probably misread: $what — retake a sharper photo of the table or correct the values"
+        else "Lecture probablement erronée : $what — reprenez une photo plus nette du tableau ou corrigez les valeurs"
     }
 
     private fun warnings(read: Set<String>, ingredientsRead: Boolean, lang: String): List<String> {

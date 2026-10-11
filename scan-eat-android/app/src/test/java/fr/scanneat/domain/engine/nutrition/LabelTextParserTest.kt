@@ -102,3 +102,30 @@ class LabelTextParserTest {
         assertFalse(r.ingredientsRead)
     }
 }
+
+class LabelConsistencyAndOcrTest {
+    private fun stack(vararg texts: String): List<OcrLine> =
+        texts.mapIndexed { i, t -> OcrLine(t, 10, i * 24, 310, i * 24 + 20) }
+
+    @Test
+    fun `common OCR letter-for-digit confusions are corrected`() {
+        val n = parseLabelText(stack("Matières grasses 1O g", "Protéines l2 g", "Sel 0,S g")).product.nutrition
+        assertEquals(10.0, n.fatG, 0.01)
+        assertEquals(12.0, n.proteinG, 0.01)
+        assertEquals(0.5, n.saltG, 0.01)
+    }
+
+    @Test
+    fun `a consistent label raises nothing`() {
+        val r = parseLabelText(stack("Énergie 480 kcal", "Matières grasses 21 g", "dont saturés 9,5 g", "Glucides 65 g", "dont sucres 32 g", "Fibres 2 g", "Protéines 6,4 g"))
+        assertTrue(r.inconsistencies.toString(), r.inconsistencies.isEmpty())
+    }
+
+    @Test
+    fun `impossible values are flagged`() {
+        // "65 g" glucides misread as "6,5 g": sugars > carbs and energy no longer adds up.
+        val r = parseLabelText(stack("Énergie 480 kcal", "Matières grasses 21 g", "Glucides 6,5 g", "dont sucres 32 g", "Protéines 6,4 g"))
+        assertTrue(LabelInconsistency.SUGARS_ABOVE_CARBS in r.inconsistencies)
+        assertTrue(LabelInconsistency.ENERGY_MISMATCH in r.inconsistencies)
+    }
+}

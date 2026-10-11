@@ -39,7 +39,8 @@ val FOOD_DB: List<FoodEntry> =
     FOOD_DB_FRUITS_AND_VEGETABLES +
         FOOD_DB_GRAINS_AND_PROTEINS +
         FOOD_DB_DAIRY_AND_LEGUMES +
-        FOOD_DB_FATS_SWEETS_AND_MEALS
+        FOOD_DB_FATS_SWEETS_AND_MEALS +
+        FOOD_DB_COOKING_STAPLES
 
 // ============================================================================
 // Search
