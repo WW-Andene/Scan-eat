@@ -25,30 +25,19 @@ Concrètement, cela signifie :
 ```
 Scan-eat/
 ├── scan-eat-android/   Application Android (Kotlin, Jetpack Compose, Hilt, Room)
-├── scan-eat-server/    Backend Ktor optionnel (mode "Serveur" de l'app)
-├── scripts/            Outils de dépôt, dont check_scoring_drift.py
 ├── docs/               Audits de design, notes techniques
 └── fastlane/           Configuration de publication Play Store
 ```
 
-### Deux copies du moteur de scoring
-
-La logique de scoring pure (`domain/engine/scoring/*.kt`) existe en double : une fois côté client Android (`scan-eat-android/app/src/main/java/fr/scanneat/domain/engine/scoring/`), une fois côté serveur (`scan-eat-server/src/main/kotlin/fr/scanneat/shared/`). Les deux copies doivent rester logiquement identiques pour un ensemble de fonctions/valeurs nommées (voir `scripts/check_scoring_drift.py`, `PAIRS`).
-
-**Avant tout push qui touche une déclaration listée dans `PAIRS`**, exécuter :
-
-```bash
-python3 scripts/check_scoring_drift.py
-```
-
-Une CI dédiée ("Scoring Drift Check") fait échouer le build si les deux copies divergent.
+Tout le fonctionnement est dans l'application : il n'y a ni serveur ni service d'IA. Le scan
+par code-barres interroge Open Food Facts ; les photos (étiquettes, aliments, recettes) sont
+lues sur l'appareil avec ML Kit (reconnaissance de texte et d'images intégrée), puis notées
+par le moteur de scoring local.
 
 ## Démarrer
 
 **Application Android** — voir `scan-eat-android/` (Gradle standard, `./gradlew build`).
 
-**Serveur backend (optionnel)** — voir `scan-eat-server/README.md` pour les instructions de lancement local, Docker et déploiement.
-
 ## Confidentialité
 
-Voir `PRIVACY_POLICY.md` — aucune donnée de santé ne quitte l'appareil sauf action explicite de l'utilisateur (scan code-barres/photo, recherche en ligne, synchronisation Health Connect).
+Voir `PRIVACY_POLICY.md` — aucune donnée de santé ne quitte l'appareil sauf action explicite de l'utilisateur (scan code-barres, recherche en ligne, import d'une recette depuis un lien, synchronisation Health Connect).

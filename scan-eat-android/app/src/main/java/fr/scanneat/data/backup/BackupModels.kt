@@ -70,9 +70,6 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // record" celebration on a lower but still-real current streak - and both
 // toggles back to their defaults).
 //
-// Deliberately excludes the Groq and Cerebras API keys from SettingsBackup —
-// a backup file shared for debugging or support must not leak a credential.
-//
 // version bumps whenever a field is added/removed/retyped, so importFromJson
 // can refuse (rather than silently corrupt) a bundle from an incompatible
 // future or ancient export. All v2+ fields default to null/empty so an older
@@ -128,9 +125,9 @@ data class ProfileBackup(
     val pregnancyStartDate: String? = null,
 )
 
+// apiMode/serverUrl were dropped with the AI/server features; Moshi skips them
+// when reading an older backup.
 data class SettingsBackup(
-    val apiMode: String,
-    val serverUrl: String,
     val language: String,
     val theme: String,
     val dyslexicFont: Boolean,

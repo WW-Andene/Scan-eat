@@ -19,7 +19,7 @@ import java.time.LocalDate
 
 // Recipe CRUD + logging operations for [RecipesViewModel] - split out of the
 // main file to keep it from growing unbounded, same purely-structural split
-// ScanRepository already went through for ScanOffLookup/ScanServerClient.
+// ScanRepository already went through for ScanOffLookup.
 // Every function here touches the same RecipesViewModel private-turned-internal
 // state (`repo`, `templateRepo`, `consumptionRepo`, `flagActionFailed()`,
 // `_cloneUnmatchedCount`, `_allRecipes`, `lastDeleted`, `lastPreScale`) the main

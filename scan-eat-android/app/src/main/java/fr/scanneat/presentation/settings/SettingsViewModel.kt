@@ -10,7 +10,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.data.backup.BackupImportError
 import fr.scanneat.data.backup.BackupMetadata
 import fr.scanneat.data.backup.BackupSummary
-import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.backup.BackupRepository
 import fr.scanneat.data.repository.backup.CsvExportRepository
@@ -63,10 +62,6 @@ class SettingsViewModel @Inject constructor(
     private val scanRepo: ScanRepository,
     @ApplicationContext private val context: Context,
 ) : ActionFailureViewModel() {
-    val apiKey    = prefs.groqApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
-    val cerebrasApiKey = prefs.cerebrasApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
-    val mode      = prefs.apiMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ApiMode.DIRECT)
-    val serverUrl = prefs.serverUrl.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val language  = prefs.language.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     val theme     = prefs.theme.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "dark")
     val colorAccent = prefs.colorAccent.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
@@ -95,38 +90,14 @@ class SettingsViewModel @Inject constructor(
         .map { list -> list.map { "${it.product.name} — ${it.audit.grade.label} (${it.product.category.key})" } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _savedField = MutableStateFlow<String?>(null)
-    /** Which field was just saved — SettingsScreen shows a brief confirmation, then clears it. */
-    val savedField: StateFlow<String?> = _savedField.asStateFlow()
-
-    // saveApiKey/saveCerebrasApiKey/saveServerUrl below wrote to DataStore
-    // completely unguarded - the same "one code path missing a check its
-    // sibling has" pattern already fixed elsewhere this loop (DataViewModel.
-    // saveManualHR/deleteSession, ProfileViewModel.save). A DataStore I/O
-    // failure (disk full, corrupt prefs file) here would crash this
-    // ViewModel's coroutine and _savedField would simply never flip, leaving
-    // the user staring at an unsaved field with zero feedback that Save did
-    // nothing, instead of surfacing a recoverable error.
-    // actionFailed/clearActionFailed()/guardedSuspend now come from
-    // ActionFailureViewModel (see that file's doc comment) instead of being
-    // redefined here.
-    private fun saveField(fieldKey: String, write: suspend () -> Unit) = viewModelScope.launch {
-        if (guardedSuspend { write() }) _savedField.value = fieldKey
-    }
-
-    fun saveApiKey(key: String) = saveField("apiKey") { prefs.setGroqApiKey(key.trim()) }
-    fun saveCerebrasApiKey(key: String) = saveField("cerebrasApiKey") { prefs.setCerebrasApiKey(key.trim()) }
-    fun setMode(m: ApiMode)        = guardedLaunch { prefs.setApiMode(m) }
-    fun saveServerUrl(url: String) = saveField("serverUrl") { prefs.setServerUrl(url.trim()) }
-    fun clearSavedField() { _savedField.value = null }
     fun setLanguage(lang: String) {
         // Drives both the OCR prompt language (persisted) and the actual app UI locale.
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
         guardedLaunch { prefs.setLanguage(lang) }
     }
     // These seven setters previously wrote to DataStore via a bare
-    // viewModelScope.launch with no guard - unlike saveApiKey/saveCerebrasApiKey/
-    // saveServerUrl/clearScanHistory/clearFastingHistory in this same class,
+    // viewModelScope.launch with no guard - unlike clearScanHistory/clearFastingHistory
+    // in this same class,
     // a failed write here (disk full, corrupt prefs file) silently no-opped
     // with no snackbar, the one inconsistency left in this file's write paths.
     fun setTheme(t: String)        = guardedLaunch { prefs.setTheme(t) }
@@ -258,7 +229,7 @@ class SettingsViewModel @Inject constructor(
     // app-audit §I3: every prepare*CsvExport() below previously called its
     // csvExportRepository export function inside a bare viewModelScope.launch
     // with no guard - the same unguarded-write/read class of bug this file
-    // already fixed for saveApiKey/saveServerUrl (see saveField's own comment)
+    // already fixed elsewhere in this file
     // and for preparePdfReport (runCatching{}.fold below), but never ported to
     // this batch. ExpensesViewModel.prepareCsvExport() already uses the guarded
     // pattern for the identical case, confirming this was an omission, not a
@@ -321,8 +292,8 @@ class SettingsViewModel @Inject constructor(
     }
 
     // Both previously called their repo's Room/DataStore write completely unguarded -
-    // the same unguarded-write pattern already fixed for saveApiKey/saveServerUrl above
-    // (see this file's comment near saveField) and for every sibling tracker ViewModel
+    // the same unguarded-write pattern already fixed elsewhere in this file
+    // and for every sibling tracker ViewModel
     // this loop has swept. A write failure here (disk full, corrupt row) crashed the
     // app instead of surfacing as the shared actionFailed snackbar ActionFailureViewModel
     // already provides to this class.

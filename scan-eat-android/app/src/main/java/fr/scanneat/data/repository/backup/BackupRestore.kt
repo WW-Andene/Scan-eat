@@ -1,7 +1,6 @@
 package fr.scanneat.data.repository.backup
 
 import fr.scanneat.data.backup.BackupBundle
-import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Goal
@@ -53,8 +52,6 @@ internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle)
         ))
     }
     bundle.settings?.let { s ->
-        prefs.setApiMode(ApiMode.fromKey(s.apiMode))
-        prefs.setServerUrl(s.serverUrl)
         prefs.setLanguage(s.language)
         prefs.setTheme(s.theme)
         prefs.setDyslexicFont(s.dyslexicFont)

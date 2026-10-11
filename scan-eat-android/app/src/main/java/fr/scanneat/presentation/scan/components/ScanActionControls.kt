@@ -6,7 +6,6 @@ import compose.icons.tablericons.Search
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -82,8 +81,7 @@ internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: D
         when (scanState) {
             is ScanUiState.Scanning -> ScanEatLoadingIndicator(size = 24.dp, color = Color.Black)
             is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,
-            is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound,
-            is ScanUiState.MultiFoodFound ->
+            is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound ->
                 Icon(TablerIcons.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
         }
     }
@@ -91,22 +89,12 @@ internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: D
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: () -> Unit, onLongClick: () -> Unit) {
-    // Long-press is a hidden gesture by nature — this one-line caption (shown only
-    // while the pill itself is, i.e. photos queued / no barcode / not scanning,
-    // same gate the caller already applies) is what makes identifyMultiFromPhotos()
-    // discoverable at all, instead of a feature nobody ever stumbles onto.
-    val multiHint = stringResource(R.string.scan_identify_multi_hint)
+internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: () -> Unit) {
     Column(
         modifier = Modifier.align(Alignment.BottomEnd).padding(end = ScanFabMargin + 48.dp + Spacing.SM, bottom = bottomNavClearance + ScanFabMargin + Spacing.SM),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
-        Text(
-            multiHint,
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(0.75f),
-        )
         // User-reported: this used to be an outer Box(glassSheen's own clip)
         // wrapping an inner Surface (its own separate shadow/clip) - two
         // independently-clipped objects, the exact construction already fixed
@@ -117,11 +105,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
                 .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
                 .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(CardRadius.PROMINENT))
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick,
-                    onLongClickLabel = multiHint,
-                )
+                .clickable(onClick = onClick)
                 .glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f),
         ) {
             Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {

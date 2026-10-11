@@ -116,8 +116,8 @@ fun AppNavGraph(
             // onResultReady somehow fires twice for the same scan (e.g. a
             // double-tap/duplicate callback) - without it, popping back would
             // need two presses to actually leave Result instead of one.
-            // User-reported: tapping a Premium-gated scan control (instant mode,
-            // identify-multi long-press) did nothing at all - ScanScreen's
+            // User-reported: tapping a Premium-gated scan control (instant mode)
+            // did nothing at all - ScanScreen's
             // onOpenSettings param defaults to a no-op {} and this call site
             // never overrode it, so the "route to Settings" fallback those
             // controls already had (see ScanScreen.kt) silently went nowhere.

@@ -38,6 +38,8 @@ class SplashViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     init {
+        // Earlier versions stored AI API keys / a server URL; the app no longer uses them.
+        viewModelScope.launch { runCatching { prefs.clearLegacyAiSettings() } }
         viewModelScope.launch {
             // If this DataStore read throws (corrupt prefs file, IO error), _ready
             // previously never flipped to true - the whole app hung on the splash

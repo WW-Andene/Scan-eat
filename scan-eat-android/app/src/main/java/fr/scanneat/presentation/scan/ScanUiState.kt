@@ -13,6 +13,4 @@ sealed class ScanUiState {
     data class  MedicationFound(val entry: MedicationDbEntry) : ScanUiState()
     /** Barcode matched a household/chemical product - not something to run through food scoring, and never something to imply is safe to consume. */
     data class  NonConsumableFound(val entry: NonConsumableDbEntry) : ScanUiState()
-    /** Photo(s) held multiple distinct foods (a plate) - identifyMultiFromPhotos() already scored+persisted every one; the user picks which to view. */
-    data class  MultiFoodFound(val items: List<Pair<ScanResult, Long>>) : ScanUiState()
 }

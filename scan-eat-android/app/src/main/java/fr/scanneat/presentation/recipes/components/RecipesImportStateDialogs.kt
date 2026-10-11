@@ -63,8 +63,6 @@ internal fun RecipesImportStateDialogs(
         // Photo import has no entry dialog of its own (the system photo picker is
         // the whole "input" step) - loading/error feedback for that path surfaces
         // here instead, distinguished from the URL/suggest flows by both being false.
-        // Menu-scan photos share this same no-entry-dialog shape - its MenuSuccess
-        // is the one branch here with real content to show, unlike Loading/Error.
         when (importState) {
             is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
                 onDismissRequest = {},
@@ -90,10 +88,6 @@ internal fun RecipesImportStateDialogs(
                 // app's shared error surface instead of plain colored text.
                 text = { ErrorBanner(message = importState.message) },
                 confirmButton = { TextButton(onClick = onClearImportState) { Text(stringResource(R.string.common_ok), color = AccentCoral) } },
-            )
-            is RecipesViewModel.ImportUiState.MenuSuccess -> MenuScanResultDialog(
-                dishes    = importState.dishes,
-                onDismiss = onClearImportState,
             )
             else -> {}
         }

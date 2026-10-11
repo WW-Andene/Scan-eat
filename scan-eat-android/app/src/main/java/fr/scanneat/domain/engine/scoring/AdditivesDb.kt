@@ -56,16 +56,14 @@ private val additiveLookupCache = ConcurrentHashMap<Triple<String?, String, fr.s
 // size >= max then clear" sequence itself. Without this lock, many concurrent
 // findAdditive() calls near the size threshold could each observe the cache full and
 // all call clear() around the same time, repeatedly wiping entries other callers just
-// inserted (a cache-cold stampede) instead of evicting once. Mirrors the server's
-// identical fix (scan-eat-server's AdditivesDb.kt).
+// inserted (a cache-cold stampede) instead of evicting once.
 private val additiveCacheEvictionLock = Any()
 
 // Keyed on the raw ingredient `name` string from scanned products, which is
 // free-text and not drawn from a fixed, small vocabulary - distinct
 // spellings/languages/OCR variants accumulate over a long-running app session
 // as scan volume grows, so left unchecked this cache would grow without bound.
-// Mirrors the server's identical cap (scan-eat-server's AdditivesDb.kt) -
-// that fix was applied there but never ported back to this copy. There's no
+// There's no
 // per-entry expiry need (the mapping is pure/deterministic), just a safety
 // valve: once the cache would grow past a bound, drop it and start fresh.
 private const val MAX_ADDITIVE_CACHE_ENTRIES = 20_000
@@ -79,9 +77,7 @@ private const val MAX_ADDITIVE_CACHE_ENTRIES = 20_000
  * changes at runtime. The outer additiveLookupCache above already dedupes
  * repeat lookups for the *same* ingredient, but distinct ingredient names each
  * still paid the full re-normalization cost of the entire synonym table.
- * Mirrors the server's identical optimization (scan-eat-server's
- * AdditivesDb.kt) - present there but never ported back to this copy, the
- * same gap MAX_ADDITIVE_CACHE_ENTRIES above already had before its own fix.
+ * Same kind of fix as MAX_ADDITIVE_CACHE_ENTRIES above.
  */
 private val NORMALIZED_ADDITIVES: List<Pair<AdditiveInfo, List<String>>> =
     ADDITIVES_DB.map { it to it.names.map(::normalizeForMatching) }

@@ -21,6 +21,7 @@ mlkit-barcode        = "17.3.0"
 # parser ("Expecting a class body"). One unbroken word sidesteps that entirely.
 mlkit-objectdetection = "17.0.2"
 mlkit-textrecognition = "16.0.1"
+mlkit-imagelabeling = "17.0.9"
 kotlinx-coroutines   = "1.9.0"
 core-ktx             = "1.15.0"
 appcompat            = "1.7.0"
@@ -120,6 +121,7 @@ camerax-view    = { group = "androidx.camera", name = "camera-view",    version.
 
 # ML Kit
 mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit-barcode" }
+mlkit-imagelabeling = { group = "com.google.mlkit", name = "image-labeling", version.ref = "mlkit-imagelabeling" }
 # Generic object detector — coarse bounding boxes only, no per-product
 # classification (that's what the vision-LLM tap-to-identify call is for).
 # Used by the shelf-scan live overlay. Same bundled-model artifact family as

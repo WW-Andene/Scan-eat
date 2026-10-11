@@ -14,7 +14,7 @@ import java.time.ZoneId
 // functions on HealthConnectRepository rather than a delegate class, since every
 // function here needs the repository's own client()/hasPermission()/context - same
 // purely-structural split ScanRepository already went through for
-// ScanOffLookup/ScanServerClient. HealthConnectRepository's own public API is
+// ScanOffLookup. HealthConnectRepository's own public API is
 // unchanged.
 
 /**

@@ -35,7 +35,7 @@ internal fun extractGtinFromGs1(raw: String): String? {
  * across frames for the same physical object as the camera pans, -1 if the
  * tracker couldn't assign one for that detection). No product identity here
  * by design: the detector only tells you *something distinct is here*, not
- * what it is — that's the tap-triggered vision-LLM call's job.
+ * what it is — that's the tap-triggered on-device recognition's job.
  */
 data class DetectedBox(val trackingId: Int, val rect: android.graphics.Rect)
 

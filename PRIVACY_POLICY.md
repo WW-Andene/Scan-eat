@@ -10,8 +10,10 @@ Scan'eat est conçue pour garder vos données **sur votre appareil** dans la mes
 
 Trois cas font sortir des données de votre appareil, chacun décrit en détail ci-dessous :
 1. Le scan d'un code-barres (interrogation d'Open Food Facts).
-2. Le scan d'une étiquette par photo/IA (envoi de l'image à un fournisseur d'IA tiers, uniquement si vous activez cette fonctionnalité).
-3. La recherche en ligne dans "Recherche" (interrogation d'Open Food Facts par mot-clé).
+2. La recherche en ligne dans "Recherche" (interrogation d'Open Food Facts par mot-clé).
+3. L'import d'une recette depuis un lien (téléchargement de la page que vous avez choisie, depuis son site).
+
+Les photos (étiquettes, aliments, fiches recettes) sont analysées **sur l'appareil** (reconnaissance de texte et d'images ML Kit intégrée) et ne sont jamais envoyées.
 
 ## 2. Données collectées et stockées localement
 
@@ -20,7 +22,6 @@ Scan'eat stocke localement, sur votre appareil uniquement (base de données Room
 - **Profil de santé** : allergènes déclarés, conditions de santé (ex. diabète, grossesse, maladie rénale, SCI/Crohn, etc.), régime alimentaire, sexe, âge, poids, taille, objectif de poids, niveau d'activité. Les allergènes et conditions de santé sont chiffrés au repos via le Keystore Android.
 - **Historique alimentaire** : produits scannés, repas du journal, recettes, aliments personnalisés, modèles de repas.
 - **Suivi complémentaire** : poids, hydratation, activité physique, jeûne, traitements/médicaments (aide-mémoire manuel, non médical), dépenses alimentaires.
-- **Clés API personnelles** : si vous renseignez une clé Groq ou Cerebras (pour le scan par photo), elle est chiffrée au repos et n'est utilisée que pour vos propres appels à ce fournisseur.
 - **Préférences d'application** : langue, thème, réglages d'accessibilité.
 
 Aucune de ces données n'est envoyée à un serveur Scan'eat, car il n'en existe pas — l'application ne dispose d'aucun backend propriétaire collectant vos données.
@@ -31,10 +32,10 @@ Aucune de ces données n'est envoyée à un serveur Scan'eat, car il n'en existe
 |---|---|---|---|
 | Scan d'un code-barres | Le code-barres scanné | Open Food Facts (base de données ouverte et publique) | À chaque scan par code-barres — fait partie intégrante de la fonctionnalité |
 | Recherche en ligne | Le texte tapé dans la barre de recherche | Open Food Facts | Uniquement si vous appuyez sur "Rechercher en ligne" |
-| Scan par photo (optionnel) | La ou les photos prises de l'étiquette/produit | Le fournisseur d'IA que vous avez choisi et configuré (Groq et/ou Cerebras) | Uniquement si vous avez renseigné une clé API et utilisez cette fonctionnalité |
+| Import de recette par lien (optionnel) | Une requête vers l'adresse de la page | Le site de la recette que vous avez choisi | Uniquement quand vous importez une recette depuis un lien |
 | Health Connect (optionnel) | Poids, exercice, hydratation, calories, nutrition | Health Connect (Android, local à l'appareil) | Uniquement si vous activez la synchronisation Health Connect |
 
-Scan'eat n'a aucun contrôle sur la façon dont Open Food Facts, Groq ou Cerebras traitent les données une fois reçues — consultez leurs propres politiques de confidentialité respectives.
+Scan'eat n'a aucun contrôle sur la façon dont Open Food Facts ou les sites de recettes traitent les données une fois reçues — consultez leurs propres politiques de confidentialité respectives.
 
 ## 4. Ce que nous ne faisons jamais
 
@@ -69,4 +70,4 @@ Cette politique peut être mise à jour ; la date en haut de ce document reflèt
 
 _Last updated: [TO FILL IN — publication date]_
 
-This is the English equivalent of the French policy above; keep both in sync when either changes. Summary: Scan'eat stores your data locally on-device by default. Barcode scans query Open Food Facts (a public, open database) as an integral part of that feature. Optional photo/AI-based scoring sends the photo only to the AI provider you personally configure (Groq/Cerebras) with your own API key, only when you use that feature. Optional online search similarly queries Open Food Facts by keyword when you tap "Search online". Optional Health Connect sync shares weight/exercise/hydration/nutrition locally with Android's Health Connect if you enable it. No Scan'eat backend server exists, no data is sold, and no advertising/tracking SDK is integrated. See the French version above for full section-by-section detail — translate/adapt as needed for your English store listing.
+This is the English equivalent of the French policy above; keep both in sync when either changes. Summary: Scan'eat stores your data locally on-device by default. Barcode scans query Open Food Facts (a public, open database) as an integral part of that feature. Photos (labels, foods, recipe cards) are analysed on the device with the built-in ML Kit text/image recognition and are never uploaded. Importing a recipe from a link downloads that page from its website. Optional online search similarly queries Open Food Facts by keyword when you tap "Search online". Optional Health Connect sync shares weight/exercise/hydration/nutrition locally with Android's Health Connect if you enable it. No Scan'eat backend server exists, no data is sold, and no advertising/tracking SDK is integrated. See the French version above for full section-by-section detail — translate/adapt as needed for your English store listing.

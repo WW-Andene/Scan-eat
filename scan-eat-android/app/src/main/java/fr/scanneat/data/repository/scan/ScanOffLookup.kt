@@ -32,19 +32,17 @@ private fun productNotFoundMessage(lang: String) =
     else "Produit introuvable dans Open Food Facts — ajoutez une photo pour continuer"
 
 private fun conflictMessage(lang: String, field: String, offValue: Any?, llmValue: Any?) =
-    if (lang == "en") "Conflict: $field OFF=$offValue LLM=$llmValue"
-    else "Conflit : $field OFF=$offValue IA=$llmValue"
+    if (lang == "en") "Conflict: $field Open Food Facts=$offValue photo=$llmValue"
+    else "Conflit : $field Open Food Facts=$offValue photo=$llmValue"
 
 /**
- * DIRECT-mode OFF lookup + label-OCR merge logic, extracted verbatim out of
- * ScanRepository - the cohesive "barcode -> Open Food Facts, optionally
- * augmented by the vision LLM" concern. ScanRepository holds one instance and
- * delegates scoreDirectBarcode() to it; the public ScanRepository API is
- * unchanged.
+ * Barcode -> Open Food Facts lookup, optionally completed by reading a label
+ * photo on the device (OnDeviceLabelReader) when the OFF record is sparse.
+ * ScanRepository holds one instance and delegates scoreDirectBarcode() to it.
  */
 internal class ScanOffLookup(
     private val offApi: OpenFoodFactsApi,
-    private val ocrParser: OcrParser,
+    private val labelReader: OnDeviceLabelReader,
 ) {
     /**
      * Looks up a barcode on OFF, retrying against every plausible alternate
@@ -58,9 +56,8 @@ internal class ScanOffLookup(
      */
     private suspend fun fetchOffProduct(barcode: String): OffResponse? = coroutineScope {
         // OFF is a public, sometimes-flaky API - a transient 5xx/429/network blip
-        // previously surfaced immediately as a hard failure here, unlike OcrParser's
-        // vision-LLM calls which already retry the same class of error with a short
-        // backoff (see OcrParser.callWithRetry/isRetryable). 404 still means "not
+        // previously surfaced immediately as a hard failure here; it's now retried
+        // with a short backoff (see ScanRetryUtil.kt). 404 still means "not
         // this candidate encoding" and returns null without retrying, same as before.
         suspend fun lookup(code: String): OffResponse? {
             var lastErr: Throwable? = null
@@ -160,10 +157,7 @@ internal class ScanOffLookup(
     suspend fun scoreDirectBarcode(
         barcode: String,
         images: List<ImagePayload>,
-        apiKey: String,
-        cerebrasApiKey: String,
         lang: String,
-        missingApiKeyMessage: (String) -> String,
     ): ScanResult {
         if (images.isEmpty()) {
             resultCache["$barcode|$lang"]?.let { cached ->
@@ -173,7 +167,7 @@ internal class ScanOffLookup(
         val offResponse = fetchOffProduct(barcode)
         // Checked before mapOffProduct (which only preserves the coarse
         // ProductCategory food-subcategory enum, not the raw tags) and before any
-        // LLM augmentation - running a vision-LLM label parse against something
+        // label-photo augmentation - reading a label photo against something
         // like a lubricant or bleach bottle to "fill in missing nutrition facts"
         // would fabricate nutrition data for a product that was never meant to
         // carry any, not just under-serve a sparse but genuine food record.
@@ -218,10 +212,9 @@ internal class ScanOffLookup(
             ))
         }
 
-        val hasAnyKey = apiKey.isNotBlank() || cerebrasApiKey.isNotBlank()
         val (finalProduct, source, warnings) = when {
-            offProduct != null && isOffSparse(offProduct) && images.isNotEmpty() && hasAnyKey -> {
-                val parsed    = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
+            offProduct != null && isOffSparse(offProduct) && images.isNotEmpty() -> {
+                val parsed    = labelReader.parseLabel(images, lang)
                 val merged    = mergeOffWithLlm(offProduct, parsed.product)
                 val conflicts = detectSourceConflicts(offProduct, parsed.product)
                 Triple(merged, ScanSource.MERGED,
@@ -254,18 +247,10 @@ internal class ScanOffLookup(
                     else "« ${offProduct.name} » trouvé, mais sans données nutritionnelles sur Open Food Facts — ajoutez une photo du tableau nutritionnel pour le lire"
                 )
             offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
-            images.isNotEmpty() && hasAnyKey -> {
-                val parsed = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
+            images.isNotEmpty() -> {
+                val parsed = labelReader.parseLabel(images, lang)
                 Triple(parsed.product, ScanSource.LLM, parsed.warnings)
             }
-            // The user DID take a photo here (images.isNotEmpty() true, hasAnyKey
-            // false is why the branch above didn't match) - falling through to
-            // productNotFoundMessage's "add a photo to continue" told them to do
-            // the one thing they'd already done, with no hint that label-scanning
-            // is an opt-in feature gated behind Settings' AI key field. Barcode
-            // scanning itself never needed a key (see the offProduct != null
-            // branch above); this message only fires for the label-scan path.
-            images.isNotEmpty() -> throw ProductNotFoundException(missingApiKeyMessage(lang))
             else -> throw ProductNotFoundException(productNotFoundMessage(lang))
         }
 
@@ -358,7 +343,7 @@ internal class ScanOffLookup(
     }
 
     private companion object {
-        /** Matches OcrParser.callWithRetry's per-candidate retry budget for the same class of transient error. */
+        /** Attempts per candidate encoding for a transient 5xx/429/network error. */
         const val OFF_MAX_ATTEMPTS = 3
     }
 }

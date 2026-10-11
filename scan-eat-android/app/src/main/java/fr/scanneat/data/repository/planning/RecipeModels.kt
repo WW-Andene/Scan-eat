@@ -174,17 +174,3 @@ data class FetchedRecipeResult(
     val carbsG: Double?,
     val sourceUrl: String,
 )
-
-/**
- * One dish from a restaurant menu photo (IdentifyMenuRoute.kt via [identifyMenuFromPhotos]) —
- * an estimate only, not a scored/trackable Product: there's no barcode, no ingredient list,
- * nothing to save as a recipe or log to the diary, just enough to help the user pick a dish
- * before ordering. estimatedKcal/proteinG are nullable because the LLM may not always be able
- * to estimate them for a given menu line.
- */
-data class MenuDish(
-    val name: String,
-    val description: String?,
-    val estimatedKcal: Int?,
-    val proteinG: Double?,
-)

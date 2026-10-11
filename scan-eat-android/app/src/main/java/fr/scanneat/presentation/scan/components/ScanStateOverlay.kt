@@ -105,7 +105,6 @@ internal fun BoxScope.ScanStateOverlay(
     onDismissError: () -> Unit,
     onDismissFound: () -> Unit,
     onSaveDetectedMedication: (fr.scanneat.domain.engine.medication.MedicationDbEntry) -> Unit,
-    onPickMultiFood: (Long) -> Unit,
     onReportMisclassification: (barcode: String?, productName: String, brand: String, currentClassification: String, correctedClassification: String, note: String) -> Unit = { _, _, _, _, _, _ -> },
     medicationInteractionWarnings: List<InteractionWarning> = emptyList(),
 ) {
@@ -312,9 +311,6 @@ internal fun BoxScope.ScanStateOverlay(
                     onDismiss = { showReportDialog = false },
                 )
             }
-        }
-        is ScanUiState.MultiFoodFound -> {
-            MultiFoodFoundDialog(items = s.items, onPick = onPickMultiFood, onDismiss = onDismissFound)
         }
     }
 }

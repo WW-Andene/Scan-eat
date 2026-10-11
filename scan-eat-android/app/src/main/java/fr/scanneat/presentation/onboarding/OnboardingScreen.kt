@@ -15,11 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
-import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Sex
-import fr.scanneat.presentation.onboarding.components.ApiModePage
 import fr.scanneat.presentation.onboarding.components.ProfileCapturePage
 import fr.scanneat.presentation.onboarding.components.ValuePropositionPage
 import fr.scanneat.presentation.onboarding.components.WelcomePage
@@ -82,10 +80,6 @@ fun OnboardingScreen(
     // locale/font-scale change, on any device) recreated the Activity and wiped
     // every field typed so far, resetting to page 0 with no way to recover.
     var page by rememberSaveable { mutableIntStateOf(0) }
-    var selectedMode by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(ApiMode.DIRECT) }
-    var apiKey by rememberSaveable { mutableStateOf("") }
-    var apiKeyVisible by rememberSaveable { mutableStateOf(false) }
-    var serverUrl by rememberSaveable { mutableStateOf("") }
     var sex by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(Sex.NOT_SPECIFIED) }
     var ageText by rememberSaveable { mutableStateOf("") }
     var heightText by rememberSaveable { mutableStateOf("") }
@@ -135,7 +129,7 @@ fun OnboardingScreen(
                     // Back/Skip buttons use against their leading edge below.
                     // Pages 0-1 (Welcome/Value proposition) had no exit at all short of
                     // abandoning the app entirely - every later page already reaches its own
-                    // onSkip (ApiModePage page 2, ProfileCapturePage page 3), same
+                    // onSkip (ProfileCapturePage, page 2), same
                     // viewModel.finish() this jumps straight to. A returning user reinstalling,
                     // or anyone who just wants to explore the app first, previously had no way
                     // to bail out of these first two pages.
@@ -158,34 +152,13 @@ fun OnboardingScreen(
                         // ---- Page 1: Value proposition — what sets this apart ----
                         1 -> ValuePropositionPage(onNext = { page = 2 })
 
-                        // ---- Page 2: API mode ----
-                        2 -> ApiModePage(
-                            selectedMode = selectedMode, onModeChange = { selectedMode = it },
-                            apiKey = apiKey, onApiKeyChange = { apiKey = it },
-                            apiKeyVisible = apiKeyVisible, onToggleApiKeyVisible = { apiKeyVisible = !apiKeyVisible },
-                            serverUrl = serverUrl, onServerUrlChange = { serverUrl = it },
-                            onContinue = {
-                                viewModel.setMode(selectedMode)
-                                if (apiKey.isNotBlank()) viewModel.setApiKey(apiKey)
-                                if (serverUrl.isNotBlank()) viewModel.setServerUrl(serverUrl)
-                                page = 3
-                            },
-                            onSkip = {
-                                // Previously never persisted selectedMode at all on skip — it
-                                // only "worked" because ApiMode.DIRECT also happens to be
-                                // UserPreferences' own default, so a toggle to SERVER (with no
-                                // URL filled in) then skipping silently discarded that choice.
-                                viewModel.setMode(selectedMode); viewModel.skipApiSetup(); page = 3
-                            },
-                        )
-
-                        // ---- Page 3: Profile capture — previously just a prompt pointing at a
+                        // ---- Page 2: Profile capture — previously just a prompt pointing at a
                         // separate, skippable screen. hasMinimalProfile() (PersonalScoreEngine)
                         // requires sex+age+height+weight before dailyTargets()/PersonalScoreEngine
                         // compute anything at all, so a "Skip" tap here meant zero personalized
                         // score/targets indefinitely - the fields are now captured inline instead,
                         // still skippable, reusing the exact selectors ProfileScreen itself uses. ----
-                        3 -> ProfileCapturePage(
+                        2 -> ProfileCapturePage(
                             sex = sex, onSexChange = { sex = it },
                             ageText = ageText, onAgeTextChange = { ageText = it },
                             heightText = heightText, onHeightTextChange = { heightText = it },
@@ -211,7 +184,7 @@ fun OnboardingScreen(
                                 Modifier.align(Alignment.Center),
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                (1..3).forEach { step ->
+                                (1..2).forEach { step ->
                                     val active = step == page
                                     Box(
                                         Modifier
@@ -221,8 +194,7 @@ fun OnboardingScreen(
                                     )
                                 }
                             }
-                            // A user who picked Server mode then wanted to change it after
-                            // already reaching Profile capture (page 3), or who just wanted
+                            // A user who wanted
                             // to re-read the value-proposition page, had no way back short of
                             // abandoning onboarding entirely (there's no "restart" affordance
                             // either) - every other multi-step wizard in the app

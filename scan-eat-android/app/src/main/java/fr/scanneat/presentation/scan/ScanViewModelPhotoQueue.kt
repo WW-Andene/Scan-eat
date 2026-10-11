@@ -56,12 +56,8 @@ internal fun ScanViewModel.restorePhotoQueue() {
 }
 
 /**
- * Capped at MAX_QUEUED_PHOTOS — previously unbounded, unlike the server's own
- * RouteHelpers.normalizeImages() (MAX_IMAGES=8, added round 30). A user tapping
- * the capture FAB repeatedly grew this list forever: in SERVER mode the extra
- * images were uploaded over the network only to be silently dropped server-side,
- * and in DIRECT mode (straight to Groq/Cerebras, no server-side cap at all) every
- * queued photo's full base64 payload was sent to the vision LLM with no limit.
+ * Capped at MAX_QUEUED_PHOTOS — previously unbounded: a user tapping the
+ * capture FAB repeatedly grew this list (and the memory each photo holds) forever.
  * Silently ignored past the cap rather than surfaced as an error, matching this
  * screen's other silent caps (e.g. recentBarcodes.takeLast(5)).
  */

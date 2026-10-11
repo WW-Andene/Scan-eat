@@ -15,11 +15,9 @@ private const val UPLOAD_MAX_PX = 1024   // ample for label OCR - well under the
  * ARGB_8888) risks real memory pressure with more than one or two photos
  * queued. Scale down (aspect-preserving) for display.
  *
- * The upload bytes are also capped, separately from the thumbnail - the
- * vision model needs enough resolution to read label text, not the raw
- * capture resolution, and every uncapped photo was previously shipped to
- * Groq (or proxied through server mode) at full 1600×1200 for no OCR
- * accuracy benefit, just wasted bandwidth/tokens.
+ * The analysed image is also capped, separately from the thumbnail - text
+ * recognition needs enough resolution to read label text, not the raw
+ * capture resolution; a full-size bitmap per photo only costs memory/time.
  */
 internal fun Bitmap.toPayload(): ImagePayload {
     val uploadScale = UPLOAD_MAX_PX.toFloat() / maxOf(width, height)

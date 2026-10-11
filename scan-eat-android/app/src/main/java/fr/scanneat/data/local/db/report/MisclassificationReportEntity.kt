@@ -9,8 +9,7 @@ import androidx.room.PrimaryKey
  * mal classé" - e.g. a shampoo scored as food, or a real food product thrown
  * into ScanStateOverlay's non-food dialog (see classifyNonFood's own header
  * for how that classification is made and why it's occasionally wrong on a
- * keyword/tag heuristic). No server-side aggregation exists for this app
- * (scan-eat-server is stateless - scoring/AI calls only, no user DB), so this
+ * keyword/tag heuristic). The app has no backend, so this
  * is a local, per-device log rather than a real "community" database: it
  * gives the reporting user a durable record of what they flagged and why,
  * exportable (see MisclassificationReportRepository.toCsv) so it can be

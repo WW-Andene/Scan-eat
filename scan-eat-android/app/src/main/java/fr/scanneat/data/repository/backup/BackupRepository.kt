@@ -141,10 +141,7 @@ class BackupRepository @Inject constructor(
                 healthConditions = profile.healthConditions.toList(),
                 pregnancyStartDate = profile.pregnancyStartDate?.toString(),
             ),
-            // Deliberately excludes the Groq API key — see BackupModels.kt.
             settings = SettingsBackup(
-                apiMode = prefs.apiMode.first().key,
-                serverUrl = prefs.serverUrl.first(),
                 language = prefs.language.first(),
                 theme = prefs.theme.first(),
                 dyslexicFont = prefs.dyslexicFont.first(),

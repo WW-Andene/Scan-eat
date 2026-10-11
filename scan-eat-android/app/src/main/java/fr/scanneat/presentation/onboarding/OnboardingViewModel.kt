@@ -1,7 +1,6 @@
 package fr.scanneat.presentation.onboarding
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Goal
@@ -39,15 +38,6 @@ class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences
     // actionFailed/clearActionFailed()/guardedLaunch/guardedSuspend now come
     // from ActionFailureViewModel (see that file's doc comment) instead of
     // being redefined here.
-
-    fun setMode(mode: ApiMode) = guardedLaunch { prefs.setApiMode(mode) }
-    // Trimmed to match SettingsViewModel.saveApiKey/saveServerUrl — an accidental
-    // leading/trailing space (easy to pick up on a copy-paste from elsewhere) was
-    // previously stored verbatim here, silently making the Groq key or server URL
-    // invalid despite looking correct in the input field.
-    fun setApiKey(key: String) = guardedLaunch { prefs.setGroqApiKey(key.trim()) }
-    fun setServerUrl(url: String) = guardedLaunch { prefs.setServerUrl(url.trim()) }
-    fun skipApiSetup() { /* no key/server set — barcode-only OFF lookups still work */ }
 
     // Onboarding previously never asked for sex/age/height/weight at all - only an
     // optional post-onboarding screen did, and hasMinimalProfile() (PersonalScoreEngine)

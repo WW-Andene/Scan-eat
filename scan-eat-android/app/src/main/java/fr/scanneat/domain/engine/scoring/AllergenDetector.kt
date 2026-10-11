@@ -82,7 +82,7 @@ private val RULES: List<AllergenRule> = listOf(
         a("eggs?|oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|albumine|lysozyme|e[- ]?1105")),
 
     AllergenRule("nuts", "Fruits à coque", "Tree nuts",
-        a("noix(?! de coco| de muscade)|amandes?|almonds?|noisettes?|hazelnuts?|walnuts?|pistaches?|pistachios?|cajou|cashews?|p[eé]cans?|noix du br[eé]sil|brazil nuts?|macadamias?|pralin[eé]?|pralines?|massepain|marzipan|gianduja|frangipane|tree nuts?")),
+        a("fruits? [àa] coques?|noix(?! de coco| de muscade)|amandes?|almonds?|noisettes?|hazelnuts?|walnuts?|pistaches?|pistachios?|cajou|cashews?|p[eé]cans?|noix du br[eé]sil|brazil nuts?|macadamias?|pralin[eé]?|pralines?|massepain|marzipan|gianduja|frangipane|tree nuts?")),
 
     AllergenRule("peanuts", "Arachides", "Peanuts",
         a("arachides?|cacahu[eè]tes?|peanuts?|groundnuts?|beurre de cacahu[eè]tes?")),
@@ -129,7 +129,7 @@ private val RULES: List<AllergenRule> = listOf(
 // merged into the regex-based detection below rather than replacing it,
 // since OFF's tags are sometimes missing even when the ingredient text
 // clearly names the allergen (manufacturer didn't bother tagging it).
-private val OFF_ALLERGEN_TAG_MAP: Map<String, String> = mapOf(
+internal val OFF_ALLERGEN_TAG_MAP: Map<String, String> = mapOf(
     "en:gluten" to "gluten",
     "en:crustaceans" to "crustaceans",
     "en:eggs" to "eggs",

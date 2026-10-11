@@ -65,3 +65,16 @@ class AllergenCoverageTest {
         assertEquals("false positives", emptyList<String>(), falseHits)
     }
 }
+
+class AllergenFruitsACoqueTest {
+    @Test
+    fun `fruits a coque is the EU French term for tree nuts`() {
+        val p = fr.scanneat.domain.model.Product(
+            name = "t", category = fr.scanneat.domain.model.ProductCategory.OTHER,
+            novaClass = fr.scanneat.domain.model.NovaClass.UNPROCESSED,
+            ingredients = listOf(fr.scanneat.domain.model.Ingredient(name = "fruits à coque", category = fr.scanneat.domain.model.IngredientCategory.FOOD)),
+            nutrition = fr.scanneat.domain.model.NutritionPer100g(0.0, 0.0, 0.0, 0.0, 0.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.0),
+        )
+        org.junit.Assert.assertTrue(detectAllergens(p).any { it.key == "nuts" })
+    }
+}

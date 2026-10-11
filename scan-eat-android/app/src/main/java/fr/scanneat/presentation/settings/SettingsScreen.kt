@@ -17,19 +17,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
-import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.presentation.settings.components.AboutSection
 import fr.scanneat.presentation.settings.components.AccessibilitySection
-import fr.scanneat.presentation.settings.components.ApiModeSection
 import fr.scanneat.presentation.settings.components.BackupSection
 import fr.scanneat.presentation.settings.components.CurrencyConversionDialog
 import fr.scanneat.presentation.settings.components.BiolismDisplaySection
-import fr.scanneat.presentation.settings.components.CerebrasKeySection
 import fr.scanneat.presentation.settings.components.ColorSection
 import fr.scanneat.presentation.settings.components.CurrencySection
 import fr.scanneat.presentation.settings.components.DataResetSection
 import fr.scanneat.presentation.settings.components.DisplaySection
-import fr.scanneat.presentation.settings.components.GroqKeySection
 import fr.scanneat.presentation.settings.components.HealthConnectSection
 import fr.scanneat.presentation.settings.components.LanguageSection
 import fr.scanneat.presentation.settings.components.LegalSection
@@ -40,7 +36,6 @@ import fr.scanneat.presentation.settings.components.ProfileSection
 import fr.scanneat.presentation.settings.components.RemindersSection
 import fr.scanneat.presentation.settings.components.ResetConfirmDialog
 import fr.scanneat.presentation.settings.components.ResetTarget
-import fr.scanneat.presentation.settings.components.ServerUrlSection
 import fr.scanneat.presentation.settings.components.SettingsSection
 import fr.scanneat.presentation.settings.components.ThemeSection
 import fr.scanneat.presentation.settings.components.UnitsSection
@@ -57,10 +52,6 @@ fun SettingsScreen(
     onOpenProfile: () -> Unit = {},
     onOpenReminders: () -> Unit = {},
 ) {
-    val apiKey    = viewModel.apiKey.collectAsStateWithLifecycle()
-    val cerebrasApiKey = viewModel.cerebrasApiKey.collectAsStateWithLifecycle()
-    val mode      = viewModel.mode.collectAsStateWithLifecycle()
-    val serverUrl = viewModel.serverUrl.collectAsStateWithLifecycle()
     val language  = viewModel.language.collectAsStateWithLifecycle()
     val theme     = viewModel.theme.collectAsStateWithLifecycle()
     val colorAccent = viewModel.colorAccent.collectAsStateWithLifecycle()
@@ -72,34 +63,14 @@ fun SettingsScreen(
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
     val animatedBackground = viewModel.animatedBackground.collectAsStateWithLifecycle()
     val isPremium = viewModel.isPremium.collectAsStateWithLifecycle()
-    val savedField = viewModel.savedField.collectAsStateWithLifecycle()
     val backupState = viewModel.backupState.collectAsStateWithLifecycle()
     val healthConnectAvailability = viewModel.healthConnectAvailability.collectAsStateWithLifecycle()
     val healthConnectConnected = viewModel.healthConnectConnected.collectAsStateWithLifecycle()
     val dataStats = viewModel.dataStats.collectAsStateWithLifecycle()
     val recentScanSummaries = viewModel.recentScanSummaries.collectAsStateWithLifecycle()
 
-    var keyVisible  by remember { mutableStateOf(false) }
-    // rememberSaveable, not remember - these hold a typed/pasted-but-not-yet-saved API
-    // key/URL, exactly the kind of input a user carefully pastes from another app and
-    // would be frustrated to retype. A process death before tapping Save (backgrounding
-    // to copy the key is the common flow) previously discarded it silently on return.
-    var localKey    by rememberSaveable(apiKey.value)    { mutableStateOf(apiKey.value) }
-    var localUrl    by rememberSaveable(serverUrl.value) { mutableStateOf(serverUrl.value) }
-    var cerebrasKeyVisible by remember { mutableStateOf(false) }
-    var localCerebrasKey   by rememberSaveable(cerebrasApiKey.value) { mutableStateOf(cerebrasApiKey.value) }
-
-    LaunchedEffect(savedField.value) {
-        if (savedField.value != null) {
-            kotlinx.coroutines.delay(2000)
-            viewModel.clearSavedField()
-        }
-    }
-
-    // saveApiKey/saveCerebrasApiKey/saveServerUrl previously wrote to DataStore
-    // completely unguarded - see SettingsViewModel.actionFailed's own comment.
-    // A failed write now surfaces here as a one-shot snackbar instead of
-    // silently leaving the field unsaved with no feedback.
+    // A failed settings write surfaces as a one-shot snackbar (see
+    // SettingsViewModel.actionFailed) instead of failing silently.
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
@@ -165,63 +136,8 @@ fun SettingsScreen(
             item { RemindersSection(onOpenReminders) }
 
             // ---- Premium — everything else is free; this gates Biolism (metabolism)
-            // and AI photo scanning only. Placed above the AI key sections below since
-            // it's the reason those are locked out for a non-Premium user. ----
+            // and photo scanning. ----
             item { PremiumSection(isPremium.value, onSetPremium = viewModel::setIsPremium) }
-
-            // ---- API Mode ----
-            item { ApiModeSection(mode.value, onModeChange = viewModel::setMode) }
-
-            // ---- Groq/Cerebras API keys — AI photo scanning is Premium-gated. Without
-            // a configured key, OcrParser's callers already fall back to "add a photo to
-            // continue" / barcode-only scoring (see ScanOffLookup.scoreDirectBarcode) -
-            // gating key *entry* here is enough to gate the whole AI path, no change
-            // needed to the scan flow itself. ----
-            if (mode.value == ApiMode.DIRECT) {
-                if (isPremium.value) {
-                    item {
-                        GroqKeySection(
-                            localKey = localKey, onLocalKeyChange = { localKey = it },
-                            keyVisible = keyVisible, onToggleVisible = { keyVisible = !keyVisible },
-                            saved = savedField.value == "apiKey", onSave = { viewModel.saveApiKey(localKey) },
-                        )
-                    }
-
-                    // ---- Cerebras API key — second provider, automatic fallback ----
-                    // Previously this section let the user pick a specific Groq model by
-                    // name — but Groq model names get retired/renamed, and there was no
-                    // way to recover except opening this screen and picking a new one.
-                    // The app now cycles through models/providers automatically (see
-                    // OcrParser); the only thing left to configure here is a second
-                    // provider's key so scanning survives Groq being down entirely.
-                    item {
-                        CerebrasKeySection(
-                            localCerebrasKey = localCerebrasKey, onLocalCerebrasKeyChange = { localCerebrasKey = it },
-                            cerebrasKeyVisible = cerebrasKeyVisible, onToggleVisible = { cerebrasKeyVisible = !cerebrasKeyVisible },
-                            saved = savedField.value == "cerebrasApiKey", onSave = { viewModel.saveCerebrasApiKey(localCerebrasKey) },
-                        )
-                    }
-                } else {
-                    item {
-                        SettingsSection(stringResource(R.string.settings_section_groq_key), icon = null) {
-                            Text(
-                                stringResource(R.string.settings_premium_required_ai_scan),
-                                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
-                            )
-                        }
-                    }
-                }
-            }
-
-            // ---- Server URL ----
-            if (mode.value == ApiMode.SERVER) {
-                item {
-                    ServerUrlSection(
-                        localUrl = localUrl, onLocalUrlChange = { localUrl = it },
-                        saved = savedField.value == "serverUrl", onSave = { viewModel.saveServerUrl(localUrl) },
-                    )
-                }
-            }
 
             // Fix 4: Language toggle
             item { LanguageSection(language.value, onLanguageChange = viewModel::setLanguage) }
@@ -318,7 +234,6 @@ fun SettingsScreen(
                     theme = theme.value,
                     language = language.value,
                     colorblindMode = colorblindMode.value,
-                    apiMode = mode.value.name,
                     recentScanSummaries = recentScanSummaries.value,
                 )
             }

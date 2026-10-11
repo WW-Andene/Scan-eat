@@ -201,6 +201,8 @@ dependencies {
     implementation(libs.mlkit.barcode)
     implementation(libs.mlkit.objectdetection)
     implementation(libs.mlkit.textrecognition)
+    // On-device food recognition for unlabelled items (fresh produce) - replaces the former vision-LLM identify.
+    implementation(libs.mlkit.imagelabeling)
 
     // Health Connect
     implementation(libs.health.connect.client)

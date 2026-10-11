@@ -36,7 +36,7 @@ object NetworkModule {
     @Provides @Singleton
     fun provideOkHttp(): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)   // Groq vision can be slow
+        .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
         // OkHttp defaults to [MODERN_TLS, COMPATIBLE_TLS], silently allowing a
         // fallback to legacy TLS/cipher suites (e.g. against a MITM proxy that
@@ -64,16 +64,6 @@ object NetworkModule {
         }
         .build()
 
-    // Named "groq" — base URL is the Groq API; also used by ScanRepository
-    // to build dynamic server Retrofit instances (reuses same OkHttpClient).
-    @Provides @Singleton @Named("groq")
-    fun provideGroqRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
-        Retrofit.Builder()
-            .baseUrl("https://api.groq.com/")
-            .client(okHttp)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-
     @Provides @Singleton @Named("off")
     fun provideOffRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
         Retrofit.Builder()
@@ -97,24 +87,6 @@ object NetworkModule {
             .client(okHttp)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
-
-    // Cerebras free-tier alternative to Groq — same OpenAI-compatible schema,
-    // different vendor, so OCR scoring survives one provider being down/rate-limited.
-    @Provides @Singleton @Named("cerebras")
-    fun provideCerebrasRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
-        Retrofit.Builder()
-            .baseUrl("https://api.cerebras.ai/")
-            .client(okHttp)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-
-    @Provides @Singleton
-    fun provideGroqApi(@Named("groq") retrofit: Retrofit): GroqApi =
-        retrofit.create(GroqApi::class.java)
-
-    @Provides @Singleton
-    fun provideCerebrasApi(@Named("cerebras") retrofit: Retrofit): CerebrasApi =
-        retrofit.create(CerebrasApi::class.java)
 
     @Provides @Singleton
     fun provideOffApi(@Named("off") retrofit: Retrofit): OpenFoodFactsApi =

@@ -14,8 +14,8 @@ import javax.crypto.spec.GCMParameterSpec
 
 // ============================================================================
 // SECURE FIELD CIPHER — Keystore-backed AES-256/GCM for sensitive values
-// stored in UserPreferences (the Groq/Cerebras API keys, and the user's
-// allergens/health-conditions profile fields). Unencrypted, any of these sat
+// stored in UserPreferences (the user's allergens/health-conditions profile
+// fields). Unencrypted, any of these sat
 // in plaintext in the app's preferences file — exposed verbatim in any
 // device backup, on rooted devices, or via adb backup on debuggable builds,
 // and for allergens/conditions specifically, that's real medical data

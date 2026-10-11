@@ -37,7 +37,7 @@ class HealthConnectRepository @Inject constructor(
     // HealthConnectWeightExt.kt, HealthConnectHydrationExt.kt,
     // HealthConnectActivityExt.kt, HealthConnectNutritionExt.kt) can still reach
     // it - same purely-structural split ScanRepository already went through for
-    // ScanOffLookup/ScanServerClient.
+    // ScanOffLookup.
     @ApplicationContext internal val context: Context,
 ) {
     companion object {
@@ -141,7 +141,7 @@ class HealthConnectRepository @Inject constructor(
     // writeWeight/readWeights/readExternalWeights/deleteWeight now live in
     // HealthConnectWeightExt.kt (see that file) - extracted verbatim as extension
     // functions on HealthConnectRepository, same cohesive "weight sync" concern
-    // ScanRepository's own split pulled ScanOffLookup/ScanServerClient out for.
+    // ScanRepository's own split pulled ScanOffLookup out for.
 
     // writeHydrationDelta now lives in HealthConnectHydrationExt.kt (see that file) -
     // extracted verbatim, same "hydration sync" concern.

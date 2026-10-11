@@ -28,7 +28,7 @@ internal fun AboutSection(
     onShowLicenses: () -> Unit,
     onNoCrashLog: () -> Unit,
     // User-requested: "mode debug export pour signaler un bug avec les
-    // dernières actions" - theme/language/colorblindMode/apiMode/
+    // dernières actions" - theme/language/colorblindMode/
     // recentScanSummaries are the app-state context a bug report actually
     // needs (what was configured, what was scanned right before the bug),
     // passed in rather than re-injecting SettingsViewModel's dependencies
@@ -37,7 +37,6 @@ internal fun AboutSection(
     theme: String,
     language: String,
     colorblindMode: String,
-    apiMode: String,
     recentScanSummaries: List<String>,
 ) {
     val context = LocalContext.current
@@ -88,7 +87,7 @@ internal fun AboutSection(
         val versionLine = stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION)
         val sdkLine = stringResource(R.string.settings_about_sdk)
         val diagnosticHeader = stringResource(R.string.settings_diagnostic_header)
-        val diagnosticSettingsLine = stringResource(R.string.settings_diagnostic_settings, theme, language, colorblindMode, apiMode)
+        val diagnosticSettingsLine = stringResource(R.string.settings_diagnostic_settings, theme, language, colorblindMode)
         val diagnosticRecentScansHeader = stringResource(R.string.settings_diagnostic_recent_scans_header)
         val diagnosticNoRecentScans = stringResource(R.string.settings_diagnostic_no_recent_scans)
         val diagnosticCrashHeader = stringResource(R.string.settings_diagnostic_crash_header)

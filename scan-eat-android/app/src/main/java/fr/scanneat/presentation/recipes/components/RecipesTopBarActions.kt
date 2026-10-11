@@ -28,13 +28,11 @@ fun RecipesTopBarActions(
     onSuggest: () -> Unit,
     onImportUrl: () -> Unit,
     onImportPhoto: () -> Unit,
-    onMenuScan: () -> Unit,
     onNew: () -> Unit,
 ) {
     PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
     IconButton(onClick = onSuggest) { Icon(TablerIcons.Bulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }
     IconButton(onClick = onImportUrl) { Icon(Icons.Rounded.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
     IconButton(onClick = onImportPhoto) { Icon(Icons.Rounded.PhotoCamera, stringResource(R.string.recipes_cd_import_photo), tint = OnBackground) }
-    IconButton(onClick = onMenuScan) { Icon(Icons.Rounded.Restaurant, stringResource(R.string.recipes_cd_menu_scan), tint = OnBackground) }
     IconButton(onClick = onNew) { Icon(TablerIcons.Plus, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
 }
