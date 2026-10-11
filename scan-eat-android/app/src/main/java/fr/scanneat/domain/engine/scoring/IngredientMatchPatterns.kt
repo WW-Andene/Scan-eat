@@ -12,8 +12,11 @@ package fr.scanneat.domain.engine.scoring
 // pregnancy alcohol veto for a real wine ingredient. \b correctly bounds "vin"
 // as a whole word regardless of what follows or doesn't follow it, while
 // still not matching "vinaigre"/"vinaigrette".
+// Vinegars ("vinaigre de vin/de cidre", "wine/cider vinegar") are not alcoholic beverages:
+// without the lookbehind/lookahead below, every dressing, mustard or pickle made with one
+// triggered the pregnancy alcohol veto.
 internal val ALCOHOL_INGREDIENT_PATTERN = Regex(
-    """\b(?:alcools?|alcohols?|vins?|wines?|bi[eè]res?|beers?|rhums?|rums?|whisky|whiskey|vodka|gin|liqueurs?|cognac|armagnac|calvados|kirsch|porto|cidres?|ciders?|champagne|eau[- ]de[- ]vie|marsala|mad[eè]re|brandy|cointreau|amaretto|grand marnier)\b""",
+    """\b(?<!vinaigre de )(?<!vinaigre d )(?<!vinaigre d')(?<!vinaigre d’)(?:alcools?|alcohols?|vins?|wines?|bi[eè]res?|beers?|rhums?|rums?|whisky|whiskey|vodka|gin|liqueurs?|cognac|armagnac|calvados|kirsch|porto|cidres?|ciders?|champagne|eau[- ]de[- ]vie|marsala|mad[eè]re|brandy|cointreau|amaretto|grand marnier)\b(?![ -]vinegar)""",
     RegexOption.IGNORE_CASE,
 )
 

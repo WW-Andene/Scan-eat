@@ -1025,3 +1025,11 @@ regression test (fail-first verified for the diet/allergen, label and receipt on
 Judged not bugs / left: glucose syrup & maltodextrin "de blé" flagged as gluten
 (conservative, EU labels them as wheat), "sauce soja"/"mayonnaise" not implying
 wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
+
+### Cycle 13 addendum
+- **Pregnancy alcohol veto fired on vinegar** ("vinaigre de vin/de cidre", "wine/cider vinegar"):
+  `ALCOHOL_INGREDIENT_PATTERN` matched the bare `vin`/`cidre` word (-61 points, veto) for any
+  dressing, mustard or pickle. Fixed + regression test; verified end to end through
+  `computePersonalScore`. "bière/vin sans alcool" still vetoes (conservative, left as is).
+- **OFF mapper** treated `en:antibiotic-free`/`en:probiotics` as organic (substring "bio"):
+  now whole-token match.
