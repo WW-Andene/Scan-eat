@@ -152,4 +152,22 @@ class LabelConsistencyAndOcrTest {
         ))
         assertEquals(0.45, r.product.nutrition.saltG, 0.01)
     }
+
+    // Regression lock: "conservation" in INGREDIENTS_END cut the list at
+    // "agent de conservation", losing the preservative and every ingredient
+    // after it (including the soy lecithin allergen).
+    @Test
+    fun `agent de conservation does not truncate the ingredient list`() {
+        val r = parseLabelText(stack(
+            "GÂTEAU",
+            "Ingrédients : farine de blé, sucre, œufs,",
+            "agent de conservation : sorbate de potassium, arôme,",
+            "émulsifiant : lécithine de soja.",
+            "Conditions de conservation : à conserver au sec.",
+        ))
+        val names = r.product.ingredients.map { it.name }
+        assertTrue(names.toString(), names.any { it.contains("sorbate") })
+        assertTrue(names.toString(), names.any { it.contains("lécithine de soja") })
+        assertTrue(names.toString(), names.none { it.contains("au sec") })
+    }
 }
