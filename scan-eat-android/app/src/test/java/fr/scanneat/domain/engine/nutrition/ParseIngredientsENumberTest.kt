@@ -22,3 +22,10 @@ class ParseIngredientsENumberTest {
         assertEquals(setOf("E330", "E202", "E150d"), eNumbers("acidifiant : E 330, conservateur E-202, colorant E150d"))
     }
 }
+
+class AdditiveTagsENumberTest {
+    @Test
+    fun `four-digit OFF additive tags are not truncated`() {
+        assertEquals(listOf("E1422"), additiveTagsToIngredients(listOf("en:e1422"), emptyList()).map { it.eNumber })
+    }
+}

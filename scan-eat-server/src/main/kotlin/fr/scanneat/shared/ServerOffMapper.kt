@@ -255,7 +255,7 @@ private fun additiveTagsToIngredients(tags: List<String>?, existing: List<Ingred
     if (tags.isNullOrEmpty()) return emptyList()
     val existingENumbers = existing.mapNotNull { it.eNumber }.toSet()
     return tags.mapNotNull { tag ->
-        val m = Regex("""en:e(\d{3}[a-z]?)""").find(tag) ?: return@mapNotNull null
+        val m = Regex("""en:e(\d{3,4}[a-z]?)(?![0-9])""").find(tag) ?: return@mapNotNull null
         val eNum = "E${m.groupValues[1].uppercase()}"
         if (eNum in existingENumbers) return@mapNotNull null
         Ingredient(name = eNum, eNumber = eNum)
