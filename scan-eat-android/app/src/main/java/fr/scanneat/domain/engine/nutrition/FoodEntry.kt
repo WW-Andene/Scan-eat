@@ -79,4 +79,7 @@ data class FoodEntry(
     // the filter (never excluded, never excludes another suggestion), rather
     // than forcing an inaccurate classification.
     val category: ProductCategory? = null,
+    /** A recipe ingredient (flour, salt, gelatine, spices...) rather than something
+     *  eaten on its own - never offered as an "eat this" suggestion. */
+    val cookingIngredient: Boolean = false,
 )

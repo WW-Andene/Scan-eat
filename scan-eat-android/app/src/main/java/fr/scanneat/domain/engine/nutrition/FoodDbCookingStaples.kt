@@ -50,4 +50,4 @@ internal val FOOD_DB_COOKING_STAPLES: List<FoodEntry> = listOf(
     FoodEntry("cumin", 375.0, 18.0, 44.0, 22.0, 11.0, aliases = listOf("cumin moulu"), category = ProductCategory.CONDIMENT),
     FoodEntry("cannelle", 247.0, 4.0, 81.0, 1.2, 53.0, aliases = listOf("cinnamon"), category = ProductCategory.CONDIMENT),
     FoodEntry("curry", 325.0, 14.0, 56.0, 14.0, 53.0, aliases = listOf("curry en poudre", "curry powder"), category = ProductCategory.CONDIMENT),
-)
+).map { it.copy(cookingIngredient = true) }

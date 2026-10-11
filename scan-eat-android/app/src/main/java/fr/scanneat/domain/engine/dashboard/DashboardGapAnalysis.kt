@@ -96,6 +96,8 @@ fun closeTheGap(
     // existing callers that haven't passed today's entries are unaffected.
     todaysEntries: List<DiaryEntry> = emptyList(),
 ): List<GapEntry> {
+    @Suppress("NAME_SHADOWING")
+    val foodDB = foodDB.filterNot { it.cookingIngredient } // never suggest eating flour or gelatine
     val out = mutableListOf<GapEntry>()
     val eatenCategories = eatenCategoriesOf(todaysEntries)
 
@@ -187,6 +189,8 @@ fun chronicNutrientGaps(
     minLoggedDays: Int = 3,
     deficitThreshold: Double = 0.85,
 ): List<ChronicGap> {
+    @Suppress("NAME_SHADOWING")
+    val foodDB = foodDB.filterNot { it.cookingIngredient } // never suggest eating flour or gelatine
     val week = rollup(entries, end, windowDays = 7)
     val loggedDays = week.days.filter { it.count > 0 }
     if (loggedDays.size < minLoggedDays) return emptyList()
