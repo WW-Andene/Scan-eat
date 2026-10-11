@@ -1087,3 +1087,17 @@ Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request b
   data (up to 99 999 mg, 9 999 streak days, +-1e6 kcal deltas): no crash, no bad format args. Includes a
   non-vacuity check that the locale's own string is displayed. Full Gradle suite: 285 tests, 0 failures.
   Not covered: screens that need a ViewModel/Hilt graph, navigation, real device rendering.
+
+### Cycle 14 — reading-only (no compile/test/build, per request)
+Found by code reading, fixed with small edits; regression tests added but NOT run:
+- Recipe line parser: `noix` is a unit only before beurre/margarine/crème (`10 noix de cajou` was 150 g); `’` normalized;
+  number words up to douze/twelve.
+- Web recipe import (schema.org): `PT0M` no longer blocks the `cookTime` fallback; yields outside 1..100 ignored
+  (`500 g` was 500 servings, `0` a zero divisor); HTML tags/entities in name/ingredients/steps cleaned; IRI `@type`
+  accepted; pasted `http://` links upgraded to https (cleartext is blocked; local hosts exempt).
+- Photo recipe import: `1h30` read as 90 min; a title starting with "Recette" no longer treated as the steps
+  header; absurd digit runs no longer throw (`toInt()` -> lenient parse, total capped to 1..1440).
+- Grocery list: `œufs`/`oeufs` (and ’/') merge into one row; aisle overrides for juices, sauces/tins, nut butters,
+  dried fruit/veg (`jus d'orange` was Produce, `beurre de cacahuète` Dairy, `sauce tomate` Produce).
+- Reviewed, no change: CSV export (formula-injection guard on every free-text field), metabolics formulas
+  (Navy/Deurenberg/Katch-McArdle/DuBois/IBW/BAI), water-need formula, date/timezone handling, network client config.
