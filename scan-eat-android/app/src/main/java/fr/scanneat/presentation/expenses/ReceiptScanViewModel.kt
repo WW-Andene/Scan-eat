@@ -25,6 +25,7 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
 
 /** One reviewable line in the post-OCR receipt review list. */
 data class ReceiptReviewLine(
@@ -49,10 +50,8 @@ data class ReceiptReviewLine(
 
 /** Whole-word containment on normalizeKey()'d strings - same guard GroceryViewModel's
  *  containsWholeWord uses so "riz" doesn't match inside "chorizo". */
-private fun containsWholeWord(haystack: String, needle: String): Boolean {
-    if (needle.isBlank()) return false
-    return Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(haystack)
-}
+private fun containsWholeWord(haystack: String, needle: String): Boolean =
+    needle.isNotBlank() && wordBoundaryMatch(haystack, needle)
 
 /**
  * Up to 3 known product names that share at least one whole word with

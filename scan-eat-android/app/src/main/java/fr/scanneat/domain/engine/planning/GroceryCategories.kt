@@ -1,5 +1,7 @@
 package fr.scanneat.domain.engine.planning
 
+import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
+
 // ============================================================================
 // GROCERY AISLE CATEGORIES — keyword-based classifier for GroceryScreen's
 // "group by aisle" toggle. aggregateGroceryList() only ever produced one flat
@@ -71,8 +73,6 @@ private val CATEGORY_KEYWORDS: List<Pair<GroceryCategory, List<String>>> = listO
 // first), and "veau" (veal) contains "eau" (water, BEVERAGES) - so vinegar and veal
 // both landed in the Beverages aisle instead of Pantry/Meat & Fish. Same fix already
 // applied to AllergenDetector/DietChecker/IngredientMatcher for this exact bug class.
-private fun wordBoundaryMatch(key: String, needle: String): Boolean =
-    Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(key)
 
 fun groceryCategoryFor(name: String): GroceryCategory {
     val key = normalizeKey(name)

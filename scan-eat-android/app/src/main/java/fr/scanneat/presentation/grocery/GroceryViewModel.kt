@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
+import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
 
 data class CheckableGroceryItem(val item: GroceryItem, val checked: Boolean)
 
@@ -35,10 +36,8 @@ data class GroceryBudgetEstimate(val totalEuros: Double, val matchedCount: Int, 
  *  already lowercase/accent-stripped, so this only needs a non-letter/digit
  *  boundary check, same pattern IngredientIntegrityPillar.kt's containsWord
  *  already establishes in the scoring engine. */
-private fun containsWholeWord(haystack: String, needle: String): Boolean {
-    if (needle.isBlank()) return false
-    return Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(haystack)
-}
+private fun containsWholeWord(haystack: String, needle: String): Boolean =
+    needle.isNotBlank() && wordBoundaryMatch(haystack, needle)
 
 private fun Recipe.toGroceryInput(): GroceryRecipeInput =
     GroceryRecipeInput(name = name, components = components.map { c -> GroceryComponent(c.productName, c.grams) })
