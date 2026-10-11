@@ -276,6 +276,11 @@ internal class ScanHistoryQueries(
             excludeBarcode = scan.barcode,
             profileId      = profileId,
         ).mapNotNull { toDomain(it) }
+            // Rows scored by an older engine keep their old score column; rescore
+            // (math only) before comparing, or a pre-calibration grade wins.
+            .map { if (it.audit.engineVersion != ENGINE_VERSION) it.copy(audit = scoreProduct(it.product, lang)) else it }
+            .filter { it.audit.score > scan.audit.score && !it.product.name.equals(scan.product.name, ignoreCase = true) }
+            .sortedByDescending { it.audit.score }
         return candidates.firstOrNull { candidate ->
             val allergenHits = if (allergens.isNotEmpty()) checkUserAllergens(candidate.product, allergens, lang) else emptyList()
             // Previously only allergens/diet were re-checked - a diabetic or IBS
