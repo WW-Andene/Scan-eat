@@ -54,6 +54,18 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
     // parent tag (e.g. "en:beverages") first, which was mis-bucketing plenty of
     // products before ever reaching their more specific tag further down the list.
     val tag = tags.joinToString(" ")
+    // Whole-token view of the tag list ("en:wine-vinegars" -> en, wine, vinegars). Raw substring tests
+    // misfire on compound words: "nut" inside coconut/doughnut/butternut, "seed" inside rapeseed,
+    // "liquor" inside liquorice, "rum" inside crumbles/crumpets, "vin" inside vinegars/vinaigrettes,
+    // "cheese" inside cheesecakes. Only the keywords with such a collision use this; a singular
+    // keyword also matches its plural ("wine" -> "wines").
+    val tagTokens = tag.split(Regex("[^a-z0-9]+")).filter { it.isNotEmpty() }.toSet()
+    fun hasWord(vararg words: String) = words.any { w -> w in tagTokens || w + "s" in tagTokens }
+    // A wine/cider/rum word next to one of these is a vinegar, sauce, dressing, gum or sweet - not a drink.
+    val notADrink = tagTokens.any { t ->
+        t.startsWith("vinegar") || t.startsWith("vinaigr") || t.startsWith("sauce") || t.startsWith("dressing") ||
+            t.startsWith("candy") || t.startsWith("candies") || t.startsWith("confection") || t == "gum" || t == "gums"
+    }
     // sandwich/burger checked before cheese: OFF tags a grilled-cheese/
     // croque-monsieur-type product with BOTH "en:sandwiches" and
     // "en:cheese-sandwiches" (a real, reachable OFF tag combination), and
@@ -75,7 +87,7 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         // protein (15-25g/100g) and sat-fat (12-30g/100g) thresholds, tuned
         // for actual cheese, not a cashew/coconut-oil-based substitute.
         "cheese-substitute" in tag -> ProductCategory.PLANT_BASED_ALTERNATIVE
-        "cheese" in tag || "fromage" in tag -> ProductCategory.CHEESE
+        ("cheese" in tag && !hasWord("cheesecake")) || "fromage" in tag -> ProductCategory.CHEESE
         "cereal" in tag || "cereale" in tag || "granola" in tag -> ProductCategory.BREAKFAST_CEREAL
         "bread" in tag || "pain" in tag -> ProductCategory.BREAD
         "processed-meat" in tag || "charcuterie" in tag || "saucisson" in tag -> ProductCategory.PROCESSED_MEAT
@@ -97,7 +109,10 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         // this a nut/seed product's real, more specific tag was shadowed by
         // the generic snack branch and scored against chip-shaped thresholds
         // (see ProductCategory.NUTS_SEEDS's own doc comment).
-        "nut" in tag || "seed" in tag || "graine" in tag || "amande" in tag || "noisette" in tag -> ProductCategory.NUTS_SEEDS
+        // Whole tokens, not substrings: "coconut" (waters/milks), "doughnut", "butternut" (soups) contain
+        // "nut" and "rapeseed" (oils) contains "seed", and were scored against nut/seed thresholds.
+        // An oil tag always wins over a seed/nut word ("huiles-de-graines" is an oil).
+        (hasWord("nut", "peanut", "hazelnut", "walnut", "seed", "graine", "amande", "noisette") && !hasWord("oil", "huile")) -> ProductCategory.NUTS_SEEDS
         "chips" in tag || "crisp" in tag || "snack" in tag -> ProductCategory.SNACK_SALTY
         // Checked before the generic "beverage" branches below - OFF tags beer/
         // wine/spirits as "en:beverages" too, so without this an alcoholic
@@ -108,10 +123,14 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         // "alcoholic-beverage" as a raw substring, so this branch was firing on
         // every non-alcoholic product too - a water scanned as an alcoholic drink,
         // inheriting its 30-280kcal/100g norm range instead of water's 0-5 one.
-        ("alcoholic-beverage" in tag && "non-alcoholic-beverage" !in tag) || "beer" in tag || "biere" in tag || "wine" in tag || "vin" in tag ||
-            "cider" in tag || "cidre" in tag || "spirit" in tag || "spiritueux" in tag || "liquor" in tag ||
-            "liqueur" in tag || "whisky" in tag || "whiskey" in tag || "vodka" in tag || "rum" in tag ||
-            "champagne" in tag -> ProductCategory.ALCOHOLIC_BEVERAGE
+        // The drink words are whole tokens (see tagTokens): "vin" matched vinegars/vinaigrettes, "liquor"
+        // matched liquorice, "rum" matched crumbles/crumpets, "wine" matched wine-vinegars/wine-gums -
+        // each then scored as an alcoholic drink (beverage thresholds, pregnancy veto, halal violation).
+        ("alcoholic-beverage" in tag && "non-alcoholic-beverage" !in tag) ||
+            (!notADrink && hasWord(
+                "beer", "biere", "wine", "vin", "cider", "cidre", "spirit", "spiritueux", "liquor",
+                "liqueur", "whisky", "whiskey", "whiskies", "vodka", "rum", "champagne",
+            )) -> ProductCategory.ALCOHOLIC_BEVERAGE
         "beverage" in tag && "juice" in tag -> ProductCategory.BEVERAGE_JUICE
         "beverage" in tag && ("water" in tag || "eau" in tag) -> ProductCategory.BEVERAGE_WATER
         "beverage" in tag || "soda" in tag || "boisson" in tag -> ProductCategory.BEVERAGE_SOFT
@@ -126,7 +145,7 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         // ProductCategory.SPREAD_SWEET's own doc comment describes.
         "honey" in tag || "miel" in tag || "jam" in tag || "confiture" in tag || "marmalade" in tag ||
             "marmelade" in tag -> ProductCategory.SPREAD_SWEET
-        "sauce" in tag || "condiment" in tag || "dressing" in tag -> ProductCategory.CONDIMENT
+        "sauce" in tag || "condiment" in tag || "dressing" in tag || hasWord("vinegar", "vinaigre", "vinaigrette") -> ProductCategory.CONDIMENT
         "oil" in tag || "fat" in tag || "huile" in tag -> ProductCategory.OIL_FAT
         "soup" in tag || "soupe" in tag || "broth" in tag || "bouillon" in tag -> ProductCategory.SOUP
         "ready-meal" in tag || "plat-prepare" in tag || "pizza" in tag || "quiche" in tag -> ProductCategory.READY_MEAL

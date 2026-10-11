@@ -1105,3 +1105,8 @@ Found by code reading, fixed with small edits; regression tests added but NOT ru
   medication existed) as a perfect day because `all{}` on an empty list is true: a medication added yesterday showed
   a streak up to 30. Such days are now neutral, and the run ends before any medication existed (matches
   `weeklyAdherence`, which already excluded them). Fast `stop()` also clamps a negative duration on backward clock change.
+- **OFF category mapping** used raw substring tests on the joined tag string: `vin` matched vinegars/vinaigrettes,
+  `liquor` liquorice, `rum` crumbles/crumpets, `wine` wine-vinegars/wine-gums (all scored as alcoholic drinks ->
+  beverage thresholds, pregnancy veto, halal violation); `nut` matched coconut/doughnut/butternut and `seed`
+  rapeseed (oils scored as nuts); `cheese` matched cheesecakes. Those keywords now match whole tag tokens
+  (plural-tolerant); vinegars route to CONDIMENT. Other substring tests (`fat`, `oil`, `bread`...) left as they are.
