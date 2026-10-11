@@ -236,7 +236,7 @@ class UserPreferences @Inject constructor(
     suspend fun setVoiceScoreAnnounce(v: Boolean)  = store.edit { it[KEY_VOICE_SCORE_ANNOUNCE] = v }
 
     /**
-     * Freemium gate: Biolism (metabolism tracking) and AI-powered photo/label
+     * Freemium gate: Biolism (metabolism tracking) and on-device (ML Kit) photo/label
      * scanning are the two paid-tier features - everything else stays free.
      * No real payment processor is wired up yet (Google Play Billing requires
      * Play Console product configuration first); this flag is the single

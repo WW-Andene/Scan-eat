@@ -13,7 +13,7 @@ import fr.scanneat.presentation.ui.theme.*
 
 /**
  * Freemium status + upgrade entry point - everything in the app is free except
- * Biolism (metabolism tracking) and AI-powered photo/label scanning (see
+ * Biolism (metabolism tracking) and on-device (ML Kit) photo/label scanning (see
  * UserPreferences.isPremium's own doc comment for why those two specifically).
  *
  * No payment processor is wired up yet - onUpgrade() is a temporary manual
