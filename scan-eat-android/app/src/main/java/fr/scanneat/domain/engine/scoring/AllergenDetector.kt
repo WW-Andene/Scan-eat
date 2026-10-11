@@ -79,7 +79,7 @@ private val RULES: List<AllergenRule> = listOf(
     // goods), not always "ovalbumine"/"blanc d'oeuf". Missing it was a real
     // false-negative risk on a mandatory Annex II allergen (item 3).
     AllergenRule("eggs", "Œufs", "Eggs",
-        a("eggs?|oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|albumine|lysozyme")),
+        a("eggs?|oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|albumine|lysozyme|e[- ]?1105")),
 
     AllergenRule("nuts", "Fruits à coque", "Tree nuts",
         a("noix(?! de coco| de muscade)|amandes?|almonds?|noisettes?|hazelnuts?|walnuts?|pistaches?|pistachios?|cajou|cashews?|p[eé]cans?|noix du br[eé]sil|brazil nuts?|macadamias?|pralin[eé]?|pralines?|massepain|marzipan|gianduja|frangipane|tree nuts?")),
