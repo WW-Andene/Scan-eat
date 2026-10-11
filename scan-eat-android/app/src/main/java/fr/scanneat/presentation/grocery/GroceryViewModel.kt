@@ -14,8 +14,7 @@ import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.checkDiet
-import fr.scanneat.domain.engine.scoring.checkUserAllergens
-import fr.scanneat.domain.engine.scoring.healthConditionCautions
+import fr.scanneat.domain.engine.scoring.personalWarning
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -254,14 +253,8 @@ class GroceryViewModel @Inject constructor(
     val itemWarnings: StateFlow<Map<String, String>> = combine(rawItems, prefs.profile, prefs.language) { items, profile, lang ->
         items.mapNotNull { item ->
             val product = item.toCheckProduct()
-            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
-            val dietResult = checkDiet(product, profile.diet, lang)
-            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
-            val parts = mutableListOf<String>()
-            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
-            dietResult.reason?.let { parts += it }
-            conditionHits.firstOrNull()?.let { parts += it }
-            if (parts.isEmpty()) null else item.key to parts.joinToString(" · ")
+            val warning = personalWarning(product, profile, lang)
+            warning?.let { item.key to it }
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 

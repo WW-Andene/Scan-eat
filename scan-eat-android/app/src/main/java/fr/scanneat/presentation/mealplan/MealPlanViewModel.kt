@@ -12,7 +12,7 @@ import fr.scanneat.data.repository.planning.MealTemplateRepository
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.scoring.checkDiet
-import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import fr.scanneat.domain.engine.scoring.personalWarning
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -121,12 +121,8 @@ class MealPlanViewModel @Inject constructor(
                     is MealPlanSlot.TemplateSlot -> templateList.find { it.id == slot.id }?.toCheckProduct()
                     else -> null
                 } ?: return@forEach
-                val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
-                val dietResult = checkDiet(product, profile.diet, lang)
-                val parts = mutableListOf<String>()
-                allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
-                dietResult.reason?.let { parts += it }
-                if (parts.isNotEmpty()) result["$date|$meal"] = parts.joinToString(" · ")
+                val warning = personalWarning(product, profile, lang)
+                if (warning != null) result["$date|$meal"] = warning
             }
         }
         result

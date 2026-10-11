@@ -227,12 +227,8 @@ class DashboardViewModel @Inject constructor(
     ) { scans, profile, lang ->
         scans.mapNotNull { scan ->
             if (scan.dbId <= 0) return@mapNotNull null
-            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(scan.product, profile.allergens, lang) else emptyList()
-            val dietResult = checkDiet(scan.product, profile.diet, lang)
-            val parts = mutableListOf<String>()
-            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
-            dietResult.reason?.let { parts += it }
-            if (parts.isEmpty()) null else scan.dbId to parts.joinToString(" · ")
+            val warning = personalWarning(scan.product, profile, lang)
+            warning?.let { scan.dbId to it }
         }.toMap()
     } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 

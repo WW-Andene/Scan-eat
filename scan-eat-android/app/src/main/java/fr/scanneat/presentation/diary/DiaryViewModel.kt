@@ -17,8 +17,7 @@ import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.nutrition.withOutdoorVitD
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.engine.scoring.checkDiet
-import fr.scanneat.domain.engine.scoring.checkUserAllergens
-import fr.scanneat.domain.engine.scoring.healthConditionCautions
+import fr.scanneat.domain.engine.scoring.personalWarning
 import fr.scanneat.domain.engine.scoring.dailyTargets
 import fr.scanneat.domain.engine.scoring.hasMinimalProfile
 import fr.scanneat.domain.engine.scoring.withKcalOverride
@@ -175,19 +174,7 @@ class DiaryViewModel @Inject constructor(
     private val diaryFoodStatus: StateFlow<Map<Long, FoodProfileStatus>> = combine(summary, prefs.profile, language) { s, profile, lang ->
         s.entries.associate { entry ->
             val product = entry.toCheckProduct()
-            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
-            val dietResult = checkDiet(product, profile.diet, lang)
-            // Same profile.healthConditions the score itself reads (diabetes/
-            // hypertension/ibs/crohn_ibd/... - see healthConditionCautions()) -
-            // previously only allergens/diet ever resurfaced here, so a logged
-            // product that tripped one of the user's health conditions never
-            // showed anything once it left the Result screen.
-            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
-            val parts = mutableListOf<String>()
-            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
-            dietResult.reason?.let { parts += it }
-            conditionHits.firstOrNull()?.let { parts += it }
-            val warning = if (parts.isEmpty()) null else parts.joinToString(" · ")
+            val warning = personalWarning(product, profile, lang)
             // Only surface a positive "recommended" badge when the user has
             // actually declared something to be recommended against (allergens,
             // a diet, or a health condition) - otherwise every entry would show

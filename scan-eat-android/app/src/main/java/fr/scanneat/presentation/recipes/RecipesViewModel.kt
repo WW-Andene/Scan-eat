@@ -19,8 +19,7 @@ import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.planning.findPairings
 import fr.scanneat.domain.engine.planning.normalizeKey
 import fr.scanneat.domain.engine.scoring.checkDiet
-import fr.scanneat.domain.engine.scoring.checkUserAllergens
-import fr.scanneat.domain.engine.scoring.healthConditionCautions
+import fr.scanneat.domain.engine.scoring.personalWarning
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -164,14 +163,8 @@ class RecipesViewModel @Inject constructor(
     val recipeWarnings: StateFlow<Map<String, String>> = combine(recipes, prefs.profile, language) { list, profile, lang ->
         list.mapNotNull { recipe ->
             val product = recipe.toCheckProduct()
-            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
-            val dietResult = checkDiet(product, profile.diet, lang)
-            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
-            val parts = mutableListOf<String>()
-            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
-            dietResult.reason?.let { parts += it }
-            conditionHits.firstOrNull()?.let { parts += it }
-            if (parts.isEmpty()) null else recipe.id to parts.joinToString(" · ")
+            val warning = personalWarning(product, profile, lang)
+            warning?.let { recipe.id to it }
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
@@ -179,14 +172,8 @@ class RecipesViewModel @Inject constructor(
     val officialRecipeWarnings: StateFlow<Map<String, String>> = combine(prefs.profile, language) { profile, lang ->
         OFFICIAL_RECIPE_DB.mapNotNull { recipe ->
             val product = recipe.toCheckProduct()
-            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
-            val dietResult = checkDiet(product, profile.diet, lang)
-            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
-            val parts = mutableListOf<String>()
-            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
-            dietResult.reason?.let { parts += it }
-            conditionHits.firstOrNull()?.let { parts += it }
-            if (parts.isEmpty()) null else recipe.nameFr to parts.joinToString(" · ")
+            val warning = personalWarning(product, profile, lang)
+            warning?.let { recipe.nameFr to it }
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
