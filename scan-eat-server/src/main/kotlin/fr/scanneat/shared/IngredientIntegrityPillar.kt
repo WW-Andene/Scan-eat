@@ -9,9 +9,11 @@ package fr.scanneat.shared
 
 // Word-boundary match rather than raw `.contains` - plain substring search lets
 // e.g. "riz" match inside "chorizo" or "eau" match inside "gâteau"/"veau",
-// wrongly counting processed ingredients as whole foods.
+// wrongly counting processed ingredients as whole foods. Optional trailing
+// s/x so plural label forms ("carottes", "lentilles", "choux") still match
+// the singular keyword list.
 private fun containsWord(text: String, word: String): Boolean =
-    Regex("(?<![a-zà-ÿ0-9])${Regex.escape(word)}(?![a-zà-ÿ0-9])", RegexOption.IGNORE_CASE).containsMatchIn(text)
+    Regex("(?<![a-zà-ÿ0-9])${Regex.escape(word)}[sx]?(?![a-zà-ÿ0-9])", RegexOption.IGNORE_CASE).containsMatchIn(text)
 
 private fun isWholeFood(ingredient: Ingredient, category: ProductCategory): Boolean {
     if (ingredient.isWholeFood == true) return true
