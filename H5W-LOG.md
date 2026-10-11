@@ -993,3 +993,35 @@ backup covers every non-cache table, recall lookup, OFF unit conversions, NOVA d
 
 Known limitation (product decision, not a bug): Premium is a manual toggle until Play
 Billing is configured in the Play Console.
+
+---
+
+## Cycle 13 — first cycle with an executable test run
+
+New: `scan-eat-android/tools/run-domain-tests.sh` compiles `domain/**` (minus the
+few Android/Room-bound files) with the Kotlin compiler bundled in the Gradle
+distribution and runs the domain JUnit suites — no Android SDK, ~30 s. Baseline
+(before this cycle's fixes): 173 + 19 tests green. Now 206 green. Still NOT run:
+Gradle/Android build, instrumented tests, anything under `presentation/`/`data/`.
+
+Defects found by probing real label phrases against the engines, each fixed with a
+regression test (fail-first verified for the diet/allergen, label and receipt ones):
+
+- **"bœuf" was never matched** (`b[oœ]euf` = "boeuf" only): beef passed vegetarian,
+  vegan and kosher meat+dairy checks, and `noix de bœuf` was flagged as a tree nut.
+  `\bb[oœ]uf\b` in category inference had the mirror bug (missed "boeuf").
+- **Plant milks flagged** as non-vegan / non-dairy-free: the `lait de (amande|…)`
+  exemption ignored French elision (`lait d'amande`, `d'avoine`); `lait de noix de
+  coco` was a false lactose allergen.
+- Gaps: caséinate (dairy-free/vegan), saindoux/suif/graisse animale/présure
+  (vegetarian/vegan/pescatarian), calamar(s)/calamari/seiche (molluscs), English
+  "crab", "ovoproduits".
+- **Label OCR** cut the ingredient list at "agent de conservation", dropping the
+  preservative, later ingredients and allergens (e.g. soy lecithin).
+- **Receipt parser** dropped "Fage Total"/"Carte d'Or" lines (bare `total`/`carte`
+  substrings) and listed negative discount lines ("-0,50") as purchases.
+- **parseIngredients** split nested parentheses at the wrong comma.
+
+Judged not bugs / left: glucose syrup & maltodextrin "de blé" flagged as gluten
+(conservative, EU labels them as wheat), "sauce soja"/"mayonnaise" not implying
+wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
