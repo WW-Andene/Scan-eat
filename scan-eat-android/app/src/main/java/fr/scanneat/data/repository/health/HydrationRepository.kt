@@ -179,7 +179,10 @@ class HydrationRepository @Inject constructor(
         exerciseMinutesToday: Int = 0, weightKg: Double? = null,
     ): Int {
         val exerciseBonusMl = (exerciseMinutesToday.coerceAtLeast(0) * 10).coerceAtMost(1500)
-        if (sex == Sex.NOT_SPECIFIED) return HYD_DEFAULT_GOAL_ML + exerciseBonusMl
+        // EFSA 2010 AI: +0.3L/day during pregnancy. Applied on the early "sex not specified" return
+        // too - it previously skipped the bonus for a pregnant profile that left sex unset.
+        val pregnancyBonusMl = if ("pregnancy" in healthConditions) 300 else 0
+        if (sex == Sex.NOT_SPECIFIED) return HYD_DEFAULT_GOAL_ML + pregnancyBonusMl + exerciseBonusMl
         val biolismSex = when (sex) {
             Sex.MALE -> BiolismSex.MALE
             Sex.FEMALE -> BiolismSex.FEMALE
@@ -197,9 +200,7 @@ class HydrationRepository @Inject constructor(
         // computeWaterNeedL's own doc comment on the weight-proportional
         // baseline now used when weightKg is known.
         val waterNeedL = BiolismEngine.computeWaterNeedL(biolismSex, mult, weightKg)
-        // EFSA 2010 AI: +0.3L/day during pregnancy on top of the sex/activity baseline.
-        val pregnancyBonusL = if ("pregnancy" in healthConditions) 0.3 else 0.0
-        return ((waterNeedL + pregnancyBonusL) * 1000).toInt() + exerciseBonusMl
+        return (waterNeedL * 1000).toInt() + pregnancyBonusMl + exerciseBonusMl
     }
 
     // ---- Backup export/import ----
