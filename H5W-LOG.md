@@ -1082,3 +1082,8 @@ Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request b
   (`WeeklyValueScoreCardTest`). Full Gradle suite: 269 tests, 0 failures. Robolectric downloads its Android
   jar from Maven Central on first use (transient 429 can fail one run; rerun once cached).
   Still not possible here: instrumented tests on a real device, visual/layout inspection.
+- **Dashboard card render smoke tests** (`DashboardCardsSmokeTest`, Robolectric, FR + EN): TodayMacro, NutrientBudget,
+  Micronutrient, CalorieBalance, WeekDelta, FoodDiversity, WeeklyBars, MonthlyTrend rendered with empty/zero/extreme
+  data (up to 99 999 mg, 9 999 streak days, +-1e6 kcal deltas): no crash, no bad format args. Includes a
+  non-vacuity check that the locale's own string is displayed. Full Gradle suite: 285 tests, 0 failures.
+  Not covered: screens that need a ViewModel/Hilt graph, navigation, real device rendering.
