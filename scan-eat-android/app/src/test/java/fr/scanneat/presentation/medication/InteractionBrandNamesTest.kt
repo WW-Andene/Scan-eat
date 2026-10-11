@@ -23,4 +23,20 @@ class InteractionBrandNamesTest {
         val w = detectInteractions(listOf("Previscan", "Kardégic 75"))
         assertTrue(w.contains(InteractionWarning.AnticoagAntiplatelet))
     }
+
+    @Test
+    fun `aspegic and common NSAID brands are recognized`() {
+        assertTrue(detectInteractions(listOf("Previscan", "Aspégic 100")).contains(InteractionWarning.AnticoagAntiplatelet))
+        for (nsaid in listOf("Arcoxia", "Mobic", "Toprec", "Nureflex", "Naprosyne")) {
+            assertTrue(nsaid, detectInteractions(listOf("Xarelto", nsaid)).contains(InteractionWarning.AnticoagNsaid))
+        }
+    }
+
+    @Test
+    fun `SSRI plus bleeding-risk drug warns`() {
+        for (other in listOf("Xarelto", "Advil", "Kardégic")) {
+            assertTrue(other, detectInteractions(listOf("Prozac", other)).contains(InteractionWarning.SsriBleeding))
+        }
+        assertTrue(detectInteractions(listOf("Prozac", "Doliprane")).isEmpty())
+    }
 }

@@ -18,10 +18,10 @@ interface ScanScoreHistoryDao {
      */
     @Query("""
         SELECT score FROM scan_score_history
-        WHERE profileId = :profileId AND matchKey = :matchKey AND scannedAt < :beforeMillis
+        WHERE profileId = :profileId AND matchKey = :matchKey AND scannedAt < :beforeMillis AND engineVersion = :engineVersion
         ORDER BY scannedAt DESC LIMIT :limit
     """)
-    suspend fun recentScoresBefore(matchKey: String, beforeMillis: Long, limit: Int = 6, profileId: String = "default"): List<Int>
+    suspend fun recentScoresBefore(matchKey: String, beforeMillis: Long, limit: Int = 6, profileId: String = "default", engineVersion: String): List<Int>
 
     @Query("DELETE FROM scan_score_history WHERE profileId = :profileId")
     suspend fun clearAll(profileId: String = "default")

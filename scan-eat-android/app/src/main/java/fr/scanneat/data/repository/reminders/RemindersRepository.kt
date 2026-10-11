@@ -290,10 +290,10 @@ class RemindersRepository @Inject constructor(
 
     suspend fun markFastingTargetNotified(startMs: Long) = store.edit { it[K_LAST_FASTING_NOTIFIED_START] = startMs }
 
-    suspend fun wasFiredToday(key: Preferences.Key<String>): Boolean =
-        storeData.first()[key] == LocalDate.now().toString()
+    suspend fun wasFiredToday(key: Preferences.Key<String>, date: LocalDate = LocalDate.now()): Boolean =
+        storeData.first()[key] == date.toString()
 
-    suspend fun markFiredToday(key: Preferences.Key<String>) = store.edit { it[key] = LocalDate.now().toString() }
+    suspend fun markFiredToday(key: Preferences.Key<String>, date: LocalDate = LocalDate.now()) = store.edit { it[key] = date.toString() }
 
     private suspend fun dueAndMarkMs(key: Preferences.Key<Long>, minElapsedMs: Long): Boolean {
         var due = false

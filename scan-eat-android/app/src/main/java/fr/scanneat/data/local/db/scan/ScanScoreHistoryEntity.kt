@@ -1,5 +1,6 @@
 package fr.scanneat.data.local.db.scan
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -26,4 +27,6 @@ data class ScanScoreHistoryEntity(
     val score: Int,
     val scannedAt: Long,
     val profileId: String = "default",
+    /** Scoring engine that produced [score]; scores from another engine version are not comparable. */
+    @ColumnInfo(defaultValue = "") val engineVersion: String = "",
 )

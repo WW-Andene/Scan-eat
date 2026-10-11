@@ -20,7 +20,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.domain.model.MealSlot
@@ -60,7 +59,7 @@ internal fun LogRecipeDialog(
 ) {
     var slot by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(MealSlot.LUNCH) }
     var servingsText by rememberSaveable { mutableStateOf("1") }
-    val gramsPerServing = recipe.totalGrams / recipe.servings
+    val gramsPerServing = recipe.totalGrams / recipe.servings.coerceAtLeast(1)
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -92,7 +91,7 @@ internal fun LogRecipeDialog(
             // A zero/negative servings-to-log would log negative kcal/macros via
             // consumptionRepo.log - same numeric-entry guard as Weight/CustomFood.
             val servingsToLog = servingsText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }
-            TextButton(onClick = { servingsToLog?.let { onLog(slot, it / recipe.servings) } }, enabled = servingsToLog != null) {
+            TextButton(onClick = { servingsToLog?.let { onLog(slot, it / recipe.servings.coerceAtLeast(1)) } }, enabled = servingsToLog != null) {
                 Text(stringResource(R.string.common_log), color = if (servingsToLog != null) AccentCoral else OnBackground.copy(0.3f))
             }
         },

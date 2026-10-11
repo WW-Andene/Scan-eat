@@ -53,15 +53,19 @@ internal class ScanHistoryQueries(
     private val serializeProduct: (fr.scanneat.domain.model.Product) -> String,
     private val serializeAudit: (fr.scanneat.domain.model.ScoreAudit) -> String,
 ) {
+    /** Math-only rescore of a row scored by an older engine, so lists don't show a pre-calibration grade. */
+    private fun current(r: ScanResult): ScanResult =
+        if (r.audit.engineVersion != ENGINE_VERSION) r.copy(audit = scoreProduct(r.product, if (java.util.Locale.getDefault().language == "fr") "fr" else "en")) else r
+
     fun observeHistory(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeRecent(profileId = profileId, limit = limit).map { entities ->
-            entities.mapNotNull { toDomain(it) }
+            entities.mapNotNull { toDomain(it)?.let(::current) }
         }
 
     /** See ScanHistoryDao.observeRecentChecked's own doc comment. */
     fun observeHistoryChecked(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeRecentChecked(profileId = profileId, limit = limit).map { entities ->
-            entities.mapNotNull { toDomain(it) }
+            entities.mapNotNull { toDomain(it)?.let(::current) }
         }
 
     /**
@@ -209,14 +213,14 @@ internal class ScanHistoryQueries(
     }.getOrNull()
 
     fun observeFavorites(profileId: String = "default"): Flow<List<ScanResult>> =
-        dao.observeFavorites(profileId).map { entities -> entities.mapNotNull { toDomain(it) } }
+        dao.observeFavorites(profileId).map { entities -> entities.mapNotNull { toDomain(it)?.let(::current) } }
 
     /**
      * Searches the full history by product name/barcode, not just whatever
      * window the caller happens to have loaded - see ScanHistoryDao.searchByName.
      */
     fun searchHistory(query: String, profileId: String = "default"): Flow<List<ScanResult>> =
-        dao.searchByName(query, profileId).map { entities -> entities.mapNotNull { toDomain(it) } }
+        dao.searchByName(query, profileId).map { entities -> entities.mapNotNull { toDomain(it)?.let(::current) } }
 
     /**
      * Free-text search against the whole Open Food Facts catalog (name, brand,
@@ -276,6 +280,11 @@ internal class ScanHistoryQueries(
             excludeBarcode = scan.barcode,
             profileId      = profileId,
         ).mapNotNull { toDomain(it) }
+            // Rows scored by an older engine keep their old score column; rescore
+            // (math only) before comparing, or a pre-calibration grade wins.
+            .map { if (it.audit.engineVersion != ENGINE_VERSION) it.copy(audit = scoreProduct(it.product, lang)) else it }
+            .filter { it.audit.score > scan.audit.score && !it.product.name.equals(scan.product.name, ignoreCase = true) }
+            .sortedByDescending { it.audit.score }
         return candidates.firstOrNull { candidate ->
             val allergenHits = if (allergens.isNotEmpty()) checkUserAllergens(candidate.product, allergens, lang) else emptyList()
             // Previously only allergens/diet were re-checked - a diabetic or IBS
@@ -296,7 +305,7 @@ internal class ScanHistoryQueries(
      * used for ResultViewModel's score-delta badge and history sparkline.
      */
     suspend fun priorScores(barcode: String?, productName: String, beforeMillis: Long, profileId: String = "default", limit: Int = 6): List<Int> =
-        scoreHistoryDao.recentScoresBefore(matchKeyFor(barcode, productName), beforeMillis, limit, profileId)
+        scoreHistoryDao.recentScoresBefore(matchKeyFor(barcode, productName), beforeMillis, limit, profileId, ENGINE_VERSION)
 
     /** Top-N most-frequently-scanned products, counted from the append-only score log - see ScanHistoryDao.observeTopScanned's own doc comment. */
     fun observeTopScanned(profileId: String = "default", limit: Int = 3): Flow<List<TopScannedRow>> =

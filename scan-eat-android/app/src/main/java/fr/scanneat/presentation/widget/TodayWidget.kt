@@ -45,6 +45,7 @@ import fr.scanneat.domain.engine.scoring.dailyTargets
 import fr.scanneat.domain.engine.scoring.hasMinimalProfile
 import fr.scanneat.domain.engine.scoring.withKcalOverride
 import fr.scanneat.domain.engine.scoring.currentPregnancyTrimester
+import fr.scanneat.domain.engine.scoring.isLactating
 import fr.scanneat.presentation.MainActivity
 import fr.scanneat.presentation.ui.theme.AccentCoralRaw
 import fr.scanneat.presentation.ui.theme.LocalColorblindMode
@@ -119,7 +120,7 @@ class TodayWidget : GlanceAppWidget() {
         val bioProfile = if (isPremium) biolismRepo.profile.first() else null
         val baseTargets = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
         val bioTdee = if (bioProfile?.isValid == true) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
-        val targets = baseTargets?.let { if (bioTdee != null) it.withKcalOverride(bioTdee, profile.goal, currentPregnancyTrimester(profile)) else it }
+        val targets = baseTargets?.let { if (bioTdee != null) it.withKcalOverride(bioTdee, profile.goal, currentPregnancyTrimester(profile), isLactating(profile)) else it }
         // getAllLoggedDates() is a cheap DISTINCT-date query (no row hydration, no
         // nutrition JSON parsing) - unlike a bounded observeRange(), it can't silently
         // cap a real streak longer than whatever window was queried (see Dashboard's

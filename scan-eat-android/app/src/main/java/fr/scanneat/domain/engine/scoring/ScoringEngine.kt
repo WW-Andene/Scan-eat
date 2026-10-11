@@ -100,14 +100,22 @@ private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<De
     return bonuses
 }
 
+// Palm oil and its derivatives. "coprah" (coconut) was wrongly listed here, so
+// coconut-oil products were labelled "Palm oil or derivative: huile de coprah".
+// Also matches the bare "palme"/"palmiste" French labels use inside lists
+// ("huiles végétales (palme, colza)"), which the phrase-only patterns missed;
+// "sucre/sirop de palme" and "palm sugar/syrup" are sweeteners, not palm oil.
+internal val PALM_OIL_REGEX = Regex(
+    """(?<!sucre de )(?<!sirop de )\bpalm(?:e|iste)\b|\bpalm(?! sugar| syrup)\b""",
+    RegexOption.IGNORE_CASE,
+)
+
 private fun computeGlobalPenalties(product: Product, severeFlagCount: Int, lang: String = "en"): List<Deduction> {
     val en = lang == "en"
     val penalties = mutableListOf<Deduction>()
     if (product.hasMisleadingMarketing) penalties += Deduction("global_penalty", if (en) "Misleading marketing claims" else "Allégations marketing trompeuses", -2.0, Severity.MODERATE)
     if (product.hasHealthClaims) penalties += Deduction("global_penalty", if (en) "Health claims present — verify vs composition" else "Allégations de santé présentes — à vérifier vs composition", -3.0, Severity.MODERATE)
-    val palm = product.ingredients.find { ing ->
-        Regex("""huile de palme|huile de palmiste|graisse de palme|st[eé]arine de palme|ol[eé]ine de palme|palm oil|palm kernel|coprah""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
-    }
+    val palm = product.ingredients.find { ing -> PALM_OIL_REGEX.containsMatchIn(ing.name) }
     if (palm != null) penalties += Deduction("global_penalty", (if (en) "Palm oil or derivative: " else "Huile de palme ou dérivé : ") + palm.name, -3.0, Severity.MODERATE)
     // Cumulative vigilance malus: each pillar's own score floors at 0 (never
     // negative), so a product that maxes out its deductions in several

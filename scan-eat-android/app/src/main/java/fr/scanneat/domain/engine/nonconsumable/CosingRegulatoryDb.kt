@@ -2,6 +2,7 @@ package fr.scanneat.domain.engine.nonconsumable
 
 import android.content.Context
 import fr.scanneat.domain.engine.scoring.normalizeForMatching
+import fr.scanneat.util.parseCsvLine
 
 // ============================================================================
 // COSING REGULATORY DB — real EU Regulation (EC) No 1223/2009 substance
@@ -76,25 +77,6 @@ private object CosingStore {
     }
 }
 
-/** Same minimal RFC4180-style parser already duplicated in MedicationLookupDb/NonConsumableLookupDb (kept file-local, same rationale). */
-private fun parseCsvLine(line: String): List<String> {
-    val out = ArrayList<String>()
-    val sb = StringBuilder()
-    var inQuotes = false
-    var i = 0
-    while (i < line.length) {
-        val c = line[i]
-        when {
-            inQuotes && c == '"' && i + 1 < line.length && line[i + 1] == '"' -> { sb.append('"'); i++ }
-            c == '"' -> inQuotes = !inQuotes
-            c == ',' && !inQuotes -> { out.add(sb.toString()); sb.setLength(0) }
-            else -> sb.append(c)
-        }
-        i++
-    }
-    out.add(sb.toString())
-    return out
-}
 
 /**
  * Matches a product's declared INCI ingredients (see

@@ -90,6 +90,16 @@ private fun pregnancyProteinBonus(trimester: PregnancyTrimester): Double = when 
     PregnancyTrimester.THIRD  -> 28.0
 }
 
+/** EFSA DRV for energy (2013): +330 kcal/day while breastfeeding (first 6 months). */
+private const val LACTATION_KCAL_BONUS = 330.0
+
+/** EFSA DRV for protein (2012): +19 g/day while breastfeeding (first 6 months). */
+private const val LACTATION_PROTEIN_BONUS_G = 19.0
+
+/** Breastfeeding is a profile condition ("breastfeeding"); when pregnancy is
+ *  also selected the pregnancy values take precedence (no double bonus). */
+fun isLactating(p: Profile): Boolean = "breastfeeding" in p.healthConditions && "pregnancy" !in p.healthConditions
+
 /** Same gating [dailyTargets] applies internally - UI call sites (Profile's
  *  trimester badge) read this instead of re-deriving the same "pregnancy" +
  *  date-present check by hand. */
@@ -137,12 +147,20 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     // intentional calorie deficit isn't a scenario this app should be
     // computing a "target" for at all here.
     val trimester = currentPregnancyTrimester(p)
-    val goalAdjustedKcal = if (trimester != null) tdee + pregnancyKcalBonus(trimester) else goalAdjustedKcalBase
+    val lactating = isLactating(p)
+    // Like pregnancy, lactation adds energy on top of maintenance instead of
+    // applying the Lose-goal deficit (a deficit would cut milk supply).
+    val goalAdjustedKcal = when {
+        trimester != null -> tdee + pregnancyKcalBonus(trimester)
+        lactating         -> tdee + LACTATION_KCAL_BONUS
+        else              -> goalAdjustedKcalBase
+    }
     // proteinTargetG(), not the bare proteinPriG() EFSA minimum - see that
     // function's own doc comment for why the Journal/Dashboard target needs
     // to be activity/goal-aware while the scan-result "% of EFSA PRI" callout
     // (ProteinAndBudgetAdjustments.kt) stays tied to the literal PRI figure.
-    val pri  = (proteinTargetG(effectiveP) ?: 0.0) + (trimester?.let { pregnancyProteinBonus(it) } ?: 0.0)
+    val pri  = (proteinTargetG(effectiveP) ?: 0.0) +
+        (trimester?.let { pregnancyProteinBonus(it) } ?: 0.0) + (if (lactating) LACTATION_PROTEIN_BONUS_G else 0.0)
     // Sex-specific iron: menstruating women 16 mg/day (EFSA 2015). Uses the
     // profile's own isMenstruating answer rather than inferring from age —
     // the app already asks this explicitly (ProfileScreen shows the checkbox
@@ -153,20 +171,20 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     // Pregnancy: EFSA (2015) sets no increment over the premenopausal-women
     // PRI of 16 mg/day (stores + absorption upregulation cover it; the US IOM
     // 27 mg/day previously used here is not the European reference).
-    val ironTarget = if (trimester != null) 16.0 else if (p.sex == Sex.FEMALE && p.isMenstruating) 16.0 else 11.0
+    val ironTarget = if (trimester != null || lactating) 16.0 else if (p.sex == Sex.FEMALE && p.isMenstruating) 16.0 else 11.0
     // Sex-specific zinc: women 7.5 mg/day (EFSA 2014)
-    val zincTarget = if (p.sex == Sex.FEMALE) 7.5 else 9.4
+    val zincTarget = if (lactating) 10.4 else if (p.sex == Sex.FEMALE) 7.5 else 9.4  // EFSA 2014: lactation +2.9 mg
     // EFSA DRV (2016): a single 15 µg/day AI for all adults, no age bump (the
     // previous ≥75y 20 µg/day was the US IOM 2011 RDA).
     val vitDTarget = 15.0
     // Sex-specific vitamin C: 110 mg/day men, 95 mg/day women (EFSA DRV 2013) -
     // same sex-adjustment pattern as ironTarget/zincTarget/magnesiumMgTarget
     // above/below; vitCMgTarget previously stayed a flat 95mg for everyone.
-    val vitCTarget = if (p.sex == Sex.FEMALE) 95.0 else 110.0
+    val vitCTarget = if (lactating) 155.0 else if (p.sex == Sex.FEMALE) 95.0 else 110.0
     // Sex-specific vitamin A: 750 µg RE/day men, 650 µg RE/day women (EFSA PRI
     // 2015) - same sex-adjustment pattern as ironTarget/zincTarget above. Folate
     // has no sex split in the EFSA DRV (330 µg/day for all adults).
-    val vitATarget = if (p.sex == Sex.FEMALE) 650.0 else 750.0
+    val vitATarget = if (lactating) 1300.0 else if (p.sex == Sex.FEMALE) 650.0 else 750.0
 
     // WHO guidance caps free sugars/salt harder for these conditions than the
     // general-population default - halved rather than a made-up clinical value,
@@ -208,7 +226,7 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
         // baseline - neural tube defect prevention is highest-stakes in the
         // very first weeks, so this stays flat across all three trimesters
         // rather than only bumping from a given week on.
-        b9UgTarget        = if (trimester != null) 600.0 else 330.0,
+        b9UgTarget        = if (trimester != null) 600.0 else if (lactating) 500.0 else 330.0,
     )
 }
 
@@ -244,7 +262,7 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
  * directly, so this function can apply the identical bonus-not-deficit rule
  * dailyTargets() already does.
  */
-fun DailyTargets.withKcalOverride(rawKcal: Double, goal: Goal, pregnancyTrimesterOverride: PregnancyTrimester? = null): DailyTargets {
+fun DailyTargets.withKcalOverride(rawKcal: Double, goal: Goal, pregnancyTrimesterOverride: PregnancyTrimester? = null, lactating: Boolean = false): DailyTargets {
     if (rawKcal <= 0.0 || kcal <= 0.0) return this
     // Same 1200 kcal safe-minimum floor as dailyTargets()'s own floor (now
     // applied to every goal, not just LOSE - see that function's own updated
@@ -254,6 +272,8 @@ fun DailyTargets.withKcalOverride(rawKcal: Double, goal: Goal, pregnancyTrimeste
     // ever passing back through dailyTargets()'s own floor.
     val newKcal = if (pregnancyTrimesterOverride != null) {
         rawKcal + pregnancyKcalBonus(pregnancyTrimesterOverride)
+    } else if (lactating) {
+        rawKcal + LACTATION_KCAL_BONUS
     } else when (goal) {
         Goal.LOSE     -> (rawKcal - GOAL_KCAL_ADJUSTMENT).coerceAtLeast(1200.0)
         Goal.GAIN     -> rawKcal + GOAL_KCAL_ADJUSTMENT

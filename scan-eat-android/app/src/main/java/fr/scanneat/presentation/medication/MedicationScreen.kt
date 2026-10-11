@@ -7,8 +7,6 @@ import compose.icons.tablericons.Pill
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -123,6 +121,7 @@ fun MedicationScreen(
                         InteractionWarning.SsriMaoi -> "ssri-maoi"
                         InteractionWarning.AnticoagAntiplatelet -> "anticoag-antiplatelet"
                         InteractionWarning.NsaidAntiplatelet -> "nsaid-antiplatelet"
+                        InteractionWarning.SsriBleeding -> "ssri-bleeding"
                     }
                 }) { warning -> MedicationInteractionWarningBanner(warning) }
             }

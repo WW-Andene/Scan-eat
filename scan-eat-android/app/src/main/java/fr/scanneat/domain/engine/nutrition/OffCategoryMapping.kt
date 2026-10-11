@@ -124,7 +124,7 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
         // named only by brand still landed in OTHER's generic thresholds,
         // reproducing the exact "honey scores as critical sugar" bug
         // ProductCategory.SPREAD_SWEET's own doc comment describes.
-        "honey" in tag || "miel" in tag || "jam" in tag || "confiture" in tag || "marmalade" in tag ||
+        "honey" in tag || "miel" in tag || ("jam" in tag && "jambon" !in tag) || "confiture" in tag || "marmalade" in tag ||
             "marmelade" in tag -> ProductCategory.SPREAD_SWEET
         "sauce" in tag || "condiment" in tag || "dressing" in tag -> ProductCategory.CONDIMENT
         "oil" in tag || "fat" in tag || "huile" in tag -> ProductCategory.OIL_FAT

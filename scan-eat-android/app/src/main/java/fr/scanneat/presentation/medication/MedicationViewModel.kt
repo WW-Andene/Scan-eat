@@ -59,6 +59,10 @@ sealed class InteractionWarning {
     // missing this equally common real-world instance (someone taking daily
     // low-dose aspirin who also reaches for ibuprofen for pain).
     data object NsaidAntiplatelet : InteractionWarning()
+    // SSRI/SNRI impair platelet aggregation, so combined with an anticoagulant,
+    // NSAID or antiplatelet they raise bleeding risk (a well-documented
+    // interaction, distinct from the SSRI + MAOI serotonin-syndrome pairing).
+    data object SsriBleeding : InteractionWarning()
 }
 
 // Known high-risk keyword patterns: maps a drug class to a set of name substrings.
@@ -86,12 +90,12 @@ private val INTERACTION_GROUPS = mapOf(
     ),
     DrugGroup.ANTIPLATELETS  to listOf(
         "aspirine", "aspirin", "acide acétylsalicylique", "clopidogrel", "prasugrel", "ticagrelor",
-        "kardégic", "kardegic", "plavix", "efient", "brilique", "duoplavin",
+        "kardégic", "kardegic", "aspégic", "aspegic", "plavix", "efient", "brilique", "duoplavin",
     ),
     DrugGroup.NSAIDS         to listOf(
         "ibuprofène", "ibuprofen", "naproxène", "naproxen", "kétoprofène", "ketoprofen", "diclofénac", "diclofenac", "indométacine", "indomethacin", "méloxicam", "meloxicam",
         "célécoxib", "celecoxib", "étoricoxib", "etoricoxib", "piroxicam", "flurbiprofène", "acide méfénamique",
-        "advil", "nurofen", "spedifen", "antarène", "voltarène", "voltarene", "bi-profénid", "profénid", "apranax", "celebrex",
+        "advil", "nurofen", "spedifen", "antarène", "voltarène", "voltarene", "bi-profénid", "profénid", "apranax", "celebrex", "arcoxia", "mobic", "toprec", "nureflex", "naprosyne",
     ),
     DrugGroup.SSRI_SNRI      to listOf(
         "sertraline", "fluoxétine", "fluoxetine", "paroxétine", "paroxetine", "venlafaxine", "duloxétine", "duloxetine", "escitalopram", "citalopram", "fluvoxamine", "milnacipran",
@@ -138,6 +142,8 @@ internal fun detectInteractions(activeMedicationNames: List<String>): List<Inter
     val hasSsri = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.SSRI_SNRI]!!.any { wordBoundaryMatch(name, it) } }
     val hasMaoi = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.MAOI]!!.any { wordBoundaryMatch(name, it) } }
     if (hasSsri && hasMaoi) warnings += InteractionWarning.SsriMaoi
+    // SSRI/SNRI + any bleeding-risk agent
+    if (hasSsri && (hasAnticoag || hasAin || hasAntiplatelet)) warnings += InteractionWarning.SsriBleeding
     return warnings
 }
 
@@ -260,6 +266,11 @@ class MedicationViewModel @Inject constructor(
                     // wasActiveOn() checks createdAt/deactivatedAt against [date]
                     // itself, independent of the medication's current active state.
                     val relevantMeds = allMeds.filter { med -> med.wasActiveOn(date) && med.isScheduledOn(date.dayOfWeek) }
+                    // Before any medication existed there is nothing to adhere to: stop.
+                    // A day with medications but none scheduled (weekly off-day) is
+                    // skipped, neither counted nor breaking the run.
+                    if (allMeds.none { it.wasActiveOn(date) }) return@map streak
+                    if (relevantMeds.isEmpty()) { date = date.minusDays(1); return@repeat }
                     if (relevantMeds.all { (dosesById[it.id] ?: 0) >= it.dosesPerDay }) { streak++; date = date.minusDays(1) }
                     else return@map streak
                 }

@@ -258,7 +258,11 @@ class ReminderWorker @AssistedInject constructor(
         // LocalTime values via isBefore/isAfter breaks because "now" (still in the
         // evening) is never isBefore an earlier-looking wrapped clock time.
         val secondsSinceTarget = (now.toSecondOfDay() - target.toSecondOfDay()).let { if (it < 0) it + 86400 else it }
-        val dueNow = secondsSinceTarget < 3 * 3600 && !remindersRepo.wasFiredToday(lastFiredKey)
+        // A wrapped window (22:00 target, now 00:30) belongs to yesterday's
+        // occurrence; keying on today's date re-fired it after midnight and then
+        // suppressed the real evening slot.
+        val occurrence = if (now.toSecondOfDay() < target.toSecondOfDay()) java.time.LocalDate.now().minusDays(1) else java.time.LocalDate.now()
+        val dueNow = secondsSinceTarget < 3 * 3600 && !remindersRepo.wasFiredToday(lastFiredKey, occurrence)
         if (dueNow) {
             // Only mark "fired today" if the notification actually posted (not
             // silently skipped for a denied POST_NOTIFICATIONS permission) -
@@ -266,7 +270,7 @@ class ReminderWorker @AssistedInject constructor(
             // with no way to recover, since wasFiredToday would then suppress every
             // later check on the same day even once permission is granted.
             if (NotificationHelper.show(applicationContext, notifId, title, text, channel)) {
-                remindersRepo.markFiredToday(lastFiredKey)
+                remindersRepo.markFiredToday(lastFiredKey, occurrence)
             }
         }
         return dueNow

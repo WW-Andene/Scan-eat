@@ -229,6 +229,7 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     "diabetes" to stringResource(R.string.condition_diabetes),
     "hypertension" to stringResource(R.string.condition_hypertension),
     "pregnancy" to stringResource(R.string.condition_pregnancy),
+    "breastfeeding" to stringResource(R.string.condition_breastfeeding),
     "kidney_disease" to stringResource(R.string.condition_kidney_disease),
     // Replaced the old single "digestive_disorders" catch-all (which had no
     // scoring effect at all - see DietAndConditionAdjustments.kt's header) with
@@ -307,7 +308,7 @@ private fun conditionGroups(): List<Pair<String, List<String>>> = listOf(
     // see conditionLabels()'s own doc comment on why they're grouped.
     stringResource(R.string.profile_condition_group_nutrient) to listOf("anemia", "osteoporosis", "hair_loss"),
     stringResource(R.string.profile_condition_group_cross_reactive) to listOf("latex_allergy", "pollen_food_syndrome"),
-    stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression", "dental_problems"),
+    stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "breastfeeding", "cancer", "depression", "dental_problems"),
 )
 
 @OptIn(ExperimentalLayoutApi::class)

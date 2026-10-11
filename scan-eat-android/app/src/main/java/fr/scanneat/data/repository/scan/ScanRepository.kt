@@ -258,6 +258,7 @@ class ScanRepository @Inject constructor(
             score     = result.audit.score,
             scannedAt = now,
             profileId = profileId,
+            engineVersion = result.audit.engineVersion,
         ))
         scoreHistoryDao.trim(MAX_HISTORY_ROWS, profileId)
         id

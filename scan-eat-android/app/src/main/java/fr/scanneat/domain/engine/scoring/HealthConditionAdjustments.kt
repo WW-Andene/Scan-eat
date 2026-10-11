@@ -77,6 +77,7 @@ internal fun checkHealthConditions(
         veto = v
         dietReason = dietReason ?: reason
     }
+    checkBreastfeedingCondition(product, conditions, lang, alcoholHit, adjustments)
     checkCancerDepressionEpilepsyConditions(product, conditions, lang, alcoholHit, isSugarSweetenedBeverage, adjustments)
     checkMigraineCondition(product, conditions, lang, alcoholHit, adjustments)
     checkGastrointestinalConditions(product, conditions, lang, alcoholHit, adjustments)
