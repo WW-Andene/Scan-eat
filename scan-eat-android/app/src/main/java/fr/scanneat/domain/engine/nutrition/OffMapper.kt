@@ -87,7 +87,9 @@ fun mapOffProduct(off: OffProductResponse): Product? {
     val category = resolveCategory(off.categoriesTags, name)
 
     val nutrition = NutritionPer100g(
-        energyKcal    = numOf(nm["energy-kcal_100g"] ?: nm["energy_100g"]?.let { (numOf(it) / 4.184) }),
+        // energy-kj_100g too: newer OFF records often carry only the kJ field, which
+        // previously fell through to 0 kcal.
+        energyKcal    = numOf(nm["energy-kcal_100g"] ?: (nm["energy-kj_100g"] ?: nm["energy_100g"])?.let { (numOf(it) / 4.184) }),
         fatG          = numOf(nm["fat_100g"]),
         saturatedFatG = numOf(nm["saturated-fat_100g"]),
         carbsG        = numOf(nm["carbohydrates_100g"]),

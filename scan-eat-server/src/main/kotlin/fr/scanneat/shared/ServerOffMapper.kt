@@ -287,7 +287,8 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
 
     val nutrition = NutritionPer100g(
         // OFF's energy_100g fallback is in kJ, not kcal — convert
-        energyKcal    = numOrNull(nm["energy-kcal_100g"]) ?: (numOf(nm["energy_100g"]) / 4.184),
+        // energy-kj_100g too: newer OFF records often carry only the kJ field.
+        energyKcal    = numOrNull(nm["energy-kcal_100g"]) ?: (numOf(nm["energy-kj_100g"] ?: nm["energy_100g"]) / 4.184),
         fatG          = numOf(nm["fat_100g"]),
         saturatedFatG = numOf(nm["saturated-fat_100g"]),
         carbsG        = numOf(nm["carbohydrates_100g"]),
