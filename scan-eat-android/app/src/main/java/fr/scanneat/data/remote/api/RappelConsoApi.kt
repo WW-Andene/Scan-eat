@@ -4,6 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import retrofit2.http.GET
 import retrofit2.http.Query
+import fr.scanneat.util.barcodeCandidates
 
 // ============================================================================
 // RAPPELCONSO — official French product-recall open data (DGCCRF/DGAL/DGEC/
@@ -30,10 +31,15 @@ interface RappelConsoApi {
     ): RappelConsoResponse
 }
 
-/** Builds the `where` clause for an exact GTIN match — Opendatasoft ODSQL
- *  string-equality syntax (`field="value"`). The barcode is purely numeric
- *  (validated by the caller before this is built), so no escaping is needed. */
-fun rappelConsoGtinWhereClause(barcode: String): String = "gtin=\"$barcode\""
+/** Builds the `where` clause matching the scanned barcode in every plausible
+ *  GTIN encoding (UPC-A/EAN-13 padding, expanded UPC-E, GTIN-14 case code) -
+ *  an exact match on the code as printed missed a recall listed under the
+ *  other encoding of the same product. Opendatasoft ODSQL string equality
+ *  (`field="value"`) joined with OR; candidates are purely numeric (the caller
+ *  validates digits), so no escaping is needed. */
+fun rappelConsoGtinWhereClause(barcode: String): String =
+    barcodeCandidates(barcode).filter { c -> c.all { it.isDigit() } }.distinct()
+        .joinToString(" OR ") { "gtin=\"$it\"" }
 
 @JsonClass(generateAdapter = true)
 data class RappelConsoResponse(
