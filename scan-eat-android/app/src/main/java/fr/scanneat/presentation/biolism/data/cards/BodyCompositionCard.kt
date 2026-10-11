@@ -47,7 +47,7 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile, useImperi
             Triple(stringResource(R.string.biolism_body_ibw_robinson), dispWeight(met.ibwRobinson, useImperial), stringResource(R.string.biolism_body_ibw_robinson_sub)),
             Triple(stringResource(R.string.biolism_body_ibw_miller), dispWeight(met.ibwMiller, useImperial), stringResource(R.string.biolism_body_ibw_miller_sub)),
             Triple(stringResource(R.string.biolism_body_ibw_mean), dispWeight(met.ibwMean, useImperial),
-                stringResource(R.string.biolism_body_ibw_delta_sub, if (ibwDelta > 0) "+" else "", dispWeight(kotlin.math.abs(ibwDelta), useImperial))),
+                stringResource(R.string.biolism_body_ibw_delta_sub, if (ibwDelta > 0) "+" else if (ibwDelta < 0) "-" else "", dispWeight(kotlin.math.abs(ibwDelta), useImperial))),
         ))
         // Visceral
         Spacer(Modifier.height(Spacing.S))

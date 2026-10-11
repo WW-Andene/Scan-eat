@@ -31,7 +31,7 @@ fun WeightEvolutionCard(entries: List<WeightEntry>, useImperial: Boolean, langua
         InfoRow(
             stringResource(R.string.biolism_evo_weight_current),
             dispWeight(last, useImperial),
-            stringResource(R.string.biolism_evo_weight_delta, if (delta >= 0) "+" else "", dispWeight(abs(delta), useImperial)),
+            stringResource(R.string.biolism_evo_weight_delta, if (delta >= 0) "+" else "-", dispWeight(abs(delta), useImperial)),
             AccentCoral,
         )
         InfoRow(
