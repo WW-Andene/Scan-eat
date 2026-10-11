@@ -1044,3 +1044,7 @@ wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
   Verified by compiling the real `INTERACTION_GROUPS`/`detectInteractions` source extracted from the
   (Hilt-bound) ViewModel into a standalone harness; the JUnit file itself was NOT run (needs Android build).
 - Static scan of `presentation/`/`data/`: no GlobalScope/runBlocking; every `!!` checked, all safe.
+- **Room migrations verified:** `scan-eat-android/tools/check-migrations.py` replays every
+  `MIGRATION_n_n+1` (all 39 are plain `execSQL` literals) from the v15 snapshot in SQLite and diffs against
+  `schemas/40.json`: 0 differences in tables, columns, types, nullability, defaults and indices. Destructive
+  fallback is debug-only. (Snapshots 20-24 omit an index that 15->16 creates; harmless, `IF NOT EXISTS`.)
