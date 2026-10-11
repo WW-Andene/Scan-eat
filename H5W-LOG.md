@@ -1065,4 +1065,4 @@ Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request b
 - **Release minify verified:** `:app:minifyReleaseWithR8` BUILD SUCCESSFUL (no missing-class errors). `lintDebug`: 0 errors,
   335 warnings (font-cert "typos", plurals candidates, dependency updates: not actioned). Added explicit
   `dataExtractionRules` (exclude all domains). Not run: instrumented/UI tests, on-device R8 behaviour.
-- **Sugar filter added:** `FoodSearchItem.sugarsG` (defaulted) filled from FoodEntry/scan nutrition; `sucre<5`/`sugars>=20` work (explicit operator only). Gradle unit tests green (264).
+- **Sugar filter added:** `FoodSearchItem.sugarsG` (defaulted) filled from FoodEntry/scan nutrition; `sucre<5`/`sugars>=20` work (explicit operator only). Gradle unit tests green (262, 0 failures).
