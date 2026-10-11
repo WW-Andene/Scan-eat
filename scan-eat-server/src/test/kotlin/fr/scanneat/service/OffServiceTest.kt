@@ -42,11 +42,11 @@ class OffServiceTest {
     @Test
     fun `GTIN-14 case code strips the packaging indicator and recomputes the EAN-13 check digit`() {
         val candidates = barcodeCandidates("10012345678905")
-        assertEquals(listOf("10012345678905", "00012345678905", "0012345678905"), candidates)
-        // The last candidate must be a genuinely valid 13-digit EAN-13: recomputing
-        // the standard mod-10 check digit over its own first 12 digits must
-        // reproduce its own last digit.
-        val ean13 = candidates.last()
+        // As printed, then the retail EAN-13, then its UPC-A form (leading 0 dropped).
+        assertEquals(listOf("10012345678905", "0012345678905", "012345678905"), candidates)
+        // The EAN-13 candidate must be genuinely valid: recomputing the standard
+        // mod-10 check digit over its own first 12 digits must reproduce its last digit.
+        val ean13 = candidates[1]
         assertEquals(13, ean13.length)
         assertEquals(ean13.last().digitToInt(), eanCheckDigitFor(ean13.dropLast(1)))
     }
