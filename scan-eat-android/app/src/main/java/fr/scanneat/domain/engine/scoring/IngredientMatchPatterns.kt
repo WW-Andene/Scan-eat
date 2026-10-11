@@ -1,0 +1,95 @@
+package fr.scanneat.domain.engine.scoring
+
+// ============================================================================
+// Ingredient-name matching helpers — word-boundary safe, not plain substring
+// ============================================================================
+
+// \b-bounded, not `.contains()` - a plain substring check on "vin " (space-
+// suffixed to avoid matching "vinaigre"/"vinaigrette") missed the case where
+// "vin" is the ingredient's exact/final name with nothing following it (e.g.
+// an OFF ingredient list ending in ",vin" parses to a lone Ingredient(name=
+// "vin"), no trailing space to match against) - silently skipping the hard
+// pregnancy alcohol veto for a real wine ingredient. \b correctly bounds "vin"
+// as a whole word regardless of what follows or doesn't follow it, while
+// still not matching "vinaigre"/"vinaigrette".
+internal val ALCOHOL_INGREDIENT_PATTERN = Regex(
+    """\b(?:alcools?|alcohols?|vins?|wines?|bi[eè]res?|beers?|rhums?|rums?|whisky|whiskey|vodka|gin|liqueurs?|cognac|armagnac|calvados|kirsch|porto|cidres?|ciders?|champagne|eau[- ]de[- ]vie|marsala|mad[eè]re|brandy|cointreau|amaretto|grand marnier)\b""",
+    RegexOption.IGNORE_CASE,
+)
+
+// \b-bounded, not `.contains()` on the normalized name - a plain substring
+// check let bare "mate" match inside "tomate" (tomato) and bare "tea" match
+// inside "steak", firing a false pregnancy caffeine warning on completely
+// unrelated, extremely common ingredients. Bare "cafe" similarly matched
+// inside "décaféiné"/"decafeine" (decaf), warning about caffeine in a product
+// that explicitly doesn't have it.
+internal val CAFFEINE_SOURCE_PATTERN = Regex(
+    """\b(?:cafeine|guarana|yerba mate|mate|the vert|the noir|coffee|tea|cocoa|cacao|cafe)\b""",
+)
+
+// ANSES pregnancy food-safety guidance (listeriosis/toxoplasmosis/mercury/
+// vitamin-A-teratogenicity risk) - same source and category list already
+// documented and shown to the user in the hint panel
+// (domain/engine/nutrition/HealthConditionGuidanceDb.kt's PREGNANCY_GUIDANCE),
+// but that list only ever fed informational hint text, never the actual
+// score - a pregnant user comparing two products by Grade/score alone (never
+// scrolling to read every hint line) saw no difference between a pasteurized
+// cheese and a real-listeria-risk raw-milk soft cheese. Kept as one
+// consolidated pattern/deduction here (matching this file's existing
+// CAFFEINE_SOURCE_PATTERN precedent) rather than per-category granularity,
+// since the underlying risk (foodborne illness during pregnancy) is the same
+// category of harm regardless of which specific food carries it.
+internal val PREGNANCY_LISTERIA_RISK_PATTERN = Regex(
+    """\b(?:tartare|carpaccio|viande crue|steak tartare|tartares|raw meat|rare beef|sushi|sashimi|saumon fume|smoked salmon|poisson cru|raw fish|ceviche|thon|espadon|requin|lamproie|tuna|swordfish|shark|marlin|lait cru|fromages? au lait cru|fromages? a pate molle|rillettes?|terrines?|huitres?|oysters?|coquillages? crus?|fruits de mer crus|raw shellfish|sushis?|raw milk|unpasteurized|soft cheese|foie|pate|liver|foie gras|jambon cru|charcuterie|salami|chorizo|cured meat|deli meat|prosciutto|germes crus|pousses crues|graines germees|raw sprouts|alfalfa sprouts)\b""",
+)
+
+// Sugar alcohols (polyols) - matched against normalizeForMatching()'d ingredient
+// names, so accented/E-number spellings ("sorbitol (E420)") still hit. EU
+// Regulation (EC) 1169/2011 Annex III mandates the "excessive consumption may
+// induce laxative effects" warning label above 10g polyols/100g - the clearest,
+// most concrete regulatory signal available for any digestive condition, and
+// the basis of Monash University's low-FODMAP guidance (IBS) and NHS/Mayo
+// Clinic diarrhea-diet advice alike, since polyols are poorly absorbed and
+// osmotically draw water into the bowel regardless of which condition is doing
+// the drawing attention.
+// e968 was missing - AdditivesTier2.kt's own E968 entry is erythritol's real
+// E-number, so a product declaring only the bare code "e968" (no accompanying
+// word, common on OCR-scanned or minimally-labelled products) matched none of
+// the word-form alternatives either and fell through to this pattern's
+// negative branch entirely - not just "no penalty," but a wrongly-awarded
+// +2 "IBS-friendly"/"no diarrhea trigger" bonus for a product that actually
+// contains a polyol.
+internal val POLYOL_PATTERN = Regex(
+    """\b(?:sorbitol|mannitol|xylitol|maltitol|erythritol|isomalt|lactitol|polyols?|e420|e421|e953|e965|e966|e967|e968)\b""",
+)
+
+// High-FODMAP fructan/GOS sources per Monash University's Low FODMAP Diet
+// research (the protocol NICE/British Dietetic Association guidelines
+// recommend for IBS) - matched on normalized ingredient names, same word-
+// boundary discipline as CAFFEINE_SOURCE_PATTERN above.
+internal val HIGH_FODMAP_PATTERN = Regex(
+    """\b(?:oignons?|onions?|ail|garlic|inulines?|inulin|chicoree|chicory|ble|wheat|seigle|rye|orge|barley|pois chiches?|chickpeas?|lentilles?|lentils?)\b""",
+)
+
+// Tyramine is the most consistently cited migraine trigger across aged/
+// fermented foods (National Headache Foundation's "low-tyramine diet";
+// American Migraine Foundation trigger-food guidance) - aged cheese and
+// cured/fermented meats/condiments are its most common dietary sources.
+internal val TYRAMINE_SOURCE_PATTERN = Regex(
+    """\b(?:fromages? affines?|aged cheeses?|parmesan|roquefort|bleu|blue cheese|cheddar affine|gruyere|comte|salamis?|pepperonis?|jambon cru|prosciutto|saucissons?|choucroute|sauerkraut|kimchi|sauce soja|soy sauce|miso)\b""",
+)
+
+// EU additive codes for cured/processed-meat nitrite/nitrate preservatives,
+// plus the plain words - "hot dog headache" is a long-documented migraine
+// trigger (American Migraine Foundation, National Headache Foundation).
+internal val NITRATE_PRESERVATIVE_PATTERN = Regex(
+    """\b(?:nitrite|nitrites?|nitrate|nitrates?|e249|e250|e251|e252)\b""",
+)
+
+// MSG (E621) and aspartame (E951) are both listed by the American Migraine
+// Foundation as commonly patient-reported migraine triggers - phrased in the
+// guidance text as "reported by some patients", not a settled causal claim,
+// since the underlying research is more mixed than for alcohol/tyramine/
+// nitrates above.
+internal val MSG_PATTERN = Regex("""\b(?:glutamate monosodique|monosodium glutamate|glutamate|msg|e621)\b""")
+internal val ASPARTAME_PATTERN = Regex("""\b(?:aspartame|e951)\b""")

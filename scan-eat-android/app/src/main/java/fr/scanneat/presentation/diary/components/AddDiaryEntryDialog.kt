@@ -1,0 +1,225 @@
+package fr.scanneat.presentation.diary.components
+
+import compose.icons.tablericons.Search
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
+import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.toProduct
+import fr.scanneat.domain.model.*
+import fr.scanneat.presentation.diary.DiaryViewModel
+import fr.scanneat.presentation.result.LogSheet
+import fr.scanneat.presentation.ui.theme.*
+
+/**
+ * Search-and-log flow — previously the only way to add a diary entry was via
+ * barcode/photo scan; there was no way to log a home-cooked meal, a fruit, or
+ * anything not barcode-scanned directly from the Journal. Two steps: pick a
+ * food from search (built-in FOOD_DB + the user's own custom foods), then
+ * reuse the same portion/meal-slot picker (LogSheet) the scan-result flow uses.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Unit) {
+    val query      = viewModel.searchQuery.collectAsStateWithLifecycle()
+    val results    = viewModel.searchResults.collectAsStateWithLifecycle()
+    val scanResults = viewModel.scanSearchResults.collectAsStateWithLifecycle()
+    val onlineResults = viewModel.onlineSearchResults.collectAsStateWithLifecycle()
+    // A barcode already in scanResults (this user's own history) is a more
+    // precise/faster hit than the same product surfacing again from the live
+    // OFF catalog search - same dedup reasoning as Recherche's own merge of
+    // its scanned/online sources.
+    val scannedBarcodes = remember(scanResults.value) { scanResults.value.mapNotNull { it.barcode }.toSet() }
+    val dedupedOnlineResults = remember(onlineResults.value, scannedBarcodes) {
+        onlineResults.value.filter { it.barcode !in scannedBarcodes }
+    }
+    var selected by remember { mutableStateOf<FoodEntry?>(null) }
+    var selectedScan by remember { mutableStateOf<ScanResult?>(null) }
+
+    val picked = selected
+    if (picked != null) {
+        // Was a separate hand-rolled Product hardcoding saturatedFatG/sugarsG to
+        // 0.0 (same gap FoodEntry.toProduct() itself had before it was fixed) and
+        // weightG to a flat 100.0 (no typical-portion chip) - reusing the real
+        // extension function here picks up both fixes for free instead of a
+        // second, silently-diverging reconstruction of the same conversion.
+        val product = remember(picked) { picked.toProduct() }
+        LogSheet(
+            product    = product,
+            onConfirm  = { portionG, mealSlot ->
+                viewModel.addEntry(picked, portionG, mealSlot)
+                selected = null
+                onDismiss()
+            },
+            onDismiss  = { selected = null },
+            showDestinationPicker = true,
+            allowPriceLogging = false,
+            onConfirmWithDestinations = { g, slot, destinations, _, _ ->
+                viewModel.addEntryWithDestinations(picked, g, slot, destinations)
+                selected = null
+                onDismiss()
+            },
+        )
+        return
+    }
+
+    // Picking a scan-history result logs its real product directly (full
+    // OFF/LLM-sourced nutrition, barcode, source) instead of going through the
+    // lossy FoodEntry-shaped reconstruction above.
+    val pickedScan = selectedScan
+    if (pickedScan != null) {
+        LogSheet(
+            product    = pickedScan.product,
+            onConfirm  = { portionG, mealSlot ->
+                viewModel.addEntryFromScan(pickedScan, portionG, mealSlot)
+                selectedScan = null
+                onDismiss()
+            },
+            onDismiss  = { selectedScan = null },
+            showDestinationPicker = true,
+            allowPriceLogging = false,
+            onConfirmWithDestinations = { g, slot, destinations, _, _ ->
+                viewModel.addEntryFromScanWithDestinations(pickedScan, g, slot, destinations)
+                selectedScan = null
+                onDismiss()
+            },
+        )
+        return
+    }
+
+    AlertDialog(
+        onDismissRequest = { viewModel.clearSearch(); onDismiss() },
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
+        title = { Text(stringResource(R.string.diary_add_entry_title), color = OnBackground) },
+        text = {
+            Column(modifier = Modifier.widthIn(max = 384.dp).heightIn(max = 384.dp)) {
+                OutlinedTextField(
+                    value = query.value,
+                    onValueChange = { viewModel.setSearchQuery(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.diary_add_entry_search_hint), color = OnBackground.copy(0.4f)) },
+                    leadingIcon = { Icon(TablerIcons.Search, null, tint = OnBackground.copy(0.5f)) },
+                    trailingIcon = {
+                        if (query.value.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.clearSearch() }) {
+                                Icon(TablerIcons.X, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    colors = scanEatTextFieldColors(),
+                )
+                Spacer(Modifier.height(Spacing.S))
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    if (query.value.isNotBlank() && results.value.isEmpty() && scanResults.value.isEmpty() && dedupedOnlineResults.isEmpty()) {
+                        item {
+                            Text(stringResource(R.string.diary_add_entry_no_results, query.value),
+                                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
+                                modifier = Modifier.padding(vertical = Spacing.M))
+                        }
+                    }
+                    // Scan-history hits first - a barcoded product with real OFF/LLM-
+                    // sourced nutrition is a more precise match than a FOOD_DB
+                    // approximation of the same food.
+                    items(scanResults.value, key = { "scan-${it.dbId}" }) { scan ->
+                        Surface(
+                            onClick = { selectedScan = scan },
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
+                            color = SurfaceVariant.copy(alpha = 0.42f),
+                            modifier = Modifier.fillMaxWidth()
+                                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                                .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .clip(RoundedCornerShape(CardRadius.CONTROL)),
+                            shadowElevation = 0.dp,
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.diary_add_entry_kcal_per_100g, scan.product.nutrition.energyKcal.toInt()),
+                                    style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                            }
+                        }
+                    }
+                    // Live Open Food Facts hits - anything not already in this
+                    // user's own scan history, so the "+" flow finally reaches
+                    // the same catalog "Recherche" already searches instead of
+                    // being limited to FOOD_DB/custom foods + past scans.
+                    items(dedupedOnlineResults, key = { "online-${it.barcode}" }) { scan ->
+                        Surface(
+                            onClick = { selectedScan = scan },
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
+                            color = SurfaceVariant.copy(alpha = 0.42f),
+                            modifier = Modifier.fillMaxWidth()
+                                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                                .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .clip(RoundedCornerShape(CardRadius.CONTROL)),
+                            shadowElevation = 0.dp,
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.diary_add_entry_kcal_per_100g, scan.product.nutrition.energyKcal.toInt()),
+                                    style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                            }
+                        }
+                    }
+                    items(results.value, key = { it.name }) { entry ->
+                        Surface(
+                            onClick = { selected = entry },
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
+                            color = SurfaceVariant.copy(alpha = 0.42f),
+                            modifier = Modifier.fillMaxWidth()
+                                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                                .shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
+                                .clip(RoundedCornerShape(CardRadius.CONTROL)),
+                            shadowElevation = 0.dp,
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(entry.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.diary_add_entry_kcal_per_100g, entry.kcal.toInt()),
+                                    style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = { viewModel.clearSearch(); onDismiss() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
+        },
+    )
+}

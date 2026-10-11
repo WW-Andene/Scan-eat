@@ -1,0 +1,185 @@
+package fr.scanneat.presentation.diary
+
+import compose.icons.tablericons.ArrowLeft
+import compose.icons.tablericons.Plus
+import compose.icons.TablerIcons
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
+import fr.scanneat.presentation.activity.ActivityScreen
+import fr.scanneat.presentation.diary.components.AddDiaryEntryDialog
+import fr.scanneat.presentation.diary.components.DiaryTabRow
+import fr.scanneat.presentation.diary.components.DiaryTab
+import fr.scanneat.presentation.diary.components.DiaryTabSaver
+import fr.scanneat.presentation.diary.components.MealsTab
+import fr.scanneat.presentation.diary.components.parsePrimaryDiaryTabs
+import fr.scanneat.presentation.diary.components.serializePrimaryDiaryTabs
+import fr.scanneat.presentation.expenses.ExpensesScreen
+import fr.scanneat.presentation.fasting.FastingScreen
+import fr.scanneat.presentation.hydration.HydrationScreen
+import fr.scanneat.presentation.medication.MedicationScreen
+import fr.scanneat.presentation.mood.MoodScreen
+import fr.scanneat.presentation.sleep.SleepScreen
+import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.presentation.weight.WeightScreen
+
+/**
+ * Journal — the single home for every "log something today" task: meals
+ * (this screen's original scope), weight, water, activity, and fasting.
+ * These used to be scattered across Dashboard's launcher-tile grid, one tap
+ * removed from a screen that was supposed to be a glance-and-go overview,
+ * not a hub. User-requested: uses FloatingScreenScaffold directly, the exact
+ * same call Dashboard makes, with the tab row riding in its extraContent slot
+ * (see FloatingTopBar's own doc comment) - previously a bespoke reimplementation
+ * of that same chrome by hand, which is exactly how this header kept drifting
+ * from the real standard over several rounds of separate fixes.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DiaryScreen(
+    viewModel: DiaryViewModel = hiltViewModel(),
+    onBack: () -> Unit,
+    isTabRoot: Boolean = false,
+    onOpenCalendar: () -> Unit = {},
+    // Calendar's "Open in Journal" action hands a date back through Navigation-Compose's
+    // SavedStateHandle result pattern (see AppNavGraph.kt) - there was previously no way
+    // to land on Journal already showing a specific past day picked from Calendar.
+    pendingSelectedDate: String? = null,
+    onPendingDateConsumed: () -> Unit = {},
+    // Dashboard's expenses recap card hands the target sub-tab back the same
+    // SavedStateHandle "return a result" way Calendar's pendingSelectedDate
+    // does above - opening Journal from there previously always landed on
+    // Meals regardless of which card the user actually tapped.
+    pendingTab: String? = null,
+    onPendingTabConsumed: () -> Unit = {},
+    // User-reported: tapping a logged Diary entry only opened the portion-edit
+    // dialog, with no way to see the product's Result screen. See
+    // MealsTab/DiaryEntryCard's own doc comments for the resolution logic.
+    onOpenResult: (Long) -> Unit = {},
+    // User-requested: photograph a receipt from Dépenses - see
+    // AppRoutes.RECEIPT_SCAN's own comment.
+    onScanReceipt: () -> Unit = {},
+) {
+    var activeTab by rememberSaveable(stateSaver = DiaryTabSaver) { mutableStateOf(DiaryTab.MEALS) }
+    var showAddEntry by remember { mutableStateOf(false) }
+    val primaryTabsCsv = viewModel.primaryDiaryTabsOrder.collectAsStateWithLifecycle()
+    val primaryTabs = remember(primaryTabsCsv.value) { parsePrimaryDiaryTabs(primaryTabsCsv.value) }
+
+    LaunchedEffect(pendingSelectedDate) {
+        val date = pendingSelectedDate?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+        if (date != null) {
+            viewModel.selectDate(date)
+            activeTab = DiaryTab.MEALS
+        }
+        onPendingDateConsumed()
+    }
+
+    LaunchedEffect(pendingTab) {
+        // "$tabName|$nanoTime" - the suffix (see AppNavGraph.kt's onOpenDiaryTab) exists
+        // only so this effect's key always changes on a fresh dispatch, even when the
+        // target tab name is identical to the last one; stripped back off here before
+        // parsing the actual DiaryTab.
+        val tab = pendingTab?.substringBefore('|')?.let { runCatching { DiaryTab.valueOf(it) }.getOrNull() }
+        if (tab != null) activeTab = tab
+        onPendingTabConsumed()
+    }
+
+    // Same pattern as WeightScreen - a failed Room write (delete/update/log/note) now
+    // surfaces as a one-shot snackbar instead of going back to silent once the crash
+    // was fixed.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+    // R&D audit finding: Fasting and the Diary had zero cross-reference - see
+    // ConsumptionRepository.log's own doc comment.
+    val loggedDuringFast = viewModel.loggedDuringFast.collectAsStateWithLifecycle()
+    val loggedDuringFastMessage = stringResource(R.string.result_logged_during_fast)
+    LaunchedEffect(loggedDuringFast.value) {
+        if (loggedDuringFast.value) {
+            snackbarHostState.showSnackbar(loggedDuringFastMessage)
+            viewModel.clearLoggedDuringFast()
+        }
+    }
+    // User-requested: "j'ai dit exactement le même [header] en tout point" -
+    // calls FloatingScreenScaffold directly now, the exact same composable
+    // Dashboard calls, instead of hand-rolling its own Box/hazeSource/inset
+    // wiring purely to fit a tab row. extraContent is FloatingTopBar's own
+    // slot for exactly this (see its own doc comment); extraContentHeight
+    // (64dp, base-2 scale) reserves the tab row's own height in content's
+    // top padding since FloatingTopBarHeight alone only accounts for the
+    // title row.
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.diary_header), color = OnBackground) },
+        navigationIcon = {
+            if (!isTabRoot) {
+                IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) }
+            }
+        },
+        hasNavigationIcon = !isTabRoot,
+        showBottomNavClearance = isTabRoot,
+        extraContent = {
+            DiaryTabRow(
+                activeTab = activeTab,
+                onTabChange = { activeTab = it },
+                primaryTabs = primaryTabs,
+                onPrimaryTabsChange = { viewModel.setPrimaryDiaryTabsOrder(serializePrimaryDiaryTabs(it)) },
+            )
+        },
+        extraContentHeight = 64.dp,
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
+    ) { padding ->
+        val topPadding = padding.calculateTopPadding()
+        val bottomClearance = padding.calculateBottomPadding()
+        Box(
+            Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
+        ) {
+            when (activeTab) {
+                DiaryTab.MEALS    -> MealsTab(viewModel, snackbarHostState, topPadding = topPadding, bottomPadding = bottomClearance, onOpenProductDetail = onOpenResult)
+                DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.EXPENSES -> ExpensesScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar, onScanReceipt = onScanReceipt)
+                DiaryTab.SLEEP    -> SleepScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.MOOD     -> MoodScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+            }
+
+            // Only Meals has a manual "search and log" entry point — the other tabs
+            // (weight/water/activity/fasting) each already have their own add
+            // affordance (a "+" button in their own embedded screen).
+            if (activeTab == DiaryTab.MEALS) {
+                // User-reported: floated bottom-right with no relation to the
+                // header - moved to sit just below the header/tab row instead,
+                // same Spacing.M gap ScanEatDropdownMenu's own DROPDOWN_MENU_GAP
+                // uses between a trigger and what's anchored below it.
+                FloatingActionButton(
+                    onClick = { showAddEntry = true },
+                    containerColor = AccentCoral,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(top = topPadding + Spacing.M, end = Spacing.L),
+                ) {
+                    Icon(TablerIcons.Plus, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
+                }
+            }
+        }
+    }
+
+    if (showAddEntry) {
+        AddDiaryEntryDialog(viewModel = viewModel, onDismiss = { showAddEntry = false })
+    }
+}

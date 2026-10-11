@@ -1,0 +1,457 @@
+package fr.scanneat.presentation.scan
+
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.ImageCapture
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
+import fr.scanneat.presentation.scan.components.CameraPreview
+import fr.scanneat.presentation.scan.components.DetectedBarcode
+import fr.scanneat.presentation.scan.components.DetectedBox
+import fr.scanneat.presentation.scan.components.NoCameraFallback
+import fr.scanneat.presentation.scan.components.ScanBarcodeArPanel
+import fr.scanneat.presentation.scan.components.ScanBarcodeChip
+import fr.scanneat.presentation.scan.components.ScanBoundingBoxesOverlay
+import fr.scanneat.presentation.scan.components.ScanHeaderBar
+import fr.scanneat.presentation.scan.components.ScanIdentifyFoodAction
+import fr.scanneat.presentation.scan.components.ScanInstantModeFab
+import fr.scanneat.presentation.scan.components.ScanPermissionRequestColumn
+import fr.scanneat.presentation.scan.components.ScanPhotoQueue
+import fr.scanneat.presentation.scan.components.ScanRecentBarcodesRow
+import fr.scanneat.presentation.scan.components.ScanScoreFab
+import fr.scanneat.presentation.scan.components.ScanShelfModeFab
+import fr.scanneat.presentation.scan.components.ScanShelfObjectOverlay
+import fr.scanneat.presentation.scan.components.ScanShelfPeekChip
+import fr.scanneat.presentation.scan.components.ScanStateOverlay
+import fr.scanneat.presentation.scan.components.ShelfPeek
+import fr.scanneat.presentation.scan.components.ShelfPeekStatus
+import fr.scanneat.presentation.scan.components.handleShelfBoxTapped
+import fr.scanneat.presentation.ui.theme.*
+import dev.chrisbanes.haze.hazeSource
+
+@Composable
+fun ScanScreen(
+    viewModel: ScanViewModel = hiltViewModel(),
+    onResultReady: (Long) -> Unit,
+    // These are kept for callers that may still pass them, but ignored — MainShell owns the nav
+    onOpenDiary: () -> Unit = {},
+    onOpenDashboard: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
+    onOpenProfile: () -> Unit = {},
+) {
+    val context        = LocalContext.current
+    val haptic      = LocalHapticFeedback.current
+    val state       = viewModel.state.collectAsStateWithLifecycle()
+    val images      = viewModel.images.collectAsStateWithLifecycle()
+    val barcode     = viewModel.scannedBarcode.collectAsStateWithLifecycle()
+    val instantMode = viewModel.instantMode.collectAsStateWithLifecycle()
+    val isPremium   = viewModel.isPremium.collectAsStateWithLifecycle()
+    val language    = viewModel.language.collectAsStateWithLifecycle()
+    val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
+    val medicationInteractionWarnings = viewModel.medicationInteractionWarnings.collectAsStateWithLifecycle()
+    val recentBarcodes = viewModel.recentBarcodes.collectAsStateWithLifecycle()
+    val todayScanCount = viewModel.todayScanCount.collectAsStateWithLifecycle()
+    val cachedPreview  = viewModel.cachedPreview.collectAsStateWithLifecycle()
+    val cachedPreviewWarning = viewModel.cachedPreviewWarning.collectAsStateWithLifecycle()
+    val recallWarning = viewModel.recallWarning.collectAsStateWithLifecycle()
+    val visibleBarcodeCachedPreviews = viewModel.visibleBarcodeCachedPreviews.collectAsStateWithLifecycle()
+    val captureErrorMessage = stringResource(R.string.scan_capture_error)
+    // User-reported: tapping a Premium-gated control did nothing visible - the
+    // no-op'd only because onOpenSettings wasn't wired at the call site
+    // (see AppNavGraph.kt's own fix), but even once it navigates, doing so
+    // silently still doesn't tell the user *why* the tap didn't just work.
+    // This toast fires alongside the navigation so the block is explained,
+    // not just routed around.
+    val premiumRequiredMessage = stringResource(R.string.scan_premium_required_generic)
+    // User-requested: scan a barcode from an already-imported photo, not just
+    // a live camera frame - useful for a barcode photographed earlier, or one
+    // too worn/curved for the live scanner to lock onto. PickVisualMedia is
+    // the modern photo-picker contract (no storage permission needed, unlike
+    // GetContent on older APIs). Decoded with the same ML Kit BarcodeScanning
+    // client the live camera uses, then routed through quickScan() - the
+    // existing "explicit, deliberate entry" path (see its own doc comment
+    // above for NoCameraFallback) - so a decoded barcode here scores exactly
+    // like a manually typed or recent-barcode-chip one would.
+    val noBarcodeInPhotoMessage = stringResource(R.string.scan_import_photo_not_found)
+    // app-audit §G2: routed through ScanViewModel's ScanUiState.Error (an announced,
+    // TalkBack-visible banner) rather than a bare Toast, same fix already applied to
+    // the capture-error path below (see reportCaptureError()'s own doc comment) - a
+    // Toast isn't reliably announced by TalkBack, so a screen-reader user importing
+    // a photo with no detectable barcode previously got no accessible feedback at all.
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching { InputImage.fromFilePath(context, uri) }.getOrNull()?.let { image ->
+            BarcodeScanning.getClient().process(image)
+                .addOnSuccessListener { barcodes ->
+                    val value = barcodes.firstNotNullOfOrNull { it.rawValue }
+                    if (value != null) viewModel.quickScan(value)
+                    else viewModel.reportCaptureError(noBarcodeInPhotoMessage)
+                }
+                .addOnFailureListener { viewModel.reportCaptureError(noBarcodeInPhotoMessage) }
+        } ?: viewModel.reportCaptureError(noBarcodeInPhotoMessage)
+    }
+
+    // Same §G2 fix as above - a Premium-gate tap is otherwise silent for a
+    // screen-reader user beyond the (also non-announced) settings navigation.
+    val onPremiumBlocked: () -> Unit = {
+        viewModel.reportCaptureError(premiumRequiredMessage)
+        onOpenSettings()
+    }
+
+    // ── Shelf-scan mode (hybrid live-boxes/tap-to-identify) ──────────────────
+    // Off by default: CameraPreview only allocates the on-device object
+    // detector when onObjectsDetected is non-null, so every other tab of this
+    // screen (barcode/photo scanning) pays zero extra inference cost.
+    var shelfMode by remember { mutableStateOf(false) }
+    var shelfObjects by remember { mutableStateOf<Triple<List<DetectedBox>, Int, Int>?>(null) }
+    var shelfImageCapture: ImageCapture? by remember { mutableStateOf(null) }
+    // MutableState (not the `by remember` delegate the rest of this screen uses) -
+    // handleShelfBoxTapped (ScanShelfCapture.kt) mutates these from a plain,
+    // non-@Composable function, which needs the State object itself rather than
+    // the delegate-only property syntax.
+    val shelfPeeksState = remember { mutableStateOf<List<ShelfPeek>>(emptyList()) }
+    val nextPeekIdState = remember { mutableLongStateOf(0L) }
+    val shelfCoroutineScope = rememberCoroutineScope()
+    LaunchedEffect(shelfMode) {
+        if (!shelfMode) { shelfObjects = null; shelfPeeksState.value = emptyList() }
+    }
+
+    val cameraPermission = rememberCameraPermissionState()
+    val hasCameraHardware = cameraPermission.hasCameraHardware
+    var hasCamera by cameraPermission.hasCamera
+    var cameraUnavailable by cameraPermission.cameraUnavailable
+    var permanentlyDenied by cameraPermission.permanentlyDenied
+    var manualEntryOpen by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.value) {
+        val s = state.value
+        if (s is ScanUiState.Success) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            onResultReady(s.persistedId)
+            viewModel.resultConsumed()
+        }
+    }
+
+    // Haptic tick when a barcode first appears in frame
+    LaunchedEffect(barcode.value) {
+        if (barcode.value != null) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+    }
+
+    // No Scaffold here — Scan is a genuine TOP_TAB, so MainShell's own floating
+    // bottom nav renders on top of this whole screen exactly like it does over
+    // every other tab. MainShell itself is a plain Box now (no Scaffold, no
+    // contentWindowInsets consumption) — every other screen either goes through
+    // FloatingScreenScaffold (which handles its own status-bar/bottom-nav insets)
+    // or, like this one, needs to do it by hand since the camera preview is the
+    // base layer for the whole tab with everything else floating on top of it
+    // rather than sharing the screen as stacked siblings. topInset/bottomNavClearance
+    // below are that hand-rolled equivalent — omitting them would let the header sit
+    // under the status bar and the FABs/banners sit directly behind the floating nav.
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val bottomNavClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
+    // User-reported: MainShell's floating bottom nav (and, for the same reason,
+    // the header on other screens) looked "wrong" - no visible glass chrome at
+    // all - on Scan's non-camera states (permission request, no camera, camera
+    // unavailable). Root cause: this screen never registers a hazeSource for
+    // MainShell's bottomNavHazeState (deliberately, for the LIVE CAMERA state -
+    // see the comment below this screen's own "background et nav ne devrait pas
+    // être visible" quote), so the bottom nav's hazeEffect had nothing to blur
+    // and rendered as a no-op instead of falling back to a visible tint. The
+    // non-camera branches have no live feed to protect, so they register the
+    // source like every other screen; the live-camera branch below stays as-is.
+    val bottomNavHazeState = LocalBottomNavHazeState.current
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+            .then(if (hasCamera && !cameraUnavailable) Modifier else Modifier.hazeSource(bottomNavHazeState)),
+    ) {
+        // barcodesInFrame: every barcode decoded this frame plus the rotated image
+        // dimensions used to map each one's rect into screen space - see
+        // CameraFrameAnalyzer's own doc comment on why this is now a list rather
+        // than a single (rect, w, h) triple.
+        var barcodesInFrame by remember { mutableStateOf<Triple<List<DetectedBarcode>, Int, Int>?>(null) }
+
+        if (hasCamera && !cameraUnavailable) {
+            // User-reported: "quand scanner, background et [nav] ne devrait
+            // pas être visible" - no decorative overlay over the live camera view.
+            Box(Modifier.fillMaxSize()) {
+            CameraPreview(
+                onBarcodeDetected = { viewModel.onBarcodeDetected(it) },
+                onPhotoCaptured   = { viewModel.addPhoto(it) },
+                onCameraError     = { cameraUnavailable = true },
+                // A capture failure is transient (unlike a bind failure) - don't drop into
+                // the full manual-entry fallback, just surface it so the shutter button
+                // doesn't look silently broken. Routed through ScanViewModel's
+                // ScanUiState.Error (an announced, TalkBack-visible banner) rather than
+                // a bare Toast - see reportCaptureError()'s own doc comment.
+                onCaptureError    = { viewModel.reportCaptureError(captureErrorMessage) },
+                onBarcodesInFrame = { boxes, w, h ->
+                    barcodesInFrame = Triple(boxes, w, h)
+                    viewModel.onBarcodesVisible(boxes.map { it.value })
+                    if (boxes.isEmpty()) viewModel.onBarcodeLost()
+                },
+                onObjectsDetected = if (shelfMode) { objs, w, h -> shelfObjects = Triple(objs, w, h) } else null,
+                onPriceTextDetected = { viewModel.onPriceTextDetected(it) },
+                onImageCaptureReady = { shelfImageCapture = it },
+                bottomNavClearance = bottomNavClearance,
+                topInset          = topInset,
+            )
+            }
+        } else if (!hasCameraHardware) {
+            // Camera-less device (manifest declares both <uses-feature> entries
+            // required="false") - a permission prompt here would be pointless theater,
+            // so this goes straight to the one input path that still works: manual entry.
+            NoCameraFallback(
+                titleRes = R.string.scan_no_camera_title,
+                bodyRes  = R.string.scan_no_camera_body,
+                // quickScan(), not onBarcodeDetected()+score() - the latter's photo-queue
+                // guard (meant only to reject an *incidental* live-camera barcode while
+                // photos are queued) also silently swallowed this deliberately typed
+                // barcode whenever photos were already queued, since onBarcodeDetected()
+                // no-ops in that case and score() then ran with barcode=null. quickScan()
+                // already exists for exactly this "explicit, deliberate entry" case (see
+                // its use for the recent-barcode chips below) and bypasses that guard.
+                onSubmit = { viewModel.quickScan(it) },
+            )
+        } else if (cameraUnavailable) {
+            NoCameraFallback(
+                titleRes = R.string.scan_camera_unavailable_title,
+                bodyRes  = R.string.scan_camera_unavailable_body,
+                onSubmit = { viewModel.quickScan(it) },
+                onRetry  = { cameraUnavailable = false },
+            )
+        } else {
+            // Camera permission request UI — no camera feed behind it, so this fills the screen itself.
+            ScanPermissionRequestColumn(
+                permanentlyDenied = permanentlyDenied,
+                manualEntryOpen = manualEntryOpen,
+                onOpenAppSettings = {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+                    )
+                },
+                onRequestPermission = cameraPermission.requestPermission,
+                onOpenManualEntry = { manualEntryOpen = true },
+                onQuickScan = { viewModel.quickScan(it) },
+            )
+        }
+
+        if (hasCamera && !cameraUnavailable) {
+            // ── Header — top-start, scrimmed so it stays legible over any camera scene ──
+            ScanHeaderBar(
+                topInset = topInset,
+                todayScanCount = todayScanCount.value,
+                isScanning = state.value is ScanUiState.Scanning,
+                barcode = barcode.value,
+                hasQueuedPhotosNoBarcode = images.value.isNotEmpty() && barcode.value == null,
+            )
+
+            barcode.value?.let { bc ->
+                ScanBarcodeChip(barcode = bc, topInset = topInset, cachedPreview = cachedPreview.value, warning = cachedPreviewWarning.value)
+            }
+
+            // Official RappelConso (French government) product-recall alert -
+            // population-level safety information, shown unconditionally the
+            // instant a recalled barcode is in frame, not gated behind tapping
+            // Score. See ScanViewModel.recallWarning's own doc comment for why
+            // this is entirely independent of the main scan/score pipeline.
+            recallWarning.value?.let { recall ->
+                val message = buildString {
+                    append(if (language.value == "en") "Official recall (RappelConso)" else "Rappel officiel (RappelConso)")
+                    recall.productLabel?.let { append(" — $it") }
+                    recall.reasonFr?.let { append(" : $it") }
+                }
+                // User-reported: previously had no way to dismiss it, and its fixed
+                // topInset + Spacing.XXL offset sat almost flush with the top of the
+                // screen, overlapping both ScanHeaderBar's title/subtitle and
+                // ScanBarcodeChip below it (which starts at topInset + XXL*3 and has
+                // its own height on top of that). recallWarning only ever fires
+                // alongside a scanned barcode (see its own doc comment), so
+                // ScanBarcodeChip is always showing whenever this banner is -
+                // pushed below its reserved zone instead of guessing a flat offset,
+                // and dismissible per-barcode (see dismissRecallWarning's own doc comment).
+                ErrorBanner(
+                    message = message,
+                    modifier = Modifier.padding(top = topInset + 128.dp + 64.dp, start = Spacing.M, end = Spacing.M),
+                    onDismiss = { viewModel.dismissRecallWarning() },
+                )
+            }
+
+            // ── Photo queue — floats below the header, distinct corner from the button cluster ──
+            if (images.value.isNotEmpty()) {
+                ScanPhotoQueue(images = images.value, topInset = topInset, onRemovePhoto = { viewModel.removePhoto(it) })
+            }
+
+            // ── Bounding box overlay — every decoded barcode this frame, drawn in
+            // image→screen mapped coordinates (not just one) ──
+            barcodesInFrame?.let { (boxes, imgW, imgH) -> ScanBoundingBoxesOverlay(boxes, imgW, imgH) }
+
+            // ── AR-style auto mini panel — for each barcode already in scan history
+            // (visibleBarcodeCachedPreviews), anchored directly above its own
+            // detected box, no tap required. A barcode with no prior scan still only
+            // gets the plain bounding box above - there's nothing cached to show for
+            // it before it's actually been scanned once.
+            // User-requested: Premium-gated - this is a passive, no-tap overlay (unlike
+            // instant mode/identify-multi, which route to Settings on a blocked tap), so
+            // for a non-Premium user it simply doesn't render rather than routing
+            // anywhere - there's no tap to intercept. ──
+            if (isPremium.value) {
+                barcodesInFrame?.let { (boxes, imgW, imgH) ->
+                    boxes.forEach { box ->
+                        visibleBarcodeCachedPreviews.value[box.value]?.let { cached ->
+                            ScanBarcodeArPanel(box = box, imgW = imgW, imgH = imgH, cached = cached, topInset = topInset)
+                        }
+                    }
+                }
+            }
+
+            // ── Score FAB — bottom-end ──
+            ScanScoreFab(scanState = state.value, bottomNavClearance = bottomNavClearance, onClick = { viewModel.score() })
+
+            // ── Import-photo FAB — bottom-start, the instant-mode FAB's old spot
+            // (instant mode itself moved to top-end, stacked below shelf mode -
+            // see ScanInstantModeFab's own doc comment). ──
+            FloatingActionButton(
+                onClick = {
+                    galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                },
+                // Matches ScanScoreFab's own corner margin (Spacing.L) - same convention.
+                modifier = Modifier.align(Alignment.BottomStart)
+                    .padding(start = Spacing.L, bottom = bottomNavClearance + Spacing.L),
+                containerColor = SurfaceVariant,
+            ) {
+                Icon(Icons.Filled.PhotoLibrary, stringResource(R.string.scan_import_photo_cd), tint = OnSurface)
+            }
+
+            // ── Identify-without-label action — only relevant with photos queued and
+            // no barcode held (fresh produce, a plated dish: nothing to OCR a label
+            // from). Routes to OcrParser.identifyFood, which previously had no caller
+            // anywhere in the app despite already being implemented. ──
+            if (images.value.isNotEmpty() && barcode.value == null && state.value !is ScanUiState.Scanning) {
+                ScanIdentifyFoodAction(
+                    bottomNavClearance = bottomNavClearance,
+                    onClick = { viewModel.identifyFromPhotos() },
+                    // Long-press: same photos, but routes to /api/identify-multi so a
+                    // plate with several distinct foods returns one item per food
+                    // instead of collapsing the whole plate into a single result.
+                    // Premium-gated (see UserPreferences.isPremium) - identifyMultiFromPhotos()
+                    // already no-ops for a non-Premium user, but routing to Settings here
+                    // instead of silently doing nothing tells the user why.
+                    onLongClick = { if (isPremium.value) viewModel.identifyMultiFromPhotos() else onPremiumBlocked() },
+                )
+            }
+
+            // ── Recent barcodes quick-rescan chips — bottom-start, above the
+            // import-photo FAB (instant mode moved to top-end, see below) ──
+            if (recentBarcodes.value.isNotEmpty() && state.value is ScanUiState.Idle) {
+                ScanRecentBarcodesRow(
+                    recentBarcodes = recentBarcodes.value,
+                    bottomNavClearance = bottomNavClearance,
+                    onQuickScan = { viewModel.quickScan(it) },
+                )
+            }
+
+            // ── Instant mode FAB — top-end, stacked below shelf/multi mode (see
+            // ScanInstantModeFab's own doc comment). Premium-gated (see
+            // UserPreferences.isPremium) - toggleInstantMode() already no-ops for a
+            // non-Premium user; routing to Settings here instead of silently doing
+            // nothing tells the user why the FAB didn't respond. ──
+            ScanInstantModeFab(
+                instantMode = instantMode.value,
+                topInset = topInset,
+                onClick = { if (isPremium.value) viewModel.toggleInstantMode() else onPremiumBlocked() },
+            )
+
+            // ── Shelf-scan mode toggle — top-end, below the flash toggle ──
+            ScanShelfModeFab(
+                shelfMode = shelfMode,
+                topInset = topInset,
+                onClick = { shelfMode = !shelfMode },
+            )
+
+            // ── Shelf-scan live boxes + tap-to-identify mini panels ──
+            if (shelfMode) {
+                shelfObjects?.let { (objs, w, h) ->
+                    ScanShelfObjectOverlay(
+                        objects = objs,
+                        imgW = w,
+                        imgH = h,
+                        onBoxTapped = { box, tapOffset ->
+                            handleShelfBoxTapped(
+                                box = box,
+                                tapOffset = tapOffset,
+                                imgW = w,
+                                imgH = h,
+                                shelfImageCapture = shelfImageCapture,
+                                context = context,
+                                scope = shelfCoroutineScope,
+                                captureErrorMessage = captureErrorMessage,
+                                viewModel = viewModel,
+                                shelfPeeksState = shelfPeeksState,
+                                nextPeekIdState = nextPeekIdState,
+                            )
+                        },
+                    )
+                }
+                shelfPeeksState.value.forEach { peek ->
+                    ScanShelfPeekChip(
+                        peek = peek,
+                        onDismiss = { shelfPeeksState.value = shelfPeeksState.value.filter { it.id != peek.id } },
+                        onOpenResult = { id -> onResultReady(id) },
+                    )
+                }
+            }
+        }
+
+        // ── Result of the last scan attempt — a single exhaustive `when` over all 7
+        // ScanUiState variants (no `else`), so a future 8th variant fails to compile
+        // here instead of silently rendering nothing. Previously scattered across an
+        // `if (hasCamera...) {...} else if (state.value is Error) {...}` pair (each
+        // half re-deriving its own `error` via an `as` cast) plus two independent
+        // `(state.value as? X)?.let{}` dialog checks below the Box. Kept inside Box (not moved
+        // after it) because the Error banners still need BoxScope's Modifier.align;
+        // the two dialogs don't need it but sit here too now for one single dispatch
+        // point - AlertDialog renders in its own window regardless of tree position,
+        // so this is a pure dispatch-structure change with identical rendered output. ──
+        ScanStateOverlay(
+            state = state.value,
+            hasCamera = hasCamera,
+            cameraUnavailable = cameraUnavailable,
+            bottomNavClearance = bottomNavClearance,
+            language = language.value,
+            healthConditions = healthConditions.value,
+            onRetryScore = { viewModel.score() },
+            onDismissError = { viewModel.dismissError() },
+            onDismissFound = { viewModel.dismissFound() },
+            onSaveDetectedMedication = { entry -> viewModel.saveDetectedMedication(entry) },
+            // Same "consumed" cleanup the single-item Success path runs after
+            // navigating (see the LaunchedEffect(state.value) above) - without it,
+            // MultiFoodFound would stay current and the picked item's dialog (or a
+            // stale photo queue) would still be there on returning to this screen.
+            onPickMultiFood = { id -> onResultReady(id); viewModel.resultConsumed() },
+            onReportMisclassification = { barcode, name, brand, current, corrected, note ->
+                viewModel.reportMisclassification(barcode, name, brand, current, corrected, note)
+            },
+            medicationInteractionWarnings = medicationInteractionWarnings.value,
+        )
+    }
+}

@@ -1,0 +1,93 @@
+package fr.scanneat.shared
+
+// ============================================================================
+// SECTION 4: SHARED KEYWORD CONSTANTS
+//
+// Split out of ScoringEngine.kt - see CategoryThresholds.kt's header comment
+// for why. Purely structural move, no behavior change.
+// ============================================================================
+
+internal val WHOLE_FOOD_KEYWORDS = listOf(
+    "tomate","salade","carotte","épinard","epinard","poivron","oignon","ail",
+    "courgette","aubergine","concombre","brocoli","chou","betterave","poireau",
+    "potiron","courge","fruit","pomme","poire","orange","citron","pamplemousse",
+    "abricot","pêche","peche","fraise","framboise","myrtille","cassis","cerise",
+    "prune","raisin","figue","datte","mangue","ananas","banane","kiwi","melon",
+    "pastèque","grenade","coco","lentille","haricot","pois","fève","feve",
+    "noix","amande","noisette","pistache","cajou","graine","sésame","sesame",
+    "lin","chia","tournesol","riz","quinoa","avoine","blé","ble","seigle","orge",
+    "sarrasin","farine complète","farine complete","oeuf","œuf","poisson",
+    "saumon","thon","sardine","maquereau","poulet","boeuf","porc","viande",
+    // "jambon" (ham) deliberately excluded - cured/processed by definition,
+    // never a raw whole food, unlike porc/viande above which can name a raw
+    // cut. Mirrors the identical fix on the Android side (see Scoring Drift
+    // Check).
+    // "eau"/"water" deliberately excluded from this general list - see
+    // IngredientIntegrityPillar.kt's isWholeFood() for why it's handled as a
+    // BEVERAGE_WATER-only special case instead of a plain keyword match here.
+    "dinde","canard","agneau","fromage","lait","yaourt","skyr","miel",
+    "légume","legume",
+    // Added — already recognized by FRESH_PRODUCE_NAME below (or, for the
+    // seafood/legume/soy entries, matching the same whole-food tier as the
+    // saumon/thon/sardine/haricot/lentille entries already above) but missing
+    // here, so an ingredient list naming them as a primary ingredient (e.g.
+    // "crevette" in a shrimp product) never earned the first-3-ingredients
+    // whole-food bonus despite genuinely being one.
+    "mûre","mure","clémentine","clementine","asperge","champignon","radis",
+    // Bare "mais" (unaccented) removed - mirrors the identical fix on the
+    // Android side (see Scoring Drift Check): it's also the French
+    // conjunction "but", unlike this line's other informal-spelling pairs.
+    "céleri","celeri","artichaut","patate","maïs","crevette","moules",
+    "cabillaud","tofu","edamame","cacahuète","cacahuete",
+    // Mirrors the identical fix on the Android client (see Scoring Drift
+    // Check) - carbonation gas is sparkling water's literal 2nd ingredient
+    // and wasn't recognized as a whole/natural ingredient.
+    "dioxyde de carbone","gaz carbonique","carbon dioxide",
+)
+
+internal val GENERIC_OIL_TERMS = listOf(
+    "huile végétale","huile vegetale","vegetable oil",
+    "matière grasse végétale","matiere grasse vegetale",
+    "graisse végétale","graisse vegetale",
+)
+
+internal val NAMED_OIL_TERMS = listOf(
+    "huile de tournesol","huile d'olive","huile de colza","huile de canola",
+    "huile de palme","huile de coco","huile de noix de coco","huile de noix","huile d'arachide",
+    "huile de sésame","huile de sesame","huile de pépins de raisin","huile de pepins de raisin",
+    "huile de lin","huile de germe de blé","huile de germe de ble",
+    "sunflower oil","olive oil","rapeseed oil","canola oil","palm oil","coconut oil",
+    "walnut oil","peanut oil","sesame oil","grapeseed oil","flaxseed oil","wheat germ oil",
+)
+
+internal val HIDDEN_SUGAR_NAMES = listOf(
+    "sirop de glucose","sirop de fructose","sirop de maïs","dextrose",
+    "maltodextrine","saccharose","fructose","galactose","glucose",
+    "caramel","jus de canne","concentré de jus","purée de fruits","sirop",
+    // Mirrors the identical addition on the Android side (see Scoring Drift
+    // Check) - closes the gap for English-labeled products with no
+    // "sirop"/"sucre" prefix.
+    "agave","sirop d'agave","sirop d'érable","maple syrup","sirop de riz",
+    "rice syrup","sirop de malt","malt syrup","sucre inverti","invert sugar",
+)
+
+internal val UPF_MARKER_PATTERNS = listOf(
+    Regex("""\bar[oô]mes?\b""", RegexOption.IGNORE_CASE) to "flavorings (arômes)",
+    Regex("""\bconcentr[eé] des? min[eé]raux|mineral concentrate""", RegexOption.IGNORE_CASE) to "mineral concentrate",
+    Regex("""\bisolat de |\bprot[eé]ine isol[eé]e|protein isolate""", RegexOption.IGNORE_CASE) to "protein isolate",
+    Regex("""\bhydrolysat|prot[eé]ines? hydrolys[eé]es?|hydrolyzed protein""", RegexOption.IGNORE_CASE) to "protein hydrolysate",
+    Regex("""\bamidon modifi|modified starch|maltodextrin""", RegexOption.IGNORE_CASE) to "modified starch",
+)
+
+// Accented and unaccented spellings both matched directly - mirrors the
+// identical fix on the Android side (see Scoring Drift Check).
+internal val FIRST_INGREDIENT_PENALTY_PATTERNS = listOf(
+    Regex("""^(sucre|sirop|dextrose|fructose|glucose|maltodextrin)""", RegexOption.IGNORE_CASE) to "sugar/syrup",
+    Regex("""^(huile|graisse|mati[eè]re grasse|margarine)""", RegexOption.IGNORE_CASE) to "oil/fat",
+    Regex("""^(amidon modifi[eé]|amidon de ma[iï]s modifi[eé])""", RegexOption.IGNORE_CASE) to "modified starch",
+)
+
+internal val FRESH_PRODUCE_NAME = Regex(
+    """^(banane|banana|pomme|apple|poire|pear|tomate|tomato|oignon|onion|avocat|avocado|carotte|carrot|concombre|cucumber|courgette|zucchini|kiwi|orange|citron|lemon|lime|fraise|strawberr|framboise|raspberr|myrtille|blueberr|cassis|blackcurrant|ananas|pineapple|raisin|grape|cerise|cherry|prune|plum|peche|pêche|peach|mangue|mango|papaye|papaya|poireau|leek|chou|cabbage|brocoli|broccoli|salade|lettuce|epinard|épinard|spinach|radis|radish|navet|turnip|betterave|beet|aubergine|eggplant|poivron|bell pepper|piment|chili pepper|champignon|mushroom|asperge|asparagus|artichaut|artichoke|ma[iï]s|corn|haricot vert|green bean|haricot|bean|lentille|lentil|petit[-\s]pois|pea|patate douce|sweet potato|pomme de terre|potato|courge|squash|citrouille|pumpkin|ail|garlic|gingembre|ginger|fenouil|fennel|celeri|céleri|celery|persil|parsley|basilic|basil|menthe|mint|coriandre|cilantro|ciboulette|chive|roquette|arugula|mache|mâche|cresson|watercress|endive|chicory|pastèque|watermelon|melon|nectarine|abricot|apricot|figue|fig|datte|date|grenade|pomegranate|noix|nut|amande|almond|noisette|hazelnut)s?\b""",
+    RegexOption.IGNORE_CASE
+)

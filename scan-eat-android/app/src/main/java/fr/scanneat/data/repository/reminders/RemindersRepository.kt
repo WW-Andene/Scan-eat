@@ -1,0 +1,322 @@
+package fr.scanneat.data.repository.reminders
+
+import android.content.Context
+import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import fr.scanneat.domain.model.MS_PER_HOUR
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.time.LocalDate
+import java.time.LocalTime
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Serializable
+data class CustomReminder(val id: Int, val label: String, val time: String, val on: Boolean)
+
+// ============================================================================
+// REMINDERS REPOSITORY — port of Biolism/src/App.jsx RemindersCard
+//
+// Meal reminders (breakfast/lunch/dinner) fire once per day at a configured
+// HH:mm time. Hydration reminders fire every N hours within an 08:00-22:00
+// window. Weight-log reminders fire once per day when no entry has been
+// logged within a configured day threshold.
+// ============================================================================
+
+data class ReminderSettings(
+    val breakfastOn: Boolean = false, val breakfastTime: String = "06:00", val breakfastLabel: String = "",
+    val snackOn: Boolean = false, val snackTime: String = "09:00", val snackLabel: String = "",
+    val lunchOn: Boolean = false, val lunchTime: String = "12:00", val lunchLabel: String = "",
+    val dinnerOn: Boolean = false, val dinnerTime: String = "18:00", val dinnerLabel: String = "",
+    val hydrationOn: Boolean = false, val hydrationIntervalHours: Int = 3,
+    val hydrationCustomOn: Boolean = false, val hydrationCustomTime: String = "12:00",
+    val weightOn: Boolean = false, val weightThresholdDays: Int = 1,
+    val weightCustomOn: Boolean = false, val weightCustomTime: String = "12:00",
+    // Weight/Hydration/Fasting/Medication all have a "you've gone quiet" or
+    // target-reached nudge - Activité was the one tracker with a visible streak
+    // (ActivityViewModel.streak) and zero reminder to protect it.
+    val activityOn: Boolean = false, val activityThresholdDays: Int = 3,
+    val customReminders: List<CustomReminder> = emptyList(),
+    /** New: daily 21:00 digest notification summarising today's progress. */
+    val dailyDigestOn: Boolean = false,
+    /** Default true (opt-out, unlike every other reminder above) - an expiring
+     *  pantry item is time-sensitive food-waste/safety information, not a
+     *  scheduling nudge the user necessarily thought to turn on. */
+    val pantryExpiryOn: Boolean = true,
+    // User-requested: "as-tu noté ton humeur/sommeil aujourd'hui" - Mood and
+    // Sleep were the two trackers with a daily-log habit (like Weight) but no
+    // reminder to protect that habit, same gap Activity's own reminder above
+    // was added to close for its streak. Unlike a plain custom-time reminder,
+    // ReminderWorker skips firing these if today's entry is already logged
+    // (see its own doc comment) - a "did you log X" nudge that fires even
+    // after X was already logged would just be noise.
+    val moodOn: Boolean = false, val moodTime: String = "20:00",
+    val sleepOn: Boolean = false, val sleepTime: String = "08:00",
+)
+
+private val Context.remindersDataStore by preferencesDataStore(name = "reminders")
+
+@Singleton
+class RemindersRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
+    private val store = context.remindersDataStore
+
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
+    companion object {
+        val K_BREAKFAST_ON   = booleanPreferencesKey("rem_breakfast_on")
+        val K_BREAKFAST_TIME = stringPreferencesKey("rem_breakfast_time")
+        val K_SNACK_ON       = booleanPreferencesKey("rem_snack_on")
+        val K_SNACK_TIME     = stringPreferencesKey("rem_snack_time")
+        val K_LUNCH_ON       = booleanPreferencesKey("rem_lunch_on")
+        val K_LUNCH_TIME     = stringPreferencesKey("rem_lunch_time")
+        val K_DINNER_ON      = booleanPreferencesKey("rem_dinner_on")
+        val K_DINNER_TIME    = stringPreferencesKey("rem_dinner_time")
+        val K_HYDRATION_ON       = booleanPreferencesKey("rem_hydration_on")
+        val K_HYDRATION_INTERVAL = intPreferencesKey("rem_hydration_interval_h")
+        val K_HYDRATION_CUSTOM_ON   = booleanPreferencesKey("rem_hydration_custom_on")
+        val K_HYDRATION_CUSTOM_TIME = stringPreferencesKey("rem_hydration_custom_time")
+        val K_WEIGHT_ON        = booleanPreferencesKey("rem_weight_on")
+        val K_WEIGHT_THRESHOLD = intPreferencesKey("rem_weight_threshold_days")
+        val K_WEIGHT_CUSTOM_ON   = booleanPreferencesKey("rem_weight_custom_on")
+        val K_WEIGHT_CUSTOM_TIME = stringPreferencesKey("rem_weight_custom_time")
+        val K_ACTIVITY_ON        = booleanPreferencesKey("rem_activity_on")
+        val K_ACTIVITY_THRESHOLD = intPreferencesKey("rem_activity_threshold_days")
+
+        val K_BREAKFAST_LABEL = stringPreferencesKey("rem_breakfast_label")
+        val K_SNACK_LABEL     = stringPreferencesKey("rem_snack_label")
+        val K_LUNCH_LABEL     = stringPreferencesKey("rem_lunch_label")
+        val K_DINNER_LABEL    = stringPreferencesKey("rem_dinner_label")
+        val K_CUSTOM_REMINDERS = stringPreferencesKey("rem_custom_list")
+
+        val K_LAST_BREAKFAST_DATE    = stringPreferencesKey("rem_last_breakfast_date")
+        val K_LAST_SNACK_DATE        = stringPreferencesKey("rem_last_snack_date")
+        val K_LAST_LUNCH_DATE        = stringPreferencesKey("rem_last_lunch_date")
+        val K_LAST_DINNER_DATE       = stringPreferencesKey("rem_last_dinner_date")
+        val K_LAST_HYDRATION_MS      = longPreferencesKey("rem_last_hydration_ms")
+        val K_LAST_HYDRATION_CUSTOM_DATE = stringPreferencesKey("rem_last_hydration_custom_date")
+        val K_LAST_WEIGHT_NUDGE_DATE = stringPreferencesKey("rem_last_weight_nudge_date")
+        val K_LAST_WEIGHT_CUSTOM_DATE     = stringPreferencesKey("rem_last_weight_custom_date")
+        val K_LAST_ACTIVITY_NUDGE_DATE = stringPreferencesKey("rem_last_activity_nudge_date")
+        // Hydration/weight/meals all have a dedicated reminder card wired through
+        // this repository + ReminderWorker; an active fast reaching its target
+        // hour previously had none at all, despite the ring on FastingScreen
+        // being the only way a user would ever find out. Keyed by the fast's
+        // own startMs (not a date) so a new fast can notify again even on the
+        // same calendar day, and a still-running fast that already notified
+        // doesn't repeat every worker run.
+        val K_LAST_FASTING_NOTIFIED_START = longPreferencesKey("rem_last_fasting_notified_start")
+        val K_DAILY_DIGEST_ON = booleanPreferencesKey("rem_daily_digest_on")
+        val K_CUSTOM_NEXT_ID = intPreferencesKey("rem_custom_next_id")
+        val K_PANTRY_EXPIRY_ON = booleanPreferencesKey("rem_pantry_expiry_on")
+        val K_LAST_PANTRY_EXPIRY_DATE = stringPreferencesKey("rem_last_pantry_expiry_date")
+        val K_MOOD_ON   = booleanPreferencesKey("rem_mood_on")
+        val K_MOOD_TIME = stringPreferencesKey("rem_mood_time")
+        val K_LAST_MOOD_DATE = stringPreferencesKey("rem_last_mood_date")
+        val K_SLEEP_ON   = booleanPreferencesKey("rem_sleep_on")
+        val K_SLEEP_TIME = stringPreferencesKey("rem_sleep_time")
+        val K_LAST_SLEEP_DATE = stringPreferencesKey("rem_last_sleep_date")
+    }
+
+    val settings: Flow<ReminderSettings> = storeData.map { p ->
+        val customs = runCatching { Json.decodeFromString<List<CustomReminder>>(p[K_CUSTOM_REMINDERS] ?: "[]") }.getOrElse { emptyList() }
+        ReminderSettings(
+            breakfastOn = p[K_BREAKFAST_ON] ?: false, breakfastTime = p[K_BREAKFAST_TIME] ?: "06:00", breakfastLabel = p[K_BREAKFAST_LABEL] ?: "",
+            snackOn     = p[K_SNACK_ON] ?: false,      snackTime     = p[K_SNACK_TIME] ?: "09:00",     snackLabel     = p[K_SNACK_LABEL] ?: "",
+            lunchOn     = p[K_LUNCH_ON] ?: false,      lunchTime     = p[K_LUNCH_TIME] ?: "12:00",     lunchLabel     = p[K_LUNCH_LABEL] ?: "",
+            dinnerOn    = p[K_DINNER_ON] ?: false,      dinnerTime    = p[K_DINNER_TIME] ?: "18:00",    dinnerLabel    = p[K_DINNER_LABEL] ?: "",
+            hydrationOn = p[K_HYDRATION_ON] ?: false,
+            hydrationIntervalHours = p[K_HYDRATION_INTERVAL] ?: 3,
+            hydrationCustomOn   = p[K_HYDRATION_CUSTOM_ON] ?: false,
+            hydrationCustomTime = p[K_HYDRATION_CUSTOM_TIME] ?: "12:00",
+            weightOn        = p[K_WEIGHT_ON] ?: false,
+            weightThresholdDays = p[K_WEIGHT_THRESHOLD] ?: 1,
+            weightCustomOn   = p[K_WEIGHT_CUSTOM_ON] ?: false,
+            weightCustomTime = p[K_WEIGHT_CUSTOM_TIME] ?: "12:00",
+            activityOn        = p[K_ACTIVITY_ON] ?: false,
+            activityThresholdDays = p[K_ACTIVITY_THRESHOLD] ?: 3,
+            customReminders = customs,
+            dailyDigestOn   = p[K_DAILY_DIGEST_ON] ?: false,
+            pantryExpiryOn  = p[K_PANTRY_EXPIRY_ON] ?: true,
+            moodOn  = p[K_MOOD_ON] ?: false,  moodTime  = p[K_MOOD_TIME] ?: "20:00",
+            sleepOn = p[K_SLEEP_ON] ?: false, sleepTime = p[K_SLEEP_TIME] ?: "08:00",
+        )
+    }.distinctUntilChanged()
+
+    // Enabling a reminder (or changing its time) to a time already past today
+    // otherwise fires it on the very next worker run, however soon that is —
+    // mark today as already-fired so the first real reminder is tomorrow at
+    // the configured time, same as if it had already fired normally today.
+    private fun markStaleIfPast(prefs: MutablePreferences, time: String, lastFiredKey: Preferences.Key<String>) {
+        val target = runCatching { LocalTime.parse(time) }.getOrNull() ?: return
+        if (!LocalTime.now().isBefore(target)) prefs[lastFiredKey] = LocalDate.now().toString()
+    }
+
+    suspend fun setBreakfastLabel(label: String) = store.edit { it[K_BREAKFAST_LABEL] = label }
+    suspend fun setSnackLabel(label: String)     = store.edit { it[K_SNACK_LABEL] = label }
+    suspend fun setLunchLabel(label: String)     = store.edit { it[K_LUNCH_LABEL] = label }
+    suspend fun setDinnerLabel(label: String)    = store.edit { it[K_DINNER_LABEL] = label }
+
+    private fun customs(p: Preferences): List<CustomReminder> =
+        runCatching { Json.decodeFromString<List<CustomReminder>>(p[K_CUSTOM_REMINDERS] ?: "[]") }.getOrElse { emptyList() }
+
+    // K_CUSTOM_NEXT_ID, not max(existing ids)+1 - the latter reused an id once every
+    // custom reminder had been deleted (list back to empty, so maxOfOrNull was null
+    // again), and this id doubles as both the notification ID AND the
+    // customLastFiredKey(id) suffix below - a brand-new reminder could silently
+    // inherit a deleted reminder's stale "already fired today" key for the same
+    // reused id, suppressing its first day's notification with no explanation.
+    // Falls back to seeding from the current list's max only when the counter has
+    // never been persisted yet (a fresh install, or a pre-existing install upgrading
+    // from the old scheme with reminders already using ids from that scheme).
+    suspend fun addCustomReminder(label: String, time: String) = store.edit { p ->
+        val list = customs(p)
+        val nextId = p[K_CUSTOM_NEXT_ID] ?: ((list.maxOfOrNull { it.id } ?: 909) + 1)
+        p[K_CUSTOM_NEXT_ID] = nextId + 1
+        p[K_CUSTOM_REMINDERS] = Json.encodeToString(list + CustomReminder(nextId, label, time, false))
+    }
+
+    suspend fun updateCustomReminder(reminder: CustomReminder) = store.edit { p ->
+        val list = customs(p).map { if (it.id == reminder.id) reminder else it }
+        p[K_CUSTOM_REMINDERS] = Json.encodeToString(list)
+    }
+
+    suspend fun deleteCustomReminder(id: Int) = store.edit { p ->
+        p[K_CUSTOM_REMINDERS] = Json.encodeToString(customs(p).filter { it.id != id })
+        // Ids are never reused now (see addCustomReminder above), so this key can
+        // never be inherited by a future reminder either way - removed anyway so a
+        // deleted reminder doesn't leave a permanent orphaned key behind.
+        p.remove(customLastFiredKey(id))
+    }
+
+    val customLastFiredKey: (Int) -> Preferences.Key<String> = { id -> stringPreferencesKey("rem_custom_${id}_last") }
+
+    /**
+     * Per-medication-per-timeslot daily-reminder fired-today key. [time] defaults
+     * to "" for call sites still tracking a medication as a single daily
+     * reminder; ReminderWorker's per-slot loop passes the real "HH:mm" so a
+     * medication with multiple daily times (see Medication.reminderTimes) fires
+     * and re-notifies each slot independently instead of one slot's "already
+     * fired today" flag suppressing every other slot the same day.
+     */
+    val medicationLastFiredKey: (String, String) -> Preferences.Key<String> = { id, time -> stringPreferencesKey("rem_medication_${id}_${time}_last") }
+
+    /** Per-medication-per-timeslot re-notify timestamp — see medicationRenotifyDueAndMark. */
+    private val medicationLastNotifiedMsKey: (String, String) -> Preferences.Key<Long> = { id, time -> longPreferencesKey("rem_medication_${id}_${time}_last_notified_ms") }
+
+    suspend fun setBreakfast(on: Boolean, time: String) = store.edit {
+        it[K_BREAKFAST_ON] = on; it[K_BREAKFAST_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_BREAKFAST_DATE)
+    }
+    suspend fun setLunch(on: Boolean, time: String) = store.edit {
+        it[K_LUNCH_ON] = on; it[K_LUNCH_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_LUNCH_DATE)
+    }
+    suspend fun setSnack(on: Boolean, time: String) = store.edit {
+        it[K_SNACK_ON] = on; it[K_SNACK_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_SNACK_DATE)
+    }
+    suspend fun setDinner(on: Boolean, time: String) = store.edit {
+        it[K_DINNER_ON] = on; it[K_DINNER_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_DINNER_DATE)
+    }
+    suspend fun setHydration(on: Boolean, intervalHours: Int) = store.edit { it[K_HYDRATION_ON] = on; it[K_HYDRATION_INTERVAL] = intervalHours }
+    suspend fun setHydrationCustom(on: Boolean, time: String) = store.edit {
+        it[K_HYDRATION_CUSTOM_ON] = on; it[K_HYDRATION_CUSTOM_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_HYDRATION_CUSTOM_DATE)
+    }
+    suspend fun setWeight(on: Boolean, thresholdDays: Int)    = store.edit { it[K_WEIGHT_ON] = on; it[K_WEIGHT_THRESHOLD] = thresholdDays }
+    suspend fun setActivity(on: Boolean, thresholdDays: Int)  = store.edit { it[K_ACTIVITY_ON] = on; it[K_ACTIVITY_THRESHOLD] = thresholdDays }
+    suspend fun setDailyDigest(on: Boolean) = store.edit { it[K_DAILY_DIGEST_ON] = on }
+    suspend fun setPantryExpiry(on: Boolean) = store.edit { it[K_PANTRY_EXPIRY_ON] = on }
+    suspend fun setWeightCustom(on: Boolean, time: String) = store.edit {
+        it[K_WEIGHT_CUSTOM_ON] = on; it[K_WEIGHT_CUSTOM_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_WEIGHT_CUSTOM_DATE)
+    }
+    suspend fun setMood(on: Boolean, time: String) = store.edit {
+        it[K_MOOD_ON] = on; it[K_MOOD_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_MOOD_DATE)
+    }
+    suspend fun setSleep(on: Boolean, time: String) = store.edit {
+        it[K_SLEEP_ON] = on; it[K_SLEEP_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_SLEEP_DATE)
+    }
+
+    /**
+     * Restores every field of [settings] in one transaction — backup restore
+     * previously only called setBreakfast/setLunch/setDinner/setHydration/
+     * setWeight, which silently dropped snack, all four custom labels,
+     * hydration/weight custom-time reminders, and every user-created custom
+     * reminder even though exportToJson serializes all of them. A user
+     * restoring a backup on a new phone lost that data with no warning.
+     */
+    suspend fun restoreAll(settings: ReminderSettings) = store.edit { p ->
+        p[K_BREAKFAST_ON] = settings.breakfastOn; p[K_BREAKFAST_TIME] = settings.breakfastTime; p[K_BREAKFAST_LABEL] = settings.breakfastLabel
+        p[K_SNACK_ON]     = settings.snackOn;     p[K_SNACK_TIME]     = settings.snackTime;     p[K_SNACK_LABEL]     = settings.snackLabel
+        p[K_LUNCH_ON]     = settings.lunchOn;     p[K_LUNCH_TIME]     = settings.lunchTime;     p[K_LUNCH_LABEL]     = settings.lunchLabel
+        p[K_DINNER_ON]    = settings.dinnerOn;    p[K_DINNER_TIME]    = settings.dinnerTime;    p[K_DINNER_LABEL]    = settings.dinnerLabel
+        p[K_HYDRATION_ON] = settings.hydrationOn; p[K_HYDRATION_INTERVAL] = settings.hydrationIntervalHours
+        p[K_HYDRATION_CUSTOM_ON] = settings.hydrationCustomOn; p[K_HYDRATION_CUSTOM_TIME] = settings.hydrationCustomTime
+        p[K_WEIGHT_ON] = settings.weightOn; p[K_WEIGHT_THRESHOLD] = settings.weightThresholdDays
+        p[K_WEIGHT_CUSTOM_ON] = settings.weightCustomOn; p[K_WEIGHT_CUSTOM_TIME] = settings.weightCustomTime
+        p[K_ACTIVITY_ON] = settings.activityOn; p[K_ACTIVITY_THRESHOLD] = settings.activityThresholdDays
+        p[K_CUSTOM_REMINDERS] = Json.encodeToString(settings.customReminders)
+        // Previously the one field this "restores every field" function didn't -
+        // exportToJson serializes it fine, so a backup restore silently reset the
+        // daily digest back to off with no error, the same class of bug this
+        // function's own doc comment says it was written to prevent for snack/
+        // labels/custom reminders in an earlier round.
+        p[K_DAILY_DIGEST_ON] = settings.dailyDigestOn
+        p[K_PANTRY_EXPIRY_ON] = settings.pantryExpiryOn
+        p[K_MOOD_ON] = settings.moodOn; p[K_MOOD_TIME] = settings.moodTime
+        p[K_SLEEP_ON] = settings.sleepOn; p[K_SLEEP_TIME] = settings.sleepTime
+    }
+
+    suspend fun fastingTargetAlreadyNotified(startMs: Long): Boolean =
+        storeData.first()[K_LAST_FASTING_NOTIFIED_START] == startMs
+
+    suspend fun markFastingTargetNotified(startMs: Long) = store.edit { it[K_LAST_FASTING_NOTIFIED_START] = startMs }
+
+    suspend fun wasFiredToday(key: Preferences.Key<String>): Boolean =
+        storeData.first()[key] == LocalDate.now().toString()
+
+    suspend fun markFiredToday(key: Preferences.Key<String>) = store.edit { it[key] = LocalDate.now().toString() }
+
+    private suspend fun dueAndMarkMs(key: Preferences.Key<Long>, minElapsedMs: Long): Boolean {
+        var due = false
+        store.edit { p ->
+            val now = System.currentTimeMillis()
+            val last = p[key] ?: 0L
+            if (now - last >= minElapsedMs) {
+                due = true
+                p[key] = now
+            }
+        }
+        return due
+    }
+
+    /** Returns true (and marks) if at least [intervalHours] have elapsed since the last hydration fire. */
+    suspend fun hydrationDueAndMark(intervalHours: Int): Boolean =
+        dueAndMarkMs(K_LAST_HYDRATION_MS, intervalHours * MS_PER_HOUR)
+
+    /**
+     * Returns true (and marks) if at least [intervalMinutes] have elapsed since this medication's
+     * last re-notify — used to keep nudging about an unlogged dose after the initial scheduled
+     * reminder, instead of firing once and going silent regardless of whether it was taken.
+     */
+    suspend fun medicationRenotifyDueAndMark(medicationId: String, time: String, intervalMinutes: Long): Boolean =
+        dueAndMarkMs(medicationLastNotifiedMsKey(medicationId, time), intervalMinutes * 60_000L)
+}

@@ -1,0 +1,388 @@
+package fr.scanneat.presentation.result
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.domain.engine.nutrition.ImprovementTip
+import fr.scanneat.domain.engine.scoring.PersonalScoreResult
+import fr.scanneat.domain.engine.scoring.gradeVerdict
+import fr.scanneat.domain.engine.scoring.personalGrade
+import fr.scanneat.domain.model.NutritionPer100g
+import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.domain.model.ScanSource
+import fr.scanneat.presentation.expenses.components.displayLabel
+import fr.scanneat.presentation.result.cards.*
+import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
+import kotlin.math.roundToInt
+
+// Assembles the sections that make up a scan result. Each section lives in
+// cards/*.kt (one file per independent card/banner). Was previously inlined
+// directly in ResultScreen.kt as part of a single 467-line file.
+@Composable
+internal fun ResultContent(
+    scan: ScanResult,
+    personalScore: PersonalScoreResult?,
+    comparisonResult: fr.scanneat.data.repository.scan.ComparisonResult? = null,
+    pairings: List<String> = emptyList(),
+    betterAlternative: ScanResult? = null,
+    language: String = "fr",
+    scoreDelta: Int? = null,
+    scoreHistory: List<Int> = emptyList(),
+    recall: fr.scanneat.data.repository.recall.RecallEntry? = null,
+    pantryStock: fr.scanneat.data.repository.pantry.PantryItem? = null,
+    avgLoggedPortionG: Double? = null,
+    priceEntries: List<fr.scanneat.data.repository.expense.PriceEntry> = emptyList(),
+    currencySymbol: String = "€",
+    improvementTips: List<ImprovementTip> = emptyList(),
+    onSavePrice: (Double, Double?) -> Unit = { _, _ -> },
+    onDeletePrice: (String) -> Unit = {},
+    onOpenResult: (Long) -> Unit = {},
+    onOpenProfile: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+) {
+    val audit = scan.audit
+    // User-reported (real device screenshot): a real Haze backdrop blur over
+    // ambientGloom's own background was tried here, but ambientGloom is a
+    // near-uniform gradient wash with no texture/detail to actually blur -
+    // the result was visually indistinguishable from no card at all. Reverted
+    // to a plain, clearly-opaque ScanEatCard (its own default fill/edge/
+    // shadow, same as every other card in the app) instead of a blur effect
+    // that has nothing to blur.
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+            .verticalScroll(rememberScrollState())
+            // contentPadding (FloatingScreenScaffold's own PaddingValues: status-bar
+            // inset + FloatingTopBarHeight) is applied INSIDE the scroll, like every
+            // other screen's LazyColumn contentPadding — previously the caller passed
+            // it as an outer Modifier.padding(), which shrank the bounds before the
+            // gloom was painted and then added its own extra Spacing.M on top of the
+            // header clearance.
+            .padding(contentPadding)
+            .padding(horizontal = Spacing.L),
+        verticalArrangement = Arrangement.spacedBy(Spacing.M),
+    ) {
+        ScanEatCard(
+            emphasis = CardEmphasis.HERO,
+            contentPadding = PaddingValues(Spacing.L),
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
+        ) {
+        // Product name + source
+        Text(audit.productName, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+            // §A5-audit finding: was scan.product.category.key.replace('_', ' ') -
+            // the raw enum key with underscores swapped for spaces (e.g. "processed
+            // meat"), always English regardless of app language, shown on the
+            // Result screen's own header - the single most-seen surface in the
+            // app after every scan. ExpensesSummaryCard.displayLabel() already
+            // exists as the proper localized mapping; reused here instead of a
+            // third raw-key fallback (see the identical fix on ScanHistoryRow).
+            Text(scan.product.category.displayLabel(),
+                style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
+            Text("•", color = TextMuted)
+            // Was scan.source.name.lowercase().replace('_', ' ') - the internal
+            // ScanSource enum's own identifier (e.g. "open food facts", "llm")
+            // shown verbatim as user-facing copy, same class of leak as the
+            // FOOD_DB placeholder fixed earlier this round.
+            Text(stringResource(scan.source.labelRes()),
+                style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
+        }
+
+        // User-requested "connect everything": scanning a product already
+        // tracked in the pantry previously gave no indication of that here -
+        // the user had no way to tell "I already have this at home" without
+        // leaving the scan flow to check Garde-manger separately.
+        pantryStock?.let { stock ->
+            Text(
+                stringResource(R.string.result_pantry_stock, stock.quantity.formatDecimal(), stock.unit.key),
+                style = MaterialTheme.typography.labelMedium, color = AccentCoral,
+            )
+        }
+        // User-requested: "portion réelle vs recommandée" - see
+        // ResultViewModel.avgLoggedPortionG's own doc comment.
+        avgLoggedPortionG?.let { avg ->
+            val reference = scan.product.weightG?.takeIf { it in 10.0..2000.0 } ?: 100.0
+            val deltaPct = ((avg - reference) / reference * 100).roundToInt()
+            Text(
+                stringResource(R.string.result_avg_portion, avg.roundToInt(), reference.roundToInt()) +
+                    if (deltaPct != 0) " (${if (deltaPct > 0) "+" else ""}$deltaPct%)" else "",
+                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+            )
+        }
+
+        // User-requested: see RecallBanner's own doc comment - the live-scan
+        // recall check (ScanScreen's camera overlay) never carried over to
+        // this screen before. Placed ahead of every other banner - a
+        // confirmed government safety recall outranks every other signal
+        // on this page.
+        recall?.let { RecallBanner(it) }
+
+        // User-requested: mapCategory() fell back to OTHER's generic,
+        // unverified thresholds for this product - see UncertainCategoryBanner's
+        // own doc comment.
+        if (scan.product.category == fr.scanneat.domain.model.ProductCategory.OTHER) {
+            UncertainCategoryBanner()
+        }
+
+        // User-requested: see RescoredBanner's own doc comment - only present
+        // right after ScanRepositoryHistory's staleness rescore actually
+        // changed the score, not on every load.
+        scan.rescoredFrom?.let { previous -> RescoredBanner(previousScore = previous, currentScore = audit.score) }
+
+        // NutriScore / Eco-Score / NOVA — fully computed by the scoring engine
+        // for every scan but previously never surfaced anywhere in this screen.
+        ScoreBadgesRow(audit = audit, novaClass = scan.product.novaClass)
+
+        // Score ring(s)
+        if (personalScore != null && personalScore.applicable) {
+            DualScoreRing(
+                classicScore  = audit.score,
+                classicGrade  = audit.grade,
+                personalScore = personalScore.personalScore,
+                personalGrade = personalGrade(personalScore.personalScore),
+                veto          = personalScore.veto,
+                scoreDelta    = scoreDelta,
+            )
+        } else {
+            ScoreRing(score = audit.score, grade = audit.grade, scoreDelta = scoreDelta)
+            PersonalizationPromptCard(onOpenProfile = onOpenProfile)
+        }
+
+        // New: product score history mini-sparkline (when ≥ 2 prior scans exist)
+        if (scoreHistory.size >= 2) {
+            ProductScoreHistoryRow(scores = scoreHistory, currentScore = audit.score)
+        }
+
+        // Verdict — matches whichever grade the ring above actually shows. When
+        // a personal score is displayed, the ring switches to the PERSONAL
+        // grade (diet/health/goal adjustments can move it a full letter away
+        // from the classic grade - e.g. plain water: NutritionalDensityPillar
+        // correctly scores 0/25 for it since protein/fiber/micronutrients
+        // aren't a meaningful axis for water, landing the classic grade in B
+        // territory, while a positive personal delta pushes it to A) - showing
+        // audit.verdict (always the classic-grade text) here contradicted the
+        // grade letter the user was just shown, e.g. "A" ring above
+        // "Acceptable — fréquence modérée" underneath.
+        val verdictText = if (personalScore != null && personalScore.applicable) {
+            gradeVerdict(personalGrade(personalScore.personalScore), language)
+        } else audit.verdict
+        Text(verdictText, style = MaterialTheme.typography.bodyLarge, color = OnBackground,
+            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+
+        comparisonResult?.let { ComparisonCard(it) }
+
+        betterAlternative?.let { AlternativeCard(it, onOpen = { onOpenResult(it.dbId) }) }
+
+        if (pairings.isNotEmpty()) {
+            PairingsCard(pairings)
+        }
+
+        if (personalScore?.veto == true) {
+            DietVetoBanner(personalScore.dietReason)
+        }
+
+        val allergens = personalScore?.allergenHits.orEmpty()
+        if (allergens.isNotEmpty()) {
+            AllergenWarningsCard(allergens, language)
+        }
+
+        // Personalization active but this particular scan's ingredient panel
+        // couldn't be OCR'd - allergenHits/veto are both silently empty in that
+        // case (nothing to match against), which otherwise looks identical to a
+        // genuine "no allergens found" result for a user with real allergens set.
+        // Checked structurally (empty ingredient list) rather than by matching
+        // scan.warnings' text, since that text is localized and this condition
+        // must hold regardless of the app's display language.
+        if (personalScore != null && personalScore.applicable && allergens.isEmpty() && personalScore.veto != true &&
+            scan.product.ingredients.isEmpty()
+        ) {
+            AllergenUnverifiedBanner()
+        }
+
+        // Personal score adjustments
+        if (personalScore != null && personalScore.applicable && personalScore.adjustments.isNotEmpty()) {
+            AdjustmentsSection(adjustments = personalScore.adjustments)
+        }
+
+        // What to do about it, not just what's wrong - moved ahead of the pure
+        // diagnostic FlagsSection below. Previously the only genuinely
+        // actionable content on a scan ("what's costing the most points,"
+        // ranked) lived exclusively behind the top-bar hint icon; the primary
+        // screen was 100% "here's what's wrong" with no "here's what to do."
+        if (improvementTips.isNotEmpty()) {
+            ImprovementTipsSection(stringResource(R.string.hint_section_improve), improvementTips)
+        }
+
+        // Classic flags
+        if (audit.redFlags.isNotEmpty() || audit.greenFlags.isNotEmpty()) {
+            FlagsSection(redFlags = audit.redFlags, greenFlags = audit.greenFlags)
+        }
+
+        // Pillars
+        PillarsSection(pillars = audit.pillars)
+
+        // Price / value-score tracking — manual entry only (no OCR price-tag
+        // detection), see PriceEntryCard's own doc comment.
+        PriceEntryCard(entries = priceEntries, currencySymbol = currencySymbol, grade = scan.audit.grade, onSave = onSavePrice, onDelete = onDeletePrice)
+
+        // Nutrition table
+        NutritionTable(nutrition = scan.product.nutrition)
+
+        // New: macro contribution row — shows how much of the daily reference values
+        // (per 100g serving) this product covers. Previously the nutrition table showed
+        // raw grams with no daily-context anchor, so users had no quick intuition of
+        // whether 12g of fat is a lot or a little relative to their day.
+        MacroContributionCard(nutrition = scan.product.nutrition)
+
+        // Warnings — ScanResult.warnings (OCR-parse issues, and OFF-vs-LLM source-
+        // conflict warnings like "Conflict: energy_kcal OFF=120 LLM=340") was
+        // populated by ScanRepository but never read anywhere in the UI, so the
+        // single most actionable warning class — "the label doesn't match Open
+        // Food Facts" — was silently swallowed. Merged with audit.warnings here
+        // rather than given its own section, since both are the same "heads up"
+        // concept from the user's perspective.
+        val allWarnings = (audit.warnings + scan.warnings).distinct()
+        if (allWarnings.isNotEmpty()) {
+            WarningsSection(warnings = allWarnings)
+        }
+        }
+
+        Spacer(Modifier.height(Spacing.XXL))
+    }
+}
+
+/** Localized, user-meaningful label for where a scan's data came from - see
+ *  the call site's own comment on the raw-enum-name leak this replaces. */
+private fun ScanSource.labelRes(): Int = when (this) {
+    ScanSource.OPEN_FOOD_FACTS -> R.string.result_source_off
+    ScanSource.LLM             -> R.string.result_source_photo
+    ScanSource.MERGED          -> R.string.result_source_merged
+    ScanSource.MANUAL          -> R.string.result_source_manual
+}
+
+/** Compact card showing how much of the EU daily reference values (per 100 g) this product covers. */
+@Composable
+private fun MacroContributionCard(nutrition: NutritionPer100g) {
+    // positiveWhenHigh - protein/fiber are nutrients the rest of this app's own scoring
+    // (NutritionalDensityPillar's protein/fiber bonuses) treats as GOOD when high; kcal/
+    // carbs/fat are the opposite. This row previously colored all five identically
+    // (semanticAmber() "caution" past 50% of the daily reference), so a product covering
+    // half a day's protein or fiber in one 100g serving - a genuine positive - got the
+    // exact same warning color as one covering half a day's fat or sugar.
+    data class MacroRow(val label: String, val value: Double, val ref: Double, val positiveWhenHigh: Boolean)
+    val rows = listOf(
+        MacroRow(stringResource(R.string.result_macro_kcal),    nutrition.energyKcal, 2000.0, positiveWhenHigh = false),
+        MacroRow(stringResource(R.string.result_macro_protein), nutrition.proteinG,     50.0, positiveWhenHigh = true),
+        MacroRow(stringResource(R.string.result_macro_carbs),   nutrition.carbsG,      260.0, positiveWhenHigh = false),
+        MacroRow(stringResource(R.string.result_macro_fat),     nutrition.fatG,         70.0, positiveWhenHigh = false),
+        MacroRow(stringResource(R.string.result_macro_fiber),   nutrition.fiberG,       25.0, positiveWhenHigh = true),
+    ).filter { it.value > 0.0 }
+    if (rows.isEmpty()) return
+    ScanEatCard(
+        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+    ) {
+        Text(stringResource(R.string.result_macro_contribution_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+        rows.forEach { row ->
+            val pct = (row.value / row.ref).coerceIn(0.0, 1.0).toFloat()
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Text(row.label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(48.dp))
+                LinearProgressIndicator(
+                    progress = { pct },
+                    modifier = Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)),
+                    color = when {
+                        pct >= 0.5f && row.positiveWhenHigh -> semanticGreen()
+                        pct >= 0.5f -> semanticAmber()
+                        else -> AccentCoral.copy(0.7f)
+                    },
+                    trackColor = OnSurface.copy(0.08f),
+                )
+                Text(
+                    "${(pct * 100).roundToInt()}%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = OnSurface.copy(0.5f),
+                    modifier = Modifier.width(32.dp),
+                    textAlign = TextAlign.End,
+                )
+            }
+        }
+        // Bumped from 0.35f - a UI/UX audit flagged this explanatory note as
+        // real informational content rendered too faint against the dark surface.
+        Text(stringResource(R.string.result_macro_contribution_note), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+    }
+}
+
+/** Mini sparkline showing the last N scores for this product + the current score as the rightmost dot. */
+@Composable
+private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
+    val allScores = scores + currentScore
+    val minScore  = allScores.min().toFloat()
+    val maxScore  = allScores.max().toFloat()
+    val range     = (maxScore - minScore).coerceAtLeast(1f)
+    val lineColor = AccentCoral
+
+    ScanEatCard(
+        contentPadding = PaddingValues(Spacing.M),
+    ) {
+        Text(
+            stringResource(R.string.result_score_history_title),
+            style = MaterialTheme.typography.labelSmall,
+            color = OnSurface.copy(0.5f),
+        )
+        Spacer(Modifier.height(Spacing.XS))
+        // Same gap already fixed on WeightHistorySection's trend Canvas and the
+        // dashboard bar charts (WeeklyBarsCard/MonthlyTrendCard) - a Canvas-drawn
+        // sparkline carries no text, so TalkBack skipped the actual trend shape
+        // entirely, leaving only the first/current score labels below it.
+        val trendDescription = stringResource(R.string.result_score_history_cd, scores.first(), currentScore)
+        Canvas(
+            modifier = Modifier.fillMaxWidth().height(48.dp)
+                .clearAndSetSemantics { contentDescription = trendDescription },
+        ) {
+            val pts = allScores.mapIndexed { i, s ->
+                val x = if (allScores.size == 1) size.width / 2f
+                        else i / (allScores.size - 1f) * size.width
+                val y = size.height - (s - minScore) / range * size.height
+                Offset(x, y)
+            }
+            val path = Path().apply {
+                pts.forEachIndexed { i, pt -> if (i == 0) moveTo(pt.x, pt.y) else lineTo(pt.x, pt.y) }
+            }
+            drawPath(path, color = lineColor.copy(0.4f), style = Stroke(width = 2.dp.toPx()))
+            pts.forEachIndexed { i, pt ->
+                val isLast = i == pts.lastIndex
+                drawCircle(
+                    color  = if (isLast) lineColor else lineColor.copy(0.5f),
+                    radius = if (isLast) 4.dp.toPx() else 4.dp.toPx(),
+                    center = pt,
+                )
+            }
+        }
+        Spacer(Modifier.height(Spacing.XS))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("${scores.first()}", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnSurface.copy(0.4f))
+            Text("$currentScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = lineColor, fontWeight = FontWeight.Bold)
+        }
+    }
+}

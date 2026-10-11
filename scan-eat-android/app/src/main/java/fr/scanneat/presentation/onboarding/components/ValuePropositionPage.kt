@@ -1,0 +1,63 @@
+package fr.scanneat.presentation.onboarding.components
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.MonitorHeart
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import fr.scanneat.R
+import fr.scanneat.presentation.ui.theme.*
+
+@Composable
+internal fun ColumnScope.ValuePropositionPage(onNext: () -> Unit) {
+    Text(stringResource(R.string.onboarding_value_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
+
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+        ValueCard(
+            icon    = Icons.Rounded.Fingerprint,
+            title   = stringResource(R.string.onboarding_value_transparency_title),
+            body    = stringResource(R.string.onboarding_value_transparency_body),
+        )
+        ValueCard(
+            icon    = Icons.Rounded.MonitorHeart,
+            title   = stringResource(R.string.onboarding_value_biolism_title),
+            body    = stringResource(R.string.onboarding_value_biolism_body),
+        )
+        // R&D §X.0: allergen-aware scoring and medication-interaction checks were
+        // both fully built (AllergenDetector, MedicationViewModel.detectInteractions)
+        // but never mentioned anywhere in onboarding - a new user had no way to know
+        // this safety layer existed unless they stumbled into it later. It's a real
+        // differentiator vs. competitors (Yuka/MyFitnessPal/Cronometer don't combine
+        // scoring + diary + this kind of safety modeling), so it belongs here.
+        ValueCard(
+            icon    = Icons.Rounded.Shield,
+            title   = stringResource(R.string.onboarding_value_safety_title),
+            body    = stringResource(R.string.onboarding_value_safety_body),
+        )
+    }
+
+    // New: feature-domain preview — previously page 1 only showed 2 abstract
+    // value cards with no concrete preview of what the app actually tracks;
+    // users arrived at profile setup with no idea what domains were covered.
+    FeatureDomainChips()
+
+    // See WelcomePage's identical fix: OnboardingScreen's page container is now a
+    // wrap-content ScanEatCard (matching BiolismOnboardingScreen), so weight(1f)
+    // has no remaining space to expand into — a fixed gap replaces it.
+    Spacer(Modifier.height(Spacing.XL))
+    ScanEatPrimaryButton(
+        onClick = onNext,
+        modifier = Modifier.fillMaxWidth(),
+    ) { Text(stringResource(R.string.onboarding_continue_button), style = MaterialTheme.typography.titleMedium) }
+}

@@ -1,0 +1,134 @@
+package fr.scanneat.presentation.history.components
+
+import compose.icons.tablericons.Star
+import compose.icons.tablericons.ChevronRight
+import compose.icons.tablericons.AlertTriangle
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.domain.model.*
+import fr.scanneat.presentation.expenses.components.displayLabel
+import fr.scanneat.presentation.ui.theme.*
+
+@Composable
+internal fun ScanHistoryRow(
+    scan: ScanResult,
+    warning: String?,
+    // User-requested: RecallRepository was only ever checked live during
+    // camera scanning - see ScanHistoryViewModel.checkFavoritesForRecalls()'s
+    // own doc comment. false by default so every existing call site (History,
+    // which doesn't run the recall check) is unaffected.
+    recalled: Boolean = false,
+    onOpen: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val gradeColor = gradeColor(scan.audit.grade)
+    val haptics = LocalHapticFeedback.current
+    // Appended rather than a new formatted string resource — the warning text
+    // itself already comes pre-localized out of checkUserAllergens()/checkDiet().
+    // Without this, a TalkBack user would never hear about the same allergen/
+    // diet conflict a sighted user now sees on this row (visual-only otherwise).
+    val recalledLabel = stringResource(R.string.history_item_recalled)
+    val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score) +
+        (if (recalled) ", $recalledLabel" else warning?.let { ", $it" } ?: "")
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        contentPadding = PaddingValues(Spacing.M),
+        onClick = onOpen,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+        ) {
+            // clearAndSetSemantics scoped to just the grade+name/category portion,
+            // not the whole row - it previously wrapped the IconButtons below too,
+            // wiping their own semantics along with everything else it merges. A
+            // TalkBack user could no longer reach the favorite/delete buttons on
+            // any scan history row at all, only hear this row's single summary.
+            Row(
+                modifier = Modifier.weight(1f).clearAndSetSemantics { contentDescription = summary },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+            ) {
+                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
+                    Text(
+                        scan.audit.grade.label,
+                        modifier = Modifier.padding(horizontal = Spacing.SM, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = gradeColor, fontWeight = FontWeight.Bold,
+                    )
+                }
+                Column(Modifier.weight(1f)) {
+                    Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    // §A5-audit finding: was scan.product.category.key.replace('_', ' ') -
+                    // the raw enum key with underscores swapped for spaces (e.g.
+                    // "processed meat"), always English regardless of app language.
+                    // ExpensesSummaryCard.displayLabel() already exists as the proper
+                    // localized mapping (built for this exact bug on the Dépenses
+                    // breakdown row) - reused here instead of a second raw fallback.
+                    Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.displayLabel()), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                    // Same checkUserAllergens()/checkDiet() warning Diary/Recipes/Grocery/
+                    // Templates already show live - previously the grade badge here was the
+                    // only thing this row ever showed, with no trace of an allergen/diet
+                    // conflict the Result screen flagged the moment this same product was
+                    // originally scanned. semanticAmber(), not the brand accent - matches
+                    // DiaryEntryCard's identical safety-relevant warning styling.
+                    // Recall takes visual priority over the allergen/diet warning -
+                    // semanticRed(), not semanticAmber() like the warning below,
+                    // since an official government safety recall is a strictly
+                    // more severe signal than a personal diet/allergen conflict.
+                    if (recalled) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticRed(), modifier = Modifier.size(IconSize.Micro))
+                            Text(stringResource(R.string.history_item_recalled), style = MaterialTheme.typography.labelSmall, color = semanticRed(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    } else if (warning != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Micro))
+                            Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                }
+            }
+            // Was a silent Room write with only the icon's color swap as feedback -
+            // a quick tap on a scrolling list gave no confirmation the action
+            // registered. A short haptic tick matches the confirmation every other
+            // toggle-style action in the app already gives (Grocery's check-off, etc.).
+            IconButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onToggleFavorite() }) {
+                // F32 (docs/design-audit-step11-icons-illustration-dataviz-copy.md):
+                // Tabler's outline-only icon set has no filled/outline Star pair like
+                // Material's Star/StarBorder — the on/off favorite state is carried by
+                // tint alone now (already partly the case here) rather than a shape swap.
+                Icon(
+                    TablerIcons.Star,
+                    stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                    tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+            IconButton(onClick = onDelete) {
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+            }
+            Icon(TablerIcons.ChevronRight, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
+        }
+    }
+}

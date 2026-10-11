@@ -1,0 +1,145 @@
+package fr.scanneat.domain.engine.scoring
+
+import fr.scanneat.domain.model.Product
+import fr.scanneat.util.formatDecimal
+
+// Diabetes, hypertension and kidney_disease - the three "metabolic/cardio"
+// health conditions checkHealthConditions handles via a flat nutrient
+// threshold (sugar, salt/caffeine, protein respectively), each raised above
+// its historical flat number to the category-relative bar computed once by
+// the caller (see checkHealthConditions's own doc comment for the "mozzarella
+// flagged, boxed pasta not" rationale behind that).
+internal fun checkMetabolicConditions(
+    product: Product,
+    conditions: Set<String>,
+    lang: String,
+    catThresholds: CategoryThresholds,
+    isSugarSweetenedBeverage: Boolean,
+    adjustments: MutableList<PersonalAdjustment>,
+) {
+    if ("diabetes" in conditions) {
+        val sugars = product.nutrition.sugarsG
+        if (isSugarSweetenedBeverage) {
+            adjustments += PersonalAdjustment(
+                points = -5.0,
+                reason = if (lang == "en") "Sugar-sweetened beverage — liquid sugar causes a faster glycemic spike than the same amount in solid food, a particular concern for diabetes (WHO Sugars Intake Guideline 2015)"
+                         else "Boisson sucrée — le sucre liquide provoque un pic glycémique plus rapide que la même quantité dans un aliment solide, une préoccupation particulière en cas de diabète (recommandation OMS sur les sucres, 2015)",
+                category = AdjustmentCategory.CONDITION,
+            )
+        // .third/.first = the "major"/"minor" tiers of Quadruple(minor, moderate,
+        // major, critical) - for the DEFAULT category these are exactly 15.0/5.0,
+        // so this is behavior-identical to the old flat cutoff for any product
+        // whose category has no override, and only loosens for categories (e.g.
+        // condiments) whose own base-pillar thresholds are already higher.
+        // Mirrors NegativeNutrientsPillar's own 4-tier sugar gradient
+        // (minor/moderate/major/critical) instead of collapsing everything
+        // above "major" into one flat -4 - a product just over the major
+        // line and one deep into critical (3x+ the bar) previously read
+        // identically ("High sugar — caution advised") for the one condition
+        // where sugar-severity gradation matters most clinically, even
+        // though the base pillar directly below it already draws that
+        // distinction for every user.
+        //
+        // Pass-3 audit finding: deliberately uses TOTAL sugars
+        // (product.nutrition.sugarsG), not NegativeNutrientsPillar's
+        // added-sugars-if-declared figure (n.addedSugarsG ?: n.sugarsG) -
+        // a prior comment here claimed to "mirror" that pillar without
+        // flagging this difference. This is intentional, not a bug: added-
+        // vs-natural sugar is a meaningful distinction for general product-
+        // quality scoring, but for diabetes specifically the acute glycemic
+        // response depends on total carbohydrate/sugar reaching the
+        // bloodstream regardless of source - a fruit compote's "natural"
+        // sugar raises blood glucose the same way added sugar does. Kept as
+        // total sugars; only the false "mirrors" wording was corrected.
+        } else if (sugars >= catThresholds.sugarThresholds.fourth) {
+            adjustments += PersonalAdjustment(
+                points = -6.0,
+                reason = if (lang == "en") "Very high sugar (${sugars} g/100 g) — strong caution advised for diabetes"
+                         else "Sucres très élevés (${sugars} g/100 g) — grande prudence recommandée en cas de diabète",
+                category = AdjustmentCategory.CONDITION,
+            )
+        } else if (sugars >= catThresholds.sugarThresholds.third) {
+            adjustments += PersonalAdjustment(
+                points = -4.0,
+                reason = if (lang == "en") "High sugar (${sugars} g/100 g) — caution advised for diabetes"
+                         else "Sucres élevés (${sugars} g/100 g) — prudence recommandée en cas de diabète",
+                category = AdjustmentCategory.CONDITION,
+            )
+        } else if (sugars <= catThresholds.sugarThresholds.first) {
+            adjustments += PersonalAdjustment(
+                points = 2.0,
+                reason = if (lang == "en") "Low sugar — diabetes-friendly"
+                         else "Faible en sucres — adapté au diabète",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+    }
+    if ("hypertension" in conditions) {
+        val salt = product.nutrition.saltG
+        // maxOf against the original flat 1.2g - never lowers the bar for any
+        // category (so a random product still gets flagged exactly as before),
+        // only raises it for CONDIMENT/PROCESSED_MEAT, whose own category norm
+        // (CategoryThresholds.kt's saltThresholds) is structurally higher -
+        // same "mozzarella flagged for sat fat, soda wasn't" category-blindness
+        // this fixes, just for salt/hypertension instead of sat-fat/BMI. Without
+        // this, every soy sauce and every cured ham triggered this exact same
+        // caution regardless of being entirely typical for its category.
+        val hypertensionSaltBar = maxOf(1.2, catThresholds.saltThresholds.first)
+        if (salt >= hypertensionSaltBar) {
+            adjustments += PersonalAdjustment(
+                points = -4.0,
+                reason = if (lang == "en") "High salt (${salt} g/100 g) — caution advised for hypertension"
+                         else "Sel élevé (${salt} g/100 g) — prudence recommandée en cas d'hypertension",
+                category = AdjustmentCategory.CONDITION,
+            )
+        } else if (salt <= 0.3) {
+            adjustments += PersonalAdjustment(
+                points = 2.0,
+                reason = if (lang == "en") "Low salt — hypertension-friendly"
+                         else "Faible en sel — adapté à l'hypertension",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+        // Previously no caffeine check existed for hypertension at all — a
+        // caffeinated zero-sugar soda/energy drink (e.g. Monster Zero, Coca-Cola
+        // Zero) passed every hypertension rule cleanly and read as fully "safe"
+        // purely because caffeine was never modeled as data, not because it
+        // genuinely poses no risk. Caffeine causes an acute BP rise (Mesas et al.,
+        // meta-analysis, Am J Clin Nutr 2011); 20 mg/100g/mL is roughly typical
+        // cola/energy-drink level and well below what a null (undeclared) value
+        // would ever wrongly match, so this only fires on a real declared amount.
+        product.nutrition.caffeineMg?.let { caffeine ->
+            if (caffeine >= 20.0) {
+                adjustments += PersonalAdjustment(
+                    points = -2.0,
+                    reason = if (lang == "en") "Contains caffeine (${caffeine.toInt()} mg/100 g) — can raise blood pressure acutely, caution advised for hypertension"
+                             else "Contient de la caféine (${caffeine.toInt()} mg/100 g) — peut élever la tension artérielle de façon aiguë, prudence recommandée en cas d'hypertension",
+                    category = AdjustmentCategory.CONDITION,
+                )
+            }
+        }
+    }
+    // Reverted to a flat 15.0g bar - pass-2 context/logic audit finding,
+    // verified against French clinical guidance (ameli.fr/Assurance
+    // Maladie, French nephrology sources): chronic kidney disease protein
+    // restriction is a hard DAILY GRAM BUDGET (0.55-1.0 g/kg/day depending
+    // on CKD stage), not a "is this unusually protein-dense for its
+    // category" quality judgment. Category-relativizing this bar (as the
+    // sat-fat/mozzarella-style fix correctly does for genuine quality
+    // axes) was the wrong pattern applied here: raising the bar to
+    // FISH/FRESH_MEAT's own "high" tier (25g) meant an entirely ordinary
+    // 20g-protein salmon fillet - which still counts fully toward a kidney
+    // patient's fixed daily protein allowance regardless of whether 20g is
+    // "typical for fish" - silently stopped triggering the caution at all.
+    // A kidney patient needs to know a product is protein-dense in
+    // absolute terms, not relative to its peers.
+    val kidneyProteinBar = 15.0
+    if ("kidney_disease" in conditions && product.nutrition.proteinG >= kidneyProteinBar) {
+        adjustments += PersonalAdjustment(
+            points = -3.0,
+            reason = if (lang == "en") "High protein (${product.nutrition.proteinG.formatDecimal(1)} g/100 g) — caution advised for kidney disease"
+                     else "Protéines élevées (${product.nutrition.proteinG.formatDecimal(1)} g/100 g) — prudence recommandée en cas de maladie rénale",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
+}

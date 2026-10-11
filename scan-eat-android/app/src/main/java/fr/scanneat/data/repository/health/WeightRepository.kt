@@ -1,0 +1,257 @@
+package fr.scanneat.data.repository.health
+
+import fr.scanneat.data.local.db.toIsoString
+import fr.scanneat.data.local.db.toLocalDate
+import fr.scanneat.data.local.db.weight.WeightDao
+import fr.scanneat.data.local.db.weight.WeightEntity
+import fr.scanneat.data.local.prefs.SecureFieldCipher
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.domain.model.roundTo1Decimal
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
+
+// ============================================================================
+// WEIGHT REPOSITORY — port of public/data/weight-log.js
+// ============================================================================
+
+data class WeightEntry(
+    val id: String,
+    val date: LocalDate,
+    val weightKg: Double,
+    val notes: String = "",
+)
+
+data class WeightSummary(
+    val latestKg: Double,
+    val latestDate: LocalDate,
+    val deltaKg: Double,         // vs. first entry in window
+    val minKg: Double,
+    val maxKg: Double,
+    val count: Int,
+    val recentCount: Int,
+    val daysWindow: Int,
+    val trendKgPerWeek: Double,  // linear regression
+)
+
+@Singleton
+class WeightRepository @Inject constructor(
+    private val dao: WeightDao,
+    private val healthConnect: HealthConnectRepository,
+    private val userPreferences: UserPreferences,
+) {
+
+    fun observeAll(profileId: String = "default"): Flow<List<WeightEntry>> =
+        dao.observeAll(profileId).map { list -> list.mapNotNull { it.toDomain() } }
+
+    /** Cheap re-trigger signal for callers that only need to know "weight changed",
+     *  not the full history - see WeightDao.observeLatest's own doc comment. */
+    fun observeLatest(profileId: String = "default"): Flow<WeightEntry?> =
+        dao.observeLatest(profileId).map { it?.toDomain() }
+
+    /** Bounded range for callers (e.g. Calendar's visible month) that don't need the whole table. */
+    fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<WeightEntry>> =
+        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.mapNotNull { it.toDomain() } }
+
+    /** Reactive single-date lookup - see WeightDao.observeByDate's own doc comment. */
+    fun observeByDate(date: LocalDate, profileId: String = "default"): Flow<WeightEntry?> =
+        dao.observeByDate(date.toIsoString(), profileId).map { it?.toDomain() }
+
+    /**
+     * Upsert — one entry per day, newest write wins (mirrors weight-log.js).
+     * Also mirrors to Health Connect when the user has granted sync permission
+     * (writeWeight() no-ops silently otherwise — sync is opt-in, never a hard
+     * dependency for the local log to succeed).
+     *
+     * Health Connect's insertRecords() always creates a new record — unlike
+     * the local upsert above, it has no update-in-place here (a true fix
+     * needs Metadata's clientRecordId, whose factory-method shape has
+     * already broken once across this pinned alpha's versions — see
+     * gradle/libs.versions.toml's health-connect comment — so it isn't
+     * safe to guess blind). Skipping the mirror when the value hasn't
+     * actually changed at least stops the common case (re-opening/resaving
+     * the same day) from spamming a fresh duplicate record every time.
+     */
+    suspend fun log(date: LocalDate, weightKg: Double, notes: String = "", profileId: String = "default") {
+        require(weightKg > 0 && weightKg <= 400) { "Invalid weight: $weightKg" }
+        val rounded = weightKg.roundTo1Decimal()
+        // notes is free-text the user attaches to a weigh-in (e.g. "after workout",
+        // "sick this week", "started new medication") - same Keystore-encrypted-at-
+        // rest pattern as Medication's name/dosage/scheduleNote, since it can just
+        // as easily reveal a health condition as those fields do.
+        val existing = dao.upsertForDate(date.toIsoString(), profileId) { existing ->
+            WeightEntity(
+                id        = existing?.id ?: UUID.randomUUID().toString(),
+                date      = date.toIsoString(),
+                weightKg  = rounded,
+                notes     = SecureFieldCipher.encrypt(notes),
+                loggedAt  = System.currentTimeMillis(),
+                profileId = profileId,
+            )
+        }
+        if (existing?.weightKg != rounded) healthConnect.writeWeight(date, rounded)
+        dao.trim(MAX_HISTORY_ROWS, profileId)
+        // Every BMI/TDEE/calorie-balance/kcal-burned calc downstream reads
+        // prefs.profile.weightKg (ProfileViewModel, DashboardViewModel,
+        // ActivityViewModel, BiolismRepository's no-override fallback), but this
+        // never actually called updateWeight() - its own doc comment already
+        // claimed "used by WeightRepository after logging," yet it had zero real
+        // callers, so every one of those calcs kept using a stale weight after
+        // any weigh-in. Skipped for backdated past-day corrections (a fix to an
+        // old missed entry isn't the user's current weight and shouldn't
+        // override it).
+        if (!date.isBefore(LocalDate.now())) userPreferences.updateWeight(rounded)
+    }
+
+    /**
+     * Previously never touched Health Connect at all — log() mirrors a write
+     * there, but deleting a bad/duplicate entry in-app (including via the
+     * Undo-snackbar flow in WeightScreen) left a permanently stale record in
+     * Health Connect and any other app reading from it. Looks the entry up
+     * first purely to get its date, since Health Connect has no stable id to
+     * target directly from the local Room id.
+     */
+    suspend fun delete(id: String) {
+        val entry = dao.findById(id)
+        dao.delete(id)
+        entry?.let {
+            runCatching { healthConnect.deleteWeight(it.date.toLocalDate()) }
+                .onFailure { e -> if (e is CancellationException) throw e else android.util.Log.w("WeightRepository", "HC delete failed", e) }
+        }
+    }
+
+    /**
+     * Pulls in weight records Health Connect has from an *external* source
+     * (a smart scale's own app, etc.) that aren't already logged here —
+     * sync was previously write-only, so a scale writing straight into
+     * Health Connect never actually reached Scan'eat's own history. Only
+     * fills genuinely empty days rather than overwriting an existing local
+     * entry for that date, so it can never silently clobber a manual
+     * correction the user already made in-app for that day. No-ops
+     * entirely if Health Connect isn't available/permitted.
+     */
+    suspend fun syncFromHealthConnect(profileId: String = "default", days: Int = 90) {
+        val zone = java.time.ZoneId.systemDefault()
+        val start = LocalDate.now().minusDays(days.toLong()).atStartOfDay(zone).toInstant()
+        val end = LocalDate.now().plusDays(1).atStartOfDay(zone).toInstant()
+        val external = healthConnect.readExternalWeights(start, end)
+        if (external.isEmpty()) return
+        val existingDates = dao.getRecent(Int.MAX_VALUE, profileId).map { it.date }.toSet()
+        // Health Connect can hold more than one reading per day (e.g. a scale
+        // logging every weigh-in) — the most recent one per day wins, same
+        // "one entry per day" convention log() already uses.
+        val byDate = external.groupBy { it.time.atZone(zone).toLocalDate() }
+        for ((date, records) in byDate) {
+            if (date.toIsoString() in existingDates) continue
+            val latest = records.maxByOrNull { it.time } ?: continue
+            val kg = latest.weight.inKilograms.roundTo1Decimal()
+            dao.insertIfAbsent(date.toIsoString(), profileId) {
+                WeightEntity(
+                    id        = UUID.randomUUID().toString(),
+                    date      = date.toIsoString(),
+                    weightKg  = kg,
+                    notes     = SecureFieldCipher.encrypt(""),
+                    loggedAt  = System.currentTimeMillis(),
+                    profileId = profileId,
+                )
+            }
+            // Same profile-sync rule as log() - a scale writing straight into Health
+            // Connect and pulled in here should keep the app-wide profile weight
+            // fresh too, not just its own local history.
+            if (date == LocalDate.now()) userPreferences.updateWeight(kg)
+        }
+        dao.trim(MAX_HISTORY_ROWS, profileId)
+    }
+
+    private companion object {
+        /** Same retention cap as ActivityRepository/ConsumptionRepository/MedicationRepository. */
+        const val MAX_HISTORY_ROWS = 5000
+    }
+
+    /**
+     * Reactive summary — recomputes whenever any weight entry changes, reusing
+     * observeAll()'s own emission instead of re-fetching. Previously ignored the
+     * emitted list entirely (map { _ -> summarize(...) }) and had summarize() run
+     * its own independent suspend DB query on every single emission — doubling
+     * every weight-triggered query for no reason, since observeAll() had already
+     * just loaded the exact same rows.
+     */
+    fun observeSummary(days: Int = 30, profileId: String = "default"): Flow<WeightSummary?> =
+        observeAll(profileId).map { all -> summarizeFrom(all.sortedBy { it.date }, days) }
+
+    suspend fun summarize(days: Int = 30, profileId: String = "default"): WeightSummary? {
+        val all = dao.getRecent(Int.MAX_VALUE, profileId)
+            .mapNotNull { it.toDomain() }
+            .sortedBy { it.date }
+        return summarizeFrom(all, days)
+    }
+
+    private fun summarizeFrom(all: List<WeightEntry>, days: Int): WeightSummary? {
+        if (all.isEmpty()) return null
+
+        val latest  = all.last()
+        val cutoff  = LocalDate.now().minusDays(days.toLong())
+        val recent  = all.filter { !it.date.isBefore(cutoff) }
+        // No weigh-in inside the window: fall back to the LATEST entry, not the
+        // oldest - all.first() made min/max/delta reflect a weigh-in from years ago.
+        val window  = recent.ifEmpty { listOf(latest) }
+        val first   = window.first()
+        val delta   = (latest.weightKg - first.weightKg).roundTo1Decimal()
+
+        return WeightSummary(
+            latestKg       = latest.weightKg,
+            latestDate     = latest.date,
+            deltaKg        = delta,
+            minKg          = window.minOf { it.weightKg },
+            maxKg          = window.maxOf { it.weightKg },
+            count          = all.size,
+            recentCount    = recent.size,
+            daysWindow     = days,
+            // Was passing `all` (entire unfiltered history) here instead of the
+            // day-windowed `window` list — the regression silently ignored the
+            // requested `days` cutoff that every other stat above respects,
+            // so a plateaued-last-30-days user with a big historic loss got an
+            // overly optimistic weight-goal ETA forecast (and vice versa).
+            trendKgPerWeek = weeklyTrend(window),
+        )
+    }
+
+    // ---- Pure math — port of weeklyTrend() from weight-log.js ----
+
+    private fun weeklyTrend(entries: List<WeightEntry>): Double {
+        if (entries.size < 2) return 0.0
+        val xs = entries.map { it.date.toEpochDay().toDouble() }
+        val ys = entries.map { it.weightKg }
+        val x0 = xs.first()
+        val xn = xs.map { it - x0 }
+        val meanX = xn.average()
+        val meanY = ys.average()
+        var num = 0.0; var den = 0.0
+        for (i in xn.indices) {
+            num += (xn[i] - meanX) * (ys[i] - meanY)
+            den += (xn[i] - meanX) * (xn[i] - meanX)
+        }
+        if (den == 0.0) return 0.0
+        // Unrounded: this feeds weightForecast(), where rounding to 0.1 kg first
+        // turned a real 0.04 kg/week into "flat" and skewed forecast dates by up
+        // to ~40%. Every display formats it with %.1f itself.
+        return (num / den) * 7.0
+    }
+
+    private fun WeightEntity.toDomain(): WeightEntry? = runCatching {
+        WeightEntry(id, date.toLocalDate(), weightKg, SecureFieldCipher.decryptOrNull(notes) ?: notes)
+    }.onFailure {
+        // Same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository/
+        // RecipeRepository/MealTemplateRepository/CustomFoodRepository - this was
+        // the one sibling repo whose toDomain() wasn't guarded, so a single
+        // malformed `date` column (LocalDate.parse throws on it) crashed the
+        // whole observeAll()/observeRange()/summarize() flow instead of just
+        // dropping that one row, taking down WeightScreen/Dashboard/Calendar
+        // entirely rather than degrading gracefully.
+        android.util.Log.w("WeightRepository", "Failed to parse weight entry id=$id", it)
+    }.getOrNull()
+}

@@ -1,0 +1,37 @@
+package fr.scanneat.presentation.biolism.data.cards
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.domain.engine.biolism.BiolismSession
+import fr.scanneat.presentation.biolism.data.*
+import fr.scanneat.presentation.biolism.evolution.BarSparkline
+import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
+import java.util.Locale
+
+@Composable
+fun GlobalSummaryCard(allSessions: List<BiolismSession>) {
+    val totalKcal = allSessions.sumOf { it.kcalBurned }
+    val totalSec  = allSessions.sumOf { it.elapsedSec }
+    val avgKcal   = totalKcal / allSessions.size
+    val avgSec    = totalSec / allSessions.size
+    val spark     = allSessions.takeLast(7)
+    BioCard(stringResource(R.string.biolism_summary_title), badge = { TealBadge(pluralStringResource(R.plurals.biolism_summary_session_count, allSessions.size, allSessions.size)) }) {
+        MetCellGrid(listOf(
+            Triple(stringResource(R.string.biolism_summary_total_burned), if (totalKcal >= 1000) "%.2fk".format(Locale.US, totalKcal / 1000) else totalKcal.formatDecimal(), "kcal"),
+            Triple(stringResource(R.string.biolism_summary_total_time), formatDuration((totalSec * 1000).toLong()), ""),
+            Triple(stringResource(R.string.biolism_summary_avg_session), avgKcal.formatDecimal(2), "kcal"),
+            Triple(stringResource(R.string.biolism_summary_avg_duration), formatDuration((avgSec * 1000).toLong()), ""),
+        ))
+        if (spark.size > 1) {
+            Spacer(Modifier.height(Spacing.S))
+            Label(stringResource(R.string.biolism_summary_spark_label, spark.size), OnBackground.copy(0.4f))
+            BarSparkline(spark.map { it.kcalBurned }, Gold, barHeight = 48.dp)
+        }
+    }
+}

@@ -1,0 +1,309 @@
+package fr.scanneat.presentation.profile
+
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
+import fr.scanneat.domain.model.*
+import fr.scanneat.presentation.profile.components.ActivitySelector
+import fr.scanneat.presentation.profile.components.AllergenSelector
+import fr.scanneat.presentation.profile.components.ConditionsSelector
+import fr.scanneat.presentation.profile.components.DietSelector
+import fr.scanneat.presentation.profile.components.GoalSelector
+import fr.scanneat.presentation.profile.components.OutlinedInput
+import fr.scanneat.presentation.profile.components.ProfileBodySection
+import fr.scanneat.presentation.profile.components.ProfileMeasurementsSection
+import fr.scanneat.presentation.profile.components.ProfileMetricsPreviewCard
+import fr.scanneat.presentation.profile.components.ProfileSection
+import fr.scanneat.presentation.profile.components.ProfileSwitcherCard
+import fr.scanneat.presentation.profile.components.SexSelector
+import fr.scanneat.presentation.onboarding.enumSaver
+import fr.scanneat.presentation.onboarding.enumSaverNullable
+import fr.scanneat.presentation.ui.theme.*
+
+/** Bundle doesn't natively round-trip a raw Set<String> - same gap enumSaver() (see
+ *  fr.scanneat.presentation.onboarding.OnboardingScreen) fixes for enums, via an
+ *  ArrayList<String> (which IS Bundle-safe) instead. */
+private val stringSetSaver = Saver<Set<String>, ArrayList<String>>(
+    save = { ArrayList(it) },
+    restore = { it.toSet() },
+)
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ProfileScreen(
+    viewModel: ProfileViewModel = hiltViewModel(),
+    onBack: () -> Unit,
+) {
+    val profile = viewModel.profile.collectAsStateWithLifecycle()
+    val bmi          = viewModel.bmiValue.collectAsStateWithLifecycle()
+    val tdee         = viewModel.tdee.collectAsStateWithLifecycle()
+    val tdeeGoal     = viewModel.tdeeAtGoalWeight.collectAsStateWithLifecycle()
+    val saved   = viewModel.saved.collectAsStateWithLifecycle()
+    val biolismProfile = viewModel.biolismProfile.collectAsStateWithLifecycle()
+    val bmiCat = viewModel.bmiCat.collectAsStateWithLifecycle()
+    val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
+    val profileLoaded = viewModel.profileLoaded.collectAsStateWithLifecycle()
+    val profileList = viewModel.profileList.collectAsStateWithLifecycle()
+    val activeProfileId = viewModel.activeProfileId.collectAsStateWithLifecycle()
+
+    // save()'s DataStore writes previously ran completely unguarded - see
+    // ProfileViewModel.actionFailed's own comment. A failed write now surfaces
+    // here as a one-shot snackbar instead of silently doing nothing.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val actionFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(actionFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
+    // Local mutable state mirrors the saved profile - keyed on the whole Profile
+    // object (a data class, so this only re-derives when a real field actually
+    // differs), not profile.value.id: id is a constant "default" that never
+    // changes in this single-profile app, so keying on it alone captured
+    // whatever profile.value happened to be at the very first composition
+    // (typically the StateFlow's blank Profile() seed, since prefs.profile
+    // loads from DataStore asynchronously) and then never re-derived again -
+    // every field below stayed frozen at blank/default even after the real
+    // saved data streamed in a moment later, and saving from that state wrote
+    // those blanks back over the real data. Matches the already-correct
+    // biolismProfile.value-keyed pattern used 4 lines below in this same file.
+    // rememberSaveable (not remember) below - this is a long form (15 fields) a user
+    // can easily spend a minute or more filling in; a process death mid-edit (the app
+    // backgrounded to check a scale/tape measure is a completely plausible flow here)
+    // previously discarded every unsaved field silently on return, re-deriving from
+    // the still-stale saved profile instead of restoring what was actually typed.
+    var name       by rememberSaveable(profile.value) { mutableStateOf(profile.value.name) }
+    var sex        by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.sex) }
+    var age        by rememberSaveable(profile.value) { mutableStateOf(profile.value.ageYears?.toString() ?: "") }
+    var heightCm   by rememberSaveable(profile.value) { mutableStateOf(profile.value.heightCm?.toString() ?: "") }
+    var weightKg   by rememberSaveable(profile.value) { mutableStateOf(profile.value.weightKg?.toString() ?: "") }
+    var goalWeightKg by rememberSaveable(profile.value) { mutableStateOf(profile.value.goalWeightKg?.toString() ?: "") }
+    var activity   by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.activityLevel) }
+    var goal       by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.goal) }
+    var diet       by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.diet) }
+    var allergens  by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.allergens) }
+    var conditions by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.healthConditions) }
+    var isMenstruating by rememberSaveable(profile.value) { mutableStateOf(profile.value.isMenstruating) }
+    var fatLevel    by rememberSaveable(profile.value, stateSaver = enumSaverNullable()) { mutableStateOf(profile.value.fatLevel) }
+    var muscleLevel by rememberSaveable(profile.value, stateSaver = enumSaverNullable()) { mutableStateOf(profile.value.muscleLevel) }
+    // User-requested: trimester-adapted pregnancy targets, only reachable
+    // when "pregnancy" is also checked in conditions above (see this
+    // screen's own ConditionsSelector call site) - see
+    // Profile.pregnancyStartDate/dailyTargets' own doc comments.
+    var pregnancyStartDate by rememberSaveable(profile.value) { mutableStateOf(profile.value.pregnancyStartDate) }
+    // Circumferences + ethnicity — previously only editable from Métabolisme >
+    // Mon Profil (BiolismProfileScreen), even though they live in the same
+    // BiolismRepository already synced with this screen's shared fields.
+    var waistCm    by rememberSaveable(biolismProfile.value) { mutableStateOf(biolismProfile.value.waistCm.takeIf { it > 0 }?.toString() ?: "") }
+    var hipCm      by rememberSaveable(biolismProfile.value) { mutableStateOf(biolismProfile.value.hipCm.takeIf { it > 0 }?.toString() ?: "") }
+    var neckCm     by rememberSaveable(biolismProfile.value) { mutableStateOf(biolismProfile.value.neckCm.takeIf { it > 0 }?.toString() ?: "") }
+    var ethnicityId by rememberSaveable(biolismProfile.value) { mutableStateOf(biolismProfile.value.ethnicityId) }
+
+    LaunchedEffect(saved.value) {
+        if (saved.value) { viewModel.clearSaved(); onBack() }
+    }
+
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.profile_title), color = OnBackground) },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
+        actions = {
+            TextButton(onClick = {
+                // No bound at all previously - an errant value here (e.g. a typo'd
+                // extra digit) silently propagates into ActivityViewModel's kcal-burn
+                // calc and ProfileViewModel's BMI/TDEE. Clamp to sane human ranges
+                // instead of rejecting outright, since a slightly-off real value
+                // (e.g. a very tall/heavy user) should still save, just not corrupt math.
+                viewModel.save(
+                    profile = Profile(
+                        // R&D audit finding: this previously never passed id at all,
+                        // so it defaulted to Profile()'s "default" every time -
+                        // editing while on a switched-to profile silently overwrote
+                        // "default"'s data instead of the profile actually being edited.
+                        id            = profile.value.id,
+                        name          = name.trim(),
+                        sex           = sex,
+                        ageYears      = age.toIntOrNull()?.coerceIn(1, 120),
+                        heightCm      = heightCm.replace(',', '.').toDoubleOrNull()?.coerceIn(50.0, 250.0),
+                        weightKg      = weightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
+                        goalWeightKg  = goalWeightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
+                        activityLevel = activity,
+                        goal          = goal,
+                        diet          = diet,
+                        allergens     = allergens,
+                        healthConditions = conditions,
+                        isMenstruating = isMenstruating,
+                        pregnancyStartDate = if ("pregnancy" in conditions) pregnancyStartDate else null,
+                        fatLevel      = fatLevel,
+                        muscleLevel   = muscleLevel,
+                    ),
+                    waistCm     = waistCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+                    hipCm       = hipCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+                    neckCm      = neckCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 0.0,
+                    ethnicityId = ethnicityId,
+                )
+            }) {
+                Text(stringResource(R.string.common_save), color = AccentCoral, fontWeight = FontWeight.SemiBold)
+            }
+        },
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
+    ) { padding ->
+        // Previously rendered the form immediately with profile.value's Profile()
+        // seed default (blank name, NOT_SPECIFIED sex, etc.) for the brief window
+        // before prefs.profile's real DataStore-backed value loads asynchronously -
+        // a visible flash of empty fields on every cold open of this screen.
+        if (!profileLoaded.value) {
+            Box(
+                // ambientGloom() before padding(), not after - painted while this
+                // Box's own bounds are still the full fillMaxSize screen, so the
+                // gradient reaches naturally behind the floating header instead of
+                // being clipped to a hard edge starting below it (see GroceryScreen/
+                // CustomFoodScreen/ScanHistoryScreen's identical fix).
+                Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(padding),
+                contentAlignment = Alignment.Center,
+            ) { ScanEatLoadingIndicator(size = 48.dp, strokeWidth = 4.dp) }
+            return@FloatingScreenScaffold
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+                .padding(horizontal = Spacing.L),
+            contentPadding = padding,
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
+        ) {
+            item { Spacer(Modifier.height(Spacing.XS)) }
+
+            // ---- Profile switcher (R&D audit finding: profileId was dead
+            // scaffolding until this) ----
+            item {
+                ProfileSwitcherCard(
+                    profiles = profileList.value,
+                    activeId = activeProfileId.value,
+                    onSwitch = { viewModel.switchProfile(it) },
+                    onCreate = { viewModel.createProfile(it) },
+                    onDelete = { viewModel.deleteProfile(it) },
+                )
+            }
+
+            // ---- BMI / TDEE preview ----
+            if (bmi.value != null || tdee.value != null || tdeeGoal.value != null) {
+                item {
+                    ProfileMetricsPreviewCard(
+                        currentProfile = profile.value,
+                        bmi = bmi.value,
+                        bmiCat = bmiCat.value,
+                        tdee = tdee.value,
+                        tdeeGoal = tdeeGoal.value,
+                        useImperial = useImperial.value,
+                    )
+                }
+            }
+
+            // ---- Identity ----
+            item {
+                ProfileSection(stringResource(R.string.profile_section_identity)) {
+                    OutlinedInput(stringResource(R.string.profile_field_name), name) { name = it }
+                    SexSelector(sex) { sex = it }
+                    OutlinedInput(stringResource(R.string.profile_field_age), age, KeyboardType.Number) { age = it }
+                }
+            }
+
+            // ---- Body ----
+            // Same app-wide metric/imperial preference as the Weight tab (prefs.useImperialWeight)
+            // - these fields previously always treated typed input as cm/kg regardless of that
+            // setting, so a user in imperial mode could silently save a pound value as kilograms.
+            item {
+                ProfileBodySection(
+                    heightCm = heightCm, onHeightCmChange = { heightCm = it },
+                    weightKg = weightKg, onWeightKgChange = { weightKg = it },
+                    goalWeightKg = goalWeightKg, onGoalWeightKgChange = { goalWeightKg = it },
+                    useImperial = useImperial.value, onUseImperialChange = { viewModel.setUseImperial(it) },
+                    sex = sex,
+                    isMenstruating = isMenstruating, onIsMenstruatingChange = { isMenstruating = it },
+                    fatLevel = fatLevel, onFatLevelChange = { fatLevel = it },
+                    muscleLevel = muscleLevel, onMuscleLevelChange = { muscleLevel = it },
+                )
+            }
+
+            // ---- Body measurements (shared with Métabolisme > Mon Profil) ----
+            // Only editable from BiolismProfileScreen before — surfaced here too so
+            // both profile screens expose the same complete set of fields, and so a
+            // user who never opens Métabolisme can still benefit from Navy BF%/WHtR
+            // calculations that need these.
+            item {
+                ProfileMeasurementsSection(
+                    waistCm = waistCm, onWaistCmChange = { waistCm = it },
+                    hipCm = hipCm, onHipCmChange = { hipCm = it },
+                    neckCm = neckCm, onNeckCmChange = { neckCm = it },
+                    useImperial = useImperial.value,
+                    ethnicityId = ethnicityId, onEthnicityIdChange = { ethnicityId = it },
+                )
+            }
+
+            // ---- Activity ----
+            item {
+                ProfileSection(stringResource(R.string.profile_section_activity)) {
+                    ActivitySelector(activity) { activity = it }
+                    GoalSelector(goal) { goal = it }
+                }
+            }
+
+            // ---- Allergens ----
+            item {
+                ProfileSection(stringResource(R.string.profile_section_allergens)) {
+                    AllergenSelector(allergens) { allergens = it }
+                }
+            }
+
+            // ---- Health conditions ----
+            item {
+                ProfileSection(stringResource(R.string.profile_section_conditions)) {
+                    ConditionsSelector(conditions) { conditions = it }
+                }
+            }
+
+            // ---- Pregnancy: trimester-adapted targets, only when
+            // "pregnancy" is checked above - see Profile.pregnancyStartDate/
+            // dailyTargets' own doc comments. ----
+            if ("pregnancy" in conditions) {
+                item {
+                    fr.scanneat.presentation.profile.components.PregnancySection(
+                        startDate = pregnancyStartDate,
+                        onDateChange = { pregnancyStartDate = it },
+                    )
+                }
+            }
+
+            // ---- Diet ----
+            item {
+                ProfileSection(stringResource(R.string.profile_section_diet)) {
+                    DietSelector(diet) { diet = it }
+                }
+            }
+
+            item { Spacer(Modifier.height(48.dp)) }
+        }
+    }
+
+}
+

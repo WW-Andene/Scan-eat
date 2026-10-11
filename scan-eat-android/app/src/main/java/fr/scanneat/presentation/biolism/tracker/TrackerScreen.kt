@@ -1,0 +1,294 @@
+package fr.scanneat.presentation.biolism.tracker
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.LinearProgressIndicator
+import fr.scanneat.R
+import fr.scanneat.presentation.biolism.tracker.cards.*
+import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.Background
+import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.ConfirmDialog
+import fr.scanneat.presentation.ui.theme.ambientGloom
+import fr.scanneat.presentation.ui.theme.Gold
+import fr.scanneat.presentation.ui.theme.IconSize
+import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.ScanEatCard
+import fr.scanneat.presentation.ui.theme.ScanEatSnackbarHost
+import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.dispWeight
+import fr.scanneat.presentation.ui.theme.semanticRed
+import fr.scanneat.presentation.ui.theme.Teal
+import fr.scanneat.presentation.ui.theme.Violet
+import fr.scanneat.presentation.ui.theme.Warm
+import kotlin.math.abs
+import kotlin.math.roundToInt
+
+// Orchestrator only — each screen section lives in cards/*.kt, shared
+// helpers (StepperChip, formatElapsed, formatFastingTime) in
+// TrackerScreenComponents.kt. Was previously a single 516-line file with
+// all sections + formatters inline.
+@Composable
+fun TrackerScreen(
+    viewModel: TrackerViewModel = hiltViewModel(),
+    embeddedTopPadding: Dp = 0.dp,
+    embeddedBottomPadding: Dp = 0.dp,
+) {
+    val profile   = viewModel.profile.collectAsStateWithLifecycle()
+    val timer     = viewModel.timerState.collectAsStateWithLifecycle()
+    val elapsedMs = viewModel.elapsedMs.collectAsStateWithLifecycle()
+    val ketoMs    = viewModel.ketoElapsedMs.collectAsStateWithLifecycle()
+    val precision    = viewModel.heroPrecision.collectAsStateWithLifecycle()
+    val showPerSec   = viewModel.showKcalPerSec.collectAsStateWithLifecycle()
+    val saved        = viewModel.saved.collectAsStateWithLifecycle()
+    val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
+    val language     = viewModel.language.collectAsStateWithLifecycle()
+    val realFastHours  = viewModel.realFastHours.collectAsStateWithLifecycle()
+    val goalWeightKg   = viewModel.goalWeightKg.collectAsStateWithLifecycle()
+    val useImperial    = viewModel.useImperial.collectAsStateWithLifecycle()
+
+    // Same pattern as WeightScreen - saveSession()/startOrPause()/reset()/etc.
+    // previously called repo's DataStore writes completely unguarded; a failed
+    // write now surfaces here as a one-shot snackbar instead of going back to
+    // silent. No Scaffold on this screen (it's always embedded as a BiolismScreen
+    // tab), so the host is overlaid directly like WeightScreen's embedded=true path.
+    val snackbarHostState = remember { SnackbarHostState() }
+    // Reset instantly wiped accumulatedMs/ketoAccumulatedMs/saved with no confirmation
+    // or undo - a session can represent many hours of tracked time, and Reset sits
+    // one tap away from Pause. Every comparable destructive action elsewhere
+    // (Weight/Activity/Medication delete, MealPlan's clear-day) now gates behind a
+    // confirm dialog first.
+    var showResetConfirm by remember { mutableStateOf(false) }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
+    val s    = timer.value
+    val p    = profile.value
+    val live = viewModel.liveMetabolic.collectAsStateWithLifecycle()
+    val lm   = live.value
+
+    val elapsedSec   = elapsedMs.value / 1000.0
+    val ketoHours    = ketoMs.value / 3_600_000.0
+    val fastingHours = s.fastingHours
+
+    // All metabolic values come from the ViewModel StateFlow (Fix 8)
+    val kcalTotal    = lm.kcalTotal
+    val fatPct       = (lm.fatFrac  * 100).roundToInt()
+    val protPct      = (lm.protFrac * 100).roundToInt()
+    val carbPct      = 100 - fatPct - protPct
+    val fatLostKg    = lm.fatLostKg
+    val glycoLostKg  = lm.glycoLostKg
+    val liveWeight   = lm.liveWeightKg
+    val phase        = lm.phase
+    val phaseColor   = when (phase?.colorToken) {
+        "Gold"   -> Gold;    "Teal"  -> Teal;    "Violet" -> Violet
+        "Warm"   -> Warm;    "Severe"-> semanticRed();  else -> Teal
+    }
+
+    Box(Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = Spacing.L)
+            // top applied here (not as a Spacer inside the spacedBy Column below)
+            // so it behaves exactly like DataScreen/EvolutionScreen's LazyColumn
+            // contentPadding: a pure inset, not a list item - a Spacer would count
+            // as the first spacedBy item and pick up an extra Spacing.M gap after
+            // it before the real first item, which previously made this screen's
+            // header-to-card gap ~Spacing.M larger than the LazyColumn tabs'.
+            .padding(top = embeddedTopPadding, bottom = embeddedBottomPadding),
+        verticalArrangement = Arrangement.spacedBy(Spacing.M),
+    ) {
+        if (!p.isValid) {
+            EmptyProfilePrompt()
+        } else {
+            // ── Ketosis toggle ─────────────────────────────────────────────────
+            KetosisToggleRow(
+                active        = s.ketosisOn,
+                fatPct        = fatPct,
+                npRq          = lm.npRq,
+                onToggle      = viewModel::toggleKetosis,
+                onAddHours    = viewModel::addKetoHours,
+            )
+
+            if (s.ketosisOn) {
+                AdaptedToggleRow(active = s.ketoAdapted, ketoHours = ketoHours, onToggle = viewModel::toggleKetoAdapted)
+            }
+            if (s.ketosisOn) {
+                KetosisHealthCaution(healthConditions.value, language.value)
+            }
+
+            // ── Fasting row ────────────────────────────────────────────────────
+            FastingRow(
+                active        = s.fastingActive,
+                fastingHours  = fastingHours,
+                onToggle      = viewModel::toggleFastingActive,
+                onLogMeal     = viewModel::logMealNow,
+                onAddHours    = viewModel::addFastingHours,
+                realFastHours = realFastHours.value,
+                onImportRealFast = viewModel::importRealFast,
+            )
+            if (s.fastingActive) {
+                FastingHealthCaution(healthConditions.value, language.value)
+            }
+
+            // ── Phase strip ────────────────────────────────────────────────────
+            if (s.ketosisOn && phase != null) {
+                PhaseStrip(phase = phase, ketoHours = ketoHours, color = phaseColor)
+            }
+
+            // ── Hero kcal display ──────────────────────────────────────────────
+            HeroCard(
+                kcalTotal    = kcalTotal,
+                kcalSec      = lm.kcalSec,
+                precision    = precision.value,
+                showPerSec   = showPerSec.value,
+                running      = s.running,
+                ketosisOn    = s.ketosisOn,
+                elapsedSec   = elapsedSec,
+                fatPct       = fatPct,
+                carbPct      = carbPct,
+                protPct      = protPct,
+                fatFrac      = lm.fatFrac,
+                carbFrac     = lm.carbFrac,
+                protFrac     = lm.protFrac,
+                npRq         = lm.npRq,
+                onPrecision  = viewModel::togglePrecision,
+                onToggleRate = viewModel::toggleRateMode,
+            )
+
+            // ── Live weight ────────────────────────────────────────────────────
+            if (elapsedSec > 0 && p.weightKg > 0) {
+                LiveWeightCard(
+                    liveWeight   = liveWeight,
+                    baseWeight   = p.weightKg,
+                    fatLostKg    = fatLostKg,
+                    glycoLostKg  = glycoLostKg,
+                    ketosisOn    = s.ketosisOn,
+                    useImperial  = useImperial.value,
+                )
+            }
+
+            // Improvement: goal weight ETA derived from session fat loss rate + TDEE deficit.
+            // Shows how many hours of equivalent fasting/activity remain to reach the goal,
+            // using the session's live fat oxidation rate as a proxy for sustained daily burn.
+            val gw = goalWeightKg.value
+            if (gw != null && p.weightKg > 0 && abs(gw - p.weightKg) >= 0.5 && lm.kcalSec > 0) {
+                val fatKgRemaining = abs(p.weightKg - gw) * 0.75  // ~75% of mass delta is fat
+                val fatKgPerHour = lm.fatFrac * lm.kcalSec * 3600 / 7700.0
+                val etaHours = if (fatKgPerHour > 0) (fatKgRemaining / fatKgPerHour).roundToInt() else null
+                if (etaHours != null && etaHours > 0) {
+                    ScanEatCard(
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        contentPadding = PaddingValues(Spacing.L),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+                    ) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.biolism_tracker_goal_label, dispWeight(gw, useImperial.value)), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.biolism_tracker_goal_eta, etaHours), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                        }
+                    }
+                }
+            }
+
+            // New: daily TDEE budget bar — shows kcal burned this session vs today's TDEE
+            // so users see how much of their maintenance budget the current session covers.
+            if (kcalTotal > 0 && lm.tdeeDay > 0) {
+                val tdeeInt = lm.tdeeDay.roundToInt()
+                val burnInt = kcalTotal.roundToInt()
+                val budgetPct = (kcalTotal / lm.tdeeDay).coerceIn(0.0, 1.0).toFloat()
+                ScanEatCard(
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    contentPadding = PaddingValues(Spacing.L),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+                ) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.biolism_tracker_tdee_budget_title), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.biolism_tracker_tdee_budget_note, burnInt, tdeeInt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                    }
+                    LinearProgressIndicator(
+                        progress = { budgetPct },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = if (budgetPct >= 1f) AccentCoral else Gold,
+                        trackColor = OnSurface.copy(0.1f),
+                    )
+                }
+            }
+
+            // ── Session controls ───────────────────────────────────────────────
+            SessionControls(
+                running  = s.running,
+                elapsed  = elapsedSec,
+                saved    = saved.value,
+                onStartPause = viewModel::startOrPause,
+                onSave   = viewModel::saveSession,
+                onReset  = { showResetConfirm = true },
+            )
+        }
+    }
+    ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+    if (showResetConfirm) {
+        ConfirmDialog(
+            title = stringResource(R.string.biolism_tracker_reset_confirm_title),
+            body = stringResource(R.string.biolism_tracker_reset_confirm_body),
+            confirmLabel = stringResource(R.string.biolism_sessctrl_reset),
+            onConfirm = { viewModel.reset(); showResetConfirm = false },
+            onDismiss = { showResetConfirm = false },
+        )
+    }
+    }
+}
+
+@Composable
+private fun EmptyProfilePrompt() {
+    ScanEatCard(contentPadding = PaddingValues(Spacing.XXL)) {
+        // User-instructed: header-to-content gap here didn't match the app's
+        // standard Spacing.S convention for this exact role (already
+        // established in BiolismProfileOverviewCard.kt / DayDetailCard.kt).
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Spacing.S),
+        ) {
+            Icon(Icons.Outlined.MonitorHeart, null, tint = Gold, modifier = Modifier.size(IconSize.EmptyState))
+            Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall,
+                color = OnBackground, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.biolism_tracker_empty_desc),
+                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
+                textAlign = TextAlign.Center)
+        }
+    }
+}

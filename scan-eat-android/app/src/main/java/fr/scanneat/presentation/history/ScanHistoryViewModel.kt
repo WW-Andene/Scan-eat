@@ -1,0 +1,281 @@
+package fr.scanneat.presentation.history
+
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.recall.RecallRepository
+import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import fr.scanneat.domain.model.Grade
+import fr.scanneat.domain.model.ProductCategory
+import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.presentation.common.ActionFailureViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import java.text.Collator
+import java.util.Locale
+import javax.inject.Inject
+
+enum class HistorySort { RECENT, OLDEST, NAME_AZ, SCORE_DESC }
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class ScanHistoryViewModel @Inject constructor(
+    private val repo: ScanRepository,
+    private val prefs: UserPreferences,
+    private val recallRepo: RecallRepository,
+) : ActionFailureViewModel() {
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    // Plain string comparison sorts accented letters (Éclair) after every
+    // unaccented one instead of near their unaccented form - a Collator with
+    // PRIMARY strength groups accents/case together for correct French order.
+    // Derived from the in-app language (not Locale.getDefault()/system locale)
+    // and recomputed whenever it changes, matching WeightScreen/DiaryScreen/
+    // MealPlanScreen's Locale(language.value) pattern - a fixed Locale.getDefault()
+    // snapshot here would ignore Settings > Language entirely for history sorting.
+    private val nameCollator: StateFlow<Collator> = language
+        .map { Collator.getInstance(Locale(it)).apply { strength = Collator.PRIMARY } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Collator.getInstance(Locale("fr")).apply { strength = Collator.PRIMARY })
+
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query.asStateFlow()
+
+    private val _favoritesOnly = MutableStateFlow(false)
+    val favoritesOnly: StateFlow<Boolean> = _favoritesOnly.asStateFlow()
+
+    private val _sort = MutableStateFlow(HistorySort.RECENT)
+    val sort: StateFlow<HistorySort> = _sort.asStateFlow()
+
+    // Reactive limit instead of a fixed 200 - a user with more scans than the
+    // cap would otherwise have every older non-favorite scan permanently
+    // unreachable from History with no way to see further back. loadMore()
+    // raises the cap and flatMapLatest re-subscribes with the wider window.
+    private val _limit = MutableStateFlow(200)
+    private val allScans = combine(_limit, activeProfileId) { limit, id -> limit to id }
+        .flatMapLatest { (limit, id) -> repo.observeHistory(limit = limit, profileId = id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** True while there may be more, older rows beyond the current window. */
+    val canLoadMore: StateFlow<Boolean> = combine(allScans, _limit) { scans, limit -> scans.size >= limit }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun loadMore() { _limit.value += 200 }
+
+    // observeHistory is capped at 200 rows - a favorite older than the 200
+    // most-recent scans would otherwise silently vanish from its own
+    // dedicated filter. observeFavorites queries the DB directly, unbounded.
+    private val favoriteScans = activeProfileId.flatMapLatest { id -> repo.observeFavorites(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // User-requested: RecallRepository (RappelConso, the official French
+    // government recall dataset) existed but was only ever checked live
+    // during active camera scanning (ScanViewModel's barcode preview) - a
+    // product recalled AFTER it was already scanned/favorited never
+    // re-surfaced that fact anywhere, the same "computed once, never
+    // refreshed" gap already closed today for category/score staleness, just
+    // safety-relevant this time. Manual (not automatic) and scoped to
+    // Favorites only (a small, curated, "things I actually buy" list) rather
+    // than the full History (bounded at 200+ rows) or run unprompted on every
+    // screen open - checkBarcode() is cheap after the first check (cached,
+    // 7-day negative TTL) but a burst of first-time network calls on every
+    // History open would be a real perf/reliability cost for no benefit on
+    // rows the user may never revisit.
+    private val _recalledDbIds = MutableStateFlow<Set<Long>>(emptySet())
+    val recalledDbIds: StateFlow<Set<Long>> = _recalledDbIds.asStateFlow()
+
+    private val _checkingRecalls = MutableStateFlow(false)
+    val checkingRecalls: StateFlow<Boolean> = _checkingRecalls.asStateFlow()
+
+    fun checkFavoritesForRecalls() {
+        if (_checkingRecalls.value) return
+        viewModelScope.launch {
+            _checkingRecalls.value = true
+            try {
+                val barcodesByDbId = favoriteScans.value
+                    .mapNotNull { scan -> scan.barcode?.let { scan.dbId to it } }
+                // Bounded concurrency (4 at a time) - RappelConso is a small
+                // government API, not built for a burst of dozens of
+                // simultaneous requests even for a "generous" favorites list.
+                val recalled = barcodesByDbId.chunked(4).flatMap { chunk ->
+                    chunk.map { (dbId, barcode) ->
+                        viewModelScope.async { if (recallRepo.checkBarcode(barcode) != null) dbId else null }
+                    }.awaitAll()
+                }.filterNotNull().toSet()
+                _recalledDbIds.value = recalled
+            } finally {
+                _checkingRecalls.value = false
+            }
+        }
+    }
+
+    // Grade filter: null = all, else the exact Grade to match. Filters by the
+    // same Grade enum every row's badge is derived from (grade.label), rather
+    // than a hand-maintained numeric score range - the two previously used
+    // different breakpoints (80/60/40 here vs scoreToGrade's real 85/70/55/40/25),
+    // so a product scoring 62 (real grade B) had no chip that agreed with its
+    // own badge: invisible under "C (40-59)", visible under "B (60-79)", while a
+    // 58 (also grade B) was the reverse. Filtering by Grade directly can't drift
+    // from the badge again since it's the same enum value.
+    private val _gradeFilter = MutableStateFlow<Grade?>(null)
+    val gradeFilter: StateFlow<Grade?> = _gradeFilter.asStateFlow()
+
+    // User-requested: History had no category filter dimension at all, only
+    // favorites + grade - filtered client-side over the already-loaded list,
+    // same pattern as _gradeFilter above, so this needed no DAO/SQL changes.
+    private val _categoryFilter = MutableStateFlow<ProductCategory?>(null)
+    val categoryFilter: StateFlow<ProductCategory?> = _categoryFilter.asStateFlow()
+
+    // kotlinx.coroutines' typed combine() overloads stop at 5 flows, so _sort
+    // and nameCollator are paired up-front to keep this at 5 arguments.
+    private val sortAndCollator: Flow<Pair<HistorySort, Collator>> = combine(_sort, nameCollator) { sort, collator -> sort to collator }
+
+    // Previously "search" only ever filtered allScans/favoriteScans - the loaded
+    // window (default 200, expandable via loadMore), or the unbounded-but-
+    // favorites-only favoriteScans - client-side. A query for a genuinely old,
+    // non-favorite scan not yet loaded found nothing until loadMore() was tapped
+    // enough times to reach it. null means "no active search" (query blank),
+    // distinct from an empty result list, so filtered below knows whether to
+    // fall back to the loaded window or use these DB-searched results directly.
+    private val searchResults: Flow<List<ScanResult>?> = combine(_query.debounce(200), activeProfileId) { q, id -> q to id }.flatMapLatest { (q, id) ->
+        if (q.isBlank()) flowOf(null) else repo.searchHistory(q, id)
+    }
+
+    val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, searchResults, _favoritesOnly, sortAndCollator) { scans, favs, searched, favOnly, (sort, collator) ->
+        val base = searched?.let { if (favOnly) it.filter { s -> s.favorite } else it } ?: (if (favOnly) favs else scans)
+        base.let { list ->
+                when (sort) {
+                    HistorySort.RECENT      -> list
+                    HistorySort.OLDEST      -> list.asReversed()
+                    HistorySort.NAME_AZ     -> list.sortedWith(compareBy(collator) { it.product.name })
+                    HistorySort.SCORE_DESC  -> list.sortedByDescending { it.audit.score }
+                }
+            }
+    }.combine(_gradeFilter) { list, grade ->
+        if (grade == null) list
+        else list.filter { it.audit.grade == grade }
+    }.combine(_categoryFilter) { list, category ->
+        if (category == null) list
+        else list.filter { it.product.category == category }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Top 3 most-scanned products: name, count, and latest dbId for tap-to-open.
+    // Previously grouped allScans (scan_history), which persist() upserts by
+    // barcode - a rescan REPLACEs the same row in place, so any barcoded
+    // product's count could never exceed 1 and this could only ever surface
+    // barcode-less (photo-identified) products. Now derived from the
+    // append-only scan_score_history log via a dedicated DAO query, so a
+    // repeatedly-rescanned barcoded product is finally counted correctly.
+    val topScanned: StateFlow<List<Triple<String, Int, Long>>> = activeProfileId.flatMapLatest { id -> repo.observeTopScanned(profileId = id, limit = 3) }
+        .map { rows -> rows.map { Triple(it.productName, it.cnt, it.dbId) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Average audit score across all scans, null when history is empty. */
+    val avgScore: StateFlow<Int?> = allScans
+        .map { scans -> if (scans.isEmpty()) null else (scans.sumOf { it.audit.score } / scans.size) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Grade-band distribution — how many scans land in A/B/C/D.
+    val gradeDistribution: StateFlow<List<Pair<String, Int>>> = allScans
+        .map { scans ->
+            val bands = linkedMapOf("A" to 0, "B" to 0, "C" to 0, "D" to 0)
+            scans.forEach {
+                // Grade has 6 values (A+, A, B, C, D, F) but the UI only has 4 color bands —
+                // A+ folds into A (still the best band) and F folds into D (still the worst),
+                // instead of both silently falling through to an "else" bucket the map never declared.
+                val band = when (it.audit.grade.label) {
+                    "A+" -> "A"
+                    "F"  -> "D"
+                    else -> it.audit.grade.label
+                }
+                bands[band] = (bands[band] ?: 0) + 1
+            }
+            bands.entries.filter { it.value > 0 }.map { it.key to it.value }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * dbId -> short personal-safety warning ("Allergen: gluten", a diet-
+     * compliance reason, or both) - same checkUserAllergens()/checkDiet()
+     * pattern DiaryViewModel.diaryWarnings already established for logged
+     * meals. Previously nothing in History/Favorites ever ran either check:
+     * a user could scan a product containing one of their declared
+     * allergens, see the warning once on the Result screen right after
+     * scanning, then browse back to that exact same product later from
+     * History or Favorites and see nothing but a plain grade badge, with no
+     * trace of the conflict that was flagged the first time.
+     */
+    val historyWarnings: StateFlow<Map<Long, String>> = combine(filtered, prefs.profile, language) { scans, profile, lang ->
+        scans.mapNotNull { scan ->
+            if (scan.dbId <= 0) return@mapNotNull null
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(scan.product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(scan.product, profile.diet, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            if (parts.isEmpty()) null else scan.dbId to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    fun setQuery(q: String) { _query.value = q }
+    fun setFavoritesOnly(value: Boolean) { _favoritesOnly.value = value }
+    fun setSort(value: HistorySort) { _sort.value = value }
+    fun setGradeFilter(grade: Grade?) { _gradeFilter.value = grade }
+
+    fun setCategoryFilter(category: ProductCategory?) { _categoryFilter.value = category }
+
+    // toggleFavorite()/delete() previously called repo's Room writes completely
+    // unguarded - unlike every sibling tracker ViewModel (Weight/Activity/Dashboard/
+    // MealPlan/Templates all wrap theirs in runCatching), so a write failure here
+    // wasn't just silent, it was an uncaught exception that would crash the app.
+    fun toggleFavorite(scan: ScanResult) {
+        if (scan.dbId <= 0) return
+        guardedLaunch {
+            // Reads the ViewModel's own live caches instead of trusting the
+            // `scan` snapshot the composable captured at click time — a rapid
+            // double-tap (faster than the DB write's Flow re-emission) could
+            // otherwise read the same stale `favorite` value twice and call
+            // setFavorite(true) both times instead of toggling back off.
+            // Checks favoriteScans too - a favorite older than the 200-row
+            // allScans cap only exists in that unbounded list, so relying on
+            // allScans alone reintroduces the exact race this comment
+            // describes for every scan visible solely via favoritesOnly.
+            val current = allScans.value.firstOrNull { it.dbId == scan.dbId }?.favorite
+                ?: favoriteScans.value.firstOrNull { it.dbId == scan.dbId }?.favorite
+                ?: scan.favorite
+            repo.setFavorite(scan.dbId, !current)
+        }
+    }
+
+    // Same undo-delete pattern as DiaryViewModel/WeightViewModel.restore() -
+    // snapshots the row right before deleting it so a snackbar "Undo" can
+    // bring it back. repo.persist() re-upserts by barcode (or inserts fresh
+    // for a photo-identified scan with no barcode), same path a live rescan
+    // already goes through.
+    private var lastDeleted: ScanResult? = null
+
+    fun delete(id: Long) {
+        val entry = allScans.value.firstOrNull { it.dbId == id }
+            ?: favoriteScans.value.firstOrNull { it.dbId == id }
+        guardedLaunch {
+            repo.delete(id)
+            lastDeleted = entry
+        }
+    }
+
+    fun undoDelete() {
+        val entry = lastDeleted ?: return
+        lastDeleted = null
+        guardedLaunch { repo.persist(entry, activeProfileId.value) }
+    }
+}

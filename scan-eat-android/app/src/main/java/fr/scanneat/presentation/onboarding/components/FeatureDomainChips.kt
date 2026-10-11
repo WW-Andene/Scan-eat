@@ -1,0 +1,66 @@
+package fr.scanneat.presentation.onboarding.components
+
+import compose.icons.tablericons.Barcode
+import compose.icons.tablericons.ClipboardList
+import compose.icons.tablericons.Activity
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Clock
+import compose.icons.tablericons.Droplet
+import compose.icons.tablericons.Pill
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.presentation.ui.theme.*
+
+@Composable
+internal fun FeatureDomainChips() {
+    val domains = listOf(
+        TablerIcons.Barcode to R.string.onboarding_domain_scan,
+        TablerIcons.ClipboardList to R.string.onboarding_domain_diet,
+        TablerIcons.Droplet to R.string.onboarding_domain_hydration,
+        TablerIcons.Clock to R.string.onboarding_domain_fasting,
+        Icons.Rounded.Scale to R.string.onboarding_domain_weight,
+        TablerIcons.Activity to R.string.onboarding_domain_activity,
+        TablerIcons.Pill to R.string.onboarding_domain_medication,
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        Text(
+            stringResource(R.string.onboarding_domains_title),
+            style = MaterialTheme.typography.labelSmall,
+            color = OnBackground.copy(0.5f),
+        )
+        domains.chunked(4).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                row.forEach { (icon, label) ->
+                    Surface(shape = RoundedCornerShape(50), color = SurfaceVariant.copy(alpha = 0.42f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(50)).clip(RoundedCornerShape(50))) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                        ) {
+                            Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Tiny))
+                            Text(stringResource(label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.8f))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

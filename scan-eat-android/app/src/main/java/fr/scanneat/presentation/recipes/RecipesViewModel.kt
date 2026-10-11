@@ -1,0 +1,308 @@
+package fr.scanneat.presentation.recipes
+
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.presentation.common.ActionFailureViewModel
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.data.repository.planning.MealTemplateRepository
+import fr.scanneat.data.repository.planning.MenuDish
+import fr.scanneat.data.repository.planning.Recipe
+import fr.scanneat.data.repository.planning.RecipeRepository
+import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.OFFICIAL_RECIPE_DB
+import fr.scanneat.domain.engine.nutrition.OfficialRecipe
+import fr.scanneat.domain.engine.nutrition.ProductHints
+import fr.scanneat.domain.engine.nutrition.generateProductHints
+import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.planning.findPairings
+import fr.scanneat.domain.engine.planning.normalizeKey
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import fr.scanneat.domain.engine.scoring.healthConditionCautions
+import fr.scanneat.data.repository.planning.FetchedRecipeResult
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
+import javax.inject.Inject
+
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class RecipesViewModel @Inject constructor(
+    // Widened from private to internal so RecipesImportExt.kt's extension
+    // functions (the URL/photo import + suggest flow, extracted verbatim into
+    // that sibling file) can still reach it - same structural-only split
+    // ScanRepository already went through with ScanOffLookup/ScanServerClient.
+    internal val repo: RecipeRepository,
+    // Widened from private to internal - RecipesOperationsExt.kt's extension
+    // functions (the save/delete/scale/log/clone operations, extracted verbatim
+    // into that sibling file) still need these, same reasoning as [repo] above.
+    internal val templateRepo: MealTemplateRepository,
+    internal val consumptionRepo: ConsumptionRepository,
+    private val customFoodRepo: CustomFoodRepository,
+    private val scanRepository: ScanRepository,
+    // Widened from private to internal - RecipesOperationsExt.kt's log()
+    // extension function needs this too, to deduct a logged recipe's
+    // ingredients from the pantry (same reasoning as repo/templateRepo above).
+    internal val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
+    prefs: UserPreferences,
+) : ActionFailureViewModel() {
+    enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }
+
+    /**
+     * User-requested: "develop the tool" for Recipes - the list had a name
+     * search and macro-goal filter chips, but no way to actually order it
+     * (e.g. "which of my recipes has the most protein?" meant scanning the
+     * whole list by eye). Same shape as ScanHistoryViewModel's HistorySort.
+     */
+    enum class RecipeSort { RECENT, NAME_AZ, PROTEIN_DENSITY_DESC, KCAL_ASC }
+
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    internal val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    // Distinct product names from scan history, for SuggestRecipesDialog's
+    // "from history" mode — lets the user build a suggestFromPantry() list by
+    // picking things they've actually scanned rather than only ever typing
+    // free text.
+    val historyItems: StateFlow<List<String>> = activeProfileId.flatMapLatest { id -> scanRepository.observeHistory(limit = 50, profileId = id) }
+        .map { list -> list.map { it.product.name }.distinct() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Real Garde-manger contents, for SuggestRecipesDialog's "pantry" mode —
+    // now that Pantry is a real persisted inventory (not just scan history),
+    // this replaces that mode's free-text-only input with a pickable chip
+    // list of what's actually on hand, same shape as [historyItems] above.
+    val pantryItemNames: StateFlow<List<String>> = activeProfileId.flatMapLatest { id -> pantryRepo.observeAll(id) }
+        .map { list -> list.map { it.name }.distinct() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _goalFilter = MutableStateFlow(GoalFilter.ALL)
+    val goalFilter: StateFlow<GoalFilter> = _goalFilter.asStateFlow()
+
+    fun setGoalFilter(f: GoalFilter) { _goalFilter.value = f }
+
+    // Recipes previously had no way to search by name at all - only the macro-based
+    // GoalFilter chips - unlike ScanHistory's real debounced text search. The list
+    // lives fully in memory already (repo.observeAll()), so a simple in-memory
+    // contains() filter is enough; no DAO query needed.
+    private val _recipeQuery = MutableStateFlow("")
+    val recipeQuery: StateFlow<String> = _recipeQuery.asStateFlow()
+    fun setRecipeQuery(q: String) { _recipeQuery.value = q }
+
+    private val _recipeSort = MutableStateFlow(RecipeSort.RECENT)
+    val recipeSort: StateFlow<RecipeSort> = _recipeSort.asStateFlow()
+    fun setRecipeSort(sort: RecipeSort) { _recipeSort.value = sort }
+
+    // Widened from private to internal - RecipesOperationsExt.kt's delete()/
+    // undoDelete() extension functions need the current snapshot directly.
+    internal val _allRecipes: StateFlow<List<Recipe>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val recipes: StateFlow<List<Recipe>> = combine(_allRecipes, _goalFilter, _recipeQuery.debounce(150), _recipeSort) { list, filter, query, sort ->
+        val filtered = when (filter) {
+            GoalFilter.ALL         -> list
+            GoalFilter.HIGH_PROTEIN -> list.filter { r -> r.totalGrams > 0 && r.totalProteinG / r.totalGrams * 100 >= 15 }
+            GoalFilter.LOW_CARB    -> list.filter { r -> r.totalGrams > 0 && r.totalCarbsG / r.totalGrams * 100 <= 20 }
+            GoalFilter.LOW_FAT     -> list.filter { r -> r.totalGrams > 0 && r.totalFatG / r.totalGrams * 100 <= 10 }
+        }
+        val searched = if (query.isBlank()) filtered else {
+            val key = normalizeKey(query)
+            filtered.filter { normalizeKey(it.name).contains(key) }
+        }
+        when (sort) {
+            // Favorites first (Recipe had no equivalent to ScanResult's favorite
+            // field at all) - sortedByDescending is stable, so createdAt-DESC
+            // ordering (already applied by RecipeDao.observeAll) is preserved
+            // within each group. The only sort that groups favorites first -
+            // the other three are an explicit user choice of order, which
+            // should win over that implicit default.
+            RecipeSort.RECENT -> searched.sortedByDescending { it.favorite }
+            RecipeSort.NAME_AZ -> searched.sortedBy { normalizeKey(it.name) }
+            // Density (per 100g), not raw totalProteinG - otherwise a large
+            // batch recipe would always outrank a genuinely protein-dense
+            // small one just by having more total grams.
+            RecipeSort.PROTEIN_DENSITY_DESC -> searched.sortedByDescending { r -> if (r.totalGrams > 0) r.totalProteinG / r.totalGrams else 0.0 }
+            RecipeSort.KCAL_ASC -> searched.sortedBy { it.totalKcal }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Every write below previously called repo's/templateRepo's/consumptionRepo's Room
+    // writes completely unguarded - unlike every sibling tracker ViewModel (Weight/
+    // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
+    // write failure here wasn't just silent, it was an uncaught exception that would
+    // crash the app.
+    // cloneOfficial() only knows a picked FOOD_DB entry's macros via an exact
+    // (case-insensitive) name match against OfficialRecipeDb's French labels - an
+    // ingredient with no match silently clones in at kcal/protein/carbs/fat/fiber
+    // = 0, with nothing telling the user the clone is macro-incomplete. Surfaced
+    // as a one-shot count the screen can snackbar, same shape as MealPlanViewModel's
+    // lastPrunedOrphanCount for its own silent-cleanup case.
+    // Widened from private to internal - RecipesOperationsExt.kt's cloneOfficial()
+    // extension function mutates this directly.
+    internal val _cloneUnmatchedCount = MutableStateFlow(0)
+    val cloneUnmatchedCount: StateFlow<Int> = _cloneUnmatchedCount.asStateFlow()
+    fun clearCloneUnmatchedCount() { _cloneUnmatchedCount.value = 0 }
+
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    /** Total custom-recipe count regardless of the active goal filter — used to
+     *  show "X/Y résultats" in the filter row when a filter is active. */
+    val totalRecipesCount: StateFlow<Int> = _allRecipes.map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    /**
+     * recipe id -> short warning, e.g. "Contains gluten (your allergen)" or
+     * "Not vegan: chicken". checkDiet()/checkUserAllergens() previously only
+     * ever ran against scanned Products - a saved recipe (this screen) or a
+     * cloned official recipe could silently contain an ingredient the user's
+     * own diet/allergen profile forbids, with no warning anywhere in this flow.
+     */
+    val recipeWarnings: StateFlow<Map<String, String>> = combine(recipes, prefs.profile, language) { list, profile, lang ->
+        list.mapNotNull { recipe ->
+            val product = recipe.toCheckProduct()
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(product, profile.diet, lang)
+            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            conditionHits.firstOrNull()?.let { parts += it }
+            if (parts.isEmpty()) null else recipe.id to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Same check as [recipeWarnings], for the official/starter recipes shown above the user's own. */
+    val officialRecipeWarnings: StateFlow<Map<String, String>> = combine(prefs.profile, language) { profile, lang ->
+        OFFICIAL_RECIPE_DB.mapNotNull { recipe ->
+            val product = recipe.toCheckProduct()
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(product, profile.diet, lang)
+            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            conditionHits.firstOrNull()?.let { parts += it }
+            if (parts.isEmpty()) null else recipe.nameFr to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /**
+     * recipe id -> ProductHints, same combine-into-map pattern as [recipeWarnings]/
+     * [recipePairings] above - the "💡 Bon à savoir" hint panel (previously only
+     * reachable from ResultScreen's scanned-product flow) needs the exact same
+     * benefits/risks/facts for a saved recipe, which toCheckProduct() already
+     * makes possible.
+     */
+    val recipeHints: StateFlow<Map<String, ProductHints>> = combine(recipes, prefs.profile, language) { list, profile, lang ->
+        list.associate { it.id to generateProductHints(it.toCheckProduct(), profile, lang) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Same as [recipeHints], for the official/starter recipes shown above the user's own. */
+    val officialRecipeHints: StateFlow<Map<String, ProductHints>> = combine(prefs.profile, language) { profile, lang ->
+        OFFICIAL_RECIPE_DB.associate { recipe -> recipe.nameFr to generateProductHints(recipe.toCheckProduct(), profile, lang) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Officially-sourced starter recipes (see OfficialRecipeDb.kt) — read-only, browsable alongside the user's own. */
+    val officialRecipes: List<OfficialRecipe> = OFFICIAL_RECIPE_DB
+
+    /**
+     * recipe id -> ingredients (French names) that pair well with the recipe's
+     * main (largest by grams) ingredient. findPairings()/PairingsDb.kt was
+     * already used for scanned products (ResultViewModel) but never reached
+     * Recipes at all - a natural place to also deepen recipe discovery, since
+     * it's the exact same "what goes well with this" question.
+     */
+    val recipePairings: StateFlow<Map<String, List<String>>> = combine(recipes, language) { list, lang ->
+        list.mapNotNull { recipe ->
+            val main = recipe.components.maxByOrNull { it.grams } ?: return@mapNotNull null
+            // User-reported: "pairs well with" suggested an ingredient the recipe
+            // already contains (e.g. poulet suggested for a poulet/riz/brocolis
+            // recipe) - findPairings() only ever knew the single queried
+            // ingredient, not the rest of the dish, so it had no way to filter
+            // its own dish-mates out. Excludes every other ingredient already in
+            // this recipe.
+            val exclude = recipe.components.filter { it != main }.map { it.productName }.toSet()
+            // User-reported: pairing suggestions always showed up in French
+            // regardless of the app's own language setting.
+            val pairs = findPairings(main.productName, limit = 8, exclude = exclude, preferFrench = lang == "fr")
+            if (pairs.isEmpty()) null else recipe.id to pairs
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Same as [recipePairings], for the official/starter recipes. */
+    val officialRecipePairings: StateFlow<Map<String, List<String>>> = language.map { lang ->
+        OFFICIAL_RECIPE_DB.mapNotNull { recipe ->
+            val main = recipe.ingredients.maxByOrNull { it.grams } ?: return@mapNotNull null
+            val exclude = recipe.ingredients.filter { it != main }.map { it.foodName }.toSet()
+            val pairs = findPairings(main.foodName, limit = 8, exclude = exclude, preferFrench = lang == "fr")
+            if (pairs.isEmpty()) null else recipe.nameFr to pairs
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // ── Ingredient search for the "add ingredient" dialog ────────────────────
+    // Previously pure manual entry: name/grams/kcal typed by hand, with no
+    // lookup at all - every recipe ingredient's protein/carbs/fat/fiber
+    // defaulted to 0 even when the food was already in FOOD_DB or the user's
+    // own custom foods (searchFoodDB already merges both, same as Diary's
+    // manual-add search), and a user's own custom food could never be reused
+    // as a recipe ingredient with correct macros.
+    private val _ingredientQuery = MutableStateFlow("")
+    val ingredientQuery: StateFlow<String> = _ingredientQuery.asStateFlow()
+
+    val ingredientSearchResults: StateFlow<List<FoodEntry>> =
+        combine(_ingredientQuery.debounce(200), activeProfileId.flatMapLatest { id -> customFoodRepo.observeAll(id) }) { q, customs -> q to customs }
+            .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 6, customs) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setIngredientQuery(q: String) { _ingredientQuery.value = q }
+
+    // Widened from private to internal - RecipesOperationsExt.kt's delete()/
+    // undoDelete() extension functions need this snapshot directly.
+    internal var lastDeleted: Recipe? = null
+
+    // Widened from private to internal - RecipesOperationsExt.kt's scale()/
+    // undoScale() extension functions need this snapshot directly.
+    internal var lastPreScale: Recipe? = null
+
+    // save/toggleFavorite/delete/undoDelete/duplicate/saveAsTemplate/updateRecipe/
+    // rename/updateNotes/scale/undoScale/log/logOfficial/cloneOfficial now live in
+    // RecipesOperationsExt.kt (see that file) - extracted verbatim as extension
+    // functions on RecipesViewModel, same cohesive "recipe CRUD + logging" concern
+    // ScanRepository's own split pulled ScanOffLookup/ScanServerClient out for.
+
+    // ── Import from URL — wires up the server's fetch-recipe route (SSRF-guarded
+    // HTML fetch + schema.org Recipe JSON-LD extraction), which existed with no
+    // Android caller at all: every recipe previously had to be typed in by hand.
+    // ────────────────────────────────────────────────────────────────────────
+    sealed class ImportUiState {
+        data object Idle : ImportUiState()
+        data object Loading : ImportUiState()
+        data class Success(val result: FetchedRecipeResult) : ImportUiState()
+        /** suggestRecipes()/suggestFromPantry() return several ideas to pick from, unlike the single-result URL/photo import. */
+        data class SuggestSuccess(val results: List<FetchedRecipeResult>) : ImportUiState()
+        /**
+         * identifyMenuFromPhotos() result — unlike [Success]/[SuggestSuccess], these dishes
+         * are external restaurant items with nothing to save/log, so they get their own
+         * variant rather than reusing [Success]'s AddRecipeDialog-prefill handoff.
+         */
+        data class MenuSuccess(val dishes: List<MenuDish>) : ImportUiState()
+        data class Error(val message: String) : ImportUiState()
+    }
+
+    // Widened from private to internal - RecipesImportExt.kt's extension functions
+    // (moved verbatim into that sibling file) mutate this directly, same as every
+    // function in this file did before the split.
+    internal val _importState = MutableStateFlow<ImportUiState>(ImportUiState.Idle)
+    val importState: StateFlow<ImportUiState> = _importState.asStateFlow()
+
+    // importRecipeFromUrl/importRecipeFromPhotos/identifyMenuFromPhotos/suggestRecipes/
+    // suggestFromPantry/pickSuggestion/clearImportState/photoDecodeFailed/importErrorMessage
+    // now live in RecipesImportExt.kt (see that file) - extracted verbatim as extension
+    // functions on RecipesViewModel, same cohesive "URL/photo import + suggest" concern
+    // ScanRepository's own split pulled ScanOffLookup/ScanServerClient out for.
+}

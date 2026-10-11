@@ -1,0 +1,229 @@
+package fr.scanneat.data.repository.health
+
+import fr.scanneat.data.local.db.medication.MedicationDao
+import fr.scanneat.data.local.db.medication.MedicationEntity
+import fr.scanneat.data.local.db.medication.MedicationLogDao
+import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.toIsoString
+import fr.scanneat.data.local.db.toLocalDate
+import fr.scanneat.data.local.prefs.SecureFieldCipher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
+
+// ============================================================================
+// MEDICATION REPOSITORY — backs the "Traitement" tab. Barcode/name-scan lookup
+// against the real BDPM database now exists (see domain.engine.medication.
+// MedicationLookupDb, wired into ScanViewModel.saveDetectedMedication()); this
+// repository is the persistence layer both that flow and manual entry share.
+// ============================================================================
+
+data class Medication(
+    val id: String,
+    val name: String,
+    val dosage: String = "",
+    val scheduleNote: String = "",
+    val barcode: String? = null,
+    val active: Boolean = true,
+    // Fasting/Hydration/Weight all fire a reminder via ReminderWorker — a
+    // medication's "schedule" was only ever a display-only free-text note
+    // with no way to actually be reminded to take it.
+    val reminderOn: Boolean = false,
+    val reminderTime: String = "08:00",
+    // Exists on the entity but was previously dropped in toDomain() - see
+    // MedicationViewModel.adherenceStreak, which needs to know a medication's
+    // own start date to avoid punishing the streak for the ordinary act of
+    // adding a new active medication.
+    val createdAt: Long = 0,
+    // See MedicationEntity's own doc comment - null means "currently active,
+    // or was always active up to now" (a pre-migration row, or a row that's
+    // never been deactivated); non-null is the moment `active` last flipped
+    // false, letting adherence math ask "was this active on date X" instead of
+    // "is it active right now."
+    val deactivatedAt: Long? = null,
+    // See MedicationEntity's own doc comment. 0 = every day.
+    val scheduleDaysMask: Int = 0,
+    // Comma-separated "HH:mm" times beyond reminderTime (slot 0) - see
+    // MedicationEntity's own doc comment and [reminderTimes] below.
+    val extraReminderTimes: String = "",
+) {
+    /** All of this medication's real reminder times, reminderTime first,
+     *  followed by extraReminderTimes in the order the user added them. */
+    val reminderTimes: List<String> get() =
+        listOf(reminderTime) + extraReminderTimes.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+
+    /** True when [day] is one of this medication's scheduled days -
+     *  scheduleDaysMask == 0 means "every day", matching every pre-existing
+     *  medication's implicit behavior before this field existed. */
+    /** Doses expected per scheduled day: one per distinct reminder time. */
+    val dosesPerDay: Int get() = reminderTimes.distinct().size.coerceAtLeast(1)
+
+    fun isScheduledOn(day: java.time.DayOfWeek): Boolean =
+        scheduleDaysMask == 0 || (scheduleDaysMask and (1 shl (day.value - 1))) != 0
+}
+
+/** One "I took this" event on a given day - see MedicationLogEntity for why this needed its own table. */
+data class MedicationLogEntry(
+    val id: String,
+    val medicationId: String,
+    val medicationName: String,
+    val date: LocalDate,
+    val takenAt: Long,
+)
+
+@Singleton
+class MedicationRepository @Inject constructor(
+    private val dao: MedicationDao,
+    private val logDao: MedicationLogDao,
+) {
+
+    // name/dosage/scheduleNote are encrypted at rest (see toEntity/toDomain), so
+    // MedicationDao.observeAll can no longer ORDER BY name in SQL - ciphertext
+    // has no relation to the plaintext's alphabetical order (a fresh random IV
+    // means even the same name re-encrypts to different bytes each time). The
+    // DAO only orders by `active` now; the name-ascending tiebreak the UI
+    // still expects is reproduced here, after decryption.
+    fun observeAll(profileId: String = "default"): Flow<List<Medication>> =
+        dao.observeAll(profileId).map { list ->
+            list.map { it.toDomain() }.sortedWith(compareByDescending<Medication> { it.active }.thenBy { it.name })
+        }
+
+    suspend fun save(
+        name: String,
+        dosage: String = "",
+        scheduleNote: String = "",
+        barcode: String? = null,
+        active: Boolean = true,
+        id: String? = null,
+        profileId: String = "default",
+        reminderOn: Boolean = false,
+        reminderTime: String = "08:00",
+        // Callers editing an existing (possibly already-inactive) medication -
+        // MedicationViewModel.edit/setReminder/undoDelete - must pass the
+        // medication's own current deactivatedAt through, same as they already
+        // do for `active` itself. Without this, save()'s upsert (a REPLACE)
+        // would silently reset an inactive medication's real deactivation
+        // timestamp to null on the very next unrelated edit (fixing a dosage
+        // typo, toggling the reminder), defeating the point of tracking it.
+        deactivatedAt: Long? = null,
+        // Callers editing an existing medication must pass its current schedule
+        // fields through too, same reasoning as deactivatedAt just above -
+        // otherwise a dosage-typo fix or reminder toggle would silently wipe an
+        // already-configured day/time schedule back to "every day, one time".
+        scheduleDaysMask: Int = 0,
+        extraReminderTimes: String = "",
+    ): Medication {
+        // Barcode-first dedup (see MedicationDao.upsertMedication) - without an
+        // explicit id, rescanning the same medication's barcode now updates the
+        // existing row in place instead of creating a duplicate with its own
+        // reminder schedule.
+        val entity = dao.upsertMedication(explicitId = id, barcode = barcode, profileId = profileId) { resolvedId, createdAt ->
+            MedicationEntity(
+                id = resolvedId, name = SecureFieldCipher.encrypt(name.trim()), dosage = SecureFieldCipher.encrypt(dosage.trim()),
+                scheduleNote = SecureFieldCipher.encrypt(scheduleNote.trim()),
+                barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
+                reminderOn = reminderOn, reminderTime = reminderTime, deactivatedAt = deactivatedAt,
+                scheduleDaysMask = scheduleDaysMask, extraReminderTimes = extraReminderTimes,
+            )
+        }
+        return entity.toDomain()
+    }
+
+    suspend fun setActive(medication: Medication, active: Boolean, profileId: String = "default") {
+        val createdAt = dao.findById(medication.id)?.createdAt ?: System.currentTimeMillis()
+        // Stamp deactivatedAt the moment `active` flips false, clear it if it
+        // flips back true - see MedicationEntity's own doc comment on why this
+        // needs to exist at all.
+        val deactivatedAt = if (active) null else System.currentTimeMillis()
+        dao.upsert(medication.copy(active = active, deactivatedAt = deactivatedAt).toEntity(createdAt, profileId))
+    }
+
+    suspend fun delete(id: String) = dao.delete(id)
+
+    // name/dosage/scheduleNote can reveal a medical condition (antidepressant,
+    // HIV medication, etc.) more directly than almost any other field in this
+    // app, so they're Keystore-encrypted at rest like the profile's allergens/
+    // healthConditions (SecureFieldCipher, same decrypt-or-fall-back-to-legacy-
+    // plaintext-and-re-encrypt pattern - a row saved before this existed is
+    // still plaintext and gets encrypted the next time it's saved).
+    // barcode is left as-is: it's a public product identifier, not personal
+    // data, and DAO lookups (findByBarcode/upsertMedication) match on it directly.
+    private fun Medication.toEntity(createdAt: Long, profileId: String) = MedicationEntity(
+        id = id, name = SecureFieldCipher.encrypt(name), dosage = SecureFieldCipher.encrypt(dosage),
+        scheduleNote = SecureFieldCipher.encrypt(scheduleNote),
+        barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
+        reminderOn = reminderOn, reminderTime = reminderTime, deactivatedAt = deactivatedAt,
+        scheduleDaysMask = scheduleDaysMask, extraReminderTimes = extraReminderTimes,
+    )
+
+    private fun MedicationEntity.toDomain() = Medication(
+        id = id, name = SecureFieldCipher.decryptOrNull(name) ?: name,
+        dosage = SecureFieldCipher.decryptOrNull(dosage) ?: dosage,
+        scheduleNote = SecureFieldCipher.decryptOrNull(scheduleNote) ?: scheduleNote,
+        barcode = barcode, active = active,
+        reminderOn = reminderOn, reminderTime = reminderTime, createdAt = createdAt, deactivatedAt = deactivatedAt,
+        scheduleDaysMask = scheduleDaysMask, extraReminderTimes = extraReminderTimes,
+    )
+
+    // ── Adherence log ("I took this") ────────────────────────────────────────
+
+    // Unlike observeAll above, no SQL ORDER BY touches medicationName, so no
+    // sort needs to move to Kotlin here - takenAt/date ordering is untouched
+    // by encrypting this one field.
+    fun observeLogByDate(date: LocalDate, profileId: String = "default"): Flow<List<MedicationLogEntry>> =
+        logDao.observeByDate(date.toIsoString(), profileId).map { list -> list.mapNotNull { it.toLogDomain() } }
+
+    suspend fun getLogRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<MedicationLogEntry> =
+        logDao.getRange(from.toIsoString(), to.toIsoString(), profileId).mapNotNull { it.toLogDomain() }
+
+    /** Flow counterpart to [getLogRange] — see MedicationLogDao.observeRange's own doc comment. */
+    fun observeLogRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<MedicationLogEntry>> =
+        logDao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.mapNotNull { it.toLogDomain() } }
+
+    suspend fun logTaken(medication: Medication, date: LocalDate = LocalDate.now(), profileId: String = "default") {
+        // Up to one log per scheduled dose - insertIfAbsent allowed only one per day,
+        // so the 2nd/3rd dose of a multi-dose medication could never be recorded.
+        logDao.insertIfBelow(medication.id, date.toIsoString(), profileId, medication.dosesPerDay) {
+            MedicationLogEntity(
+                id             = UUID.randomUUID().toString(),
+                medicationId   = medication.id,
+                // medicationName is a denormalized snapshot (see MedicationLogEntity's
+                // own doc comment) of the same sensitive field as Medication.name -
+                // encrypted here for the same reason.
+                medicationName = SecureFieldCipher.encrypt(medication.name),
+                date           = date.toIsoString(),
+                takenAt        = System.currentTimeMillis(),
+                profileId      = profileId,
+            )
+        }
+        logDao.trim(MAX_HISTORY_ROWS, profileId)
+    }
+
+    suspend fun deleteLogEntry(id: String) = logDao.delete(id)
+
+    private fun MedicationLogEntity.toLogDomain(): MedicationLogEntry? = runCatching {
+        MedicationLogEntry(
+            id = id, medicationId = medicationId, medicationName = SecureFieldCipher.decryptOrNull(medicationName) ?: medicationName,
+            date = date.toLocalDate(), takenAt = takenAt,
+        )
+    }.onFailure {
+        // Same silent-drop gap already fixed in WeightRepository/ActivityRepository
+        // toDomain() (cycle 2, commit 2717150) - `date.toLocalDate()` is
+        // LocalDate.parse under the hood and throws on a malformed date column.
+        // This was the last sibling repo whose per-row mapper wasn't guarded, so
+        // one corrupted medication_log row previously crashed the whole
+        // observeLogByDate()/getLogRange()/observeLogRange() flow - taking down
+        // Dashboard's otherTrackers, CalendarViewModel's markers/dayDetail, and
+        // MedicationViewModel's adherence log entirely instead of just dropping
+        // that one row.
+        android.util.Log.w("MedicationRepository", "Failed to parse medication log entry id=$id", it)
+    }.getOrNull()
+
+    companion object {
+        /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS. */
+        const val MAX_HISTORY_ROWS = 5000
+    }
+}

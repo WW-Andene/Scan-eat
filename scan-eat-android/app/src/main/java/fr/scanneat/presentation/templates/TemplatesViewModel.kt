@@ -1,0 +1,205 @@
+package fr.scanneat.presentation.templates
+
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.presentation.common.ActionFailureViewModel
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.data.repository.planning.MealTemplate
+import fr.scanneat.data.repository.planning.MealTemplateRepository
+import fr.scanneat.data.repository.planning.RecipeRepository
+import fr.scanneat.data.repository.planning.TemplateItem
+import fr.scanneat.data.repository.planning.toRecipeComponents
+import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.ProductHints
+import fr.scanneat.domain.engine.nutrition.generateProductHints
+import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.planning.normalizeKey
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import fr.scanneat.domain.engine.scoring.healthConditionCautions
+import fr.scanneat.domain.model.MealSlot
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
+import java.time.LocalDate
+import javax.inject.Inject
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class TemplatesViewModel @Inject constructor(
+    private val repo: MealTemplateRepository,
+    private val recipeRepo: RecipeRepository,
+    private val consumptionRepo: ConsumptionRepository,
+    private val customFoodRepo: CustomFoodRepository,
+    private val prefs: UserPreferences,
+) : ActionFailureViewModel() {
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    private val _allTemplates: StateFlow<List<MealTemplate>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Templates had zero list-level filtering despite MealTemplate.meal being the
+    // exact same ready-made filter dimension Recipes already uses for its own
+    // GoalFilter chips - null means "all meal slots".
+    private val _mealFilter = MutableStateFlow<MealSlot?>(null)
+    val mealFilter: StateFlow<MealSlot?> = _mealFilter.asStateFlow()
+    fun setMealFilter(m: MealSlot?) { _mealFilter.value = m }
+
+    // Templates had no way to search by name at all - only the meal-slot filter
+    // chips - unlike Recipes' identical fix (RecipesViewModel._recipeQuery). Same
+    // in-memory contains() approach: the list already lives fully in _allTemplates.
+    private val _templateQuery = MutableStateFlow("")
+    val templateQuery: StateFlow<String> = _templateQuery.asStateFlow()
+    fun setTemplateQuery(q: String) { _templateQuery.value = q }
+
+    val templates: StateFlow<List<MealTemplate>> = combine(_allTemplates, _mealFilter, _templateQuery.debounce(150)) { list, filter, query ->
+        val filtered = if (filter == null) list else list.filter { it.meal == filter }
+        val searched = if (query.isBlank()) filtered else {
+            val key = normalizeKey(query)
+            filtered.filter { normalizeKey(it.name).contains(key) }
+        }
+        // Favorites first - same pattern as RecipesViewModel.recipes; sortedByDescending
+        // is stable, so observeAll()'s createdAt-DESC ordering is preserved within each group.
+        searched.sortedByDescending { it.favorite }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun toggleFavorite(template: MealTemplate) = guardedLaunch { repo.setFavorite(template.id, !template.favorite) }
+
+    /** Sum of all items' kcal across every template — shown as a library-level stat, unaffected by the meal-slot filter. */
+    val libraryTotalKcal: StateFlow<Int> = _allTemplates.map { list ->
+        list.sumOf { it.totalKcal }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    /**
+     * template id -> short warning, same checkDiet()/checkUserAllergens() reused
+     * from Recipes'/Grocery's identical fix - a "Saved Meal" template is exactly
+     * as likely to contain a forbidden ingredient as a Recipe, but previously ran
+     * no check at all, so a vegan or allergic user got no warning for the one
+     * meal type they log repeatedly.
+     */
+    val templateWarnings: StateFlow<Map<String, String>> = combine(templates, prefs.profile, language) { list, profile, lang ->
+        list.mapNotNull { template ->
+            val product = template.toCheckProduct()
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(product, profile.diet, lang)
+            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            conditionHits.firstOrNull()?.let { parts += it }
+            if (parts.isEmpty()) null else template.id to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /**
+     * template id -> ProductHints, same combine-into-map pattern as
+     * [templateWarnings] above - the "💡 Bon à savoir" hint panel was previously
+     * reachable only from ResultScreen's scanned-product flow, despite a "Saved
+     * Meal" template now carrying real per-100g nutrition via toCheckProduct()
+     * (see MealTemplateRepository.nutritionPer100g).
+     */
+    val templateHints: StateFlow<Map<String, ProductHints>> = combine(templates, prefs.profile, language) { list, profile, lang ->
+        list.associate { it.id to generateProductHints(it.toCheckProduct(), profile, lang) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // ── Ingredient search for "manage items" ─────────────────────────────────
+    // Same FOOD_DB/custom-food search RecipesViewModel already wires for its own
+    // "add ingredient" dialog - EditTemplateItemsDialog previously had no lookup
+    // at all, so every item's protein/carbs/fat/fiber defaulted to 0 even when
+    // the food was already known, and TemplatesScreen's macro summary chips
+    // (added specifically to show a template's P/G/L) were permanently 0g/0g/0g.
+    private val _ingredientQuery = MutableStateFlow("")
+    val ingredientQuery: StateFlow<String> = _ingredientQuery.asStateFlow()
+
+    val ingredientSearchResults: StateFlow<List<FoodEntry>> =
+        combine(_ingredientQuery.debounce(200), activeProfileId.flatMapLatest { id -> customFoodRepo.observeAll(id) }) { q, customs -> q to customs }
+            .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 6, customs) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setIngredientQuery(q: String) { _ingredientQuery.value = q }
+
+    // Same undo-delete pattern as Recipes/Diary/Weight/ScanHistory/Medication -
+    // snapshots the row right before deleting it so a snackbar "Undo" can bring
+    // it back. Was confirm-only with no way back afterward, unlike Recipes'
+    // identical delete action (RecipesOperationsExt.kt's own doc comment).
+    private var lastDeleted: MealTemplate? = null
+
+    fun delete(id: String) {
+        val entry = _allTemplates.value.firstOrNull { it.id == id }
+        guardedLaunch {
+            repo.delete(id)
+            lastDeleted = entry
+        }
+    }
+
+    /** Re-creates a deleted template (used by the "Undo" snackbar action) with the same id. */
+    fun undoDelete() {
+        val entry = lastDeleted ?: return
+        lastDeleted = null
+        guardedLaunch { repo.save(entry.name, entry.meal, entry.items, id = entry.id, profileId = activeProfileId.value) }
+    }
+
+    /** Templates and Recipes carry near-identical component shapes but had no
+     *  way to convert between the two - a "quick weeknight combo" built as a
+     *  template couldn't become a proper named Recipe without re-entering
+     *  every ingredient by hand, and vice versa. */
+    fun saveAsRecipe(template: MealTemplate) = guardedLaunch {
+        recipeRepo.save(template.name, template.toRecipeComponents(), servings = 1, profileId = activeProfileId.value)
+    }
+
+    fun create(name: String, meal: MealSlot) {
+        if (name.isBlank()) return
+        guardedLaunch { repo.save(name, meal, items = emptyList<TemplateItem>(), profileId = activeProfileId.value) }
+    }
+
+    fun rename(template: MealTemplate, newName: String) {
+        if (newName.isBlank()) return
+        guardedLaunch { repo.save(newName, template.meal, template.items, id = template.id, profileId = activeProfileId.value) }
+    }
+
+    fun logTemplate(template: MealTemplate, date: LocalDate = LocalDate.now(), mealOverride: MealSlot? = null, portionScale: Double = 1.0) {
+        // repo.expand() used to run outside this guard - MealSlot.valueOf() inside it
+        // throws on any item with a malformed/legacy meal slot string, which crashed
+        // the app instead of surfacing the same actionFailed snackbar every other
+        // write failure in this ViewModel already uses.
+        guardedLaunch {
+            val entries = repo.expand(template, date, mealOverride)
+            val scaled = (if (portionScale == 1.0) entries
+            else entries.map { it.copy(portionG = it.portionG * portionScale) }).map { it.copy(profileId = activeProfileId.value) }
+            consumptionRepo.logAll(scaled)
+        }
+    }
+
+    // create() always built a template with items = emptyList() and there was
+    // no UI anywhere to add one afterward — TemplateItem(...) was constructed
+    // nowhere in the whole presentation layer. Every template a user created
+    // stayed a permanent 0-item, 0-kcal template; "Log" just planted nothing.
+    // Mirrors Recipes' own add-ingredient pattern (RecipeComponent).
+    fun addItem(template: MealTemplate, item: TemplateItem) {
+        guardedLaunch { repo.save(template.name, template.meal, template.items + item, id = template.id, profileId = activeProfileId.value) }
+    }
+
+    fun removeItem(template: MealTemplate, index: Int) {
+        val items = template.items.toMutableList().also { if (index in it.indices) it.removeAt(index) }
+        guardedLaunch { repo.save(template.name, template.meal, items, id = template.id, profileId = activeProfileId.value) }
+    }
+
+    /** Forks a template into an independent copy (e.g. clone "Breakfast" into
+     *  "Breakfast (weekend)") - same save-a-copy shape RecipesViewModel.duplicate()
+     *  already uses for Recipes, extended here so a "Saved Meal" a user wants to
+     *  tweak doesn't have to be rebuilt item-by-item from scratch. No id passed,
+     *  so repo.save() inserts a new row rather than editing the original. Suffix
+     *  follows the in-app language (not hardcoded French), same fix as
+     *  RecipesViewModel.duplicate(). */
+    fun duplicate(template: MealTemplate) {
+        val suffix = if (language.value == "en") " (copy)" else " (copie)"
+        guardedLaunch { repo.save("${template.name}$suffix", template.meal, template.items, profileId = activeProfileId.value) }
+    }
+}

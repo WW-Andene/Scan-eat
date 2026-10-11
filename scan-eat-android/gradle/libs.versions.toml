@@ -1,0 +1,163 @@
+[versions]
+agp                  = "8.6.0"
+kotlin               = "2.0.21"
+ksp                  = "2.0.21-1.0.27"
+hilt                 = "2.52"
+compose-bom          = "2024.09.03"
+activity-compose     = "1.9.3"
+core-splashscreen    = "1.0.1"
+navigation-compose   = "2.8.3"
+lifecycle            = "2.8.6"
+room                 = "2.6.1"
+datastore            = "1.1.1"
+retrofit             = "2.11.0"
+okhttp               = "4.12.0"
+moshi                = "1.15.1"
+camerax              = "1.3.4"
+mlkit-barcode        = "17.3.0"
+# Not "mlkit-object-detection" — the version-catalog alias's dot-segments become
+# a Kotlin DSL accessor path (libs.mlkit.object.detection), and `object` alone as
+# a segment collides with Kotlin's `object` keyword, breaking the buildscript
+# parser ("Expecting a class body"). One unbroken word sidesteps that entirely.
+mlkit-objectdetection = "17.0.2"
+mlkit-textrecognition = "16.0.1"
+kotlinx-coroutines   = "1.9.0"
+core-ktx             = "1.15.0"
+appcompat            = "1.7.0"
+work                 = "2.9.1"
+hilt-work            = "1.2.0"
+junit                = "4.13.2"
+androidx-test-junit  = "1.2.1"
+espresso             = "3.6.1"
+mockk                = "1.13.12"
+kotlinx-serialization = "1.7.3"
+# ALPHA — no API stability guarantee; this integration already hit one
+# breaking-surface gap in this exact version (Metadata.manualEntry() doesn't
+# exist here). Re-verify HealthConnectRepository/WeightRepository call sites
+# against release notes before bumping.
+health-connect        = "1.1.0-alpha07"
+guava                 = "33.3.1-android"
+glance-appwidget      = "1.1.1"
+# Pinned to the last release whose transitive compose-ui/compose-foundation
+# requirement (1.7.3) is an *exact* match for compose-bom 2024.09.03's own
+# pins — later Haze releases require compose-ui 1.8+/material3 1.7+, which
+# would force a version skew across the rest of the Compose stack. Re-verify
+# this pin against the BOM's compose-ui version before bumping either one.
+haze                  = "1.5.4"
+
+[libraries]
+# Kotlin + Coroutines
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test    = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test",    version.ref = "kotlinx-coroutines" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+
+# AndroidX Core
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
+hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hilt-work" }
+androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hilt-work" }
+
+# Compose BOM + essentials
+compose-bom              = { group = "androidx.compose", name = "compose-bom",             version.ref = "compose-bom" }
+compose-ui               = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-graphics      = { group = "androidx.compose.ui", name = "ui-graphics" }
+compose-ui-tooling       = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+compose-ui-test-junit4   = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-material3        = { group = "androidx.compose.material3", name = "material3" }
+compose-material-icons   = { group = "androidx.compose.material", name = "material-icons-extended" }
+# F19 (docs/design-audit-step7-typography.md): brand typeface via Android's
+# Downloadable Fonts API (Google Play Services) instead of bundling a font
+# binary — resolves at runtime, no asset file needed, falls back gracefully
+# to the system font on devices without Play Services.
+compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
+# F32 (docs/design-audit-step11-icons-illustration-dataviz-copy.md): Tabler
+# Icons replace Material Rounded — Maven Central, no JitPack repo needed.
+# Migrating incrementally (bottom nav first) rather than all ~250 usages at
+# once, since Tabler's naming diverges enough from Material's (no direct
+# "Settings"/"Scan"/"QrCode" equivalents in some cases) that each icon needs
+# individual verification.
+compose-icons-tabler = { group = "br.com.devsrsouza.compose.icons", name = "tabler-icons", version = "1.1.1" }
+activity-compose         = { group = "androidx.activity", name = "activity-compose",         version.ref = "activity-compose" }
+
+# Navigation
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation-compose" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
+
+# Lifecycle
+lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+lifecycle-runtime-compose   = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose",   version.ref = "lifecycle" }
+
+# Hilt
+hilt-android       = { group = "com.google.dagger", name = "hilt-android",           version.ref = "hilt" }
+hilt-compiler      = { group = "com.google.dagger", name = "hilt-android-compiler",  version.ref = "hilt" }
+
+# Room
+room-runtime  = { group = "androidx.room", name = "room-runtime",  version.ref = "room" }
+room-ktx      = { group = "androidx.room", name = "room-ktx",      version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-testing  = { group = "androidx.room", name = "room-testing",  version.ref = "room" }
+
+# DataStore
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+
+# Networking
+retrofit              = { group = "com.squareup.retrofit2", name = "retrofit",              version.ref = "retrofit" }
+retrofit-moshi        = { group = "com.squareup.retrofit2", name = "converter-moshi",       version.ref = "retrofit" }
+okhttp                = { group = "com.squareup.okhttp3",   name = "okhttp",                version.ref = "okhttp" }
+okhttp-logging        = { group = "com.squareup.okhttp3",   name = "logging-interceptor",   version.ref = "okhttp" }
+moshi                 = { group = "com.squareup.moshi",     name = "moshi-kotlin",          version.ref = "moshi" }
+moshi-codegen         = { group = "com.squareup.moshi",     name = "moshi-kotlin-codegen",  version.ref = "moshi" }
+
+# CameraX
+camerax-core    = { group = "androidx.camera", name = "camera-core",    version.ref = "camerax" }
+camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+camerax-view    = { group = "androidx.camera", name = "camera-view",    version.ref = "camerax" }
+
+# ML Kit
+mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit-barcode" }
+# Generic object detector — coarse bounding boxes only, no per-product
+# classification (that's what the vision-LLM tap-to-identify call is for).
+# Used by the shelf-scan live overlay. Same bundled-model artifact family as
+# mlkit-barcode above (not the com.google.android.gms:play-services-mlkit-*
+# on-demand-download variant), so it works fully offline like barcode
+# scanning already does, at the cost of a few extra MB in the APK.
+mlkit-objectdetection = { group = "com.google.mlkit", name = "object-detection", version.ref = "mlkit-objectdetection" }
+# Latin-script on-device text recognition — used to pre-fill PriceInputDialog's
+# price field from a photographed price tag; the field stays a plain editable
+# OutlinedTextField afterward so a wrong/partial OCR read is just as easy to
+# fix as a manually typed one, never a "trust the OCR or start over" choice.
+mlkit-textrecognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkit-textrecognition" }
+
+# Glance (Compose-based home-screen widgets)
+glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance-appwidget" }
+
+# Haze — real backdrop-blur (RenderEffect) for the floating header/nav glass
+# chrome, not the flat/tinted haze-materials companion artifact (which pulls
+# a much newer material3 than this BOM pins).
+haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
+
+# Health Connect
+health-connect-client = { group = "androidx.health.connect", name = "connect-client", version.ref = "health-connect" }
+# Forces a single, Android-flavored Guava resolution — health-connect-client and
+# CameraX otherwise resolve conflicting ListenableFuture providers (real Guava vs
+# the lightweight listenablefuture-only shim), which breaks CameraX at compile time.
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+
+# Testing
+junit               = { group = "junit",                      name = "junit",              version.ref = "junit" }
+androidx-test-junit = { group = "androidx.test.ext",          name = "junit",              version.ref = "androidx-test-junit" }
+espresso-core       = { group = "androidx.test.espresso",     name = "espresso-core",      version.ref = "espresso" }
+mockk               = { group = "io.mockk",                   name = "mockk",              version.ref = "mockk" }
+
+[plugins]
+android-application = { id = "com.android.application",              version.ref = "agp"    }
+kotlin-android      = { id = "org.jetbrains.kotlin.android",         version.ref = "kotlin" }
+kotlin-compose      = { id = "org.jetbrains.kotlin.plugin.compose",  version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+hilt                = { id = "com.google.dagger.hilt.android",       version.ref = "hilt"   }
+ksp                 = { id = "com.google.devtools.ksp",              version.ref = "ksp"    }

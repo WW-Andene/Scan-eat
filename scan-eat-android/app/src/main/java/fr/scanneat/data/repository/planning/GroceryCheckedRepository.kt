@@ -1,0 +1,101 @@
+package fr.scanneat.data.repository.planning
+
+import android.content.Context
+import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
+
+// ============================================================================
+// GROCERY CHECKED REPOSITORY — persisted check-off state for the grocery
+// list. GroceryScreen previously had zero check-off UI at all (not even a
+// dead checkbox) — a grocery list a user can't tick items off while shopping
+// isn't functionally complete.
+//
+// Grocery items are derived (aggregated from recipe components, no stable DB
+// id — see GroceryList.kt's aggregateGroceryList), so checked state is keyed
+// on the item's normalized name, same key aggregateGroceryList itself already
+// uses for de-duplication.
+// ============================================================================
+
+private val Context.groceryCheckedDataStore by preferencesDataStore(name = "grocery_checked")
+
+// R&D audit finding: grocery checked-state was a DataStore singleton with no
+// profileId concept at all. "default" keeps the exact same key name
+// pre-existing installs already use (zero migration); any other profile gets
+// its own namespaced key.
+private fun checkedKey(profileId: String) =
+    stringSetPreferencesKey(if (profileId == "default") "checked_item_keys" else "checked_item_keys_${profileId}")
+
+@Singleton
+class GroceryCheckedRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
+    private val store = context.groceryCheckedDataStore
+
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
+    fun checkedKeys(profileId: String = "default"): Flow<Set<String>> =
+        storeData.map { it[checkedKey(profileId)] ?: emptySet() }.distinctUntilChanged()
+
+    /** Count of checked items — cheap reactive source for a "3/12 checked" progress readout,
+     *  without every collector re-deriving it from the full [checkedKeys] set. */
+    fun checkedCount(profileId: String = "default"): Flow<Int> = checkedKeys(profileId).map { it.size }.distinctUntilChanged()
+
+    suspend fun setChecked(key: String, checked: Boolean, profileId: String = "default") {
+        store.edit { prefs ->
+            val k = checkedKey(profileId)
+            val current = prefs[k] ?: emptySet()
+            prefs[k] = if (checked) current + key else current - key
+        }
+    }
+
+    /** Clears every checked mark — e.g. once a shopping trip is done. */
+    suspend fun clearAll(profileId: String = "default") {
+        store.edit { prefs -> prefs.remove(checkedKey(profileId)) }
+    }
+
+    /**
+     * Drops any persisted checked key that isn't in [validKeys] — the grocery list
+     * is fully re-aggregated from live recipes on every change (GroceryList.kt's
+     * aggregateGroceryList), so a key that checked off an ingredient which no
+     * longer appears in any recipe (recipe deleted, ingredient removed/renamed)
+     * was never removed from this DataStore set. That silently inflated
+     * checkedCount/checkedKeys forever — e.g. a "5/3 checked" progress readout
+     * once enough stale keys outnumbered the current list — since nothing ever
+     * called back in to clean them up. GroceryViewModel calls this whenever the
+     * aggregated list changes, same self-healing pattern as Hydration/DayNotes'
+     * date-based prune.
+     */
+    suspend fun pruneToKeys(validKeys: Set<String>, profileId: String = "default") {
+        store.edit { prefs ->
+            val k = checkedKey(profileId)
+            val current = prefs[k] ?: emptySet()
+            val pruned = current.intersect(validKeys)
+            if (pruned.size != current.size) prefs[k] = pruned
+        }
+    }
+
+    /**
+     * Merges the backed-up checked set into the current one — used by backup
+     * restore. A backup predating this field (or one from an empty grocery
+     * list) has nothing to restore, so this is a no-op rather than wiping
+     * today's checked items - same convention HydrationRepository.importAll
+     * uses (union, not replace, so restoring an older/other-device backup
+     * can't silently un-check items only checked locally).
+     */
+    suspend fun restoreAll(keys: Set<String>) {
+        if (keys.isEmpty()) return
+        store.edit { prefs -> val k = checkedKey("default"); prefs[k] = (prefs[k] ?: emptySet()) + keys }
+    }
+}

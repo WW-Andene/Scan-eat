@@ -1,0 +1,364 @@
+package fr.scanneat.data.repository.scan
+
+import fr.scanneat.data.remote.api.OffResponse
+import fr.scanneat.data.remote.api.OffSearchResponse
+import fr.scanneat.data.remote.api.OpenFoodFactsApi
+import fr.scanneat.domain.engine.nutrition.OffProductResponse
+import fr.scanneat.domain.engine.nutrition.classifyNonFood
+import fr.scanneat.domain.engine.nutrition.detectSourceConflicts
+import fr.scanneat.domain.engine.nutrition.hasOffNutritionData
+import fr.scanneat.domain.engine.nutrition.isOffSparse
+import fr.scanneat.domain.engine.nutrition.mapOffProduct
+import fr.scanneat.domain.engine.nutrition.mergeOffWithLlm
+import fr.scanneat.domain.engine.nutrition.withEstimatedMicronutrients
+import fr.scanneat.domain.engine.scoring.scoreProduct
+import fr.scanneat.data.remote.api.ImagePayload
+import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.domain.model.ScanSource
+import fr.scanneat.util.barcodeCandidates
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import retrofit2.HttpException
+import java.io.IOException
+
+/**
+ * "Product not found in Open Food Facts — add a photo to continue" - kept next
+ * to scoreDirectBarcode since that's this file's only caller now that it's
+ * been split out of ScanRepository.
+ */
+private fun productNotFoundMessage(lang: String) =
+    if (lang == "en") "Product not found in Open Food Facts — add a photo to continue"
+    else "Produit introuvable dans Open Food Facts — ajoutez une photo pour continuer"
+
+private fun conflictMessage(lang: String, field: String, offValue: Any?, llmValue: Any?) =
+    if (lang == "en") "Conflict: $field OFF=$offValue LLM=$llmValue"
+    else "Conflit : $field OFF=$offValue IA=$llmValue"
+
+/**
+ * DIRECT-mode OFF lookup + label-OCR merge logic, extracted verbatim out of
+ * ScanRepository - the cohesive "barcode -> Open Food Facts, optionally
+ * augmented by the vision LLM" concern. ScanRepository holds one instance and
+ * delegates scoreDirectBarcode() to it; the public ScanRepository API is
+ * unchanged.
+ */
+internal class ScanOffLookup(
+    private val offApi: OpenFoodFactsApi,
+    private val ocrParser: OcrParser,
+) {
+    /**
+     * Looks up a barcode on OFF, retrying against every plausible alternate
+     * encoding of the same GTIN on a 404. Scanners hand back the code as
+     * printed — 12-digit UPC-A on many North American cans, 13-digit EAN-13
+     * elsewhere, and *compressed* UPC-E (6–8 digits) on small packaging like
+     * soda cans and candy — but OFF only indexes the expanded UPC-A/EAN-13
+     * form, so a compressed or differently-padded code misses even though
+     * the product is in the database. This was the root cause behind cans
+     * scanning as "not found" (see the Coke-can investigation).
+     */
+    private suspend fun fetchOffProduct(barcode: String): OffResponse? = coroutineScope {
+        // OFF is a public, sometimes-flaky API - a transient 5xx/429/network blip
+        // previously surfaced immediately as a hard failure here, unlike OcrParser's
+        // vision-LLM calls which already retry the same class of error with a short
+        // backoff (see OcrParser.callWithRetry/isRetryable). 404 still means "not
+        // this candidate encoding" and returns null without retrying, same as before.
+        suspend fun lookup(code: String): OffResponse? {
+            var lastErr: Throwable? = null
+            repeat(OFF_MAX_ATTEMPTS) { attempt ->
+                try {
+                    return offApi.getProduct(code)
+                } catch (e: HttpException) {
+                    if (e.code() == 404) return null
+                    if (e.code() != 429 && e.code() !in 500..599) throw e
+                    lastErr = e
+                } catch (e: IOException) {
+                    lastErr = e
+                }
+                if (attempt < OFF_MAX_ATTEMPTS - 1) delay(backoffDelayMs(attempt))
+            }
+            throw lastErr!!
+        }
+
+        // Candidates are independent reads, so they're fired off concurrently
+        // instead of one-round-trip-at-a-time — a UPC-E can (the exact case
+        // from the earlier Coke-can investigation) can need 3-4 candidate
+        // expansions before hitting the real match, and doing that serially
+        // stacks their full network latency end to end. Still awaited in
+        // priority order (not first-to-complete) so a lower-priority
+        // candidate that happens to respond faster never wins over an
+        // earlier, more-likely one.
+        val candidates = barcodeCandidates(barcode)
+        val pending = candidates.map { async { lookup(it) } }
+        for (deferred in pending) {
+            deferred.await()?.product?.let { return@coroutineScope OffResponse(status = 1, product = it) }
+        }
+        null
+    }
+
+    /**
+     * User-reported: instant/shelf-scan mode felt slow. Every scan (even the
+     * same barcode seen twice in one session, or every duplicate item on a
+     * shelf) re-ran the full OFF network round-trip from scratch - ScanOffLookup
+     * is a Singleton (held for the app's whole process lifetime, see
+     * ScanRepository), so a plain in-memory cache here means the second time a
+     * given barcode is scanned this session, the result is instant. Deliberately
+     * narrow: only the plain barcode-only path (no photo - a photo augmentation
+     * is inherently a one-off, not something to serve stale from an earlier
+     * unrelated scan of the same product) and keyed by (barcode, lang) since
+     * warnings/category labels are language-specific strings.
+     *
+     * No TTL originally - a barcode that legitimately failed to score (sparse/
+     * not-found, thrown before ever reaching the cache write below) was never
+     * cached, but a *successful* OFF-only result WAS cached forever with no
+     * re-check, for as long as the app process stays alive. A product whose
+     * OFF record gets fixed by a contributor mid-session (ingredients/category/
+     * nutrition corrected - exactly the class of gap this session's isOffSparse/
+     * hasOffNutritionData fixes address) would still show the stale pre-fix
+     * result on every rescan until the app is killed and relaunched. 30 minutes
+     * keeps the same-shopping-session perf win this cache exists for while
+     * bounding how long a fixed-on-OFF product can keep showing stale data.
+     */
+    private data class CachedResult(val result: ScanResult, val cachedAtMs: Long)
+    private val resultCache = java.util.concurrent.ConcurrentHashMap<String, CachedResult>()
+    private val resultCacheTtlMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(30)
+
+    // Same size-cap-plus-clear safety valve as AdditivesDb.kt's additiveLookupCache
+    // (and the server's own OffService.kt result cache) - the TTL above bounds how
+    // long an entry survives, but nothing previously bounded how many distinct
+    // barcodes could accumulate within one 30-minute window. A long scanning session
+    // (a whole pantry, a large shopping trip) scanning many distinct barcodes back to
+    // back grew this map without limit for the app process's lifetime. The lock
+    // guards the check-then-clear sequence itself, since ConcurrentHashMap only makes
+    // each individual get/put atomic, not "if size >= max then clear" as a whole.
+    private val resultCacheEvictionLock = Any()
+    private val maxResultCacheEntries = 20_000
+
+    /**
+     * User-requested: the ENGINE_VERSION staleness rescore (see
+     * ScanRepositoryHistory.getById/getCachedByBarcode) only reruns scoring
+     * MATH over the Product already stored on the row - Product.category was
+     * resolved once at original scan time and frozen in, so a mapCategory()
+     * fix (like today's alcoholic-beverage/meat-alternative ones) never
+     * reached an already-scanned product without a brand new manual rescan.
+     * Best-effort, category-only re-fetch: a single OFF request for just
+     * "categories_tags", re-run through the current mapCategory(), so the
+     * staleness path can also correct the category, not just the math built
+     * on top of it. Returns null on ANY failure (offline, timeout, OFF error,
+     * no product/tags) - this must never turn a normal history/result-screen
+     * load into a hard failure or a multi-second stall for something that was
+     * already showing a perfectly renderable (if possibly stale) score.
+     */
+    suspend fun refreshCategory(barcode: String, name: String): fr.scanneat.domain.model.ProductCategory? =
+        try {
+            kotlinx.coroutines.withTimeoutOrNull(3000L) {
+                offApi.getProduct(barcode, fields = "categories_tags").product?.categoriesTags
+            }?.let { tags -> fr.scanneat.domain.engine.nutrition.resolveCategory(tags, name) }
+        } catch (e: Exception) {
+            null
+        }
+
+    suspend fun scoreDirectBarcode(
+        barcode: String,
+        images: List<ImagePayload>,
+        apiKey: String,
+        cerebrasApiKey: String,
+        lang: String,
+        missingApiKeyMessage: (String) -> String,
+    ): ScanResult {
+        if (images.isEmpty()) {
+            resultCache["$barcode|$lang"]?.let { cached ->
+                if (System.currentTimeMillis() - cached.cachedAtMs < resultCacheTtlMs) return cached.result
+            }
+        }
+        val offResponse = fetchOffProduct(barcode)
+        // Checked before mapOffProduct (which only preserves the coarse
+        // ProductCategory food-subcategory enum, not the raw tags) and before any
+        // LLM augmentation - running a vision-LLM label parse against something
+        // like a lubricant or bleach bottle to "fill in missing nutrition facts"
+        // would fabricate nutrition data for a product that was never meant to
+        // carry any, not just under-serve a sparse but genuine food record.
+        offResponse?.product?.let { dto ->
+            val name = dto.productNameFr ?: dto.productName ?: dto.genericNameFr ?: ""
+            classifyNonFood(dto.categoriesTags, name, dto.brands)?.let { category ->
+                // Added 13/08/2026 - dto.ingredientsTextFr/ingredientsText were
+                // already fetched (OFF_FIELDS includes both) and sitting right
+                // here; see NonFoodProductException's own doc comment on why
+                // discarding them broke every per-category functional score
+                // for products recognized through this path. Same fr-then-
+                // generic precedence mapOffProduct already uses below.
+                throw NonFoodProductException(
+                    productName = name,
+                    brand       = dto.brands ?: "",
+                    category    = category,
+                    ingredientsText = dto.ingredientsTextFr ?: dto.ingredientsText,
+                )
+            }
+        }
+        val offProduct  = offResponse?.product?.let { dto ->
+            mapOffProduct(OffProductResponse(
+                productName       = dto.productName,
+                productNameFr     = dto.productNameFr,
+                genericNameFr     = dto.genericNameFr,
+                brands            = dto.brands,
+                categoriesTags    = dto.categoriesTags,
+                ingredientsTextFr = dto.ingredientsTextFr,
+                ingredientsText   = dto.ingredientsText,
+                novaGroup         = dto.novaGroup,
+                nutriments        = dto.nutriments?.mapValues { it.value },
+                labelsTags        = dto.labelsTags,
+                origins           = dto.origins,
+                countriesTags     = dto.countriesTags,
+                quantity          = dto.quantity,
+                ecoscoreGrade     = dto.ecoscoreGrade,
+                ecoscoreScore     = dto.ecoscoreScore,
+                nutritionGrades   = dto.nutritionGrades,
+                allergensTags     = dto.allergensTags,
+                tracesTags        = dto.tracesTags,
+                additivesTags     = dto.additivesTags,
+            ))
+        }
+
+        val hasAnyKey = apiKey.isNotBlank() || cerebrasApiKey.isNotBlank()
+        val (finalProduct, source, warnings) = when {
+            offProduct != null && isOffSparse(offProduct) && images.isNotEmpty() && hasAnyKey -> {
+                val parsed    = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
+                val merged    = mergeOffWithLlm(offProduct, parsed.product)
+                val conflicts = detectSourceConflicts(offProduct, parsed.product)
+                Triple(merged, ScanSource.MERGED,
+                    parsed.warnings + conflicts.map { conflictMessage(lang, it.field, it.offValue, it.llmValue) })
+            }
+            // User-reported (2nd round): the previous fix here guessed macros from
+            // the LLM's training-data knowledge of the product name/brand - that's
+            // an approximation, not the real values actually printed on the
+            // package the user is holding. Reworked to instead ask for exactly
+            // that: reuses the same "product found, needs a photo" retry flow
+            // ScanViewModel already has (needsPhoto=true, see ProductNotFoundException
+            // handling there) so the user's next scan attempt includes a photo of
+            // the nutrition panel, which the existing OFF+LLM merge branch above
+            // then reads for real - never a guess.
+            //
+            // User-reported (3rd round): this used the full isOffSparse() check,
+            // which also fires when ingredients or category are missing - a very
+            // common OFF data gap on otherwise-complete records (e.g. a Candia milk
+            // entry with a full nutrition panel but an empty ingredients_text
+            // field), and unrelated to whether there's real nutrition data to show.
+            // That blocked the scan entirely and demanded a photo for a product
+            // whose actual macros were already known, with an error message that
+            // even claimed "no nutrition data" when there was some. Narrowed to
+            // hasOffNutritionData() - the "do we have anything to show" question -
+            // so a missing ingredients list or an unmapped category no longer
+            // blocks a scan whose real nutrition facts are already in hand.
+            offProduct != null && !hasOffNutritionData(offProduct) && images.isEmpty() ->
+                throw ProductNotFoundException(
+                    if (lang == "en") "\"${offProduct.name}\" found, but has no nutrition data on Open Food Facts — add a photo of the nutrition facts panel to read it"
+                    else "« ${offProduct.name} » trouvé, mais sans données nutritionnelles sur Open Food Facts — ajoutez une photo du tableau nutritionnel pour le lire"
+                )
+            offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
+            images.isNotEmpty() && hasAnyKey -> {
+                val parsed = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
+                Triple(parsed.product, ScanSource.LLM, parsed.warnings)
+            }
+            // The user DID take a photo here (images.isNotEmpty() true, hasAnyKey
+            // false is why the branch above didn't match) - falling through to
+            // productNotFoundMessage's "add a photo to continue" told them to do
+            // the one thing they'd already done, with no hint that label-scanning
+            // is an opt-in feature gated behind Settings' AI key field. Barcode
+            // scanning itself never needed a key (see the offProduct != null
+            // branch above); this message only fires for the label-scan path.
+            images.isNotEmpty() -> throw ProductNotFoundException(missingApiKeyMessage(lang))
+            else -> throw ProductNotFoundException(productNotFoundMessage(lang))
+        }
+
+        // Fills iron/calcium/magnesium/potassium/zinc/vitC/vitD/B12 with a
+        // category-representative estimate wherever OFF/LLM declared none at all -
+        // see MicronutrientEstimator.kt for why: most barcode products simply never
+        // list these, which previously meant a real, common food (e.g. beef,
+        // fresh_meat) logged with zero iron impact on the day's totals, every time.
+        val estimatedProduct = finalProduct.copy(
+            nutrition = finalProduct.nutrition.withEstimatedMicronutrients(finalProduct.category),
+        )
+        val audit = scoreProduct(estimatedProduct, lang)
+        val result = ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
+        // Cache only the plain OFF-only path - a photo-augmented result (MERGED/LLM
+        // source) reflects photos this specific user just took, not a stable
+        // barcode-keyed answer safe to hand back for someone else's rescan.
+        if (images.isEmpty() && source == ScanSource.OPEN_FOOD_FACTS) {
+            synchronized(resultCacheEvictionLock) {
+                if (resultCache.size >= maxResultCacheEntries) resultCache.clear()
+            }
+            resultCache["$barcode|$lang"] = CachedResult(result, System.currentTimeMillis())
+        }
+        return result
+    }
+
+    /**
+     * Free-text search against the whole Open Food Facts catalog - name, brand,
+     * or ingredient/additive keyword, whatever OFF's own search_terms matches
+     * server-side - not limited to the user's own scan history or the ~230-entry
+     * curated FOOD_DB the way FoodSearchViewModel's other two sources are. Each
+     * hit is scored the same way a direct barcode scan would be (estimated
+     * micronutrients + scoreProduct) so results carry a real grade, not just
+     * bare macros. Non-food OFF entries (household products, pet food, etc.) and
+     * results missing a barcode or usable name are silently dropped rather than
+     * surfaced as broken rows.
+     */
+    suspend fun searchOffProducts(query: String, lang: String, limit: Int = 24): List<ScanResult> {
+        if (query.isBlank()) return emptyList()
+        val response = fetchOffSearch(query, lang, limit) ?: return emptyList()
+        return response.products.orEmpty().mapNotNull { dto -> mapSearchResult(dto, lang) }
+    }
+
+    private suspend fun fetchOffSearch(query: String, lang: String, limit: Int): OffSearchResponse? {
+        var lastErr: Throwable? = null
+        repeat(OFF_MAX_ATTEMPTS) { attempt ->
+            try {
+                return offApi.searchProducts(searchTerms = query, pageSize = limit, lang = lang)
+            } catch (e: HttpException) {
+                if (e.code() != 429 && e.code() !in 500..599) return null
+                lastErr = e
+            } catch (e: IOException) {
+                lastErr = e
+            }
+            if (attempt < OFF_MAX_ATTEMPTS - 1) delay(backoffDelayMs(attempt))
+        }
+        return null
+    }
+
+    private fun mapSearchResult(dto: fr.scanneat.data.remote.api.OffProductDto, lang: String): ScanResult? {
+        // Blank (not just null) rejected too - FoodSearchViewModel.openOnlineItem matches
+        // results back to their raw ScanResult by barcode, so multiple blank-barcode OFF
+        // entries would all collide on the same "" key and always resolve to the first one.
+        val barcode = dto.code?.takeIf { it.isNotBlank() } ?: return null
+        val name = dto.productNameFr ?: dto.productName ?: dto.genericNameFr
+        if (name.isNullOrBlank()) return null
+        if (classifyNonFood(dto.categoriesTags, name, dto.brands) != null) return null
+        val product = mapOffProduct(OffProductResponse(
+            productName       = dto.productName,
+            productNameFr     = dto.productNameFr,
+            genericNameFr     = dto.genericNameFr,
+            brands            = dto.brands,
+            categoriesTags    = dto.categoriesTags,
+            ingredientsTextFr = dto.ingredientsTextFr,
+            ingredientsText   = dto.ingredientsText,
+            novaGroup         = dto.novaGroup,
+            nutriments        = dto.nutriments?.mapValues { it.value },
+            labelsTags        = dto.labelsTags,
+            origins           = dto.origins,
+            countriesTags     = dto.countriesTags,
+            quantity          = dto.quantity,
+            ecoscoreGrade     = dto.ecoscoreGrade,
+            ecoscoreScore     = dto.ecoscoreScore,
+            nutritionGrades   = dto.nutritionGrades,
+            allergensTags     = dto.allergensTags,
+            additivesTags     = dto.additivesTags,
+        )) ?: return null
+        val estimated = product.copy(nutrition = product.nutrition.withEstimatedMicronutrients(product.category))
+        val audit = scoreProduct(estimated, lang)
+        return ScanResult(product = estimated, audit = audit, warnings = emptyList(), source = ScanSource.OPEN_FOOD_FACTS, barcode = barcode)
+    }
+
+    private companion object {
+        /** Matches OcrParser.callWithRetry's per-candidate retry budget for the same class of transient error. */
+        const val OFF_MAX_ATTEMPTS = 3
+    }
+}

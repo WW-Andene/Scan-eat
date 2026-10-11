@@ -1,0 +1,284 @@
+package fr.scanneat.data.backup
+
+import fr.scanneat.data.local.db.activity.ActivityEntity
+import fr.scanneat.data.local.db.consumption.ConsumptionEntity
+import fr.scanneat.data.local.db.customfood.CustomFoodEntity
+import fr.scanneat.data.local.db.medication.MedicationEntity
+import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.mood.MoodEntity
+import fr.scanneat.data.local.db.nonfood.NonFoodScanEntity
+import fr.scanneat.data.local.db.pantry.PantryEntity
+import fr.scanneat.data.local.db.report.MisclassificationReportEntity
+import fr.scanneat.data.repository.foodsearch.SavedSearchFilter
+import fr.scanneat.data.local.db.sleep.SleepEntity
+import fr.scanneat.data.local.db.price.PriceEntity
+import fr.scanneat.data.local.db.symptom.SymptomEntity
+import fr.scanneat.data.local.db.recipe.RecipeEntity
+import fr.scanneat.data.local.db.scan.ScanHistoryEntity
+import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
+import fr.scanneat.data.local.db.template.MealTemplateEntity
+import fr.scanneat.data.local.db.weight.WeightEntity
+import fr.scanneat.data.repository.biolism.BiolismRepository
+import fr.scanneat.data.repository.health.FastCompletion
+import fr.scanneat.data.repository.loyalty.LoyaltyCard
+import fr.scanneat.data.repository.planning.ManualGroceryItem
+import fr.scanneat.data.repository.reminders.ReminderSettings
+
+// ============================================================================
+// BACKUP BUNDLE — full local export/import of the user data.
+//
+// Covers the 7 @Database entities (scan history, diary, custom foods, weight,
+// activity, meal templates, recipes) plus, since format v2, the
+// DataStore-backed data a restore-on-a-new-device previously silently lost:
+// profile, app settings, reminder settings, fasting (active session +
+// history), hydration log, day notes, and the meal plan. Since v3, also the
+// grocery-list checked-off state (its own DataStore file, added alongside
+// the check-off feature — easy to forget since it isn't a @Database entity).
+// Since v4, also Biolism's own DataStore (biolism_prefs): its profile override,
+// onboarding flag, session timer state, manual HR, and workout session history
+// — previously silently lost on restore-to-a-new-device just like the v2 data.
+// Since v5, also the "Traitement" (medication) list — an 8th @Database entity
+// that had zero presence here despite being active health data (name, dosage,
+// reminder schedule) with no other persistence path — and manually-added
+// grocery items (e.g. "Save to..." from a scanned product), also previously
+// silently lost on backup/restore.
+// Since v6, also medication_log — the "I took this" adherence events added
+// alongside Traitement's calendar entry (previously Traitement's active list
+// was backed up, but not whether/when a dose was actually taken).
+// Since v7, also the profile's healthConditions (diabetes/hypertension/
+// pregnancy/kidney_disease/etc) — real scoring/safety data that was silently
+// dropped on every backup/restore despite allergens and isMenstruating,
+// captured right alongside it on the same screen, always being included.
+// Since v8, also scan_score_history — a 9th @Database entity (an append-only
+// score log decoupled from scan_history's own upsert-by-barcode dedup, see
+// ScanScoreHistoryEntity) backing the Result screen's score-delta/history
+// sparkline. Genuine, non-derivable data (scan_history's own rows get
+// REPLACEd in place on a rescan, so this is the only place a barcoded
+// product's score-over-time actually survives) that would otherwise be
+// silently lost on restore-to-a-new-device like every other entity above.
+// Since v10, also price_log — a 10th @Database entity (the Dépenses feature's
+// manually-logged purchase prices) that had zero presence here despite being
+// real user-entered data with no other persistence path, same class of gap
+// every entity above this line already had fixed for it in turn.
+// Since v11, also the Dépenses budget targets (weekly/per-meal), Activité's
+// all-time best streak, the animated-background and advanced-Biolism-view
+// display toggles, and onboardingComplete - a Category B audit pass found
+// these five DataStore-backed values had never been added to SettingsBackup
+// despite this file's own header claiming exhaustive coverage since v9;
+// restoring to a new device silently reset each one (budgets back to unset,
+// best streak back to 0 - which could wrongly re-trigger a "new personal
+// record" celebration on a lower but still-real current streak - and both
+// toggles back to their defaults).
+//
+// Deliberately excludes the Groq and Cerebras API keys from SettingsBackup —
+// a backup file shared for debugging or support must not leak a credential.
+//
+// version bumps whenever a field is added/removed/retyped, so importFromJson
+// can refuse (rather than silently corrupt) a bundle from an incompatible
+// future or ancient export. All v2+ fields default to null/empty so an older
+// file (which has none of them) still parses cleanly.
+// ============================================================================
+
+// Since v12: pantry (Garde-manger) - a real persisted inventory added this
+// pass, previously with zero presence here despite being real user data
+// (name/quantity/unit/expiry) with no other persistence path, same class of
+// gap every entity above already had fixed for it in turn.
+// Since v13: symptoms - a symptom journal added alongside Pantry's own
+// backup fix, included from the start this time rather than as a follow-up
+// audit finding.
+// Since v14: profile.pregnancyStartDate - trimester-adapted nutrition
+// targets, see Profile.pregnancyStartDate's own doc comment.
+// Since v15: sleep, mood, and nonFoodScans - an app-wide §XI coherence
+// review (13/08/2026) found SleepRepository/MoodRepository/
+// NonFoodScanRepository each already had a real exportAll()/importAll()
+// pair, written for exactly this purpose, but neither was ever actually
+// called from BackupRepository - real user data (nightly sleep logs, daily
+// mood/stress ratings, scanned shampoo/cosmetics history) silently lost on
+// every backup/restore, the same class of gap every entity above this line
+// already had fixed for it in turn.
+// Since v16: misclassificationReports - the new local "signaler une erreur de
+// classification" log (MisclassificationReportEntity), included from the
+// start rather than as a follow-up audit finding, per the v15 lesson above.
+// Since v17: savedSearchFilters - Recherche's new named filter presets
+// (SavedSearchFilter, its own small DataStore file), same "wire it in from
+// the start" discipline.
+const val BACKUP_FORMAT_VERSION = 17
+
+data class ProfileBackup(
+    val name: String,
+    val sex: String,
+    val ageYears: Int?,
+    val heightCm: Double?,
+    val weightKg: Double?,
+    val goalWeightKg: Double?,
+    val activityLevel: String,
+    val goal: String,
+    val diet: String,
+    val allergens: List<String>,
+    val isMenstruating: Boolean,
+    // Since v7: diabetes/hypertension/pregnancy/kidney_disease/etc - a real Set<String>
+    // on Profile that drives real scoring/safety logic (PersonalScoreEngine's sugar/
+    // salt-cap adjustments, pregnancy alcohol veto, kidney-disease protein caution),
+    // previously missing here entirely - restoring a backup to a new device silently
+    // lost it, same class of gap allergens/isMenstruating above already cover.
+    val healthConditions: List<String> = emptyList(),
+    // Since v14 - trimester-adapted pregnancy targets need this to survive a
+    // backup/restore like every other profile field above it, ISO
+    // yyyy-MM-dd or null.
+    val pregnancyStartDate: String? = null,
+)
+
+data class SettingsBackup(
+    val apiMode: String,
+    val serverUrl: String,
+    val language: String,
+    val theme: String,
+    val dyslexicFont: Boolean,
+    val colorblindMode: String,
+    // Since v9: WeightViewModel/ProfileViewModel/AddWeightDialog's persisted metric/imperial
+    // toggle - previously absent here, so restoring a backup to a new device silently reset
+    // an imperial-unit user back to kg and required a manual re-toggle.
+    val useImperialWeight: Boolean = false,
+    // Since v11 - see this file's header comment on the class doc above.
+    val onboardingComplete: Boolean = false,
+    val animatedBackground: Boolean = false,
+    val biolismAdvancedView: Boolean = true,
+    val activityBestStreak: Int = 0,
+    val budgetWeeklyEuros: Double? = null,
+    val budgetPerMealEuros: Double? = null,
+)
+
+data class HydrationEntryBackup(val date: String, val ml: Int)
+
+data class DayNoteBackup(val date: String, val text: String)
+
+data class BackupBundle(
+    val formatVersion: Int = BACKUP_FORMAT_VERSION,
+    val exportedAtMs: Long,
+    val appVersionName: String,
+    val scanHistory: List<ScanHistoryEntity>,
+    val consumption: List<ConsumptionEntity>,
+    val customFoods: List<CustomFoodEntity>,
+    val weights: List<WeightEntity>,
+    val activities: List<ActivityEntity>,
+    val mealTemplates: List<MealTemplateEntity>,
+    val recipes: List<RecipeEntity>,
+    val profile: ProfileBackup? = null,
+    val settings: SettingsBackup? = null,
+    val reminderSettings: ReminderSettings? = null,
+    val fastingActiveStartMs: Long? = null,
+    val fastingActiveTargetHours: Int? = null,
+    val fastingHistory: List<FastCompletion> = emptyList(),
+    val hydration: List<HydrationEntryBackup> = emptyList(),
+    val dayNotes: List<DayNoteBackup> = emptyList(),
+    // Meal plan is stored as its own private pipe-delimited format
+    // (MealPlanRepository.serialize/deserialize) — kept as a raw string here
+    // rather than a structured field, since Moshi has no built-in polymorphic
+    // adapter for MealPlanSlot's sealed subclasses.
+    val mealPlanRaw: String? = null,
+    val groceryCheckedKeys: List<String> = emptyList(),
+    val biolism: BiolismRepository.BiolismBackupData? = null,
+    val medications: List<MedicationEntity> = emptyList(),
+    val manualGroceryItems: List<ManualGroceryItem> = emptyList(),
+    val medicationLog: List<MedicationLogEntity> = emptyList(),
+    val scanScoreHistory: List<ScanScoreHistoryEntity> = emptyList(),
+    val priceLog: List<PriceEntity> = emptyList(),
+    // §-audit finding: loyalty cards (LoyaltyCardRepository, added alongside
+    // Courses' Fidélité tab) were never wired into backup/restore at all -
+    // silently lost on reinstall or device migration, same class of gap
+    // manualGroceryItems/groceryCheckedKeys above were added to close for
+    // their own DataStore files.
+    val loyaltyCards: List<LoyaltyCard> = emptyList(),
+    val pantryItems: List<PantryEntity> = emptyList(),
+    val symptoms: List<SymptomEntity> = emptyList(),
+    val sleep: List<SleepEntity> = emptyList(),
+    val mood: List<MoodEntity> = emptyList(),
+    val nonFoodScans: List<NonFoodScanEntity> = emptyList(),
+    val misclassificationReports: List<MisclassificationReportEntity> = emptyList(),
+    val savedSearchFilters: List<SavedSearchFilter> = emptyList(),
+)
+
+data class BackupSummary(
+    val scanHistory: Int,
+    val consumption: Int,
+    val customFoods: Int,
+    val weights: Int,
+    val activities: Int,
+    val mealTemplates: Int,
+    val recipes: Int,
+    val medications: Int = 0,
+    val medicationLog: Int = 0,
+    val scanScoreHistory: Int = 0,
+    val priceLog: Int = 0,
+    val pantryItems: Int = 0,
+    val symptoms: Int = 0,
+    val sleep: Int = 0,
+    val mood: Int = 0,
+    val nonFoodScans: Int = 0,
+    val misclassificationReports: Int = 0,
+    val savedSearchFilters: Int = 0,
+) {
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms + sleep + mood + nonFoodScans + misclassificationReports + savedSearchFilters
+
+    companion object {
+        fun from(bundle: BackupBundle) = BackupSummary(
+            scanHistory   = bundle.scanHistory.size,
+            consumption   = bundle.consumption.size,
+            customFoods   = bundle.customFoods.size,
+            weights       = bundle.weights.size,
+            activities    = bundle.activities.size,
+            mealTemplates = bundle.mealTemplates.size,
+            recipes       = bundle.recipes.size,
+            scanScoreHistory = bundle.scanScoreHistory.size,
+            medications   = bundle.medications.size,
+            medicationLog = bundle.medicationLog.size,
+            priceLog      = bundle.priceLog.size,
+            pantryItems   = bundle.pantryItems.size,
+            symptoms      = bundle.symptoms.size,
+            sleep         = bundle.sleep.size,
+            mood          = bundle.mood.size,
+            nonFoodScans  = bundle.nonFoodScans.size,
+            misclassificationReports = bundle.misclassificationReports.size,
+            savedSearchFilters = bundle.savedSearchFilters.size,
+        )
+    }
+}
+
+/**
+ * Lightweight metadata read from a backup file without applying it — lets the
+ * import UI show "this backup was taken on <date> by app version <x>,
+ * containing <n> items" before the user commits to overwriting local data.
+ */
+data class BackupMetadata(
+    val formatVersion: Int,
+    val exportedAtMs: Long,
+    val appVersionName: String,
+    val summary: BackupSummary,
+) {
+    companion object {
+        fun from(bundle: BackupBundle) = BackupMetadata(
+            formatVersion = bundle.formatVersion,
+            exportedAtMs = bundle.exportedAtMs,
+            appVersionName = bundle.appVersionName,
+            summary = BackupSummary.from(bundle),
+        )
+    }
+}
+
+sealed class BackupImportError : Exception() {
+    /** The file's formatVersion is newer than this app build knows how to read. */
+    data class UnsupportedVersion(val found: Int, val supported: Int) : BackupImportError()
+    /** The file isn't valid JSON, or doesn't match the expected BackupBundle shape. */
+    data class Malformed(val underlyingCause: Throwable) : BackupImportError()
+    /** The file is passphrase-encrypted (see BackupPassphraseCipher) and needs one before it can be read at all. */
+    data object PassphraseRequired : BackupImportError()
+    /** A passphrase was supplied but didn't decrypt the file (wrong passphrase or corrupted file - indistinguishable). */
+    data object WrongPassphrase : BackupImportError()
+    /** The file exceeds [MAX_BACKUP_JSON_BYTES] - rejected before Moshi parses it in full. */
+    data class TooLarge(val actualBytes: Int, val maxBytes: Int) : BackupImportError()
+}
+
+/** No real backup this app produces should ever approach this - a generous ceiling
+ *  meant only to reject a corrupted/malicious file before parseBundle()'s
+ *  bundleAdapter.fromJson() allocates a full object graph for it. */
+const val MAX_BACKUP_JSON_BYTES = 200 * 1024 * 1024

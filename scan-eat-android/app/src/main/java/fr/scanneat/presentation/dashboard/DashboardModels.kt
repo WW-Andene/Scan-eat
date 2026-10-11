@@ -1,0 +1,102 @@
+package fr.scanneat.presentation.dashboard
+
+import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
+import fr.scanneat.data.repository.health.FastingState
+import fr.scanneat.domain.engine.dashboard.*
+import fr.scanneat.domain.engine.nutrition.*
+import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.domain.engine.scoring.*
+import fr.scanneat.domain.model.*
+
+/**
+ * The single, merged calorie-balance readout (real Diary intake vs TDEE).
+ * TDEE prefers Biolism's richer estimate when a valid Biolism profile exists,
+ * falling back to the main Profile's PAL-based TDEE otherwise.
+ */
+data class CalorieBalance(
+    val kcalIn: Double,
+    val tdee: Double,
+    val tdeeFromBiolism: Boolean,
+    val net: Double,
+    // Logged Activité kcal for today — informational total shown regardless
+    // of whether any of it was credited to [net] (see [extraExerciseKcal]).
+    val exerciseKcal: Int = 0,
+    // User-requested: connect logged activity to the actual calorie budget,
+    // not just show it informationally - the declared activityLevel's PAL
+    // already assumes some regular exercise, so naively adding all of
+    // exerciseKcal on top would double-count it. Only the excess beyond what
+    // that PAL tier already implies for a typical day (see
+    // domain/engine/dashboard/ActivityMetabolismLink.kt's extraExerciseKcal())
+    // is folded into [net] - a normal training day for a "very active" user
+    // contributes nothing extra, but an exceptional one still does.
+    val extraExerciseKcal: Int = 0,
+)
+
+/**
+ * Average nutrition-quality score across scans from the last 7 days - the
+ * Dashboard previously surfaced the app's score/grade system (its main
+ * differentiator vs. calorie-only trackers) only per-item, buried at the
+ * bottom of the "Recent scans" list, with no rollup anywhere. Null when the
+ * window has zero scans (nothing to average).
+ */
+data class WeeklyScoreSummary(
+    val avgScore: Int,
+    val scanCount: Int,
+    val grade: Grade,
+)
+
+data class DashboardUiState(
+    val todayTotals: ConsumedNutrition = ConsumedNutrition.ZERO,
+    val targets: DailyTargets? = null,
+    val calorieBalance: CalorieBalance? = null,
+    val streak: Int = 0,
+    // longestLogStreak() was fully built (scans full history for the longest-
+    // ever unbroken logging run) but had zero callers - a user who logged 30
+    // days straight last month and then missed a day saw that record vanish
+    // entirely, since only the *current* streak (logStreakDays) was ever shown.
+    val longestStreak: Int = 0,
+    val weekly: RollupResult? = null,
+    // monthlyRollup() was fully implemented (same shape as weeklyRollup, which
+    // already has a card) but had zero callers - there was no way to see
+    // anything past a single week anywhere on the Dashboard.
+    val monthly: RollupResult? = null,
+    val weekDelta: WeekOverWeekDelta? = null,
+    // monthOverMonthDelta() existed alongside weekOverWeekDelta() but had no
+    // Dashboard caller - MonthlyTrendCard only ever plotted 30 daily bars
+    // against a flat target line, no delta number the way WeekDeltaCard has.
+    val monthDelta: WeekOverWeekDelta? = null,
+    val weightSummary: fr.scanneat.data.repository.health.WeightSummary? = null,
+    val weightForecast: WeightForecast = WeightForecast.InsufficientData,
+    val gapSuggestions: List<GapEntry> = emptyList(),
+    val chronicGaps: List<ChronicGap> = emptyList(),
+    val recentScans: List<ScanResult> = emptyList(),
+    /** Today's diary entries - kept around purely to derive [neverLoggedScans] below. */
+    val todayEntries: List<DiaryEntry> = emptyList(),
+    // Cross-references this week's calorie deficit/surplus against the real
+    // weight-trend direction - see weeklyCrossTrackerInsight()'s own doc
+    // comment for why this didn't exist anywhere before.
+    val crossInsight: CrossTrackerInsight = CrossTrackerInsight.InsufficientData,
+    // DashboardViewModel already injected both ConsumptionRepository and
+    // ScanRepository but never cross-referenced them - the app's core loop
+    // (scan -> decide -> log) had no follow-through nudge, so a user who scans
+    // several products at the store and only logs some of them got no signal
+    // that the rest were never actually recorded to their diary.
+    val neverLoggedScans: List<ScanResult> = emptyList(),
+    // User-requested: a count of distinct foods eaten over the trailing 7
+    // days - see foodDiversityScore()'s own doc comment on why per-product
+    // score alone never measured this.
+    val foodDiversity: FoodDiversityResult? = null,
+)
+
+/** Today-only glance snapshot of the trackers Dashboard otherwise never surfaces - see [DashboardViewModel.otherTrackers]. */
+data class OtherTrackersSnapshot(
+    val hydrationMl: Int = 0,
+    val hydrationGoalMl: Int = HYD_DEFAULT_GOAL_ML,
+    val fastingActive: FastingState? = null,
+    val medsTakenCount: Int = 0,
+    val medsActiveCount: Int = 0,
+    // Same logStreakDays engine the diary-logging streak already uses (see
+    // DashboardHeavyState), just fed workout dates instead of diary dates -
+    // Activity has never had its own streak surfaced anywhere in the app.
+    val workoutStreak: Int = 0,
+)

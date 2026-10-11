@@ -1,0 +1,345 @@
+package fr.scanneat.data.repository.nutrition
+
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.JsonClass
+import fr.scanneat.data.local.db.customfood.CustomFoodDao
+import fr.scanneat.data.local.db.customfood.CustomFoodEntity
+import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.scoring.inferCategoryFromName
+import fr.scanneat.domain.model.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
+
+// ============================================================================
+// CUSTOM FOOD REPOSITORY — port of public/data/custom-food-db.js
+//
+// User-persisted foods that extend FOOD_DB for Quick Add autocomplete
+// and LLM-identify reconciliation.
+// Schema per entry: name, kcal, protein_g, carbs_g, fat_g per 100 g.
+// Custom foods win ties in searchFoodDB (score -0.5 vs 0 for built-ins).
+// ============================================================================
+
+/** Double.coerceIn(min, max) returns NaN unchanged - every comparison against
+ *  NaN is false, so neither the `this < min` nor `this > max` branch fires.
+ *  Used everywhere save()/clampNutritionJson() clamp a macro/micronutrient
+ *  value, since both are meant to guarantee a finite, in-range value reaches
+ *  the DB (a hand-edited/corrupted backup's NaN previously slipped through
+ *  both untouched, the one case coerceIn alone doesn't cover). */
+private fun Double.finiteCoerceIn(min: Double, max: Double): Double =
+    if (isFinite()) coerceIn(min, max) else min
+
+@Singleton
+class CustomFoodRepository @Inject constructor(
+    private val dao: CustomFoodDao,
+    private val moshi: Moshi,
+) {
+
+    fun observeAll(profileId: String = "default"): Flow<List<FoodEntry>> =
+        dao.observeAll(profileId).map { list -> list.mapNotNull { it.toFoodEntry() } }
+
+    /** Same as [observeAll] but keeps each entry's stable Room id — needed for rename(), since FoodEntry itself carries no id. */
+    fun observeAllWithId(profileId: String = "default"): Flow<List<Pair<String, FoodEntry>>> =
+        dao.observeAll(profileId).map { list -> list.mapNotNull { e -> e.toFoodEntry()?.let { e.id to it } } }
+
+    /** Same as [observeAllWithId] plus each entry's barcode (if any) - lets a
+     *  caller (CustomFoodViewModel.recallWarnings) batch-check every barcoded
+     *  custom food against RappelConso without an N+1 suspend lookup per id
+     *  the way a naive loop over findBarcode() would need. */
+    fun observeAllWithIdAndBarcode(profileId: String = "default"): Flow<List<Triple<String, FoodEntry, String?>>> =
+        dao.observeAll(profileId).map { list -> list.mapNotNull { e -> e.toFoodEntry()?.let { Triple(e.id, it, e.barcode) } } }
+
+    /**
+     * Looks up a custom food by its real, unambiguous barcode identity — the
+     * same one CustomFoodDao.upsertFood already prefers on save. Used by
+     * ScanRepository.scoreBarcode() as a last-resort fallback when neither OFF
+     * nor the vision LLM can identify a barcode: a user who already manually
+     * taught the app an obscure/local/homemade product (see save()'s barcode
+     * param) previously hit the exact same "product not found" wall on every
+     * single rescan, with no way for the app to recall what it already knows.
+     */
+    suspend fun findByBarcode(barcode: String, profileId: String = "default"): FoodEntry? =
+        dao.findByBarcode(barcode, profileId)?.toFoodEntry()
+
+    /** The barcode currently stored for [id], if any - used by the edit flow so
+     *  correcting a custom food's macros via save(id = ...) doesn't silently wipe
+     *  a barcode the edit dialog itself never collects (see AddFoodDialog's own
+     *  doc comment on why it's edit-mode fields only, no barcode field). */
+    suspend fun findBarcode(id: String): String? = dao.findById(id)?.barcode
+
+    /** Looks up a single custom food by its stable row id - used by the edit
+     *  flow (CustomFoodViewModel.update) to preserve ironMg/calciumMg/vitDUg/
+     *  b12Ug, which the edit dialog has no fields for and would otherwise
+     *  silently zero out on every macro correction (save(id=...) replaces the
+     *  whole row; see [findBarcode]'s own doc comment for the same class of risk). */
+    suspend fun findById(id: String): FoodEntry? = dao.findById(id)?.toFoodEntry()
+
+    suspend fun save(
+        name: String,
+        kcal: Double,
+        proteinG: Double = 0.0,
+        carbsG: Double  = 0.0,
+        fatG: Double    = 0.0,
+        fiberG: Double  = 0.0,
+        saltG: Double   = 0.0,
+        // Same gap as ironMg/calciumMg/vitDUg/b12Ug below, for the two macro
+        // fields FoodEntry itself only just gained (see FoodEntry.kt's own doc
+        // comment) - a custom food saved from a scanned product with real
+        // saturated-fat/sugar values previously had nowhere to put them.
+        saturatedFatG: Double = 0.0,
+        sugarsG: Double = 0.0,
+        // Previously dropped here even when a caller (ResultViewModel.saveToDestinations,
+        // CustomFoodViewModel.importFromScan) had real values from a scanned product's
+        // NutritionPer100g - every custom food saved from a scan permanently reported
+        // zero iron/calcium/vitD/B12 regardless of what the source product actually
+        // contained, corrupting MicronutrientCard's bars and chronic-gap detection for
+        // exactly the foods a user saved because they're good sources of one of these.
+        ironMg: Double = 0.0,
+        calciumMg: Double = 0.0,
+        vitDUg: Double = 0.0,
+        b12Ug: Double = 0.0,
+        aliases: List<String> = emptyList(),
+        id: String? = null,
+        profileId: String = "default",
+        // Set when this save originates from a scanned barcoded product (see
+        // ResultViewModel.saveToDestinations) - a real, unambiguous identity
+        // that CustomFoodDao.upsertFood prefers over the name-based match, so
+        // two differently-barcoded products sharing a generic name don't
+        // silently overwrite each other. Null for a manually-typed custom food,
+        // which falls back to the existing name-only dedup.
+        barcode: String? = null,
+        // Set from the scanned product's real category when this save originates
+        // from a scan (see ResultViewModel.saveToDestinations); null for a
+        // manually-typed custom food, which falls back to the same name-based
+        // inference OffMapper/ScoringEngine already use elsewhere. Previously
+        // always hardcoded to "other" regardless of what was actually scanned -
+        // harmless today (custom foods are never run through scoreProduct()),
+        // but a real gap if that ever changes, and the entity column existed
+        // and was persisted/backed-up while never holding a meaningful value.
+        category: ProductCategory? = null,
+    ): FoodEntry {
+        // A blank/whitespace-only name previously passed through untouched: name.trim()
+        // still persisted an empty string, silently adding an unnamed row to the custom
+        // foods list (and to every Quick Add / search-autocomplete surface built on
+        // observeAll()) with no way to identify it afterward in the UI. Reject it up
+        // front instead, same guard style as WeightRepository.log()'s require().
+        require(name.isNotBlank()) { "Custom food name must not be blank" }
+        // Only rejected negatives before - a typo or fat-finger (e.g. "1000" meant
+        // as kcal in the protein field, or a missing decimal point turning 45.0g
+        // into 4500g) flowed straight into Dashboard's MicronutrientCard bars,
+        // dailyTargets percentage math, and chronic-gap detection unclamped. 900
+        // is generous for kcal/100g (pure fat/oil tops out around 884); 100 is the
+        // physical ceiling for any single macro per 100g of product.
+        val entry = FoodEntry(
+            name      = name.trim(),
+            kcal      = kcal.finiteCoerceIn(0.0, 900.0),
+            proteinG  = proteinG.finiteCoerceIn(0.0, 100.0),
+            carbsG    = carbsG.finiteCoerceIn(0.0, 100.0),
+            fatG      = fatG.finiteCoerceIn(0.0, 100.0),
+            fiberG    = fiberG.finiteCoerceIn(0.0, 100.0),
+            saltG     = saltG.finiteCoerceIn(0.0, 100.0),
+            saturatedFatG = saturatedFatG.finiteCoerceIn(0.0, 100.0),
+            sugarsG   = sugarsG.finiteCoerceIn(0.0, 100.0),
+            ironMg    = ironMg.finiteCoerceIn(0.0, 100.0),
+            calciumMg = calciumMg.finiteCoerceIn(0.0, 2500.0),
+            vitDUg    = vitDUg.finiteCoerceIn(0.0, 250.0),
+            b12Ug     = b12Ug.finiteCoerceIn(0.0, 100.0),
+            aliases   = aliases.filter { it.isNotBlank() },
+        )
+        // Two custom foods sharing a name break Compose's LazyColumn key uniqueness in
+        // CustomFoodScreen and make deleteByName() delete every row with that name
+        // instead of just one. When no explicit id is given (a fresh "Add", not a
+        // rename/update of a known row), reuse an existing matching row's id instead
+        // of creating a silent duplicate — "Add" on an existing product updates it in
+        // place (matched by barcode first when given, else by name; see upsertFood).
+        // The match-resolution read and the insert both run inside upsertFood's own
+        // @Transaction, so two concurrent save() calls for the same product can't
+        // both read "no existing row" and both insert a duplicate.
+        val resolvedCategory = category ?: inferCategoryFromName(entry.name)
+        dao.upsertFood(entry.name, barcode, profileId, id) { resolvedId ->
+            CustomFoodEntity(
+                id            = resolvedId,
+                name          = entry.name,
+                category      = resolvedCategory.key,
+                nutritionJson = jsonAdapter.toJson(CustomFoodJson(
+                    kcal = entry.kcal, proteinG = entry.proteinG, carbsG = entry.carbsG,
+                    fatG = entry.fatG, fiberG = entry.fiberG, saltG = entry.saltG,
+                    saturatedFatG = entry.saturatedFatG, sugarsG = entry.sugarsG,
+                    ironMg = entry.ironMg, calciumMg = entry.calciumMg,
+                    vitDUg = entry.vitDUg, b12Ug = entry.b12Ug,
+                    aliases = entry.aliases,
+                )),
+                createdAt     = System.currentTimeMillis(),
+                profileId     = profileId,
+                barcode       = barcode,
+            )
+        }
+        // Same retention cap as ScanRepository/ConsumptionRepository/ActivityRepository
+        // and their siblings - this table had no cap at all until now despite carrying
+        // a nutritionJson blob per row like the others.
+        dao.trim(MAX_ROWS, profileId)
+        return entry
+    }
+
+    private companion object {
+        const val MAX_ROWS = 5000
+    }
+
+    /**
+     * Re-applies [save]'s macro/micronutrient clamps to a raw nutritionJson blob -
+     * used by BackupRepository.importFromJson so a hand-edited or corrupted backup
+     * file's custom-food rows get the same out-of-range guard live-saved rows
+     * already have, instead of landing in the DB verbatim via a raw insertAll()
+     * that bypasses save() entirely. Returns [raw] unchanged if it doesn't parse
+     * (caller already drops/keeps the row on its own terms; this only clamps).
+     */
+    fun clampNutritionJson(raw: String): String {
+        val j = runCatching { jsonAdapter.fromJson(raw) }.getOrNull() ?: return raw
+        val clamped = j.copy(
+            kcal = j.kcal.finiteCoerceIn(0.0, 900.0),
+            proteinG = j.proteinG.finiteCoerceIn(0.0, 100.0),
+            carbsG = j.carbsG.finiteCoerceIn(0.0, 100.0),
+            fatG = j.fatG.finiteCoerceIn(0.0, 100.0),
+            fiberG = j.fiberG.finiteCoerceIn(0.0, 100.0),
+            saltG = j.saltG.finiteCoerceIn(0.0, 100.0),
+            saturatedFatG = j.saturatedFatG.finiteCoerceIn(0.0, 100.0),
+            sugarsG = j.sugarsG.finiteCoerceIn(0.0, 100.0),
+            ironMg = j.ironMg.finiteCoerceIn(0.0, 100.0),
+            calciumMg = j.calciumMg.finiteCoerceIn(0.0, 2500.0),
+            vitDUg = j.vitDUg.finiteCoerceIn(0.0, 250.0),
+            b12Ug = j.b12Ug.finiteCoerceIn(0.0, 100.0),
+        )
+        return jsonAdapter.toJson(clamped)
+    }
+
+    suspend fun delete(id: String) = dao.delete(id)
+
+    /**
+     * CustomFoodScreen previously had delete as its only entry point — a typo
+     * in a custom food's name could never be fixed without deleting and
+     * re-creating it from scratch (losing its id, and any DiaryEntry/Recipe/
+     * MealTemplate that already logged it keeps its own nutrition values
+     * snapshotted independently at creation time, so they're unaffected by
+     * this — only the searchable/displayed name changes going forward).
+     */
+    /** @return false if [newName] collides with another custom food's name (rename skipped, not applied). */
+    suspend fun rename(id: String, newName: String): Boolean {
+        require(newName.isNotBlank()) { "Custom food name must not be blank" }
+        // Renaming onto another custom food's name would leave two rows sharing a
+        // name (the same crash/over-deletion hazard save() guards against) — the
+        // collision check and the insert both run inside renameIfNoCollision's own
+        // @Transaction, so two concurrent renames can't both pass the check and
+        // both write, and skips silently (rather than create the duplicate) if a
+        // real collision exists.
+        return dao.renameIfNoCollision(id, newName.trim())
+    }
+
+    /**
+     * Search across both built-in FOOD_DB and user's custom foods.
+     * Custom foods win ties. Port of searchFoodDB() with extraFoods.
+     */
+    suspend fun search(query: String, limit: Int = 6, profileId: String = "default"): List<FoodEntry> {
+        val customs = dao.observeAll(profileId).first().mapNotNull { it.toFoodEntry() }
+        return searchFoodDB(query, limit, customs)
+    }
+
+    /**
+     * Convert a custom food to a scorable Product.
+     * Port of buildCustomFoodProductInput() from custom-food-db.js.
+     */
+    fun toProduct(entry: FoodEntry): Product = Product(
+        name        = entry.name,
+        // FoodEntry (shared with built-in FOOD_DB search results) carries no
+        // category of its own to read back here — infer from name the same way
+        // OffMapper/ScoringEngine already do for exactly this situation, rather
+        // than the previous hardcoded OTHER regardless of what the food is.
+        category    = inferCategoryFromName(entry.name),
+        novaClass   = NovaClass.UNPROCESSED,
+        ingredients = listOf(Ingredient(name = entry.name, percentage = 100.0,
+            category = IngredientCategory.FOOD, isWholeFood = true)),
+        nutrition   = NutritionPer100g(
+            energyKcal    = entry.kcal,
+            fatG          = entry.fatG,
+            saturatedFatG = entry.saturatedFatG,
+            carbsG        = entry.carbsG,
+            sugarsG       = entry.sugarsG,
+            fiberG        = entry.fiberG,
+            proteinG      = entry.proteinG,
+            saltG         = entry.saltG,
+            // Previously omitted here even though FoodEntry carries them (FOOD_DB
+            // entries used as gap-closer suggestions genuinely have these values -
+            // épinard/saumon/oeuf etc.) and the sibling FoodEntry.toProduct(portionG)
+            // extension already copies them correctly. This is the converter Diary's
+            // Quick Add and ScanRepository.customFoodByBarcode actually use, so every
+            // manually-logged custom food silently reported zero iron/calcium/vitD/
+            // B12 contribution regardless of what the food really contains -
+            // corrupting MicronutrientCard's bars and chronic-gap detection for
+            // exactly the foods most likely to close those gaps.
+            ironMg        = entry.ironMg,
+            calciumMg     = entry.calciumMg,
+            vitDUg        = entry.vitDUg,
+            b12Ug         = entry.b12Ug,
+            vitCMg        = entry.vitCMg,
+            magnesiumMg   = entry.magnesiumMg,
+            potassiumMg   = entry.potassiumMg,
+            zincMg        = entry.zincMg,
+            vitAUg        = entry.vitAUg,
+            b9Ug          = entry.b9Ug,
+            vitEMg        = entry.vitEMg,
+            vitKUg        = entry.vitKUg,
+            b6Mg          = entry.b6Mg,
+        ),
+        // Same as FoodDb.kt's own toProduct() - lets LogSheet's "package"
+        // preset chip offer this food's typical portion when known, instead
+        // of only 100/200/50g.
+        weightG = entry.typicalPortionG ?: 100.0,
+    )
+
+    @JsonClass(generateAdapter = true)
+    internal data class CustomFoodJson(
+        val kcal: Double = 0.0,
+        val proteinG: Double = 0.0,
+        val carbsG: Double = 0.0,
+        val fatG: Double = 0.0,
+        val fiberG: Double = 0.0,
+        val saltG: Double = 0.0,
+        val saturatedFatG: Double = 0.0,
+        val sugarsG: Double = 0.0,
+        val ironMg: Double = 0.0,
+        val calciumMg: Double = 0.0,
+        val vitDUg: Double = 0.0,
+        val b12Ug: Double = 0.0,
+        val aliases: List<String> = emptyList(),
+    )
+
+    private val jsonAdapter = moshi.adapter(CustomFoodJson::class.java)
+
+    private fun CustomFoodEntity.toFoodEntry(): FoodEntry? {
+        // Was falling back to an all-zero CustomFoodJson() on parse failure, so a
+        // corrupted row showed up in Quick Add/search as a real 0-kcal food a user
+        // could log — silently corrupting their totals instead of just being
+        // absent. Now dropped, matching ConsumptionRepository's drop-on-fail.
+        val j = runCatching { jsonAdapter.fromJson(nutritionJson) }
+            .onFailure { android.util.Log.w("CustomFoodRepository", "Failed to parse nutrition JSON for '$name'", it) }
+            .getOrNull() ?: return null
+        return FoodEntry(
+            name      = name,
+            kcal      = j.kcal,
+            proteinG  = j.proteinG,
+            carbsG    = j.carbsG,
+            fatG      = j.fatG,
+            fiberG    = j.fiberG,
+            saltG     = j.saltG,
+            saturatedFatG = j.saturatedFatG,
+            sugarsG   = j.sugarsG,
+            ironMg    = j.ironMg,
+            calciumMg = j.calciumMg,
+            vitDUg    = j.vitDUg,
+            b12Ug     = j.b12Ug,
+            aliases   = j.aliases,
+        )
+    }
+}

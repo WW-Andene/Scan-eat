@@ -1,0 +1,92 @@
+package fr.scanneat.di
+
+import android.content.Context
+import androidx.room.Room
+import fr.scanneat.BuildConfig
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import fr.scanneat.data.local.db.AppDatabase
+import fr.scanneat.data.local.db.MIGRATION_1_2
+import fr.scanneat.data.local.db.MIGRATION_2_3
+import fr.scanneat.data.local.db.MIGRATION_3_4
+import fr.scanneat.data.local.db.MIGRATION_4_5
+import fr.scanneat.data.local.db.MIGRATION_5_6
+import fr.scanneat.data.local.db.MIGRATION_6_7
+import fr.scanneat.data.local.db.MIGRATION_7_8
+import fr.scanneat.data.local.db.MIGRATION_8_9
+import fr.scanneat.data.local.db.MIGRATION_9_10
+import fr.scanneat.data.local.db.MIGRATION_10_11
+import fr.scanneat.data.local.db.MIGRATION_11_12
+import fr.scanneat.data.local.db.MIGRATION_12_13
+import fr.scanneat.data.local.db.MIGRATION_13_14
+import fr.scanneat.data.local.db.MIGRATION_14_15
+import fr.scanneat.data.local.db.MIGRATION_15_16
+import fr.scanneat.data.local.db.MIGRATION_16_17
+import fr.scanneat.data.local.db.MIGRATION_17_18
+import fr.scanneat.data.local.db.MIGRATION_18_19
+import fr.scanneat.data.local.db.MIGRATION_19_20
+import fr.scanneat.data.local.db.MIGRATION_20_21
+import fr.scanneat.data.local.db.MIGRATION_21_22
+import fr.scanneat.data.local.db.MIGRATION_22_23
+import fr.scanneat.data.local.db.MIGRATION_23_24
+import fr.scanneat.data.local.db.MIGRATION_24_25
+import fr.scanneat.data.local.db.MIGRATION_25_26
+import fr.scanneat.data.local.db.MIGRATION_26_27
+import fr.scanneat.data.local.db.MIGRATION_27_28
+import fr.scanneat.data.local.db.MIGRATION_28_29
+import fr.scanneat.data.local.db.MIGRATION_29_30
+import fr.scanneat.data.local.db.MIGRATION_30_31
+import fr.scanneat.data.local.db.MIGRATION_31_32
+import fr.scanneat.data.local.db.MIGRATION_32_33
+import fr.scanneat.data.local.db.MIGRATION_33_34
+import fr.scanneat.data.local.db.MIGRATION_34_35
+import fr.scanneat.data.local.db.MIGRATION_35_36
+import fr.scanneat.data.local.db.MIGRATION_36_37
+import fr.scanneat.data.local.db.MIGRATION_37_38
+import fr.scanneat.data.local.db.MIGRATION_38_39
+import fr.scanneat.data.local.db.MIGRATION_39_40
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DatabaseModule {
+    @Provides @Singleton
+    fun provideDatabase(@ApplicationContext ctx: Context): AppDatabase =
+        Room.databaseBuilder(ctx, AppDatabase::class.java, "scanneat.db")
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29, MIGRATION_29_30, MIGRATION_30_31, MIGRATION_31_32, MIGRATION_32_33, MIGRATION_33_34, MIGRATION_34_35, MIGRATION_35_36, MIGRATION_36_37, MIGRATION_37_38, MIGRATION_38_39, MIGRATION_39_40)
+            .apply {
+                // Debug-only safety net (mirrors NetworkModule's BuildConfig.DEBUG-gated
+                // logging interceptor) — every version 1-25 has a real registered
+                // migration above, so this is a no-op today. Gating it matters because
+                // the alternative silently wipes every user's data on the exact class of
+                // bug this net is supposed to catch: a future version bump that forgets
+                // to register its Migration. Ungated, that mistake would ship straight to
+                // production and destroy real devices' scan/weight/medication history
+                // with no crash and no error surfaced anywhere to catch it in QA first.
+                if (BuildConfig.DEBUG) fallbackToDestructiveMigration()
+            }
+            .build()
+
+    @Provides fun provideScanHistoryDao(db: AppDatabase)  = db.scanHistoryDao()
+    @Provides fun provideConsumptionDao(db: AppDatabase)  = db.consumptionDao()
+    @Provides fun provideCustomFoodDao(db: AppDatabase)   = db.customFoodDao()
+    @Provides fun provideWeightDao(db: AppDatabase)       = db.weightDao()
+    @Provides fun provideActivityDao(db: AppDatabase)     = db.activityDao()
+    @Provides fun provideMealTemplateDao(db: AppDatabase) = db.mealTemplateDao()
+    @Provides fun provideRecipeDao(db: AppDatabase)       = db.recipeDao()
+    @Provides fun provideMedicationDao(db: AppDatabase)   = db.medicationDao()
+    @Provides fun provideMedicationLogDao(db: AppDatabase) = db.medicationLogDao()
+    @Provides fun provideScanScoreHistoryDao(db: AppDatabase) = db.scanScoreHistoryDao()
+    @Provides fun providePriceDao(db: AppDatabase) = db.priceDao()
+    @Provides fun provideOnlineSearchCacheDao(db: AppDatabase) = db.onlineSearchCacheDao()
+    @Provides fun provideRecallDao(db: AppDatabase) = db.recallDao()
+    @Provides fun providePantryDao(db: AppDatabase) = db.pantryDao()
+    @Provides fun provideSymptomDao(db: AppDatabase) = db.symptomDao()
+    @Provides fun provideNonFoodScanDao(db: AppDatabase) = db.nonFoodScanDao()
+    @Provides fun provideSleepDao(db: AppDatabase) = db.sleepDao()
+    @Provides fun provideMoodDao(db: AppDatabase) = db.moodDao()
+    @Provides fun provideMisclassificationReportDao(db: AppDatabase) = db.misclassificationReportDao()
+}

@@ -1,0 +1,262 @@
+package fr.scanneat.presentation.mealplan
+
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.planning.DayPlan
+import fr.scanneat.data.repository.planning.MealPlanRepository
+import fr.scanneat.data.repository.planning.MealPlanSlot
+import fr.scanneat.data.repository.planning.MealTemplate
+import fr.scanneat.data.repository.planning.MealTemplateRepository
+import fr.scanneat.data.repository.planning.Recipe
+import fr.scanneat.data.repository.planning.RecipeRepository
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import fr.scanneat.domain.model.MealSlot
+import fr.scanneat.presentation.common.ActionFailureViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import javax.inject.Inject
+import kotlin.math.roundToInt
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class MealPlanViewModel @Inject constructor(
+    private val repo: MealPlanRepository,
+    private val prefs: UserPreferences,
+    private val recipeRepo: RecipeRepository,
+    private val templateRepo: MealTemplateRepository,
+    private val consumptionRepo: ConsumptionRepository,
+) : ActionFailureViewModel() {
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real. MealPlanRepository's weekly plan
+    // grid is now namespaced per profile too, same as every Room-backed tracker.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+    // A fixed `val` captured LocalDate.now() once at construction - a ViewModel
+    // that outlives midnight would keep the same 7 dates forever, so "today"
+    // stops being highlighted and the week silently goes a day stale. Polling
+    // + distinctUntilChanged only recomputes when the start date actually rolls
+    // over, same fix HydrationViewModel's `intake` applies.
+    val weekDates: StateFlow<List<LocalDate>> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
+        .map { repo.weekDates(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), repo.weekDates())
+
+    val weekPlan: StateFlow<Map<LocalDate, DayPlan>> = activeProfileId.flatMapLatest { id -> repo.weekPlan(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // Saved recipes/templates, for the "assign to this slot" picker below — the
+    // repository has always been able to store a RecipeSlot/TemplateSlot
+    // (see MealPlanSlot, MealPlanRepository.serialize/deserialize), but until
+    // now nothing in the UI ever constructed one: MealPlanScreen only offered
+    // free-text notes, so planning "chicken curry (recipe)" onto Tuesday
+    // dinner was impossible even though the data model and the day-view
+    // rendering (icons for RecipeSlot/TemplateSlot) both already assumed it
+    // existed.
+    val recipes: StateFlow<List<Recipe>> = activeProfileId.flatMapLatest { id -> recipeRepo.observeAll(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val templates: StateFlow<List<MealTemplate>> = activeProfileId.flatMapLatest { id -> templateRepo.observeAll(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Improvement: per-day calorie totals derived from assigned recipe/template slots.
+    // Previously the day header showed only the date — a user had no way to see at a
+    // glance whether a planned day meets their calorie target without opening the diary.
+    // weekPlan holds up to ~13 days (MealPlanRepository only prunes entries older than
+    // KEEP_DAYS_PAST=7, it isn't limited to the displayed forward week), so this must be
+    // filtered to weekDates before aggregating - same guard GroceryViewModel already
+    // applies for the identical reason.
+    val dayCalories: StateFlow<Map<LocalDate, Int>> = combine(weekPlan, recipes, templates, weekDates) { plan, recipeList, templateList, dates ->
+        plan.filterKeys { it in dates }.mapValues { (_, dayPlan) ->
+            listOf("breakfast", "lunch", "dinner", "snack").sumOf { meal ->
+                when (val slot = dayPlan[meal]) {
+                    // A recipe's totalKcal is the whole multi-serving batch, not
+                    // what a single planned meal represents - logSlot() below
+                    // logs exactly one serving (portionFraction = 1/servings), so
+                    // this summary must divide the same way or it silently
+                    // overstates a day's/week's planned intake by the servings
+                    // factor for any recipe that isn't single-serving.
+                    is MealPlanSlot.RecipeSlot   -> recipeList.find { it.id == slot.id }
+                        // Round rather than truncate - .toInt() always rounds toward zero,
+                        // biasing every multi-serving recipe's per-slot total down (same
+                        // fix already applied to MealTemplate.totalKcal/GroceryList).
+                        ?.let { (it.totalKcal / it.servings.coerceAtLeast(1)).roundToInt() } ?: 0
+                    is MealPlanSlot.TemplateSlot -> templateList.find { it.id == slot.id }?.totalKcal ?: 0
+                    else -> 0
+                }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Sum of planned kcal across all days in the current week — derived from dayCalories, no extra query. */
+    val weeklyTotalKcal: StateFlow<Int> = dayCalories.map { it.values.sum() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    /**
+     * "$date|$meal" -> short personal-safety warning for whatever Recipe/
+     * Template is planned in that slot - same checkUserAllergens()/checkDiet()
+     * pattern Recipes/Templates/Grocery/Diary already show for the exact same
+     * items. Previously this weekly grid showed zero allergen/diet warning no
+     * matter what was assigned, even though every one of those sibling screens
+     * already computes and displays it, and logSlot() above lets a planned
+     * item go straight to the diary from here.
+     */
+    val slotWarnings: StateFlow<Map<String, String>> = combine(weekPlan, recipes, templates, prefs.profile, language) { plan, recipeList, templateList, profile, lang ->
+        val result = mutableMapOf<String, String>()
+        plan.forEach { (date, dayPlan) ->
+            listOf("breakfast", "lunch", "dinner", "snack").forEach { meal ->
+                val product = when (val slot = dayPlan[meal]) {
+                    is MealPlanSlot.RecipeSlot   -> recipeList.find { it.id == slot.id }?.toCheckProduct()
+                    is MealPlanSlot.TemplateSlot -> templateList.find { it.id == slot.id }?.toCheckProduct()
+                    else -> null
+                } ?: return@forEach
+                val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+                val dietResult = checkDiet(product, profile.diet, lang)
+                val parts = mutableListOf<String>()
+                allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+                dietResult.reason?.let { parts += it }
+                if (parts.isNotEmpty()) result["$date|$meal"] = parts.joinToString(" · ")
+            }
+        }
+        result
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // New: for each day that still has at least two empty meal slots, suggest the
+    // highest-protein recipe not yet assigned anywhere on that day — so a user
+    // building a weekly plan gets a concrete fill recommendation instead of a blank.
+    val gapSuggestions: StateFlow<Map<LocalDate, Recipe?>> = combine(weekPlan, recipes, weekDates) { plan, recipeList, dates ->
+        if (recipeList.isEmpty()) return@combine emptyMap()
+        // Iterate the real week dates, not plan.mapValues - weekPlan only holds an
+        // entry for a date once at least one slot has ever been set for it, so a
+        // brand-new untouched week (weekPlan has no keys at all) previously produced
+        // zero suggestions for any of its days, silently defeating this feature for
+        // its most common use case: opening MealPlan on a fresh future week. Missing
+        // days default to an empty DayPlan, same as dayCalories's own dates-driven
+        // iteration above.
+        dates.associateWith { date ->
+            val dayPlan = plan[date] ?: DayPlan(date)
+            val assignedIds = listOf("breakfast", "lunch", "dinner", "snack")
+                .mapNotNull { (dayPlan[it] as? MealPlanSlot.RecipeSlot)?.id }.toSet()
+            val emptySlots = listOf("breakfast", "lunch", "dinner", "snack").count { dayPlan[it] == null }
+            if (emptySlots < 2) null
+            // Per-serving, not batch-total protein - ranking by the raw total
+            // biased this toward whichever recipe happens to have the largest
+            // servings count, not the one that's actually highest-protein per
+            // meal (the only unit a single planned slot ever represents).
+            else recipeList.filter { it.id !in assignedIds }.maxByOrNull { it.totalProteinG / it.servings.coerceAtLeast(1) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /**
+     * Data-consistency safeguard: whenever the live recipe/template lists change
+     * (an item is added, edited, or — the case this actually protects against —
+     * deleted), drop any planned RecipeSlot/TemplateSlot whose id no longer
+     * resolves to a real recipe/template. Without this, deleting a recipe left
+     * every day it was ever planned on silently pointing at nothing forever —
+     * MealPlanRepository stores a denormalized id+name snapshot with no foreign
+     * key, so nothing else ever invalidated it. Runs automatically; exposed as
+     * a count so the UI can optionally surface "N stale plan entries removed"
+     * instead of the cleanup happening invisibly.
+     */
+    private val _lastPrunedCount = MutableStateFlow(0)
+    val lastPrunedOrphanCount: StateFlow<Int> = _lastPrunedCount.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            // Room's Flow queries and emits the real current rows on first collection
+            // (unlike a stateIn-wrapped flow, there's no synthetic emptyList() placeholder
+            // emitted first), so reacting to every emission - including the first - is
+            // safe and is what actually catches entries orphaned before this ViewModel
+            // was ever created, not just ones orphaned after.
+            combine(
+                recipes,
+                templates,
+            ) { recipes, templates -> recipes.map { it.id }.toSet() to templates.map { it.id }.toSet() }
+                .collect { (recipeIds, templateIds) ->
+                    _lastPrunedCount.value = repo.pruneOrphanedSlots(recipeIds, templateIds, activeProfileId.value)
+                }
+        }
+    }
+
+    // setNote/clear/clearDay/duplicateDay/duplicateWeek/setRecipe/setTemplate below
+    // previously called repo's Room writes completely unguarded - same F-HIGH-01 bug
+    // as every other unguarded ViewModel write, just missed here since logSlot already
+    // had the guard pattern and looked like full coverage for this file.
+    fun setNote(date: LocalDate, meal: String, text: String) {
+        // Entries are newline-delimited in storage (see MealPlanRepository.serialize) —
+        // strip any embedded newline (e.g. from pasted clipboard text) so a note can't
+        // split across "lines" and corrupt the following entry.
+        val sanitized = text.replace("\n", " ")
+        guardedLaunch { repo.setSlot(date, meal, if (sanitized.isBlank()) null else MealPlanSlot.NoteSlot(sanitized), activeProfileId.value) }
+    }
+
+    fun clear(date: LocalDate, meal: String) {
+        guardedLaunch { repo.setSlot(date, meal, null, activeProfileId.value) }
+    }
+
+    /** Clear every slot for a day in one action instead of one tap per meal. */
+    fun clearDay(date: LocalDate) {
+        guardedLaunch { repo.clearDay(date, activeProfileId.value) }
+    }
+
+    /** Duplicates a day's whole plan onto the same weekday next week - the
+     *  common "same as this week" case, without needing a date picker. */
+    fun duplicateDay(date: LocalDate) {
+        guardedLaunch { repo.copyDay(date, date.plusDays(7), activeProfileId.value) }
+    }
+
+    /** Duplicates the entire displayed week onto the next 7 days. */
+    fun duplicateWeek() {
+        val start = weekDates.value.firstOrNull() ?: return
+        guardedLaunch { repo.copyWeek(start, start.plusDays(7), activeProfileId.value) }
+    }
+
+    fun setRecipe(date: LocalDate, meal: String, recipe: Recipe) {
+        guardedLaunch { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name), activeProfileId.value) }
+    }
+
+    fun setTemplate(date: LocalDate, meal: String, template: MealTemplate) {
+        guardedLaunch { repo.setSlot(date, meal, MealPlanSlot.TemplateSlot(template.id, template.name), activeProfileId.value) }
+    }
+
+    // A planned RecipeSlot/TemplateSlot only ever persisted the plan itself -
+    // nothing connected it to ConsumptionRepository, so the day arrived and the
+    // plan stayed purely decorative: it never auto-filled or even offered to
+    // log the diary entry a user would expect from having "planned" a meal.
+    // Looks the slot's id up against the already-loaded recipes/templates lists
+    // rather than re-querying, since both are cheap StateFlows already held here.
+    fun logSlot(date: LocalDate, meal: String, slot: MealPlanSlot) {
+        val mealSlot = MealSlot.valueOf(meal.uppercase())
+        // Guarded like DashboardViewModel.logGapSuggestion/ResultViewModel.log -
+        // a Room insert failure (disk-full, constraint violation) here previously
+        // crashed the app instead of just failing to log this one meal.
+        guardedLaunch {
+            when (slot) {
+                is MealPlanSlot.RecipeSlot -> recipes.value.find { it.id == slot.id }?.let {
+                    // collapse()'s default portionFraction=1.0 logs the entire
+                    // multi-serving batch, not the one meal a planned slot
+                    // represents - RecipesViewModel.log() already divides by
+                    // servings for its own log action; this was the one
+                    // caller that didn't, silently overcounting kcal/macros
+                    // by the servings factor for any recipe with servings > 1.
+                    consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot, portionFraction = 1.0 / it.servings.coerceAtLeast(1)).copy(profileId = activeProfileId.value))
+                }
+                is MealPlanSlot.TemplateSlot -> templates.value.find { it.id == slot.id }?.let {
+                    consumptionRepo.logAll(templateRepo.expand(it, date, mealSlot).map { e -> e.copy(profileId = activeProfileId.value) })
+                }
+                is MealPlanSlot.NoteSlot -> Unit
+            }
+        }
+    }
+}

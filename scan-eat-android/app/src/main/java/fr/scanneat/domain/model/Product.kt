@@ -1,0 +1,343 @@
+package fr.scanneat.domain.model
+
+// ============================================================================
+// DOMAIN MODELS — port of scoring-engine.ts §SECTION 1: TYPES
+// All nullability mirrors the original TypeScript optional fields.
+// ============================================================================
+
+/** NOVA processing class 1–4 (Monteiro et al., Public Health Nutrition 22:936–941, 2019). */
+enum class NovaClass(val value: Int) {
+    UNPROCESSED(1),
+    CULINARY(2),
+    PROCESSED(3),
+    ULTRA_PROCESSED(4);
+
+    companion object {
+        fun fromInt(v: Int): NovaClass = entries.firstOrNull { it.value == v } ?: ULTRA_PROCESSED
+    }
+}
+
+enum class ProductCategory(val key: String) {
+    SANDWICH("sandwich"),
+    READY_MEAL("ready_meal"),
+    SOUP("soup"),
+    BREAD("bread"),
+    BREAKFAST_CEREAL("breakfast_cereal"),
+    YOGURT("yogurt"),
+    CHEESE("cheese"),
+    PROCESSED_MEAT("processed_meat"),
+    FRESH_MEAT("fresh_meat"),
+    FISH("fish"),
+    SNACK_SWEET("snack_sweet"),
+    SNACK_SALTY("snack_salty"),
+    BEVERAGE_SOFT("beverage_soft"),
+    BEVERAGE_JUICE("beverage_juice"),
+    BEVERAGE_WATER("beverage_water"),
+    // Previously beer/wine/spirits fell into BEVERAGE_SOFT or OTHER and were
+    // scored against soda-shaped sugar/kcal reference ranges - see
+    // NegativeNutrientsPillar.kt's alcohol penalty doc comment for the bug
+    // this was found alongside (a beer scoring "A" with no alcohol awareness
+    // at all). This category exists so CategoryThresholds.kt can give
+    // alcoholic drinks their own kcal/sugar reference bands instead of
+    // inheriting soft-drink norms.
+    ALCOHOLIC_BEVERAGE("alcoholic_beverage"),
+    CONDIMENT("condiment"),
+    // Honey/jam/marmalade were routed into CONDIMENT purely to reach its
+    // checkVeto added-sugar exemption (see CategoryThresholds.kt comment on
+    // the CONDIMENT regex), but CONDIMENT's own sugarThresholds
+    // (10/20/30/45) were tuned for oversweetened savory sauces, not for a
+    // product whose sugar is ~55-80g/100g and entirely intrinsic (fructose
+    // from fruit/nectar, not an added-sugar manufacturing choice) - the same
+    // natural-vs-added-sugar gap already fixed for BEVERAGE_JUICE via its own
+    // category-specific thresholds. Split out so honey/jam get thresholds
+    // scaled to their actual natural sugar range instead of inheriting a
+    // savory-sauce band that reads any jam as "critical" sugar.
+    SPREAD_SWEET("spread_sweet"),
+    OIL_FAT("oil_fat"),
+    // Plant-based meat/fish/cheese substitutes (tofu, textured pea protein,
+    // vegan cheese) were previously misclassified as FRESH_MEAT/FISH/CHEESE
+    // via OFF's own "en:meat-alternatives"/"en:fish-alternatives"/
+    // "en:cheese-substitutes" tags containing "meat"/"fish"/"cheese" as a raw
+    // substring - scored against real-animal-product protein/fat norms
+    // instead of a plant-protein profile. Thresholds tuned for legumes/
+    // textured-protein products (moderate protein, no expectation of the high
+    // sat-fat real cheese/meat structurally carry).
+    PLANT_BASED_ALTERNATIVE("plant_based_alternative"),
+    // §-audit finding: ice cream/sorbet, dry pasta/rice/grains, and fresh
+    // fruit/vegetables had no category of their own at all - every scan of
+    // one silently fell to OTHER's generic thresholds, not just a missing
+    // keyword. See CategoryThresholds.kt's own comments on each for the
+    // real-world nutrition ranges these were calibrated against, and the
+    // known limitations (e.g. GRAIN's dry-vs-cooked-weight assumption,
+    // FRESH_PRODUCE's inherent fruit-vs-vegetable kcal spread).
+    ICE_CREAM("ice_cream"),
+    GRAIN("grain"),
+    FRESH_PRODUCE("fresh_produce"),
+    // Eggs are one of the most commonly scanned single-ingredient products
+    // with no category of their own before this - very tight, well-defined
+    // nutrition (raw egg ~155kcal/100g, ~13g protein, ~11g fat, ~1g carbs,
+    // essentially no fiber/sugar), unlike every other category added in this
+    // sweep which needed a wide band to span real heterogeneity.
+    EGG("egg"),
+    // User-requested category audit: SNACK_SALTY's kcal band had been widened
+    // to 110-630 specifically to also cover nuts (~550-630kcal, 15-25g
+    // protein) and olives (~115-145kcal, ~1g protein) alongside chips/
+    // pretzels/crackers (~400-560kcal, ~6-9g protein) - one threshold band
+    // doing triple duty for three nutritionally unrelated snack shapes, so a
+    // bag of plain chips (mostly carb/fat) always read as protein/fiber-
+    // deficient purely because nuts shared its category. Split out: nuts and
+    // seeds (almonds, cashews, walnuts, sunflower/pumpkin/chia/flax seeds -
+    // real protein/fiber/"healthy fat" sources) get their own band; olives
+    // stay in SNACK_SALTY (low-kcal/high-salt outlier, but at least not
+    // sharing a threshold with high-protein nuts anymore).
+    NUTS_SEEDS("nuts_seeds"),
+    OTHER("other");
+
+    companion object {
+        fun fromKey(k: String): ProductCategory =
+            entries.firstOrNull { it.key == k } ?: OTHER
+    }
+}
+
+/** Standard sodium→salt conversion factor (NaCl molar mass ratio), used
+ *  wherever a salt value must be derived from a sodium-only source. Shared so
+ *  every fallback site (OffMapper's OFF-specific mapping, NegativeNutrients
+ *  Pillar's own defensive fallback for any other entry path) applies the same
+ *  factor instead of each hand-retyping the literal 2.5. */
+const val SODIUM_TO_SALT_FACTOR = 2.5
+
+/**
+ * Per-100 g nutrition values.
+ * Null means "not declared" — distinct from 0 (declared as zero).
+ */
+data class NutritionPer100g(
+    val energyKcal: Double,
+    val fatG: Double,
+    val saturatedFatG: Double,
+    val carbsG: Double,
+    val sugarsG: Double,
+    val addedSugarsG: Double? = null,
+    val fiberG: Double,
+    val proteinG: Double,
+    val saltG: Double,
+    val transFatG: Double? = null,
+    // Minerals
+    val ironMg: Double? = null,
+    val calciumMg: Double? = null,
+    val magnesiumMg: Double? = null,
+    val potassiumMg: Double? = null,
+    val zincMg: Double? = null,
+    val sodiumMg: Double? = null,
+    // Vitamins
+    val vitAUg: Double? = null,
+    val vitCMg: Double? = null,
+    val vitDUg: Double? = null,
+    val vitEMg: Double? = null,
+    val vitKUg: Double? = null,
+    val b1Mg: Double? = null,
+    val b2Mg: Double? = null,
+    val b3Mg: Double? = null,
+    val b6Mg: Double? = null,
+    val b9Ug: Double? = null,
+    val b12Ug: Double? = null,
+    // Macro subdivisions
+    val polyunsaturatedFatG: Double? = null,
+    val monounsaturatedFatG: Double? = null,
+    val omega3G: Double? = null,
+    val omega6G: Double? = null,
+    val cholesterolMg: Double? = null,
+    val caffeineMg: Double? = null,
+    /** OFF's alcohol_100g, already expressed as %vol (not grams) - null means
+     *  not declared, not "alcohol-free". See NegativeNutrientsPillar.kt for
+     *  why this exists: the base score previously had zero awareness that a
+     *  product was alcoholic at all, so a beer with unremarkable sugar/fat/
+     *  salt scored as a healthy "A" beverage. */
+    val alcoholPercentVol: Double? = null,
+    // True when one or more of the mineral/vitamin fields above were filled in by
+    // MicronutrientEstimator.kt (category-based typical values) rather than
+    // actually declared by the source (OFF/LLM) - most barcode products simply
+    // never list iron/calcium/zinc/etc, which previously meant a user who scanned
+    // and logged real food (e.g. beef) saw their iron intake silently stay at 0g
+    // for the day. Surfaced in MicronutrientCard so an estimate is never presented
+    // as a measured fact.
+    val micronutrientsEstimated: Boolean = false,
+    // Persisted verbatim (via ConsumptionRepository's nutritionAdapter, and
+    // nested inside Product's own productJson) to DB columns. New fields must
+    // have a default value, or bump schemaVersion and add a migration branch
+    // in the parser.
+    val schemaVersion: Int = 1,
+) {
+    companion object {
+        val EMPTY = NutritionPer100g(
+            energyKcal = 0.0, fatG = 0.0, saturatedFatG = 0.0,
+            carbsG = 0.0, sugarsG = 0.0, fiberG = 0.0,
+            proteinG = 0.0, saltG = 0.0,
+        )
+    }
+}
+
+data class Ingredient(
+    val name: String,
+    val percentage: Double? = null,
+    val isWholeFood: Boolean? = null,
+    val eNumber: String? = null,
+    val category: IngredientCategory? = null,
+)
+
+enum class IngredientCategory { FOOD, ADDITIVE, PROCESSING_AID }
+
+data class Product(
+    val name: String,
+    val category: ProductCategory,
+    val novaClass: NovaClass,
+    val ingredients: List<Ingredient>,
+    val nutrition: NutritionPer100g,
+    // Optional metadata
+    val weightG: Double? = null,
+    val origin: String? = null,
+    val organic: Boolean = false,
+    val wholeGrainPrimary: Boolean = false,
+    val fermented: Boolean = false,
+    val hasHealthClaims: Boolean = false,
+    val hasMisleadingMarketing: Boolean = false,
+    val namedOils: Boolean? = null,
+    val originTransparent: Boolean = false,
+    val declaredMicronutrients: List<String> = emptyList(),
+    val ecoscoreGrade: String? = null,
+    val ecoscoreValue: Double? = null,
+    val nutriscoreGrade: String? = null,
+    // OFF's own curated allergen tags (e.g. "en:gluten", "en:milk") - verified
+    // against the manufacturer's declaration, more reliable than regexing the
+    // free-text ingredient list. Empty when OFF has none declared or the
+    // product came from the LLM/photo fallback path instead.
+    val declaredAllergenTags: List<String> = emptyList(),
+    // OFF's own curated traces_tags (e.g. "en:nuts") - manufacturer's
+    // precautionary "may contain traces of X" cross-contamination labeling,
+    // a distinct field from allergens_tags above. Previously never fetched
+    // or stored at all, so a product whose label reads "peut contenir des
+    // traces de fruits à coque" (present in OFF's traces_tags but naming no
+    // allergen in the ingredient text itself) produced zero warning for a
+    // user with a declared nut allergy - a real cross-contamination exposure
+    // route, not a cosmetic gap. See AllergenDetector.kt's use of this field.
+    val declaredTracesTags: List<String> = emptyList(),
+    // Persisted verbatim (via ScanRepository's productAdapter) to scan_history's
+    // productJson column. New fields must have a default value, or bump
+    // schemaVersion and add a migration branch in the parser.
+    val schemaVersion: Int = 1,
+)
+
+// Score output types
+// A/B/C/D/F skipped E entirely (the US school-grade convention this
+// originally followed), but Nutri-Score - whose A-E badge this app displays
+// directly alongside its own grade - uses E as its native worst tier. A
+// French/EU user comparing the two badges side by side had no F reference
+// point in the one they already knew. E is now a real, distinct 7th tier
+// between D and F (see scoreToGrade's own boundaries), not a relabeling.
+enum class Grade(val label: String) {
+    A_PLUS("A+"), A("A"), B("B"), C("C"), D("D"), E("E"), F("F");
+
+    companion object {
+        fun fromLabel(s: String): Grade = entries.firstOrNull { it.label == s } ?: F
+    }
+}
+
+// Real-world evidentiary rubric, not per-pillar judgment calls - this is the
+// generalization the alcohol-veto audit called for: alcohol wasn't a one-off
+// bug, it was one instance of a pattern (severity assigned by which pillar
+// happened to notice something, not by the actual weight of evidence) that
+// recurred independently in additives (round 3: a single Tier-1 additive
+// outranking dangerous salt), and would keep recurring in every future
+// addition to this engine without a shared standard to check new deductions
+// against. Every Deduction's Severity should be justifiable against this
+// scale, not chosen to "feel right" for its own pillar in isolation:
+//   CRITICAL — established no-safe-level hazard: WHO/IARC Group 1 carcinogen
+//     (ethanol, nitrite/nitrate curing agents), an industrial contaminant
+//     with no established safe intake (trans fat), or a quantity of a
+//     CRITICAL-tier risk factor (e.g. 2+ Tier-1 additives) that compounds a
+//     single instance into a materially higher-confidence hazard.
+//   MAJOR — strong, specific evidence of a single serious risk factor
+//     clearly exceeding its category norm (e.g. one EU-banned/IARC-flagged
+//     additive, sugar/salt/sat-fat deep in a category's "critical" band).
+//   MODERATE — real but more mixed/preliminary evidence, or a risk factor
+//     only moderately exceeding its category norm.
+//   MINOR — weak, indirect, or heuristic evidence (a positional proxy, a
+//     structural inference rather than a measured value).
+//   INFO — no health-risk claim at all; narration, provenance, or a
+//     positive/neutral observation.
+enum class Severity { INFO, MINOR, MODERATE, MAJOR, CRITICAL }
+
+data class Deduction(
+    val pillar: String,
+    val reason: String,
+    val points: Double,        // negative = deduction, positive = bonus
+    val severity: Severity,
+    val evidence: String? = null,
+)
+
+data class PillarScore(
+    val name: String,
+    val max: Int,
+    val score: Double,
+    val deductions: List<Deduction>,
+    val bonuses: List<Deduction>,
+)
+
+data class VetoCondition(
+    val triggered: Boolean,
+    val reason: String,
+    val cap: Int,
+)
+
+data class ScoreAudit(
+    val productName: String,
+    val category: ProductCategory,
+    val score: Int,
+    val grade: Grade,
+    val verdict: String,
+    val pillars: Pillars,
+    val globalBonuses: List<Deduction>,
+    val globalPenalties: List<Deduction>,
+    val veto: VetoCondition,
+    val redFlags: List<String>,
+    val greenFlags: List<String>,
+    val eco: EcoInfo? = null,
+    val nutriscoreGrade: String? = null,
+    val engineVersion: String,
+    val warnings: List<String>,
+    // Persisted verbatim (via ScanRepository's auditAdapter) to scan_history's
+    // auditJson column. New fields must have a default value, or bump
+    // schemaVersion and add a migration branch in the parser.
+    val schemaVersion: Int = 1,
+) {
+    data class Pillars(
+        val processing: PillarScore,
+        val nutritionalDensity: PillarScore,
+        val negativeNutrients: PillarScore,
+        val additiveRisk: PillarScore,
+        val ingredientIntegrity: PillarScore,
+    )
+
+    data class EcoInfo(val grade: String?, val value: Double?)
+}
+
+/** Result returned by the full scan pipeline. */
+data class ScanResult(
+    val product: Product,
+    val audit: ScoreAudit,
+    val warnings: List<String>,
+    val source: ScanSource,
+    val barcode: String? = null,
+    val dbId: Long = 0,   // Row id from scan_history; 0 when not yet persisted
+    val favorite: Boolean = false,
+    val scannedAt: Long = 0,   // epoch millis from scan_history; 0 when not yet persisted
+    // User-requested: transient signal set only by ScanRepositoryHistory's
+    // stale-scan rescore (never persisted - not part of productJson/auditJson,
+    // not mirrored on the server since it's Android-only UI feedback) so
+    // ResultContent can show "this score just changed from X to Y" instead of
+    // silently swapping the number with no explanation. Null on every other
+    // read path (a fresh scan, an already-current row) and whenever a rescore
+    // happened to land on the exact same score.
+    val rescoredFrom: Int? = null,
+)
+
+enum class ScanSource { OPEN_FOOD_FACTS, LLM, MERGED, MANUAL }

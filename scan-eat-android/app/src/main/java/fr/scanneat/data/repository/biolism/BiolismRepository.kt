@@ -1,0 +1,315 @@
+package fr.scanneat.data.repository.biolism
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.domain.engine.biolism.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
+
+private val Context.biolismStore: DataStore<Preferences>
+    by preferencesDataStore(name = "biolism_prefs")
+
+/** Maps the app-wide profile's sex/activity onto Biolism's own vocabulary. */
+private fun fr.scanneat.domain.model.Sex.toBiolismSex(): BiolismSex = when (this) {
+    fr.scanneat.domain.model.Sex.MALE          -> BiolismSex.MALE
+    fr.scanneat.domain.model.Sex.FEMALE        -> BiolismSex.FEMALE
+    fr.scanneat.domain.model.Sex.NOT_SPECIFIED -> BiolismSex.NOT_SPECIFIED
+}
+
+private fun fr.scanneat.domain.model.ActivityLevel.toBiolismActivityId(): String = when (this) {
+    fr.scanneat.domain.model.ActivityLevel.SEDENTARY         -> "sedentary"
+    fr.scanneat.domain.model.ActivityLevel.LIGHTLY_ACTIVE     -> "light"
+    fr.scanneat.domain.model.ActivityLevel.MODERATELY_ACTIVE  -> "moderate"
+    fr.scanneat.domain.model.ActivityLevel.VERY_ACTIVE        -> "very"
+    fr.scanneat.domain.model.ActivityLevel.EXTRA_ACTIVE       -> "extra"
+}
+
+@Singleton
+class BiolismRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val userPreferences: UserPreferences,
+) {
+    internal val store = context.biolismStore
+
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    internal val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Keys
+    // ─────────────────────────────────────────────────────────────────────────
+    companion object {
+        // Profile-override fields (sex/age/height/weight/activity/ethnicity/
+        // waist/hip/neck/cycleDay) are namespaced per profile id, same
+        // "profile_${id}_field" convention UserPreferences.profileKey() already
+        // uses for the app-wide Profile. These were previously flat, unscoped
+        // keys ("bio_sex" etc.) in this single-DataStore-file repository, while
+        // ProfileScreen's "+" ProfileSwitcherCard is a real, reachable multi-
+        // profile UI (ProfileViewModel.switchProfile/createProfile) - creating a
+        // second profile and editing its waist/hip/neck/ethnicity or Biolism-side
+        // sex/age/height/weight/activity override silently landed in this same
+        // global store, cross-mixing body-composition data between profiles the
+        // moment more than one was used, with no cleanup on profile deletion
+        // either. id-parameterized key builders close that gap; timer/session/
+        // manualHR/onboarded state below stays global/device-scoped (a running
+        // workout timer or the onboarding flag isn't meaningfully "per profile"
+        // the way body measurements feeding BMR/TDEE math are).
+        private fun bioKey(field: String, id: String) = stringPreferencesKey("bio_${id}_$field")
+        private fun bioIntKey(field: String, id: String) = intPreferencesKey("bio_${id}_$field")
+        private fun bioFloatKey(field: String, id: String) = floatPreferencesKey("bio_${id}_$field")
+
+        internal fun kSex(id: String)       = bioKey("sex", id)
+        internal fun kAge(id: String)       = bioIntKey("age", id)
+        internal fun kHeight(id: String)    = bioFloatKey("height_cm", id)
+        internal fun kWeight(id: String)    = bioFloatKey("weight_kg", id)
+        internal fun kActivity(id: String)  = bioKey("activity", id)
+        internal fun kEthnicity(id: String) = bioKey("ethnicity", id)
+        internal fun kWaist(id: String)     = bioFloatKey("waist_cm", id)
+        internal fun kHip(id: String)       = bioFloatKey("hip_cm", id)
+        internal fun kNeck(id: String)      = bioFloatKey("neck_cm", id)
+        internal fun kCycleDay(id: String)  = bioIntKey("cycle_day", id)
+
+        // Session timer state
+        val K_SESS_RUNNING      = booleanPreferencesKey("bio_sess_running")
+        val K_SESS_WALL_START   = longPreferencesKey("bio_sess_wall_start")   // epoch ms, 0 = not set
+        val K_SESS_ACCUMULATED  = longPreferencesKey("bio_sess_acc_ms")
+        val K_KETO_RUNNING      = booleanPreferencesKey("bio_keto_running")
+        val K_KETO_WALL_START   = longPreferencesKey("bio_keto_wall_start")
+        val K_KETO_ACCUMULATED  = longPreferencesKey("bio_keto_acc_ms")
+        val K_KETOSIS_ON        = booleanPreferencesKey("bio_ketosis_on")
+        val K_KETO_ADAPTED      = booleanPreferencesKey("bio_keto_adapted")
+        val K_FASTING_ACTIVE    = booleanPreferencesKey("bio_fasting_active")
+        val K_LAST_MEAL_TS      = longPreferencesKey("bio_last_meal_ts")      // epoch ms, 0 = not set
+
+        // Session history (last 20 sessions, JSON list)
+        val K_SESSIONS          = stringPreferencesKey("bio_sessions")
+
+        // Manual HR for Fick cross-check
+        val K_MANUAL_HR         = intPreferencesKey("bio_manual_hr")
+
+        // Onboarding wizard completion flag
+        val K_ONBOARDED         = booleanPreferencesKey("bio_onboarded")
+    }
+
+    val onboarded: Flow<Boolean> = storeData.map { it[K_ONBOARDED] ?: false }.distinctUntilChanged()
+    suspend fun setOnboarded(v: Boolean) = store.edit { it[K_ONBOARDED] = v }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Profile
+    // ─────────────────────────────────────────────────────────────────────────
+    // Sex/age/height/weight/activity are shared with the app-wide profile so the user only
+    // fills them in once — Biolism only keeps its own copy once the user explicitly edits and
+    // saves them from within Biolism (K_SEX present means an explicit Biolism-side override).
+    val profile: Flow<BiolismProfile> = combine(storeData, userPreferences.activeProfileId, userPreferences.profile) { p, id, mainProfile ->
+        val hasOwnOverride = p[kSex(id)] != null
+        val ethnicityId = p[kEthnicity(id)] ?: "caucasian"
+        val waistCm      = p[kWaist(id)]?.toDouble() ?: 0.0
+        val hipCm        = p[kHip(id)]?.toDouble()   ?: 0.0
+        val neckCm       = p[kNeck(id)]?.toDouble()  ?: 0.0
+        val cycleDay     = p[kCycleDay(id)] ?: 14
+
+        // Weight always prefers the main Profile's value (kept fresh by every real
+        // weigh-in via WeightRepository.log()) over a frozen override snapshot, even
+        // when hasOwnOverride is true for the other shared fields. Unlike sex/height/
+        // activity - which have no other continuously-updated source and can
+        // legitimately diverge if the user intentionally set them differently here -
+        // weight has a dedicated tracking feature that's the ground truth for "the
+        // user's actual current weight." Previously, the instant an override existed,
+        // every subsequent weigh-in silently updated Profile.weightKg while Biolism's
+        // BMR/TDEE/body-fat%/hormone estimates kept using the stale frozen number
+        // forever, with no UI indication this had happened - and that staleness then
+        // cascaded into Dashboard/Diary/Widget's calorie/macro targets, which all
+        // prefer Biolism's richer body-composition-aware TDEE whenever a valid
+        // Biolism profile exists.
+        val liveWeightKg = mainProfile.weightKg?.takeIf { it > 0.0 } ?: (p[kWeight(id)]?.toDouble() ?: 0.0)
+
+        if (hasOwnOverride) {
+            BiolismProfile(
+                sex         = BiolismSex.values().firstOrNull { it.name == p[kSex(id)] } ?: BiolismSex.NOT_SPECIFIED,
+                ageYears    = p[kAge(id)] ?: 0,
+                heightCm    = p[kHeight(id)]?.toDouble() ?: 0.0,
+                weightKg    = liveWeightKg,
+                activityId  = p[kActivity(id)] ?: "sedentary",
+                ethnicityId = ethnicityId,
+                waistCm     = waistCm, hipCm = hipCm, neckCm = neckCm, cycleDay = cycleDay,
+            )
+        } else {
+            BiolismProfile(
+                sex         = mainProfile.sex.toBiolismSex(),
+                ageYears    = mainProfile.ageYears ?: 0,
+                heightCm    = mainProfile.heightCm ?: 0.0,
+                weightKg    = liveWeightKg,
+                activityId  = mainProfile.activityLevel.toBiolismActivityId(),
+                ethnicityId = ethnicityId,
+                waistCm     = waistCm, hipCm = hipCm, neckCm = neckCm, cycleDay = cycleDay,
+            )
+        }
+    }.distinctUntilChanged()
+
+    suspend fun saveProfile(profile: BiolismProfile) {
+        val id = userPreferences.activeProfileId.first()
+        store.edit { p ->
+            p[kSex(id)]       = profile.sex.name
+            p[kAge(id)]       = profile.ageYears
+            p[kHeight(id)]    = profile.heightCm.toFloat()
+            p[kWeight(id)]    = profile.weightKg.toFloat()
+            p[kActivity(id)]  = profile.activityId
+            p[kEthnicity(id)] = profile.ethnicityId
+            p[kWaist(id)]     = profile.waistCm.toFloat()
+            p[kHip(id)]       = profile.hipCm.toFloat()
+            p[kNeck(id)]      = profile.neckCm.toFloat()
+            p[kCycleDay(id)]  = profile.cycleDay
+        }
+        // Mirror shared fields back to the universal profile so both stores stay in sync
+        val current = userPreferences.profile.first()
+        val sex = when (profile.sex) {
+            BiolismSex.MALE          -> fr.scanneat.domain.model.Sex.MALE
+            BiolismSex.FEMALE        -> fr.scanneat.domain.model.Sex.FEMALE
+            BiolismSex.NOT_SPECIFIED -> fr.scanneat.domain.model.Sex.NOT_SPECIFIED
+        }
+        val activityLevel = when (profile.activityId) {
+            "light"    -> fr.scanneat.domain.model.ActivityLevel.LIGHTLY_ACTIVE
+            "moderate" -> fr.scanneat.domain.model.ActivityLevel.MODERATELY_ACTIVE
+            "very"     -> fr.scanneat.domain.model.ActivityLevel.VERY_ACTIVE
+            "extra"    -> fr.scanneat.domain.model.ActivityLevel.EXTRA_ACTIVE
+            else       -> fr.scanneat.domain.model.ActivityLevel.SEDENTARY
+        }
+        userPreferences.saveProfile(
+            current.copy(
+                // age/height/weight already guard against a zero racing in from
+                // BiolismProfileScreen's own cold-start seed (see its p-keyed
+                // remember() comment) - sex had the identical race unguarded: a
+                // save that lands before the real profile Flow value arrives
+                // would silently reset the main profile's sex to NOT_SPECIFIED.
+                sex           = sex.takeIf { it != fr.scanneat.domain.model.Sex.NOT_SPECIFIED } ?: current.sex,
+                ageYears      = profile.ageYears.takeIf { it > 0 } ?: current.ageYears,
+                heightCm      = profile.heightCm.takeIf { it > 0 } ?: current.heightCm,
+                weightKg      = profile.weightKg.takeIf { it > 0 } ?: current.weightKg,
+                activityLevel = activityLevel,
+            )
+        )
+    }
+
+    suspend fun clearProfileOverride() {
+        val id = userPreferences.activeProfileId.first()
+        store.edit { p ->
+            p.remove(kSex(id)); p.remove(kAge(id)); p.remove(kHeight(id)); p.remove(kWeight(id)); p.remove(kActivity(id))
+        }
+    }
+
+    /**
+     * Writes only the Biolism-exclusive fields (waist/hip/neck/ethnicity) —
+     * unlike saveProfile(), this never touches K_SEX/AGE/HEIGHT/WEIGHT/ACTIVITY,
+     * so it doesn't create a shared-field override. Lets Réglages > Mon Profil
+     * surface and edit these fields (previously only reachable from
+     * Métabolisme > Mon Profil) without freezing sex/age/height/weight/activity
+     * away from the main Profile the next time it's edited.
+     */
+    suspend fun saveBodyMeasurements(waistCm: Double, hipCm: Double, neckCm: Double, ethnicityId: String) {
+        val id = userPreferences.activeProfileId.first()
+        store.edit { p ->
+            p[kWaist(id)]     = waistCm.toFloat()
+            p[kHip(id)]       = hipCm.toFloat()
+            p[kNeck(id)]      = neckCm.toFloat()
+            p[kEthnicity(id)] = ethnicityId
+        }
+    }
+
+    /** Cleans up this profile's namespaced body-composition override keys -
+     *  UserPreferences.deleteProfile() never touched biolism_prefs at all
+     *  (it's a separate DataStore file), so a deleted profile's waist/hip/neck/
+     *  sex/age/height/weight/activity/ethnicity/cycleDay override would
+     *  otherwise linger forever under a dead profile id. Called from
+     *  ProfileViewModel.deleteProfile alongside UserPreferences' own cleanup. */
+    suspend fun deleteProfileData(id: String) = store.edit { p ->
+        p.remove(kSex(id)); p.remove(kAge(id)); p.remove(kHeight(id)); p.remove(kWeight(id))
+        p.remove(kActivity(id)); p.remove(kEthnicity(id))
+        p.remove(kWaist(id)); p.remove(kHip(id)); p.remove(kNeck(id)); p.remove(kCycleDay(id))
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Session timer state
+    // ─────────────────────────────────────────────────────────────────────────
+    data class TimerState(
+        val running: Boolean = false,
+        val wallStartMs: Long = 0L,
+        val accumulatedMs: Long = 0L,
+        val ketoRunning: Boolean = false,
+        val ketoWallStartMs: Long = 0L,
+        val ketoAccumulatedMs: Long = 0L,
+        val ketosisOn: Boolean = false,
+        val ketoAdapted: Boolean = false,
+        val fastingActive: Boolean = false,
+        val lastMealTs: Long = 0L,
+    ) {
+        val elapsedMs: Long get() {
+            val wall = if (running && wallStartMs > 0) System.currentTimeMillis() - wallStartMs else 0L
+            return accumulatedMs + wall
+        }
+        val ketoElapsedMs: Long get() {
+            val wall = if (ketoRunning && ketoWallStartMs > 0) System.currentTimeMillis() - ketoWallStartMs else 0L
+            return ketoAccumulatedMs + wall
+        }
+        val fastingHours: Double get() {
+            if (!fastingActive || lastMealTs == 0L) return 0.0
+            return (System.currentTimeMillis() - lastMealTs) / 3_600_000.0
+        }
+        val ketoHours: Double get() = ketoElapsedMs / 3_600_000.0
+    }
+
+    private val timerStateStore = TimerStateStore(store, storeData)
+    val timerState: Flow<TimerState> get() = timerStateStore.timerState
+    suspend fun saveTimerState(state: TimerState) = timerStateStore.saveTimerState(state)
+    val manualHR: Flow<Int?> get() = timerStateStore.manualHR
+    suspend fun saveManualHR(bpm: Int?) = timerStateStore.saveManualHR(bpm)
+
+    private val sessionHistoryStore = SessionHistoryStore(store, storeData)
+    val sessions: Flow<List<BiolismSession>> get() = sessionHistoryStore.sessions
+    suspend fun saveSession(session: BiolismSession) = sessionHistoryStore.saveSession(session)
+    suspend fun deleteSession(id: Long) = sessionHistoryStore.deleteSession(id)
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Backup / restore — Biolism previously had no export/import path at all:
+    // its own profile override (waist/hip/neck/cycle-day, its own sex/age/height/
+    // weight when the user explicitly diverges from the app-wide profile),
+    // onboarding flag, session timer state, manual HR override, and the last-20
+    // workout session history all lived only in this device's private
+    // "biolism_prefs" DataStore, silently lost on a BackupRepository restore to
+    // a new device. Mirrors the exportForBackup/importForBackup shape already
+    // used by FastingRepository.
+    // ─────────────────────────────────────────────────────────────────────────
+    data class BiolismBackupData(
+        val onboarded: Boolean,
+        val hasProfileOverride: Boolean,
+        val sex: String?,
+        val ageYears: Int?,
+        val heightCm: Float?,
+        val weightKg: Float?,
+        val activityId: String?,
+        val ethnicityId: String?,
+        val waistCm: Float?,
+        val hipCm: Float?,
+        val neckCm: Float?,
+        val cycleDay: Int?,
+        val timerState: TimerState,
+        val manualHR: Int?,
+        val sessions: List<BiolismSession>,
+    )
+
+    private val backupStore = BackupStore(store, storeData, timerStateStore, sessionHistoryStore)
+    suspend fun exportForBackup(): BiolismBackupData = backupStore.exportForBackup()
+    suspend fun importForBackup(data: BiolismBackupData) = backupStore.importForBackup(data)
+}

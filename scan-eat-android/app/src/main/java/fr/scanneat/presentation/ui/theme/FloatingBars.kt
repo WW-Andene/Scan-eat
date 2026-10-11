@@ -1,0 +1,352 @@
+package fr.scanneat.presentation.ui.theme
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+
+/**
+ * Real, RenderEffect-backed backdrop blur for the app's floating glass chrome
+ * (real optical blur of whatever scrolls underneath, not just an alpha/
+ * gradient approximation — see [glassSheen]'s own doc comment for why that
+ * alone doesn't read as "frosted glass"). [backgroundColor] is the opaque
+ * fallback Haze draws on API levels/devices where RenderEffect blur isn't
+ * available (pre-Android 12, and several MIUI/Xiaomi builds that disable the
+ * RenderEffect blur APIs on newer Android versions too); [tint] is the
+ * translucent colour composited over the live blurred content everywhere
+ * else — that's what actually reads as "glass" rather than a plain scrim.
+ * `noiseFactor = 0f` deliberately: the library's default film-grain dithering
+ * risks reading as the same dot/grain texture this rework was asked to
+ * remove, so it's off.
+ *
+ * backgroundColor was plain [SurfaceVariant] - on the OLED theme that's
+ * #241F29 sitting directly on a pure-black (#000000) [Background], so any
+ * device that falls back to this opaque fill (confirmed via a real MIUI
+ * device's screenshot) rendered it as a flat, hard-edged, visibly lighter
+ * rectangle with no blend into the screen at all - reading exactly as "an
+ * ugly floating text box," not glass. Two earlier passes tried blending it
+ * (65/35, then 88/12) toward [Background] instead of eliminating the delta
+ * outright, but a third screenshot from the same device (header AND bottom
+ * nav both still a clearly visible lighter box, this time with scrolled
+ * content - an OutlinedTextField's own outline/label - bleeding straight
+ * through the now near-transparent tint) confirmed any non-zero blend still
+ * reads as a rectangle against pure black, and that thinning the tint
+ * further just trades "visible box" for "visible content ghosting through
+ * the box." backgroundColor is now exactly [Background] (zero blend) so the
+ * no-blur fallback is truly invisible against the screen behind it, and the
+ * live tint is bumped back up enough to actually obscure scrolled content
+ * instead of merely dimming it - [glassSheen]'s edge highlight remains the
+ * only thing marking the chrome's outline on every device.
+ */
+/**
+ * Shared outer margin for both floating chrome pieces (FloatingTopBar here,
+ * MainShell's bottom nav) — user-reported ratio of 1(sides):2(top for the
+ * header/bottom for the nav). horizontal is unchanged from the original
+ * Spacing.L both bars already used - only vertical (top for the header,
+ * bottom for the nav) changes, to 2x that same value, and is now shared so
+ * both call sites reference the same number instead of the two independent
+ * literals they used before, which is also what let the footer's bottom
+ * margin drift out of sync with the header's top margin.
+ */
+object FloatingChromeMargin {
+    val horizontal: Dp = Spacing.L
+    val vertical: Dp = Spacing.XXL
+}
+
+val FrostedGlassStyle: HazeStyle
+    @Composable get() = run {
+        // design-aesthetic-audit: the OLED fix above only verified the no-blur
+        // fallback path against a near-black Background - Light theme has the same
+        // underlying problem this doc already describes for OLED, just inverted:
+        // SurfaceVariant (#F0E7E0) sits only ~1-3 RGB units from Background
+        // (#F6F1EC), so a 0.55-alpha tint barely darkens the live-blurred content
+        // it's compositing over, leaving glassSheen's hairline + the Surface's own
+        // shadowElevation shadow (both of which DO have real contrast in Light
+        // theme) as the only visible shape - a disconnected rectangle instead of a
+        // whole glass pill.
+        val tintAlpha = if (isLightBackground()) 0.82f else 0.55f
+        // User-requested: header/footer should use the same card-glass style as
+        // every other card - PrismFillColor instead of a separately-tuned tint,
+        // on Prism specifically (every other theme keeps its own considered tint).
+        val isPrism = LocalThemeName.current == "prism"
+        HazeStyle(
+            backgroundColor = Background,
+            tint            = HazeTint(if (isPrism) PrismFillColor else SurfaceVariant.copy(alpha = tintAlpha)),
+            blurRadius      = 16.dp,
+            noiseFactor     = 0f,
+        )
+    }
+
+/**
+ * Shared [HazeState] for MainShell's bottom nav: created once in MainShell
+ * and provided across the AppNavGraph boundary via [androidx.compose.runtime.CompositionLocalProvider],
+ * so every top-tab screen's own [FloatingScreenScaffold] (a different
+ * composable subtree than MainShell's persistent nav) can register its
+ * scrolling content as that same nav's blur source. The no-arg default here
+ * only matters for previews/tests that never wire the real provider.
+ */
+val LocalBottomNavHazeState = compositionLocalOf { HazeState() }
+
+/**
+ * User-instructed, literal: "all popup menu in the app should use the same
+ * style as Tableau header" - real backdrop blur (hazeEffect) cannot reach a
+ * Compose `Popup`, which renders in its own separate Android window (see
+ * ScanEatDropdownMenu.kt's own doc comment on this exact limitation). The
+ * only way to give a popup menu the SAME real-time blur FloatingTopBar/
+ * MainShell's nav use is to stop using `Popup` and render the menu as a
+ * same-window overlay instead - this controller is that overlay's host,
+ * provided once by MainShell (same level [LocalBottomNavHazeState] is
+ * provided at) so any `ScanEatDropdownMenu` anywhere in the app can push
+ * its expanded content into it, positioned in MainShell's own root
+ * coordinate space (shared by every screen, so the same anchor-position math
+ * works regardless of which screen's tree a given dropdown is called from).
+ */
+class PopupOverlayController {
+    var content by mutableStateOf<(@Composable () -> Unit)?>(null)
+        private set
+    fun show(popup: @Composable () -> Unit) { content = popup }
+    fun hide() { content = null }
+}
+val LocalPopupOverlay = staticCompositionLocalOf<PopupOverlayController?> { null }
+
+/**
+ * The app-wide "floating header" — a detached, glassy pill instead of the
+ * previous edge-to-edge TopAppBar, matching the floating treatment the
+ * bottom nav (MainShell.kt) now uses, so both pieces of chrome read as one
+ * matched pair rather than two different systems. Same title/navigationIcon/
+ * actions slots Material3's TopAppBar already exposes, so existing call
+ * sites swap in directly. `colors` is intentionally dropped — the old
+ * `containerColor = Background` trick existed only to make an edge-to-edge
+ * bar blend invisibly into the screen, the opposite of what a floating card
+ * should do. Handles its own status-bar inset (TopAppBar did this internally
+ * too) since it no longer delegates to TopAppBar for layout.
+ *
+ * [accent] mirrors ScanEatCard's own param of the same name — defaults to
+ * White (glassSheen's own default, so every existing call site is
+ * unaffected) but lets a section with its own brand hue (Biolism's Gold)
+ * tint the glow instead of hand-rolling this whole component a second time.
+ *
+ * [hazeState] is the blur source registered by the screen's own scrolling
+ * content (see [FloatingScreenScaffold]) — the Surface below draws a real
+ * backdrop blur of whatever's passing underneath it via [FrostedGlassStyle],
+ * with [glassSheen]'s gradient/edge-highlight layered on top for the "light
+ * catching a glass edge" finish.
+ */
+@Composable
+fun FloatingTopBar(
+    title: @Composable () -> Unit,
+    hazeState: HazeState,
+    modifier: Modifier = Modifier,
+    navigationIcon: @Composable () -> Unit = {},
+    hasNavigationIcon: Boolean = true,
+    actions: @Composable RowScope.() -> Unit = {},
+    accent: Color = Color.White,
+    // User-requested: "utilise exactement le même header de Tableau pour
+    // Journal" - Journal's tab row previously lived in DiaryHeader's own
+    // hand-rolled reimplementation of this exact chrome (shadow/clip/
+    // hazeEffect/glassSheen/margin copied by hand), which is exactly how it
+    // kept drifting from this real standard (wrong leading-icon inset, wrong
+    // glassSheen alpha on the Biolism header's identical copy, etc.) every
+    // time this one changed without the copies following. An optional slot
+    // rendered below the title row, inside the SAME glass container, so a
+    // screen needing extra chrome (a tab row) uses this composable directly
+    // instead of copying it. null (the default) renders byte-for-byte
+    // identically to every other existing call site - the outer container
+    // was a Row before and is now a Column wrapping that same Row with no
+    // second child, which measures to the exact same bounds.
+    extraContent: (@Composable ColumnScope.() -> Unit)? = null,
+) {
+    val headerShape = RoundedCornerShape(CardRadius.PROMINENT)
+    // User-reported: an outer Box (glassSheen's own clip + hairline draw)
+    // wrapped an inner Surface (its own separate shadow/clip/hazeEffect) -
+    // two independently-clipped objects stacked, whose bounds didn't line
+    // up, showing as a stray rectangle at the chrome's edge (same root
+    // cause already fixed in ScanEatCard - see that file's own comment).
+    // Rebuilt as a single Column carrying shadow, clip, the haze blur, and
+    // the hairline sheen all in one modifier chain (was a Row directly -
+    // promoted to a Column so extraContent can sit below the title Row
+    // inside the exact same glass container instead of a second one).
+    Column(
+        modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.statusBars)
+            // User-reported: outer margin ratio should be 1(sides):2(top/bottom),
+            // and match MainShell's bottom nav margin exactly so the header's top
+            // gap and the nav's bottom gap read as the same size.
+            .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
+            .shadow(elevation = 8.dp, shape = headerShape)
+            .clip(headerShape)
+            .hazeEffect(state = hazeState, style = FrostedGlassStyle)
+            .glassSheen(edgeAlpha = 0.28f, shape = headerShape, glowTint = accent),
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                // User-reported: on tab-root screens (no back arrow), the leading
+                // side previously got Spacing.XS (icon-slot case) or an
+                // approximated Spacing.M spacer (~15dp, not an exact match to the
+                // content below's Spacing.L inset). The leading side is now
+                // Spacing.XS when there's a real back-arrow icon (unchanged from
+                // before, for the 16 push/detail screens that always show one),
+                // or 0 when there isn't, so the no-icon branch below can set the
+                // leading inset to an exact value instead of stacking a second,
+                // redundant padding source on top of it. The trailing side always
+                // keeps Spacing.XS (unchanged breathing room before actions).
+                .padding(start = if (hasNavigationIcon) Spacing.XS else 0.dp, end = Spacing.XS),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (hasNavigationIcon) {
+                // Fixed-width leading slot for a real back arrow - matches
+                // TouchTarget/IconButton's own footprint.
+                Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { navigationIcon() }
+            } else {
+                // No icon to show: the leading inset is exactly Spacing.L,
+                // matching the content below's own outer Spacing.L margin
+                // pixel-for-pixel instead of approximating it.
+                Spacer(Modifier.width(Spacing.L))
+            }
+            Box(Modifier.weight(1f)) {
+                ProvideTextStyle(MaterialTheme.typography.titleLarge) { title() }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, content = actions)
+        }
+        if (extraContent != null) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.S)) {
+                extraContent()
+            }
+        }
+    }
+}
+
+/** FloatingTopBar's own pill height (56dp title row + FloatingChromeMargin.vertical top/bottom) — not including the device's own status-bar inset, which [FloatingScreenScaffold] adds separately. */
+val FloatingTopBarHeight = 96.dp + 16.dp   // 48dp pill + 2 × FloatingChromeMargin.vertical (32dp)
+
+/** MainShell's floating bottom nav's own pill height (64dp NavigationBar + FloatingChromeMargin.vertical top/bottom) — not including the device's own navigation-bar inset. */
+val FloatingBottomNavHeight: Dp
+    @Composable @ReadOnlyComposable get() = LocalBottomNavHeight.current
+
+/** Pill (64dp) + 2 × FloatingChromeMargin.vertical (32dp) — the phone/medium-width bottom bar. */
+val BottomNavPillTotalHeight: Dp = 128.dp
+
+/**
+ * Bottom clearance screens must reserve for MainShell's nav. Provided by
+ * MainShell: [BottomNavPillTotalHeight] when the floating bottom bar is shown,
+ * 0.dp on expanded widths where navigation moves to a side rail instead.
+ */
+val LocalBottomNavHeight = compositionLocalOf { BottomNavPillTotalHeight }
+
+/**
+ * Wraps a screen's content in the app's floating-chrome layout: a full-bleed
+ * [Box] with [content] filling the whole frame and [FloatingTopBar] overlaid
+ * on top of it (not a `Scaffold` slot that pads content away from the bar),
+ * so a scrolled list passes underneath the header's own translucent
+ * glassSheen() instead of stopping short of it. Replaces the previous
+ * `Scaffold(topBar = { FloatingTopBar(...) }) { padding -> ... }` pattern —
+ * [content] still receives a [PaddingValues] to feed straight into a
+ * LazyColumn/Column's own `contentPadding`, exactly like Scaffold's content
+ * lambda did, just sized to clear the floating header (and, for a top-level
+ * tab screen sitting above MainShell's own floating bottom nav, the bottom
+ * chrome too) instead of the old Scaffold-consumed inset.
+ *
+ * [showBottomNavClearance] should be true only for the handful of screens
+ * that are direct destinations of MainShell's bottom nav (Dashboard, Diary,
+ * etc. — anything not in `HIDDEN_NAV_ROUTES`); every push-navigation
+ * sub-screen reached on top of them already hides that nav bar, so reserving
+ * space for it there would just leave a dead gap at the bottom.
+ */
+@Composable
+fun FloatingScreenScaffold(
+    title: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    navigationIcon: @Composable () -> Unit = {},
+    hasNavigationIcon: Boolean = true,
+    actions: @Composable RowScope.() -> Unit = {},
+    accent: Color = Color.White,
+    showBottomNavClearance: Boolean = false,
+    // User-requested: "exactement le même [header] en tout point" - Journal
+    // previously reimplemented this entire scaffold by hand (its own Box/
+    // hazeSource/topInset-bottomInset wiring) purely to fit its tab row,
+    // instead of calling this composable like every other bottom-nav-tab
+    // screen (Dashboard included). extraContent/extraContentHeight let a
+    // caller add FloatingTopBar's own extra-row slot (see that composable's
+    // own doc comment) through this wrapper too, so a tab row no longer
+    // forces a screen to opt out of the shared scaffold at all.
+    // extraContentHeight sizes the content's own top clearance to match -
+    // FloatingTopBarHeight alone assumes the title-row-only case.
+    extraContent: (@Composable ColumnScope.() -> Unit)? = null,
+    extraContentHeight: Dp = 0.dp,
+    // Mirrors Scaffold's own snackbarHost slot — a handful of screens show a
+    // SnackbarHost here (e.g. undo-delete, action-failed toasts); rendered as
+    // its own bottom-center overlay so callers don't each have to re-solve
+    // "where does this float now that there's no Scaffold" individually.
+    snackbarHost: @Composable () -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit,
+) {
+    val headerHazeState = remember { HazeState() }
+    val bottomNavHazeState = LocalBottomNavHazeState.current
+    Box(modifier.fillMaxSize()) {
+        val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+        // Reserved unconditionally, mirroring topInset above - showBottomNavClearance
+        // only gates the app's OWN FloatingBottomNavHeight pill. Previously the raw
+        // system nav-bar inset was never reserved at all on push/detail screens (the
+        // majority of screens, not just bottom-nav-tab destinations), so content and
+        // bottom-anchored buttons on those screens could render underneath a gesture/
+        // 3-button navigation bar.
+        val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        // Nested so each hazeSource attaches to its own layout node — the
+        // outer one only exists (and only feeds MainShell's shared nav
+        // state) on genuine bottom-nav-tab screens.
+        Box(
+            if (showBottomNavClearance) Modifier.fillMaxSize().hazeSource(bottomNavHazeState) else Modifier.fillMaxSize(),
+        ) {
+            Box(Modifier.fillMaxSize().hazeSource(headerHazeState)) {
+                content(
+                    PaddingValues(
+                        top    = topInset + FloatingTopBarHeight + extraContentHeight,
+                        bottom = bottomInset + if (showBottomNavClearance) FloatingBottomNavHeight else 0.dp,
+                    ),
+                )
+            }
+        }
+        FloatingTopBar(
+            title             = title,
+            hazeState         = headerHazeState,
+            navigationIcon    = navigationIcon,
+            hasNavigationIcon = hasNavigationIcon,
+            actions           = actions,
+            accent            = accent,
+            extraContent      = extraContent,
+            modifier          = Modifier.align(Alignment.TopCenter),
+        )
+        // Previously omitted "+ bottomInset" here even though content's own
+        // calculation above includes it - a Snackbar on a bottom-nav-tab screen
+        // with a gesture nav bar rendered bottomInset pixels too low, appearing to
+        // sit underneath/behind the floating bottom nav instead of above it.
+        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = bottomInset + if (showBottomNavClearance) FloatingBottomNavHeight else 0.dp)) {
+            snackbarHost()
+        }
+    }
+}

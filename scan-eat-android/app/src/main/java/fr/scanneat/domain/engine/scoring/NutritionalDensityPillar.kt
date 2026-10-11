@@ -1,0 +1,157 @@
+package fr.scanneat.domain.engine.scoring
+
+import fr.scanneat.domain.model.*
+
+// ============================================================================
+// SECTION 6: PILLAR 2 — NUTRITIONAL DENSITY (max 25)
+// ============================================================================
+
+// protein/fiber deliberately excluded from this map - they're macros, not
+// micronutrients, each already scored on its own dedicated 0-7 axis a few
+// lines below in scoreNutritionalDensity(). Including them here (as this map
+// used to) double-counted the identical field: a product scoring the full
+// 7/7 on the dedicated protein or fiber axis also earned +1 more inside this
+// "micronutrient richness" bonus loop just for clearing 15% of the same
+// 50g/25g figure, awarded under a mislabeled "micronutrient" badge for a
+// macronutrient. Fiber additionally has no official EU NRV at all (Reg
+// 1169/2011 Annex XIII lists none) - the 25g figure here is a Codex/EFSA
+// dietary-fiber DRV, not an NRV in the same regulatory sense as the vitamin/
+// mineral figures it was mixed in with.
+private val NRV_TARGETS = mapOf(
+    "iron"      to Pair("ironMg",    14.0),
+    "calcium"   to Pair("calciumMg", 800.0),
+    "vitD"      to Pair("vitDUg",    5.0),
+    "vitC"      to Pair("vitCMg",    80.0),
+    "vitA"      to Pair("vitAUg",    800.0),
+    "vitE"      to Pair("vitEMg",    12.0),
+    "b12"       to Pair("b12Ug",     2.5),
+    "magnesium" to Pair("magnesiumMg", 375.0),
+    "potassium" to Pair("potassiumMg", 2000.0),
+    "zinc"      to Pair("zincMg",    10.0),
+)
+
+private fun getNutrientValue(n: NutritionPer100g, key: String): Double? = when (key) {
+    "proteinG"    -> n.proteinG
+    "fiberG"      -> n.fiberG
+    "ironMg"      -> n.ironMg
+    "calciumMg"   -> n.calciumMg
+    "vitDUg"      -> n.vitDUg
+    "vitCMg"      -> n.vitCMg
+    "vitAUg"      -> n.vitAUg
+    "vitEMg"      -> n.vitEMg
+    "b12Ug"       -> n.b12Ug
+    "magnesiumMg" -> n.magnesiumMg
+    "potassiumMg" -> n.potassiumMg
+    "zincMg"      -> n.zincMg
+    else          -> null
+}
+
+fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore {
+    val en = lang == "en"
+    val MAX = 25
+    val deductions = mutableListOf<Deduction>()
+    val bonuses = mutableListOf<Deduction>()
+    val n = product.nutrition
+    val thresholds = getThresholds(product.category)
+    var score = 0.0
+
+    // Protein (0–7)
+    val (pLow, pMed, pHigh) = thresholds.proteinG
+    // User-reported (via the alcohol scoring audit): pHigh==0.0 means this
+    // category's threshold band is (0,0,0) - protein is not a meaningful axis
+    // here (water, soda, alcoholic beverages, oil/fat). n.proteinG >= pHigh
+    // (i.e. >= 0.0) is trivially true for any non-negative value, so every
+    // such product previously scored the full 7/7 "high protein" tier purely
+    // from having literally zero protein - up to 14 of this pillar's 25
+    // points awarded for free (7 here + the same bug in fiber below), on top
+    // of whatever else the product scored. The comment that used to sit here
+    // only suppressed the misleading bonus *badge* below, leaving this
+    // unearned score contribution itself untouched.
+    val protScore = if (pHigh == 0.0) 0.0 else when {
+        n.proteinG >= pHigh -> 7.0
+        n.proteinG >= pMed  -> 5.0
+        n.proteinG >= pLow  -> 3.0
+        else                -> 0.0
+    }
+    score += protScore
+    // pHigh==0.0 gates the deduction too, not just the bonus above - a water
+    // or a spirit was previously narrated as "Protein 0g/100g (0/7) MINOR" as
+    // if this were a nutritional shortcoming, even though pHigh==0.0 is the
+    // engine's own signal that protein isn't a meaningful axis for this
+    // category. That directly contradicted the category-relativity reasoning
+    // already applied everywhere else (salt/sugar category overrides, the
+    // bonus-side skip just above) - the audit trail told water it "lacks
+    // protein" while the scoring math itself knew the question didn't apply.
+    if (pHigh > 0.0) {
+        if (protScore < 7) deductions += Deduction("nutritional_density", if (en) "Protein ${n.proteinG}g/100g (${protScore.toInt()}/7)" else "Protéines ${n.proteinG}g/100g (${protScore.toInt()}/7)", protScore - 7, Severity.MINOR)
+        else if (n.proteinG > 0.0) bonuses += Deduction("nutritional_density", if (en) "High protein ${n.proteinG}g/100g" else "Riche en protéines ${n.proteinG}g/100g", 7.0, Severity.INFO)
+    }
+
+    // Fiber (0–7)
+    val (fLow, fMed, fHigh) = thresholds.fiberG
+    // Same zero-threshold-category fix as protein above.
+    val fiberScore = if (fHigh == 0.0) 0.0 else when {
+        n.fiberG >= fHigh -> 7.0
+        n.fiberG >= fMed  -> 5.0
+        n.fiberG >= fLow  -> 3.0
+        else              -> 0.0
+    }
+    score += fiberScore
+    // Same fHigh==0.0 gate on the deduction side as protein above.
+    if (fHigh > 0.0) {
+        if (fiberScore >= 5 && n.fiberG > 0.0) bonuses += Deduction("nutritional_density", if (en) "Good fiber ${n.fiberG}g/100g" else "Bonne teneur en fibres ${n.fiberG}g/100g", fiberScore, Severity.INFO)
+        else if (fiberScore < 5) deductions += Deduction("nutritional_density", if (en) "Low fiber ${n.fiberG}g/100g (${fiberScore.toInt()}/7)" else "Fibres faibles ${n.fiberG}g/100g (${fiberScore.toInt()}/7)", fiberScore - 7, Severity.MINOR)
+    }
+
+    // Micronutrients NRV-15% bonus (0–8): +1 per micro declared at ≥15% NRV per 100g, cap 8
+    var microBonus = 0.0
+    val declaredMicros = mutableListOf<String>()
+    for ((name, pair) in NRV_TARGETS) {
+        val (fieldKey, nrv) = pair
+        val value = getNutrientValue(n, fieldKey) ?: continue
+        if (value >= nrv * 0.15) {
+            microBonus += 1.0
+            declaredMicros += name
+        }
+    }
+    microBonus = minOf(8.0, microBonus)
+    score += microBonus
+    if (microBonus > 0) bonuses += Deduction("nutritional_density", (if (en) "Micronutrient richness: " else "Richesse en micronutriments : ") + declaredMicros.joinToString(), microBonus, Severity.INFO)
+
+    // Healthy-fat bonus (+3): omega-3 or declared omega-3 nutrition
+    // \b on both "lin" and "saumon" - unbounded, they matched as substrings
+    // inside unrelated words ("colin" the fish, "saumonette" a salmon
+    // substitute), wrongly awarding this bonus. \blin\b still matches
+    // "graine de lin" (boundary only requires the char right before "lin"
+    // to be a non-word char, which a preceding space already satisfies).
+    // Ingredients are declared in descending weight order (EU FIC 1169/2011) -
+    // a trace topping ("muesli aux fruits, graines de chia 2%") buried deep in
+    // the list previously earned the identical +3 as flaxseed or salmon as the
+    // dish's actual main ingredient. Restricting the name-match to the first 5
+    // ingredients approximates "meaningful quantity" without needing an actual
+    // declared percentage - the declared omega3G branch is untouched since
+    // that's already a real measured quantity, not a position proxy.
+    val hasOmega3 = (n.omega3G ?: 0.0) > 0.5 || product.ingredients.take(5).any { ing ->
+        Regex("""\blin\b|\bchia\b|\bnoix\b|\bsaumon\b|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
+    }
+    if (hasOmega3) {
+        score += 3
+        bonuses += Deduction("nutritional_density", if (en) "Omega-3 source present" else "Présence d'oméga-3", 3.0, Severity.INFO)
+    }
+
+    // Every per-nutrient deduction above is MINOR/INFO, so this pillar could
+    // never reach severeFlagCount's CRITICAL/MAJOR bar (ScoringEngine.kt) no
+    // matter how nutritionally empty a product was — a product simultaneously
+    // scoring zero on protein, fiber, AND micronutrients (the worst possible
+    // outcome in this 25-point pillar) contributed nothing to the same
+    // cumulative-risk count that a single Tier-1 additive or one MODERATE
+    // negative-nutrient tier does. Only fires when the category actually
+    // expects these axes (pHigh/fHigh > 0 — same category-relativity guard
+    // used above), so water/oil/alcohol categories where this pillar's
+    // sub-axes are structurally not applicable aren't wrongly flagged.
+    if ((pHigh > 0.0 || fHigh > 0.0) && protScore == 0.0 && fiberScore == 0.0 && microBonus == 0.0) {
+        deductions += Deduction("nutritional_density", if (en) "No protein, fiber, or micronutrient contribution" else "Aucun apport en protéines, fibres ou micronutriments", 0.0, Severity.MAJOR)
+    }
+
+    return PillarScore(if (en) "Nutritional Density" else "Densité nutritionnelle", MAX, minOf(MAX.toDouble(), maxOf(0.0, score)), deductions, bonuses)
+}

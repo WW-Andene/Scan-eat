@@ -1,0 +1,88 @@
+package fr.scanneat.presentation.dashboard.cards
+
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.domain.engine.dashboard.ChronicGap
+import fr.scanneat.domain.engine.dashboard.GapSuggestion
+import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.ChipBackgroundAccent
+import fr.scanneat.presentation.ui.theme.semanticAmber
+import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.ScanEatCard
+import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.IconSize
+
+/**
+ * Surfaces chronicNutrientGaps() — recurring, multi-day nutrient shortfalls,
+ * distinct from GapCloserCard (which only ever reacts to today's totals).
+ * "Low on fiber 5 of the last 7 days" is a coaching signal worth acting on;
+ * "low on fiber today" alone often just means breakfast hasn't happened yet.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSuggestion) -> Unit) {
+  ScanEatCard(
+    contentPadding = PaddingValues(Spacing.L),
+    verticalArrangement = Arrangement.spacedBy(Spacing.SM),
+  ) {
+        Text(stringResource(R.string.dashboard_chronic_gap_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+        gaps.take(3).forEach { gap ->
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                // design-aesthetic-audit §DC: same gap as GapCloserCard - every other
+                // amber-warning text in the app pairs a WarningAmber icon with the text.
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
+                    Text(
+                        stringResource(
+                            R.string.dashboard_chronic_gap_entry,
+                            nutrientLabel(gap.nutrient),
+                            gap.daysBelowTarget, gap.daysLogged, gap.avgPctOfTarget,
+                        ),
+                        style = MaterialTheme.typography.labelMedium, color = semanticAmber(),
+                    )
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    gap.suggestions.take(3).forEach { s ->
+                        Surface(
+                            modifier = Modifier.clip(RoundedCornerShape(CardRadius.CARD)).clickable { onSuggestionClick(s) },
+                            shape = RoundedCornerShape(CardRadius.CARD),
+                            color = ChipBackgroundAccent,
+                        ) {
+                            Text(
+                                stringResource(R.string.dashboard_gap_suggestion, s.name, s.grams),
+                                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                                style    = MaterialTheme.typography.labelSmall,
+                                color    = AccentCoral,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+  }
+}

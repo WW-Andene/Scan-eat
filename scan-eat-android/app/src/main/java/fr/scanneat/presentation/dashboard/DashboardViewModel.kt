@@ -1,0 +1,396 @@
+package fr.scanneat.presentation.dashboard
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.biolism.BiolismRepository
+import fr.scanneat.domain.engine.biolism.BiolismProfile
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.presentation.dashboard.cards.WhatsNewContent
+import fr.scanneat.data.repository.health.ActivityRepository
+import fr.scanneat.data.repository.health.FastingRepository
+import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.data.repository.expense.PriceRepository
+import fr.scanneat.data.repository.health.MedicationRepository
+import fr.scanneat.data.repository.health.WeightRepository
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.presentation.pantry.expiryUrgency
+import fr.scanneat.domain.engine.dashboard.*
+import fr.scanneat.domain.engine.nutrition.*
+import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.domain.engine.scoring.*
+import fr.scanneat.domain.model.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import javax.inject.Inject
+
+// CalorieBalance, DashboardUiState, and OtherTrackersSnapshot moved to
+// DashboardModels.kt (same package) - pure data shapes, kept separate from
+// the ViewModel logic that builds/emits them.
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class DashboardViewModel @Inject constructor(
+    private val consumptionRepo: ConsumptionRepository,
+    private val weightRepo: WeightRepository,
+    private val scanRepo: ScanRepository,
+    private val prefs: UserPreferences,
+    private val biolismRepo: BiolismRepository,
+    private val activityRepo: ActivityRepository,
+    private val customFoodRepo: CustomFoodRepository,
+    private val hydrationRepo: HydrationRepository,
+    private val fastingRepo: FastingRepository,
+    private val medicationRepo: MedicationRepository,
+    private val priceRepo: PriceRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
+) : ViewModel() {
+
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    // LocalDate.now() captured once at property-init time (the previous shape
+    // of this ViewModel) would keep every combine() below observing the day
+    // this ViewModel happened to be constructed on forever - a session left
+    // open across midnight (the single most common way to use a home-screen
+    // Dashboard) silently kept showing yesterday's totals/streaks/rollups,
+    // and a diary entry logged after midnight wouldn't even count toward
+    // "today". Polling + distinctUntilChanged re-subscribes every date-scoped
+    // query to the new day exactly when it rolls over, same fix already
+    // applied to HydrationViewModel/DiaryViewModel/ActivityViewModel.
+    private val today: Flow<LocalDate> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
+
+    // R&D audit finding: value-score data (ValueScoreEstimator, already shown
+    // per-purchase in Expenses/Result) never reached Dashboard or influenced
+    // any recommendation - it lived in complete isolation in its own tab.
+    // Deliberately NOT folded into the food score itself (price has nothing
+    // to do with nutritional quality - conflating the two would be a real
+    // scoring-integrity mistake, not a feature), just surfaced as its own
+    // weekly rollup the same way spendByCategory already is in Expenses.
+    val weeklyValueScoreCounts: StateFlow<Map<fr.scanneat.domain.engine.expense.ValueScore, Int>> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
+        priceRepo.observeRange(date.minusDays(6), date, id)
+    }.map { entries -> entries.mapNotNull { it.valueScore }.groupingBy { it }.eachCount() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // Combine 5 flows — the 30-day range is now a Flow itself, so
+    // DashboardViewModel never issues a suspend DB call on every upstream tick.
+    // recentScans is deliberately NOT in this combine: it changes on every
+    // single new scan, and merging it here would re-run the entire 30-day
+    // weekly rollup / gap-closer / Biolism TDEE recomputation on every scan
+    // even though none of that depends on the scan-history list. It's merged
+    // in separately below, as a cheap .copy().
+    private val heavyState: StateFlow<DashboardUiState> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
+        combine(
+            consumptionRepo.observeDay(date, id),
+            consumptionRepo.observeRange(date.minusDays(30), date, id),
+            prefs.profile,
+            weightRepo.observeLatest(id),
+            biolismRepo.profile,
+        ) { todayData, allEntries, profile, _, bioProfile ->
+            // weightRepo.observeLatest() (4th param, ignored) is a trigger-only input -
+            // it makes this combine re-run when weight changes, but wSummary below
+            // is fetched fresh via weightRepo.summarize() rather than threaded
+            // through here. Was observeAll() (the full, unbounded weight_log table)
+            // until a performance audit flagged it as a full-table fetch+map on
+            // every single unrelated Dashboard recompute purely to get Room's
+            // table-level invalidation signal - observeLatest() gets the identical
+            // re-trigger from a 1-row query instead. Kotlin's typed 5-flow combine()
+            // overload removes the Array<*>-indexed unchecked casts the previous
+            // form needed.
+            Quad(todayData, allEntries, profile, bioProfile)
+        }
+            // Nested rather than folded into the 5-way combine above (which is
+            // already at Kotlin's typed-overload limit) - closeTheGap()/
+            // chronicNutrientGaps() below documented their own foodDB param as
+            // "FOOD_DB + custom foods" but this ViewModel only ever passed bare
+            // FOOD_DB, so a user's own custom foods (e.g. "Lentilles maison",
+            // high in iron) could never be suggested to close a real deficit.
+            .combine(customFoodRepo.observeAll(id)) { quad, customFoods -> quad to customFoods }
+            // Was a one-shot activityRepo.observeByDate(...).first() read inside
+            // buildHeavyDashboardState itself - meant logging a new outdoor
+            // activity never re-triggered this combine chain, so its vitamin D
+            // credit (see VITD_OUTDOOR_UG) only appeared next time some other
+            // input happened to change. Chained here (already at the 5-flow
+            // combine()'s typed-overload limit above) the same way customFoods was.
+            // Threaded through as the full list (not reduced to a wasOutdoors
+            // boolean) so buildHeavyDashboardState can also derive
+            // exerciseKcal/extraExerciseKcal from it - previously a second,
+            // separate activityRepo.observeByDate subscription down in `state`
+            // existed purely for that, now redundant and removed.
+            .combine(activityRepo.observeByDate(date, id)) { pair, activity -> pair to activity }
+            .flatMapLatest { (pair, todayActivity) ->
+                val (quad, customFoods) = pair
+                val (todayData, allEntries, profile, bioProfile) = quad
+                val foodDb = FOOD_DB + customFoods
+                // Full computation extracted to buildHeavyDashboardState() in
+                // DashboardHeavyState.kt (same package) - moved verbatim, this
+                // flatMapLatest just wires its inputs/output.
+                flow {
+                    // Biolism is Premium-gated (see UserPreferences.isPremium) - a
+                    // non-Premium user's TDEE/macro targets must come from the plain
+                    // profile estimate only, even if a bioProfile from before
+                    // downgrading (or before this gate existed) is still stored.
+                    val gatedBioProfile = if (prefs.isPremium.first()) bioProfile else BiolismProfile()
+                    emit(
+                        buildHeavyDashboardState(
+                            date = date,
+                            todayData = todayData,
+                            allEntries = allEntries,
+                            profile = profile,
+                            bioProfile = gatedBioProfile,
+                            foodDb = foodDb,
+                            consumptionRepo = consumptionRepo,
+                            weightRepo = weightRepo,
+                            activityRepo = activityRepo,
+                            fastingRepo = fastingRepo,
+                            hydrationRepo = hydrationRepo,
+                            todayActivity = todayActivity,
+                            profileId = id,
+                        )
+                    )
+                }
+            }
+    }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
+
+    val state: StateFlow<DashboardUiState> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
+        combine(
+            heavyState, scanRepo.observeHistory(limit = 20, profileId = id),
+        ) { s, scans ->
+            // In-memory only, both lists already loaded for other purposes above - no
+            // new DB query. Matched by the same "barcode when present, else lowercased
+            // name" identity ScanRepository.matchKeyFor uses internally for its own
+            // score-history dedup.
+            fun DiaryEntry.matchKey() = barcode ?: productName.lowercase()
+            fun ScanResult.matchKey() = barcode ?: product.name.lowercase()
+            val loggedToday = s.todayEntries.mapTo(mutableSetOf()) { it.matchKey() }
+            val neverLogged = scans.filter { scan ->
+                Instant.ofEpochMilli(scan.scannedAt).atZone(ZoneId.systemDefault()).toLocalDate() == date &&
+                    scan.matchKey() !in loggedToday
+            }
+            // calorieBalance.exerciseKcal/extraExerciseKcal now come straight from
+            // heavyState itself (see DashboardHeavyState's own doc comment) - this
+            // combine previously re-subscribed to activityRepo.observeByDate a
+            // second time purely to patch exerciseKcal on afterward.
+            s.copy(recentScans = scans, neverLoggedScans = neverLogged)
+        }
+    }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
+
+    // In-app language can differ from the device locale — WeeklyBarsCard's day-of-week
+    // labels must follow it explicitly, same as DiaryScreen/WeightScreen/MealPlanScreen.
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // Dashboard's WeightCard previously always showed kg via a hardcoded string
+    // resource, ignoring this same metric/imperial toggle the Weight tab itself
+    // already respects for its own headline weight display (WeightScreen's
+    // dispWeight()) — a user in imperial mode saw a different unit for the exact
+    // same weight value depending on which screen showed it.
+    val useImperialWeight: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    // app-audit §F: Pantry/Symptoms/Pregnancy tracking shipped with no notice
+    // to existing users - see WhatsNewCard's own doc comment.
+    val whatsNewSeenVersion: StateFlow<Int> = prefs.whatsNewSeenVersion
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WhatsNewContent.CURRENT_VERSION)
+
+    fun dismissWhatsNew() {
+        viewModelScope.launch { prefs.setWhatsNewSeenVersion(WhatsNewContent.CURRENT_VERSION) }
+    }
+
+    /**
+     * dbId -> short personal-safety warning, same checkUserAllergens()/
+     * checkDiet() pattern as DiaryViewModel.diaryWarnings and
+     * ScanHistoryViewModel.historyWarnings. Dashboard's recentScans card
+     * (ScanHistoryCard) previously showed a bare grade badge with no trace of
+     * an allergen/diet conflict the Result screen had already flagged for
+     * that exact product — the very first screen a user sees after opening
+     * the app, silently disagreeing with the personalized warning they saw
+     * moments earlier when they scanned it.
+     */
+    val recentScanWarnings: StateFlow<Map<Long, String>> = activeProfileId.flatMapLatest { id -> combine(
+        scanRepo.observeHistory(limit = 20, profileId = id), prefs.profile, language,
+    ) { scans, profile, lang ->
+        scans.mapNotNull { scan ->
+            if (scan.dbId <= 0) return@mapNotNull null
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(scan.product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(scan.product, profile.diet, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            if (parts.isEmpty()) null else scan.dbId to parts.joinToString(" · ")
+        }.toMap()
+    } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Intermediate holder for [safetyWarnings]' first 5-way combine - same
+     *  "Kotlin's typed combine() tops out at 5" constraint [OtherTrackersInputs]
+     *  below works around, one more flow (language) is chained afterward. */
+    private data class SafetyInputs(
+        val todayActivity: List<fr.scanneat.data.repository.health.ActivityEntry>,
+        val hydrationMl: Int,
+        val meds: List<fr.scanneat.data.repository.health.Medication>,
+        val dailySummary: fr.scanneat.domain.model.DailySummary,
+        val profile: fr.scanneat.domain.model.Profile,
+    )
+
+    // User-requested "centre de vigilance": the activity-overtraining,
+    // hydration-overconsumption, medication drug-drug, and medication-food
+    // caution systems built this session each only ever surfaced on their own
+    // tab or scan sheet - see DashboardSafetyCenter.kt's own doc comment.
+    val safetyWarnings: StateFlow<List<DashboardSafetyWarning>> =
+        combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
+            combine(
+                activityRepo.observeByDate(date, id),
+                hydrationRepo.observe(date, id),
+                medicationRepo.observeAll(id),
+                consumptionRepo.observeDay(date, id),
+                prefs.profile,
+            ) { todayActivity, hydrationMl, meds, dailySummary, profile ->
+                SafetyInputs(todayActivity, hydrationMl, meds, dailySummary, profile)
+            }.combine(language) { inputs, lang -> inputs to lang }
+                .combine(pantryRepo.observeAll(id)) { pair, pantryItems -> Triple(pair.first, pair.second, pantryItems) }
+        }.map { (inputs, lang, pantryItems) ->
+            val activeMedNames = inputs.meds.filter { it.active }.map { it.name }
+            val hydrationGoal = hydrationRepo.goalMl(
+                inputs.profile.sex, inputs.profile.activityLevel, inputs.profile.healthConditions,
+                inputs.todayActivity.sumOf { it.minutes }, inputs.profile.weightKg,
+            )
+            // User-requested "connect everything": the Pantry expiry banner
+            // previously only ever showed inside the Pantry screen itself -
+            // pulled into the same centre de vigilance every other safety
+            // check here already reports through.
+            val expiringPantryNames = pantryItems
+                .filter { it.expiryUrgency() in setOf(fr.scanneat.presentation.pantry.PantryExpiryUrgency.SOON, fr.scanneat.presentation.pantry.PantryExpiryUrgency.EXPIRED) }
+                .map { it.name }
+            buildDashboardSafetyWarnings(
+                todayActivity = inputs.todayActivity,
+                profile = inputs.profile,
+                activeMedicationNames = activeMedNames,
+                hydrationMl = inputs.hydrationMl,
+                hydrationGoalMl = hydrationGoal,
+                todayDiaryEntries = inputs.dailySummary.entries,
+                lang = lang,
+                expiringPantryItemNames = expiringPantryNames,
+            )
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * Average nutrition-quality score across the last 7 days of scans - see
+     * [WeeklyScoreSummary]'s own doc comment for why this didn't exist before.
+     * Filters the same limit=20 history query recentScans already loads (no new
+     * DB call), scoped to scannedAt within the trailing 7-day window; grade comes
+     * from the real [scoreToGrade] breakpoints rather than a hand-maintained range.
+     */
+    val weeklyScoreSummary: StateFlow<WeeklyScoreSummary?> = today.flatMapLatest { date ->
+        activeProfileId.flatMapLatest { id -> scanRepo.observeHistory(limit = 20, profileId = id) }.map { scans ->
+            val cutoff = date.minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val inWindow = scans.filter { it.scannedAt >= cutoff }
+            if (inWindow.isEmpty()) return@map null
+            val avg = inWindow.sumOf { it.audit.score } / inWindow.size
+            WeeklyScoreSummary(avgScore = avg, scanCount = inWindow.size, grade = scoreToGrade(avg))
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Dashboard previously showed nutrition + weight only - a user relying on it as
+    // their single daily view had no idea they were behind on water, mid-fast, or had
+    // an unlogged dose due, despite all three already being tracked elsewhere (behind
+    // Journal's Water/Fasting/Treatment tabs). Kept as its own StateFlow rather than
+    // folded into the heavy combine above - these are all today-only cheap reads with
+    // no dependency on the 30-day window that combine recomputes on every diary edit.
+    // Intermediate holder for otherTrackers' first 5-way combine — kotlinx.coroutines'
+    // typed combine() tops out at 5 flows, and a 6th (today's activity, for the
+    // hydration-goal exercise bonus below) needs a second, chained combine step.
+    private data class OtherTrackersInputs(
+        val hydrationMl: Int,
+        val fasting: fr.scanneat.data.repository.health.FastingState?,
+        val meds: List<fr.scanneat.data.repository.health.Medication>,
+        val todayLogs: List<fr.scanneat.data.repository.health.MedicationLogEntry>,
+        val profile: fr.scanneat.domain.model.Profile,
+    )
+
+    val otherTrackers: StateFlow<OtherTrackersSnapshot> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
+        combine(
+            hydrationRepo.observe(date, id),
+            fastingRepo.state(id),
+            medicationRepo.observeAll(id),
+            medicationRepo.observeLogByDate(date, id),
+            prefs.profile,
+        ) { hydrationMl, fasting, meds, todayLogs, profile ->
+            OtherTrackersInputs(hydrationMl, fasting, meds, todayLogs, profile)
+        }.combine(activityRepo.observeByDate(date, id)) { inputs, todayActivity ->
+            inputs to todayActivity
+        }.combine(
+            // Same window-capping trap logStreakDays' own doc comment warns about -
+            // getAllLoggedDates() (not a fixed observeRange window) is the only safe
+            // input, same as the diary-logging streak above.
+            flow { emit(activityRepo.getAllLoggedDates(id)) },
+        ) { (inputs, todayActivity), workoutDates ->
+            Triple(inputs, todayActivity, workoutDates)
+        // User-reported: Dashboard's hydration goal always showed the raw formula
+        // value, silently ignoring any custom goal the user had set on the
+        // Hydration tab itself (HydrationViewModel.goal already honors it) - the
+        // two screens could show two different numbers for the same day.
+        }.combine(hydrationRepo.customGoalMl(id)) { (inputs, todayActivity, workoutDates), customGoal ->
+            val activeMeds = inputs.meds.filter { it.active && it.isScheduledOn(date.dayOfWeek) }
+            val dosesById = inputs.todayLogs.groupingBy { it.medicationId }.eachCount()
+            val formulaGoal = hydrationRepo.goalMl(
+                inputs.profile.sex, inputs.profile.activityLevel, inputs.profile.healthConditions,
+                // Activity tab R&D improvement: today's actually-logged exercise
+                // minutes now bump the hydration goal (ACE fluid-replacement
+                // guidance) - see HydrationRepository.goalMl's own doc comment.
+                todayActivity.sumOf { it.minutes }, inputs.profile.weightKg,
+            )
+            OtherTrackersSnapshot(
+                hydrationMl     = inputs.hydrationMl,
+                hydrationGoalMl = customGoal ?: formulaGoal,
+                fastingActive   = inputs.fasting?.takeIf { it.isActive },
+                medsTakenCount  = activeMeds.count { (dosesById[it.id] ?: 0) >= it.dosesPerDay },
+                medsActiveCount = activeMeds.size,
+                workoutStreak   = logStreakDays(workoutDates, date),
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), OtherTrackersSnapshot())
+
+    // Gap-suggestion / never-logged-scan logging state+actions extracted to
+    // DashboardGapLoggingDelegate in DashboardGapLogging.kt (same package) -
+    // moved verbatim; the public surface below just forwards to it so no
+    // external caller (GapCloserCard/NeverLoggedScansCard/DashboardScreen) needs to change.
+    private val gapLogging = DashboardGapLoggingDelegate(viewModelScope, consumptionRepo, customFoodRepo, pantryRepo, activeProfileId)
+
+    /** Non-null briefly after a successful log, for a one-shot confirmation snackbar. */
+    val gapLoggedName: StateFlow<String?> get() = gapLogging.gapLoggedName
+
+    /** True briefly after a failed log, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> get() = gapLogging.actionFailed
+    fun clearActionFailed() = gapLogging.clearActionFailed()
+
+    fun logGapSuggestion(suggestion: GapSuggestion) = gapLogging.logGapSuggestion(suggestion)
+
+    fun clearGapLoggedMessage() = gapLogging.clearGapLoggedMessage()
+
+    /** Logs a never-logged scan straight from its real product/barcode/source — see [DashboardUiState.neverLoggedScans]. */
+    fun logNeverLoggedScan(scan: ScanResult, portionG: Double, mealSlot: MealSlot) =
+        gapLogging.logNeverLoggedScan(scan, portionG, mealSlot)
+
+    fun logNeverLoggedScanWithDestinations(
+        scan: ScanResult, portionG: Double, mealSlot: MealSlot,
+        destinations: Set<fr.scanneat.presentation.result.LogDestination>,
+    ) = gapLogging.logNeverLoggedScanWithDestinations(scan, portionG, mealSlot, destinations)
+
+    // Local tuple to carry 4 values cleanly through flatMapLatest
+    private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
+}

@@ -1,0 +1,286 @@
+package fr.scanneat.presentation.biolism.bioProfile
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
+import fr.scanneat.domain.engine.biolism.*
+import fr.scanneat.presentation.onboarding.enumSaver
+import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
+
+private data class OnboardStep(val icon: ImageVector, val title: String, val sub: String, val optional: Boolean = false)
+
+@Composable
+private fun rememberOnboardSteps(): List<OnboardStep> = listOf(
+    OnboardStep(Icons.Outlined.MonitorHeart, stringResource(R.string.biolism_onboard_step0_title), stringResource(R.string.biolism_onboard_step0_sub)),
+    OnboardStep(Icons.Outlined.Person, stringResource(R.string.biolism_onboard_step1_title), stringResource(R.string.biolism_onboard_step1_sub)),
+    OnboardStep(Icons.Outlined.Straighten, stringResource(R.string.biolism_onboard_step2_title), stringResource(R.string.biolism_onboard_step2_sub), optional = true),
+    OnboardStep(Icons.Outlined.Bolt, stringResource(R.string.biolism_onboard_step3_title), stringResource(R.string.biolism_onboard_step3_sub)),
+)
+
+@Composable
+fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
+    val language = viewModel.language.collectAsStateWithLifecycle()
+    // Previously plain remember{} - rotation/process death (see OnboardingScreen's
+    // identical fix) silently wiped the whole wizard back to step 0 with every
+    // field blanked, losing anything already typed.
+    var step by rememberSaveable { mutableIntStateOf(0) }
+    var sex by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(BiolismSex.NOT_SPECIFIED) }
+    var age by rememberSaveable { mutableStateOf("") }
+    var height by rememberSaveable { mutableStateOf("") }
+    var weight by rememberSaveable { mutableStateOf("") }
+    var waist by rememberSaveable { mutableStateOf("") }
+    var hip by rememberSaveable { mutableStateOf("") }
+    var neck by rememberSaveable { mutableStateOf("") }
+    var activityId by rememberSaveable { mutableStateOf("sedentary") }
+
+    // No bound at all previously - an errant value here (e.g. a typo'd extra
+    // digit) silently propagates into BiolismEngine's TDEE/BMI/body-fat% math.
+    // Clamped to the same sane human ranges BiolismProfileScreen's own save()
+    // already uses, rather than rejecting outright, since a slightly-off real
+    // value should still save, just not corrupt downstream math.
+    fun buildProfile() = BiolismProfile(
+        sex = sex, ageYears = age.toIntOrNull()?.coerceIn(1, 120) ?: 0,
+        heightCm = height.replace(',', '.').toDoubleOrNull()?.coerceIn(50.0, 250.0) ?: 0.0,
+        weightKg = weight.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0) ?: 0.0,
+        activityId = activityId,
+        waistCm = waist.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+        hipCm = hip.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+        neckCm = neck.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 0.0,
+    )
+
+    // Was isNotBlank() - typing a non-numeric value (e.g. "abc") passed this
+    // gate, then buildProfile()'s toIntOrNull()/toDoubleOrNull() ?: 0 silently
+    // saved ageYears=0/heightCm=0.0/weightKg=0.0, which divides-by-zero into
+    // BMI/TDEE downstream (MetabolicsCalculator.kt). Gate on actual parseability.
+    val canAdvance = when (step) {
+        1 -> sex != BiolismSex.NOT_SPECIFIED &&
+            age.toIntOrNull() != null &&
+            height.replace(',', '.').toDoubleOrNull() != null &&
+            weight.replace(',', '.').toDoubleOrNull() != null
+        else -> true
+    }
+    val onboardSteps = rememberOnboardSteps()
+    val s = onboardSteps[step]
+
+    // Biolism's own tab route is still the active MainShell destination while
+    // this onboarding gate is showing (BiolismScreen early-returns into this
+    // composable before rendering its own floating header/tabs), so MainShell's
+    // floating bottom nav is still overlaid on top of the whole screen. Centering
+    // this card in the *full* screen let its bottom edge — Back/Skip/Next —
+    // render underneath that nav on shorter screens, making Next look missing.
+    // Reserving the nav's own footprint here keeps the whole card, buttons
+    // included, above it.
+    val bottomNavClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
+    // BoxWithConstraints, not Box - step 2 (Mesures corporelles, 3 fields) was
+    // clipped mid-field with no scroll affordance: the scrollable Column below
+    // used a hardcoded heightIn(max = 480.dp) guess instead of the real
+    // available space, so on step 2 that guess undershot the actual content
+    // height. maxHeight here is the genuine available space for this screen,
+    // used below to bound the card so weight(1f, fill = false) on the
+    // scrollable Column can correctly compute "whatever's left after the
+    // fixed footer" instead of a static, content-length-blind number.
+    BoxWithConstraints(
+        Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+            .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(), bottom = bottomNavClearance),
+        contentAlignment = Alignment.Center,
+    ) {
+        ScanEatCard(
+            modifier = Modifier.padding(Spacing.XL).widthIn(max = 512.dp).heightIn(max = maxHeight - 48.dp),  // width cap: card stretched across tablets
+            shape = RoundedCornerShape(CardRadius.PROMINENT),
+            contentPadding = PaddingValues(Spacing.XL),
+            accent = Gold,
+        ) {
+            // Reported: on step 2 (Mesures corporelles), the user was stuck with no
+            // visible Next button - the button row lived INSIDE this scrollable
+            // Column with no scroll indicator, so on a device/content combination
+            // where the step's fields plus the button row exceeded the visible
+            // card height, the button scrolled off-screen with nothing suggesting
+            // more content existed below the last field. Moved the button row
+            // outside the scroll area as a fixed footer so it's always visible
+            // regardless of how tall a given step's field content is.
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.L)) {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()).weight(1f, fill = false),
+                verticalArrangement = Arrangement.spacedBy(Spacing.L),
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    (1 until onboardSteps.size).forEach { i ->
+                        Box(
+                            Modifier.weight(1f).height(4.dp).background(
+                                when {
+                                    step > i -> Gold
+                                    step == i -> Gold.copy(0.5f)
+                                    else -> OnBackground.copy(0.15f)
+                                },
+                                RoundedCornerShape(2.dp),
+                            ),
+                        )
+                    }
+                }
+
+                Icon(s.icon, null, tint = Gold, modifier = Modifier.size(32.dp))
+                Text(s.title, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
+                Row {
+                    Text(s.sub, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))
+                    if (s.optional) Text(stringResource(R.string.biolism_onboard_optional_suffix), style = MaterialTheme.typography.bodyMedium, color = Teal, fontWeight = FontWeight.Bold)
+                }
+
+                when (step) {
+                    1 -> Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                            listOf(BiolismSex.MALE to stringResource(R.string.biolism_onboard_male), BiolismSex.FEMALE to stringResource(R.string.biolism_onboard_female)).forEach { (v, label) ->
+                                FilterChip(selected = sex == v, onClick = { sex = v }, label = { Text(label) },
+                                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold))
+                            }
+                        }
+                        OnboardField(stringResource(R.string.biolism_onboard_age_label), age, KeyboardType.Number) { age = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_height_label), height, KeyboardType.Decimal) { height = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_weight_label), weight, KeyboardType.Decimal) { weight = it }
+                        // Live BMI preview — previously a user had no feedback on
+                        // what their numbers meant until they finished onboarding
+                        // and opened the Biolism data screen.
+                        val h = height.replace(',', '.').toDoubleOrNull() ?: 0.0
+                        val w = weight.replace(',', '.').toDoubleOrNull() ?: 0.0
+                        if (h > 0 && w > 0) {
+                            val bmi = w / ((h / 100.0) * (h / 100.0))
+                            // semanticBlue(), not the raw Teal literal - WeightScreen's
+                            // identical BMI-color logic already correctly uses
+                            // semanticBlue() for this same underweight tier so it adapts
+                            // under colorblind mode; this preview drifted to a hardcoded
+                            // brand color instead.
+                            val bmiColor = when {
+                                bmi < 18.5 -> semanticBlue()
+                                bmi < 25.0 -> semanticGreen()
+                                bmi < 30.0 -> semanticAmber()
+                                else       -> semanticRed()
+                            }
+                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = bmiColor.copy(0.12f), border = androidx.compose.foundation.BorderStroke(1.dp, bmiColor.copy(alpha = STATUS_BORDER_ALPHA)), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 4.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
+                                Text(
+                                    stringResource(R.string.biolism_onboard_bmi_preview, bmi.formatDecimal(1)),
+                                    modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
+                                    style = MaterialTheme.typography.labelMedium, color = bmiColor, fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                        }
+                    }
+                    2 -> Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                        OnboardField(stringResource(R.string.biolism_onboard_waist_label), waist, KeyboardType.Decimal) { waist = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_hip_label), hip, KeyboardType.Decimal) { hip = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_neck_label), neck, KeyboardType.Decimal) { neck = it }
+                    }
+                    3 -> Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        ACTIVITY_LEVELS.forEach { lvl ->
+                            Row(
+                                Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL))
+                                    .background(if (activityId == lvl.id) GoldHaze else OnBackground.copy(0.03f))
+                                    .selectable(selected = activityId == lvl.id, onClick = { activityId = lvl.id }, role = Role.RadioButton)
+                                    .padding(Spacing.M),
+                                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(lvl.label(language.value), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Medium)
+                                    Text(lvl.note(language.value), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                                }
+                                RadioButton(selected = activityId == lvl.id, onClick = null,
+                                    colors = RadioButtonDefaults.colors(selectedColor = Gold))
+                            }
+                        }
+                    }
+                }
+            }
+
+                // Fixed footer - always visible regardless of how tall the scrollable
+                // step content above is (see comment above on why this moved out of
+                // the scrollable Column).
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    // Skip must stay reachable from every step, not just the
+                    // first — a user mid-way through (e.g. stuck on step 1's
+                    // required sex/age/height/weight fields) previously had no
+                    // way out except repeatedly tapping Back to step 0 first.
+                    // User-reported: TextButton's default 12dp horizontal content
+                    // padding indented "Retour"/"Passer" further right than the
+                    // title/body text/fields above, which all sit flush against this
+                    // card's own Spacing.XL content padding. Zeroing the button's
+                    // start padding lines its visible text up with that same edge
+                    // (the enlarged tap target extending left of the text is fine -
+                    // it only makes the target easier to hit, never harder).
+                    // Only the leftmost button of this row needs its start padding
+                    // zeroed - Retour when present, otherwise Passer. The second
+                    // button keeps the default padding, which now reads as normal
+                    // inter-button spacing rather than a left-edge misalignment.
+                    val leadingContentPadding = PaddingValues(start = 0.dp, end = Spacing.M, top = Spacing.S, bottom = Spacing.S)
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        if (step > 0) {
+                            TextButton(onClick = { step -= 1 }, contentPadding = leadingContentPadding) {
+                                Text(stringResource(R.string.biolism_onboard_back), color = OnBackground.copy(0.5f))
+                            }
+                            TextButton(onClick = { viewModel.skipOnboarding() }) {
+                                Text(stringResource(R.string.biolism_onboard_skip), color = OnBackground.copy(0.5f))
+                            }
+                        } else {
+                            TextButton(onClick = { viewModel.skipOnboarding() }, contentPadding = leadingContentPadding) {
+                                Text(stringResource(R.string.biolism_onboard_skip), color = OnBackground.copy(0.5f))
+                            }
+                        }
+                    }
+                    // Was a raw Button with an explicit Text(color = Color.Black) -
+                    // ScanEatButton.kt's own doc comment describes fixing this exact
+                    // bug elsewhere: an explicit Text color always wins over
+                    // ButtonDefaults' disabledContentColor, so a disabled button's
+                    // label stayed fully opaque regardless of its dimmed container,
+                    // giving no visual cue that Next/Finish couldn't be tapped yet.
+                    ScanEatPrimaryButton(
+                        onClick = {
+                            if (step < onboardSteps.size - 1) step += 1
+                            else viewModel.completeOnboarding(buildProfile())
+                        },
+                        enabled = canAdvance,
+                        containerColor = Gold,
+                    ) {
+                        Text(if (step < onboardSteps.size - 1) stringResource(R.string.biolism_onboard_next) else stringResource(R.string.biolism_onboard_finish), fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnboardField(label: String, value: String, keyboardType: KeyboardType, onValue: (String) -> Unit) {
+    OutlinedTextField(
+        // User-reported: an explicit style override here broke the floating
+        // label's own scale/position animation (label rendered detached above
+        // the border) - see FormPrimitives.kt's BioInput for the same fix.
+        value = value, onValueChange = onValue, label = { Text(label) },
+        modifier = Modifier.fillMaxWidth(), singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.18f),
+            focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,
+        ),
+    )
+}

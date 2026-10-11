@@ -1,0 +1,147 @@
+package fr.scanneat.presentation.settings.components
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import fr.scanneat.R
+import fr.scanneat.presentation.ui.theme.*
+
+/**
+ * User-reported hard correction: "thème et affichage sont deux choses
+ * séparées" - this used to be one [SettingsSection] mixing the theme
+ * picker with the "Fond animé" switch (a display preference, not a theme
+ * choice) under a single mislabeled header. They're now two real
+ * sections: this one is only the theme picker; [DisplaySection] below is
+ * only the animated-background toggle.
+ *
+ * User-requested second pass: this section's own brightness/contrast chips
+ * (system/oled/dark/light/high_contrast/low_contrast) are themselves a
+ * "display" concern (how light/dark/contrasty the UI reads), not a "theme"
+ * in the sense Prism is - a full alternate visual identity (its own
+ * background artwork, its own card treatment). Renamed to "Affichage" and
+ * Prism moved out into its own [PrismThemeSection] titled "Thème", so the
+ * one genuinely thematic choice isn't buried in a row of contrast presets.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ThemeSection(theme: String, onThemeChange: (String) -> Unit) {
+    // User-requested: brightness/contrast (this section) and color accent
+    // (ColorSection below) are two different things - the four color themes
+    // used to live in this same row, which both mixed the two concepts
+    // together in the UI and (see Theme.kt's ColorAccent doc comment) forced
+    // OLED's true-black background and a color accent to be mutually
+    // exclusive under the hood.
+    SettingsSection(stringResource(R.string.settings_section_display), icon = Icons.Default.Palette) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            listOf(
+                "system" to stringResource(R.string.settings_theme_system),
+                "oled" to stringResource(R.string.settings_theme_oled),
+                "dark" to stringResource(R.string.settings_theme_dark),
+                "light" to stringResource(R.string.settings_theme_light),
+                "high_contrast" to stringResource(R.string.settings_theme_high_contrast),
+                "low_contrast" to stringResource(R.string.settings_theme_low_contrast),
+            ).forEach { (key, label) ->
+                FilterChip(
+                    selected = theme == key,
+                    onClick  = { onThemeChange(key) },
+                    // User-reported: uneven gap between chips here vs. the
+                    // colorblind-mode row below (AccessibilitySection.kt), which
+                    // already forces maxLines = 1 - this row's longer labels
+                    // ("Contraste élevé"/"faible") could wrap to a second line,
+                    // making that chip taller than its neighbors and the
+                    // identical Spacing.S gap read uneven. Matched.
+                    label    = { Text(label, maxLines = 1) },
+                    colors   = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                    ),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Prism, split out of [ThemeSection] (see that composable's own doc comment)
+ * into its own "Thème" card - it's a full alternate visual identity (its own
+ * background artwork, its own card treatment), not a brightness/contrast
+ * preset. Single chip, toggle behavior: tapping it while already selected
+ * falls back to "system" rather than leaving no theme selectable at all.
+ */
+@Composable
+internal fun PrismThemeSection(theme: String, onThemeChange: (String) -> Unit) {
+    SettingsSection(stringResource(R.string.settings_section_theme), icon = Icons.Default.Palette) {
+        FilterChip(
+            selected = theme == "prism",
+            onClick  = { onThemeChange(if (theme == "prism") "system" else "prism") },
+            label    = { Text(stringResource(R.string.settings_theme_prism), maxLines = 1) },
+            colors   = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+            ),
+        )
+    }
+}
+
+/** The "Fond animé" (animated background) toggle - a display preference, split out of [ThemeSection] (see that composable's own doc comment for why). */
+@Composable
+internal fun DisplaySection(animatedBackground: Boolean, onAnimatedBackgroundChange: (Boolean) -> Unit) {
+    SettingsSection(stringResource(R.string.settings_section_display), icon = Icons.Default.Palette) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_animated_background), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                Text(stringResource(R.string.settings_animated_background_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            }
+            Switch(
+                checked = animatedBackground,
+                onCheckedChange = onAnimatedBackgroundChange,
+                colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
+            )
+        }
+    }
+}
+
+/**
+ * Color accent — independent from [ThemeSection]'s brightness/contrast choice
+ * above (see Theme.kt's ColorAccent doc comment for why). Any accent can be
+ * combined with any theme, including OLED's true-black background.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ColorSection(colorAccent: String, onColorAccentChange: (String) -> Unit) {
+    SettingsSection(stringResource(R.string.settings_section_color), icon = Icons.Default.Palette) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            listOf(
+                "none" to stringResource(R.string.settings_color_none),
+                "matcha" to stringResource(R.string.settings_theme_matcha),
+                "lavande" to stringResource(R.string.settings_theme_lavande),
+                "sunflower" to stringResource(R.string.settings_theme_sunflower),
+                "lazulite" to stringResource(R.string.settings_theme_lazulite),
+                "rose" to stringResource(R.string.settings_theme_rose),
+                "arlequin" to stringResource(R.string.settings_theme_arlequin),
+                "cyberpunk" to stringResource(R.string.settings_theme_cyberpunk),
+                "elite" to stringResource(R.string.settings_theme_elite),
+                "noble" to stringResource(R.string.settings_theme_noble),
+            ).forEach { (key, label) ->
+                FilterChip(
+                    selected = colorAccent == key,
+                    onClick  = { onColorAccentChange(key) },
+                    label    = { Text(label, maxLines = 1) },
+                    colors   = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                    ),
+                )
+            }
+        }
+    }
+}

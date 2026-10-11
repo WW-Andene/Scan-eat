@@ -1,0 +1,71 @@
+package fr.scanneat.presentation.ui.theme
+
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import fr.scanneat.R
+
+/**
+ * Shared rename dialog — a single text field pre-filled with the current name.
+ *
+ * design-aesthetic-audit §DTA2: same token gap already fixed on ConfirmDialog —
+ * this AlertDialog never set a shape either, silently using Material's
+ * unthemed 28dp default instead of the app's own CardRadius scale.
+ */
+@Composable
+fun RenameDialog(currentName: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var name by remember { mutableStateOf(currentName) }
+    GlassAlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.common_rename), color = OnBackground) },
+        text = {
+            OutlinedTextField(
+                value = name, onValueChange = { name = it }, singleLine = true,
+                colors = scanEatTextFieldColors(),
+            )
+        },
+        confirmButton = {
+            // Same "explicit Text color overrides disabled state" bug already fixed
+            // in ScanEatButton.kt - a hardcoded, non-Unspecified color always wins
+            // over Material's disabled-content dimming, so a blank name left this
+            // "disabled" button rendering at full-opacity AccentCoral with no visual
+            // cue that tapping it does nothing.
+            // isNotBlank() alone let a string of only spaces through - trimmed both the
+            // enabled check and the saved value, so a whitespace-only rename can no
+            // longer save as a visually-empty name.
+            val enabled = name.isNotBlank() && name.trim().isNotBlank()
+            TextButton(onClick = { if (enabled) onConfirm(name.trim()) }, enabled = enabled) {
+                Text(stringResource(R.string.common_save), color = if (enabled) AccentCoral else OnBackground.copy(0.3f))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = TextSecondary) } },
+    )
+}
+
+/** Shared free-text notes editor — same shape as RenameDialog, multi-line and allowed to be blank (clears the note). */
+@Composable
+fun EditNotesDialog(title: String, currentNotes: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var notes by remember { mutableStateOf(currentNotes) }
+    GlassAlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, color = OnBackground) },
+        text = {
+            OutlinedTextField(
+                value = notes, onValueChange = { notes = it }, singleLine = false, minLines = 3, maxLines = 8,
+                colors = scanEatTextFieldColors(),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(notes.trim()) }) {
+                Text(stringResource(R.string.common_save), color = AccentCoral)
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = TextSecondary) } },
+    )
+}

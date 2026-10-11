@@ -1,0 +1,95 @@
+package fr.scanneat.presentation.biolism.data.cards
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.domain.engine.biolism.*
+import fr.scanneat.presentation.biolism.data.*
+import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
+import java.util.Locale
+
+@Composable
+fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile, useImperial: Boolean = false) {
+    BioCard(stringResource(R.string.biolism_body_title), defaultOpen = true, badge = { BmiChip(met) }) {
+        MetCellGrid(listOf(
+            Triple(stringResource(R.string.biolism_body_bmi_label), met.bmi.formatDecimal(), stringResource(R.string.biolism_body_bmi_sub)),
+            Triple(stringResource(R.string.biolism_body_fat_label), "%.1f%%".format(Locale.US, met.bfPct), stringResource(R.string.biolism_body_fat_sub)),
+            Triple(stringResource(R.string.biolism_body_lean_label), dispWeight(met.ffm, useImperial), stringResource(R.string.biolism_body_lean_sub)),
+            Triple(stringResource(R.string.biolism_body_fatmass_label), dispWeight(met.fm, useImperial), stringResource(R.string.biolism_body_fatmass_sub)),
+        ))
+        // Navy tape (when available)
+        met.navyBfPct?.let { navy ->
+            Spacer(Modifier.height(Spacing.S))
+            TintedPanel(Teal) {
+                Label(stringResource(R.string.biolism_body_navy_method), Teal)
+                MetCellGrid(listOf(
+                    Triple(stringResource(R.string.biolism_body_navy_bf_label), "%.1f%%".format(Locale.US, navy), stringResource(R.string.biolism_body_navy_bf_sub)),
+                    Triple(stringResource(R.string.biolism_body_navy_lean_label), dispWeight(met.navyFfm ?: 0.0, useImperial), stringResource(R.string.biolism_body_navy_lean_sub)),
+                    Triple(stringResource(R.string.biolism_body_navy_fat_label), dispWeight(met.navyFm ?: 0.0, useImperial), stringResource(R.string.biolism_body_navy_fat_sub)),
+                    Triple(stringResource(R.string.biolism_body_navy_delta_label), "%+.1f%%".format(Locale.US, navy - met.bfPct), ""),
+                ))
+            }
+        }
+        // IBW
+        Spacer(Modifier.height(Spacing.S))
+        Label(stringResource(R.string.biolism_body_ibw_title), OnBackground.copy(0.4f))
+        val ibwDelta = profile.weightKg - met.ibwMean
+        MetCellGrid(listOf(
+            Triple(stringResource(R.string.biolism_body_ibw_devine), dispWeight(met.ibwDevine, useImperial), stringResource(R.string.biolism_body_ibw_devine_sub)),
+            Triple(stringResource(R.string.biolism_body_ibw_robinson), dispWeight(met.ibwRobinson, useImperial), stringResource(R.string.biolism_body_ibw_robinson_sub)),
+            Triple(stringResource(R.string.biolism_body_ibw_miller), dispWeight(met.ibwMiller, useImperial), stringResource(R.string.biolism_body_ibw_miller_sub)),
+            Triple(stringResource(R.string.biolism_body_ibw_mean), dispWeight(met.ibwMean, useImperial),
+                stringResource(R.string.biolism_body_ibw_delta_sub, if (ibwDelta > 0) "+" else if (ibwDelta < 0) "-" else "", dispWeight(kotlin.math.abs(ibwDelta), useImperial))),
+        ))
+        // Visceral
+        Spacer(Modifier.height(Spacing.S))
+        TintedPanel(Gold) {
+            Label(stringResource(R.string.biolism_body_visceral_title), Gold)
+            val riskThin = stringResource(R.string.biolism_body_risk_thin)
+            val riskHealthy = stringResource(R.string.biolism_body_risk_healthy)
+            val riskCentral = stringResource(R.string.biolism_body_risk_central)
+            val riskHigh = stringResource(R.string.biolism_body_risk_high)
+            val riskLow = stringResource(R.string.biolism_body_risk_low)
+            met.whtr?.let { v ->
+                InfoRow(stringResource(R.string.biolism_body_whtr_label), v.formatDecimal(3),
+                    if (v < 0.40) riskThin else if (v < 0.50) riskHealthy else if (v < 0.60) riskCentral else riskHigh,
+                    if (v < 0.50) semanticGreen() else if (v < 0.60) semanticAmber() else semanticRed())
+            } ?: Text(stringResource(R.string.biolism_body_whtr_prompt),
+                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+            met.whr?.let { v ->
+                val thresh = if (profile.sex == BiolismSex.MALE) 0.90 else 0.85
+                InfoRow(stringResource(R.string.biolism_body_whr_label), v.formatDecimal(3),
+                    if (v < thresh) riskLow else riskHigh,
+                    if (v < thresh) semanticGreen() else semanticRed())
+            }
+            met.bai?.let { v ->
+                InfoRow(stringResource(R.string.biolism_body_bai_label), "%.1f%%".format(Locale.US, v), stringResource(R.string.biolism_body_bai_sub), Gold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BmiChip(m: MetabolicResult) {
+    // m.bmiClass.name previously rendered the raw Kotlin enum identifier (e.g. "NORMAL")
+    // verbatim in every language — WeightScreen already has the equivalent localized
+    // labels for these same 4 categories, reused here instead.
+    val (label, color) = when (m.bmiClass) {
+        BiolismBmiCategory.NORMAL      -> stringResource(R.string.weight_bmi_normal) to semanticGreen()
+        BiolismBmiCategory.UNDERWEIGHT -> stringResource(R.string.weight_bmi_underweight) to semanticAmber()
+        BiolismBmiCategory.OVERWEIGHT  -> stringResource(R.string.weight_bmi_overweight) to semanticAmber()
+        BiolismBmiCategory.OBESE       -> stringResource(R.string.weight_bmi_obese) to semanticRed()
+    }
+    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = color.copy(0.15f), border = BorderStroke(1.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
+        Text(label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.S),
+            style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
+    }
+}

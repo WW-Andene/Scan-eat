@@ -1,0 +1,159 @@
+package fr.scanneat.presentation.biolism.data.cards
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import fr.scanneat.R
+import fr.scanneat.domain.engine.biolism.BiolismProfile
+import fr.scanneat.domain.engine.biolism.MetabolicResult
+import fr.scanneat.presentation.biolism.data.BioCard
+import fr.scanneat.presentation.ui.theme.*
+import kotlin.math.roundToInt
+
+/**
+ * Aggregate metabolic health score (0–100) composed from four sub-indicators:
+ *  • BMI score  — 100 at 22.0, decays toward 18.5/25.0 cut-offs
+ *  • Body-fat % — uses Navy BF% when available, Deurenberg otherwise
+ *  • WHtR        — 100 below 0.4, 0 above 0.6 (Ashwell 2012 < 0.5 = low risk)
+ *  • npRQ        — 100 at 0.707 (pure fat oxidation), 0 at 1.0 (pure carb)
+ *
+ * Sub-indicators with no data (e.g. WHtR when waist circumference missing)
+ * are excluded from the average rather than dragging the score to 0.
+ */
+@Composable
+fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
+    val subScores = buildList {
+        // BMI sub-score: peak at 22, linear decay to 0 at <16 or >35. abs(), not a
+        // bare subtraction - (met.bmi - 22.0) is negative for any BMI below 22, and
+        // the coerceIn(0f, 20f) floor was silently clamping that negative deduction
+        // to 0, so every BMI from 18.5 to 22.0 scored a flat 100 instead of decaying
+        // toward 18.5 as this file's own doc comment says it should.
+        val bmiScore = when {
+            met.bmi in 18.5..25.0 -> 100f - (kotlin.math.abs(met.bmi - 22.0) / 3.0 * 20).toFloat().coerceIn(0f, 20f)
+            met.bmi < 18.5        -> ((met.bmi - 16.0) / 2.5 * 100).toFloat().coerceIn(0f, 100f)
+            else                  -> ((35.0 - met.bmi) / 10.0 * 100).toFloat().coerceIn(0f, 100f)
+        }
+        add(stringResource(R.string.biolism_health_score_bmi) to bmiScore)
+
+        // BF% sub-score: ideal ranges vary by sex; score 100 at midpoint, 0 at extremes
+        val bf = met.navyBfPct ?: met.bfPct
+        val isFemale = profile.sex == fr.scanneat.domain.engine.biolism.BiolismSex.FEMALE
+        val bfScore = if (isFemale) {
+            when {
+                bf in 20.0..28.0 -> 100f
+                bf < 20.0        -> (bf / 20.0 * 100).toFloat().coerceIn(0f, 100f)
+                else             -> ((45.0 - bf) / 17.0 * 100).toFloat().coerceIn(0f, 100f)
+            }
+        } else {
+            when {
+                bf in 12.0..20.0 -> 100f
+                bf < 12.0        -> (bf / 12.0 * 100).toFloat().coerceIn(0f, 100f)
+                else             -> ((38.0 - bf) / 18.0 * 100).toFloat().coerceIn(0f, 100f)
+            }
+        }
+        add(stringResource(R.string.biolism_health_score_bodyfat) to bfScore)
+
+        // WHtR sub-score: <0.4 = excellent, >0.6 = high risk (Ashwell 2012)
+        met.whtr?.let { w ->
+            // The else branch's multiplier is *50 (continuing the descent from 50 at
+            // w=0.50 down to 0 at w=0.60), not *100 - that would jump the score from
+            // 50 to ~100 right at w=0.5001, inverting the risk signal at exactly the
+            // clinically meaningful "keep waist under half your height" threshold
+            // (a higher WHtR is strictly worse, it should never score better).
+            val whtrScore = when {
+                w <= 0.40 -> 100f
+                w <= 0.50 -> ((0.60 - w) / 0.20 * 100).toFloat().coerceIn(0f, 100f)
+                else      -> ((0.60 - w) / 0.10 * 50).toFloat().coerceIn(0f, 100f)
+            }
+            add(stringResource(R.string.biolism_health_score_whtr) to whtrScore)
+        }
+
+        // npRQ sub-score: 0.707 = pure fat oxidation (ideal in fasted/keto state); 1.0 = pure carb
+        val rqScore = ((1.0 - met.sub.npRq) / (1.0 - 0.707) * 100).toFloat().coerceIn(0f, 100f)
+        add(stringResource(R.string.biolism_health_score_rq) to rqScore)
+    }
+
+    val overallScore = subScores.map { it.second }.average().roundToInt()
+    val scoreColor = when {
+        overallScore >= 75 -> semanticGreen()
+        overallScore >= 50 -> semanticAmber()
+        else               -> semanticRed()
+    }
+    val scoreLabel = when {
+        overallScore >= 75 -> stringResource(R.string.biolism_health_score_tier_excellent)
+        overallScore >= 60 -> stringResource(R.string.biolism_health_score_tier_good)
+        overallScore >= 45 -> stringResource(R.string.biolism_health_score_tier_average)
+        else               -> stringResource(R.string.biolism_health_score_tier_needs_work)
+    }
+
+    // The Data tab's stated aggregate/entry-point card (see file doc comment) -
+    // give it the same HERO-tier emphasis + entrance motion Dashboard's
+    // CalorieBalanceCard uses for its one focal card, instead of rendering at
+    // the same weight as its 15 siblings. Motion.kt's own header comment
+    // warns that animating every card independently "reads as busy, not
+    // polished" - so this stays scoped to the one HERO element on the
+    // screen, not applied to all 16 cards.
+    var heroVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { heroVisible = true }
+    val heroEntrance = rememberHeroEntrance(heroVisible)
+    Box(Modifier.heroEntrance(heroEntrance)) {
+    BioCard(stringResource(R.string.biolism_health_score_title), defaultOpen = true, emphasized = true, badge = {
+        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = scoreColor.copy(0.15f)) {
+            Text(
+                "$overallScore / 100",
+                modifier = Modifier.padding(horizontal = Spacing.SM, vertical = Spacing.T2),
+                style = MaterialTheme.typography.labelSmall,
+                color = scoreColor,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }) {
+        LinearProgressIndicator(
+            progress = { overallScore / 100f },
+            modifier = Modifier.fillMaxWidth().height(8.dp),
+            color = scoreColor,
+            trackColor = scoreColor.copy(0.12f),
+        )
+        Text(scoreLabel, style = MaterialTheme.typography.labelSmall, color = scoreColor, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(Spacing.S))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            subScores.forEach { (label, score) ->
+                SubScoreChip(label, score, Modifier.weight(1f))
+            }
+        }
+        Spacer(Modifier.height(Spacing.XS))
+        Text(
+            stringResource(R.string.biolism_health_score_footer),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+            color = OnSurface.copy(0.4f),
+        )
+    }
+    }
+}
+
+@Composable
+private fun SubScoreChip(label: String, score: Float, modifier: Modifier = Modifier) {
+    val color = when {
+        score >= 75 -> semanticGreen()
+        score >= 50 -> semanticAmber()
+        else        -> semanticRed()
+    }
+    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(0.1f), modifier = modifier) {
+        Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+            Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = OnSurface.copy(0.6f))
+            // "${score}" alone previously read as the raw measurement (e.g. "IMC: 0"),
+            // not the normalized 0-100 sub-score it actually is - a BMI of 37 legitimately
+            // floors this sub-score at 0 (it's outside the 16-35 range the formula maps),
+            // but showing a bare "0" next to a BMI label reads as "your BMI is zero",
+            // directly contradicting the real BMI shown elsewhere on the same screen.
+            Text("${score.roundToInt()}/100", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = color, fontWeight = FontWeight.Bold)
+        }
+    }
+}

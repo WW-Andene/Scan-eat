@@ -1,0 +1,257 @@
+package fr.scanneat.data.repository.planning
+
+import android.content.Context
+import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
+
+// ============================================================================
+// MEAL PLAN REPOSITORY — port of public/features/meal-plan.js
+//
+// Forward meal plan: what you INTEND to eat over the next 7 days.
+// Distinct from ConsumptionRepository (what you DID eat).
+//
+// Storage: DataStore single JSON key → Map<date, Map<meal, MealPlanSlot>>
+// Auto-prunes entries older than KEEP_DAYS_PAST days on every write.
+// ============================================================================
+
+private val Context.mealPlanDataStore by preferencesDataStore(name = "meal_plan")
+
+// R&D audit finding: the weekly meal plan was a DataStore singleton with no
+// profileId concept at all - shared across every profile regardless of who
+// was actually using the app. "default" keeps the exact same key name
+// pre-existing installs already use (zero migration); any other profile
+// gets its own namespaced key.
+private fun planKey(profileId: String) =
+    stringPreferencesKey(if (profileId == "default") "plan_json" else "plan_json_${profileId}")
+
+private const val KEEP_DAYS_PAST = 7
+
+sealed class MealPlanSlot {
+    data class RecipeSlot(val id: String, val name: String) : MealPlanSlot()
+    data class TemplateSlot(val id: String, val name: String) : MealPlanSlot()
+    data class NoteSlot(val text: String) : MealPlanSlot()
+}
+
+data class DayPlan(
+    val date: LocalDate,
+    val breakfast: MealPlanSlot? = null,
+    val lunch: MealPlanSlot? = null,
+    val dinner: MealPlanSlot? = null,
+    val snack: MealPlanSlot? = null,
+) {
+    operator fun get(meal: String): MealPlanSlot? = when (meal.lowercase()) {
+        "breakfast" -> breakfast
+        "lunch"     -> lunch
+        "dinner"    -> dinner
+        "snack"     -> snack
+        else        -> null
+    }
+    fun with(meal: String, slot: MealPlanSlot?): DayPlan = when (meal.lowercase()) {
+        "breakfast" -> copy(breakfast = slot)
+        "lunch"     -> copy(lunch     = slot)
+        "dinner"    -> copy(dinner    = slot)
+        "snack"     -> copy(snack     = slot)
+        else        -> this
+    }
+}
+
+@Singleton
+class MealPlanRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
+    private val store = context.mealPlanDataStore
+
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
+    // ---- Observe ----
+
+    fun weekPlan(profileId: String = "default"): Flow<Map<LocalDate, DayPlan>> = storeData.map { prefs ->
+        deserialize(prefs[planKey(profileId)] ?: "")
+    }.distinctUntilChanged()
+
+    // ---- Mutations ----
+
+    /** Set a slot for a specific date + meal. Prunes old entries. */
+    suspend fun setSlot(date: LocalDate, meal: String, slot: MealPlanSlot?, profileId: String = "default") {
+        store.edit { prefs ->
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
+            val day = plan[date] ?: DayPlan(date)
+            plan[date] = day.with(meal, slot)
+            prefs[k] = serialize(prune(plan))
+        }
+    }
+
+    /** Clear all slots for a given day. */
+    suspend fun clearDay(date: LocalDate, profileId: String = "default") {
+        store.edit { prefs ->
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
+            plan.remove(date)
+            prefs[k] = serialize(prune(plan))
+        }
+    }
+
+    /** Clear the entire plan. */
+    suspend fun clearAll(profileId: String = "default") {
+        store.edit { prefs -> prefs.remove(planKey(profileId)) }
+    }
+
+    /**
+     * Copies a whole day's plan (all 4 meal slots) onto another date, overwriting
+     * whatever's already there - previously the only way to repeat a day's plan
+     * (e.g. "same as last Monday") was re-assigning every slot by hand. No-ops if
+     * the source day has no plan at all.
+     */
+    suspend fun copyDay(from: LocalDate, to: LocalDate, profileId: String = "default") {
+        if (from == to) return
+        store.edit { prefs ->
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
+            val source = plan[from] ?: return@edit
+            plan[to] = source.copy(date = to)
+            prefs[k] = serialize(prune(plan))
+        }
+    }
+
+    /** Same as [copyDay] but for each of the 7 days starting at [fromStart], onto the same offset starting at [toStart]. */
+    suspend fun copyWeek(fromStart: LocalDate, toStart: LocalDate, profileId: String = "default") {
+        if (fromStart == toStart) return
+        store.edit { prefs ->
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
+            for (offset in 0 until 7) {
+                val source = plan[fromStart.plusDays(offset.toLong())] ?: continue
+                val to = toStart.plusDays(offset.toLong())
+                plan[to] = source.copy(date = to)
+            }
+            prefs[k] = serialize(prune(plan))
+        }
+    }
+
+    /**
+     * Data-consistency safeguard: RecipeSlot/TemplateSlot store a denormalized
+     * copy of the recipe/template's id + name at planning time, with no foreign
+     * key and no cascade — deleting the underlying recipe or meal template (from
+     * RecipesScreen/TemplatesScreen) previously left every day it was planned on
+     * pointing at an id that resolves to nothing, forever, with zero indication
+     * to the user beyond a name that silently stopped being backed by real data.
+     * Called by MealPlanViewModel whenever the live recipe/template lists change,
+     * clearing (not guessing a replacement for) any slot whose id no longer
+     * exists. Returns the number of slots cleared, so callers can surface it.
+     */
+    suspend fun pruneOrphanedSlots(validRecipeIds: Set<String>, validTemplateIds: Set<String>, profileId: String = "default"): Int {
+        var removed = 0
+        store.edit { prefs ->
+            val k = planKey(profileId)
+            val plan = deserialize(prefs[k] ?: "").toMutableMap()
+            for ((date, day) in plan.toMap()) {
+                var updated = day
+                for (meal in listOf("breakfast", "lunch", "dinner", "snack")) {
+                    val slot = updated[meal]
+                    val orphaned = when (slot) {
+                        is MealPlanSlot.RecipeSlot   -> slot.id !in validRecipeIds
+                        is MealPlanSlot.TemplateSlot -> slot.id !in validTemplateIds
+                        else -> false
+                    }
+                    if (orphaned) {
+                        updated = updated.with(meal, null)
+                        removed++
+                    }
+                }
+                plan[date] = updated
+            }
+            if (removed > 0) prefs[k] = serialize(prune(plan))
+        }
+        return removed
+    }
+
+    // ---- Backup export/import ----
+
+    /** Raw serialized plan blob for the default profile, for BackupRepository —
+     *  kept opaque since the format isn't Moshi-serializable on its own (see
+     *  BackupModels.kt). Multi-profile backup is a separate, larger schema
+     *  change - not covered here, same documented gap as the other DataStore
+     *  repositories' backup export/import. */
+    suspend fun exportRaw(): String = storeData.first()[planKey("default")] ?: ""
+
+    /** Merges a backup's plan into whatever's currently stored for the default profile — incoming slots win on conflict. */
+    suspend fun importRaw(raw: String) {
+        if (raw.isBlank()) return
+        store.edit { prefs ->
+            val k = planKey("default")
+            val existing = deserialize(prefs[k] ?: "").toMutableMap()
+            existing.putAll(deserialize(raw))
+            prefs[k] = serialize(prune(existing))
+        }
+    }
+
+    /** Dates with at least one slot set, for the next 7 days from today. */
+    fun weekDates(startDate: LocalDate = LocalDate.now()): List<LocalDate> =
+        (0 until 7).map { startDate.plusDays(it.toLong()) }
+
+    // ---- Pruning ----
+
+    private fun prune(plan: Map<LocalDate, DayPlan>): Map<LocalDate, DayPlan> {
+        val cutoff = LocalDate.now().minusDays(KEEP_DAYS_PAST.toLong())
+        return plan.filterKeys { !it.isBefore(cutoff) }
+    }
+
+    // ---- Serialization (pipe-delimited, no Moshi to keep DataStore simple) ----
+    // Format per entry: date|meal|kind|id_or_text|name
+    // Entries separated by newline.
+
+    // A newline in a note (or a recipe/template name) would otherwise split
+    // into extra lines on deserialize — the first parses as a truncated
+    // fragment and the rest fail the parts.size < 5 check and are silently
+    // dropped, corrupting the stored plan with no visible error.
+    private fun oneLine(s: String) = s.replace('\n', ' ').replace('\r', ' ')
+
+    private fun serialize(plan: Map<LocalDate, DayPlan>): String =
+        plan.flatMap { (date, day) ->
+            listOf("breakfast" to day.breakfast, "lunch" to day.lunch,
+                   "dinner" to day.dinner, "snack" to day.snack)
+                .mapNotNull { (meal, slot) ->
+                    slot ?: return@mapNotNull null
+                    when (slot) {
+                        is MealPlanSlot.RecipeSlot   -> "$date|$meal|recipe|${slot.id}|${oneLine(slot.name)}"
+                        is MealPlanSlot.TemplateSlot -> "$date|$meal|template|${slot.id}|${oneLine(slot.name)}"
+                        is MealPlanSlot.NoteSlot     -> "$date|$meal|note||${oneLine(slot.text)}"
+                    }
+                }
+        }.joinToString("\n")
+
+    private fun deserialize(raw: String): Map<LocalDate, DayPlan> {
+        if (raw.isBlank()) return emptyMap()
+        val plan = mutableMapOf<LocalDate, DayPlan>()
+        for (line in raw.lines()) {
+            val parts = line.split("|", limit = 5)
+            if (parts.size < 5) continue
+            val dateStr = parts[0]; val meal = parts[1]; val kind = parts[2]; val id = parts[3]; val nameOrText = parts[4]
+            val date = runCatching { LocalDate.parse(dateStr) }.getOrNull() ?: continue
+            val slot: MealPlanSlot = when (kind) {
+                "recipe"   -> MealPlanSlot.RecipeSlot(id, nameOrText)
+                "template" -> MealPlanSlot.TemplateSlot(id, nameOrText)
+                "note"     -> MealPlanSlot.NoteSlot(nameOrText)
+                else       -> continue
+            }
+            val day = plan[date] ?: DayPlan(date)
+            plan[date] = day.with(meal, slot)
+        }
+        return plan
+    }
+}

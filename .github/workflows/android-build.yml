@@ -1,0 +1,72 @@
+name: Android Build
+
+on:
+  push:
+    paths:
+      - "scan-eat-android/**"
+      - ".github/workflows/android-build.yml"
+  pull_request:
+    paths:
+      - "scan-eat-android/**"
+      - ".github/workflows/android-build.yml"
+  workflow_dispatch:
+
+# No step here needs to write to the repo, PRs, or packages — without an
+# explicit block the GITHUB_TOKEN falls back to the repo/org default, which
+# on many repos is broad (contents: write, etc). Least-privilege: read-only.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scan-eat-android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Run Android Lint
+        run: ./gradlew lintDebug --stacktrace
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-eat-debug-apk
+          path: scan-eat-android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      # release's signingConfig only gets set when RELEASE_STORE_FILE/PASSWORD/
+      # KEY_ALIAS/KEY_PASSWORD are present (build.gradle.kts) - none of those
+      # secrets are configured on this runner, so this produces a valid
+      # unsigned APK without needing any. Its only purpose here is exercising
+      # R8/minifyEnabled + shrinkResources, which the debug build above never
+      # touches. Debug-only CI previously let a real ProGuard keep-rule gap
+      # (app-audit M/L2) ship unnoticed. A real release build (Play upload)
+      # supplies those secrets so this same step produces a signed artifact.
+      - name: Build release APK (R8 minification check)
+        run: ./gradlew assembleRelease --stacktrace

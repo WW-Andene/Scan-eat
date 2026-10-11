@@ -1,0 +1,381 @@
+package fr.scanneat.presentation.ui.theme
+
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.shadow
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.random.Random
+
+/**
+ * A hairline top edge, applied over an existing card background so it reads
+ * as a lit surface rather than a flat fill. No real-time blur — the app's
+ * own gradients (or [ambientGloom]) are the only thing behind it. Clips to
+ * [shape] so the overlay never peeks past a rounded corner — pass the same
+ * shape used by the card's own Surface/background underneath.
+ *
+ * Declared light source: top-center, zenithal — every highlight in this file
+ * (this hairline, [ambientGloom]'s glow blobs) faces up for that reason. Any
+ * future glow/highlight added anywhere else in the app should face the same
+ * direction rather than picking one ad hoc, or depth will read as inconsistent
+ * once more than one surface is on screen at once.
+ *
+ * Reference pass: compared directly against Whispering Wishes' own glass
+ * chrome (backdrop-filter: blur() + box-shadow + a single hairline border,
+ * nothing else layered on top) after this app's version kept showing a
+ * visible tint artifact tied to the header title / nav label text, on
+ * every header and the nav bar alike, that survived several earlier
+ * targeted fixes. This used to also draw a top "sheen" wash, a corner glow
+ * blob, and a bottom "relief" shade - three extra translucent full-rect
+ * layers stacked directly over that same text on every floating header/nav
+ * bar in the app. Matching the simpler, proven-clean formula: blur (via
+ * hazeEffect at the call site) + shadowElevation (also at the call site) +
+ * this hairline only. [glowTint]/[glowAlpha]/[reliefAlpha] stay as
+ * accepted-but-unused parameters so existing call sites don't need to change.
+ */
+fun Modifier.glassSheen(
+    edgeAlpha: Float = 0.28f,
+    shape: Shape = RoundedCornerShape(CardRadius.CARD),
+    glowTint: Color = Color.White,
+    glowAlpha: Float = 0.05f,
+    reliefAlpha: Float = 0.05f,
+): Modifier = this
+    .clip(shape)
+    .drawWithCache {
+        // Fades in/out via its own gradient stops instead of a flat color cut
+        // off partway across the width (the old `inset` var) - a solid-color
+        // line with a hard start/end reads as an abrupt stop rather than a
+        // taper, exactly where the "edge" was supposed to be softest.
+        val edgeBrush = Brush.horizontalGradient(
+            colors = listOf(Color.Transparent, Color.White.copy(alpha = edgeAlpha), Color.Transparent),
+        )
+        onDrawWithContent {
+            drawContent()
+            drawLine(
+                brush = edgeBrush,
+                start = Offset(0f, 0.5f),
+                end = Offset(size.width, 0.5f),
+                strokeWidth = 1.5f,
+            )
+        }
+    }
+
+/**
+ * Full-bleed ambient background wash — the screen's own flat [base] color
+ * plus two soft, low-alpha radial "glow" blobs in [primary]/[secondary],
+ * positioned off-center for a volumetric, non-flat feel instead of a
+ * perfectly flat fill (the "volumetric gloom" from the app-wide polish
+ * pass). Purely decorative — glows top out around 14-20% alpha (raised from
+ * an original 7-10%, which read as too faint/diffuse to register as a light
+ * source at all against reference dashboards with a visible warm glow) —
+ * still gentle enough not to compete with foreground content, and glass
+ * cards drawn on top of it (via the now-translucent ScanEatCard, see its own
+ * doc comment) let a hint of this wash bleed through, which is what actually
+ * reads as "frosted glass over an atmosphere" rather than two independent
+ * effects. Intended as the outermost layer behind a screen's Scaffold/
+ * Column/LazyColumn content — apply directly to that container's own
+ * modifier in place of a plain `.background(Background)`.
+ *
+ * Settings > Appearance > "Animated background" (read here via
+ * [LocalAnimatedGloom], provided by [ScanEatTheme]) adds two things on top
+ * of the static version above, it does not replace it: the two glow blobs
+ * drift slowly along their own independent circular path instead of
+ * sitting fully still, AND a generated rain-on-a-puddle ripple pattern
+ * plays over them — several rings, each spawned from its own fixed point,
+ * expanding outward and fading as they grow, looping continuously, the
+ * same top-down look as rain hitting standing water. Off by default: it's
+ * a continuous per-frame redraw for as long as it's on, unlike every other
+ * setting here, which are one-time layout choices. `composed {}` is
+ * required (not a plain drawWithCache chain, like [glassSheen] above)
+ * because reading a CompositionLocal and driving a per-frame clock both
+ * need actual composition, not just a draw scope.
+ */
+private data class RippleSpec(
+    val originXFrac: Float, val originYFrac: Float,
+    val periodSec: Float, val phaseSec: Float, val usePrimary: Boolean,
+)
+
+fun Modifier.ambientGloom(
+    base: Color,
+    primary: Color,
+    secondary: Color = primary,
+): Modifier = composed {
+    // User-explicit: "ignore le réglage de téléphone pour animation" - this
+    // is a decorative background the user opts into directly inside the
+    // app (Settings > Affichage > "Fond animé"), not an app-initiated
+    // motion effect the OS-level "remove animations" a11y setting should
+    // veto - unlike every other rememberReducedMotion()-gated animation in
+    // the app (hero entrance, score reveal, press-scale), which stay gated.
+    val animated = LocalAnimatedGloom.current
+    // "Prism" theme: the actual user-supplied reference image (a colorful
+    // faceted-polygon background), not a procedural approximation - user
+    // corrected: "pourquoi prism n'utilise pas le fichier que je t'ai
+    // donner... au lieu de ton je ne sais quoi improvisé". Drawn "cover"
+    // style (scaled up, centered, cropped to fill) so its own 2:1 aspect
+    // ratio doesn't stretch/distort on a tall phone screen.
+    val isPrism = LocalThemeName.current == "prism"
+    val prismBitmap = if (isPrism) {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        remember {
+            android.graphics.BitmapFactory.decodeResource(context.resources, fr.scanneat.R.drawable.prism_background)
+                .asImageBitmap()
+        }
+    } else null
+    // User-requested: "ajoute un filtre... vitrail avec une génération
+    // logique de reflet en vague" - an irregular stained-glass pane grid
+    // overlaid on the background image, each pane outlined like real lead
+    // "came", with a light-reflection sweep that travels across the panes
+    // left-to-right rather than flickering randomly (each pane's phase is
+    // its own centroid x-position, so neighboring panes catch the "wave"
+    // in position order). Grid points (not independent per-triangle
+    // corners) so adjacent panes share exact edges - no gaps between them.
+    val prismPanes = if (isPrism) {
+        remember {
+            val rng = Random(20260814)
+            val cols = 5
+            val rows = 8
+            val cellW = 1f / (cols - 1)
+            val cellH = 1f / (rows - 1)
+            val points = Array(cols) { c -> Array(rows) { r ->
+                Offset(
+                    (c * cellW + (rng.nextFloat() - 0.5f) * cellW * 0.6f).coerceIn(0f, 1f),
+                    (r * cellH + (rng.nextFloat() - 0.5f) * cellH * 0.6f).coerceIn(0f, 1f),
+                )
+            } }
+            buildList {
+                for (c in 0 until cols - 1) {
+                    for (r in 0 until rows - 1) {
+                        val p00 = points[c][r]; val p10 = points[c + 1][r]
+                        val p01 = points[c][r + 1]; val p11 = points[c + 1][r + 1]
+                        add(Triple(p00, p10, p01))
+                        add(Triple(p10, p11, p01))
+                    }
+                }
+            }
+        }
+    } else emptyList()
+
+    // Blob drift phase - rememberInfiniteTransition suits this one on its
+    // own (a single float looping 0..2π), unlike the ripple clock below
+    // which several independent ripples all need to read at once.
+    val driftPhase = if (animated) {
+        val transition = rememberInfiniteTransition(label = "ambientGloomDrift")
+        transition.animateFloat(
+            initialValue = 0f,
+            targetValue = (2.0 * Math.PI).toFloat(),
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 26_000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "ambientGloomDriftValue",
+        ).value
+    } else 0f
+
+    // Free-running clock, not rememberInfiniteTransition - a handful of
+    // independent ripples each need their own phase/period read every
+    // frame, which one shared elapsed-time value drives more simply than a
+    // separate Animatable per ripple. Restarts (and its LaunchedEffect
+    // cancels) whenever the toggle flips, so no frames are spent while it's off.
+    var timeSec by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(animated) {
+        if (!animated) return@LaunchedEffect
+        var start = -1L
+        while (true) {
+            withFrameNanos { now ->
+                if (start < 0L) start = now
+                timeSec = (now - start) / 1_000_000_000f
+            }
+        }
+    }
+
+    // Fixed spawn points/timing, remembered once per composition so ripples
+    // don't jump around on recomposition - Random-seeded (not a literal
+    // hand-placed list) purely so different screens don't all show the exact
+    // same ripple layout.
+    val ripples = remember {
+        val rng = Random(20260729)
+        List(6) {
+            RippleSpec(
+                originXFrac = rng.nextFloat(),
+                originYFrac = rng.nextFloat(),
+                periodSec   = 3.5f + rng.nextFloat() * 3f,
+                phaseSec    = rng.nextFloat() * 6f,
+                usePrimary  = it % 2 == 0,
+            )
+        }
+    }
+
+    this.drawWithCache {
+        // Drift radius scoped to a fraction of the screen so the blobs stay
+        // gentle and never swing far enough to feel like a spotlight
+        // sweeping across the content - opposite phase offsets (secondary
+        // uses phase + PI) so the two blobs don't move in lockstep.
+        val drift = size.width * 0.06f
+        val primaryCenter = Offset(
+            size.width * 0.88f + drift * cos(driftPhase),
+            size.height * 0.04f + drift * sin(driftPhase) * 0.4f,
+        )
+        val secondaryCenter = Offset(
+            size.width * 0.08f + drift * cos(driftPhase + Math.PI.toFloat()),
+            size.height * 0.7f + drift * sin(driftPhase + Math.PI.toFloat()),
+        )
+        // User-reported: next to reference dashboards with a visible warm light
+        // pool behind the glass, this background read as flat - at 0.10/0.07
+        // alpha over a wide 0.9x/1.1x-screen-width radius, the wash was too
+        // faint and too diffuse to register as a light source at all, just a
+        // barely-there tint. Roughly doubled the alpha and pulled the radius
+        // in so each blob reads as a defined pool of light instead of a haze
+        // spread thin across the whole screen.
+        val primaryBrush = Brush.radialGradient(
+            colors = listOf(primary.copy(alpha = 0.20f), Color.Transparent),
+            center = primaryCenter,
+            radius = size.width * 0.72f,
+        )
+        val secondaryBrush = Brush.radialGradient(
+            colors = listOf(secondary.copy(alpha = 0.14f), Color.Transparent),
+            center = secondaryCenter,
+            radius = size.width * 0.9f,
+        )
+        val t = timeSec
+        val maxRadius = size.minDimension * 0.32f
+        onDrawBehind {
+            if (isPrism && prismBitmap != null) {
+                // "Cover" fit (like CSS background-size: cover): scale up
+                // by whichever axis needs it more, so the image fills the
+                // screen with no letterboxing, then crop the overflow
+                // evenly on both sides - the source image's own 2:1 aspect
+                // ratio would otherwise stretch badly on a ~9:19 phone
+                // screen. Read driftPhase here (same reasoning as the blob
+                // centers above) for a small pan when "Fond animé" is on;
+                // 0 when it's off, so the image sits still by default.
+                val bw = prismBitmap.width.toFloat()
+                val bh = prismBitmap.height.toFloat()
+                val scale = maxOf(size.width / bw, size.height / bh)
+                val dw = bw * scale
+                val dh = bh * scale
+                val overscanX = (dw - size.width) / 2f
+                val overscanY = (dh - size.height) / 2f
+                val panX = overscanX * 0.6f * cos(driftPhase)
+                val panY = overscanY * 0.6f * sin(driftPhase)
+                drawImage(
+                    image = prismBitmap,
+                    dstOffset = IntOffset((-overscanX + panX).toInt(), (-overscanY + panY).toInt()),
+                    dstSize = IntSize(dw.toInt(), dh.toInt()),
+                )
+                // User-corrected: "pas de lisière dorée, c'est sensé juste
+                // être un effet pour créé l'illusion d'animation des
+                // prisme" - no lead-came outline at all, just the
+                // reflection-wave highlight itself (only when [animated] -
+                // "seulement quand animation activé"), which alone is the
+                // whole effect: light appearing to catch and sweep across
+                // each facet, the illusion of the panes shifting/animating.
+                // Each pane's phase is its own centroid x fraction so the
+                // highlight visibly sweeps across neighboring panes in
+                // screen order, a "logical" wave rather than random flicker.
+                if (animated) {
+                    prismPanes.forEach { (a, b, c) ->
+                        val centroidXFrac = (a.x + b.x + c.x) / 3f
+                        val wave = sin(t * 1.1f - centroidXFrac * 2f * Math.PI.toFloat() * 1.6f)
+                        val highlightAlpha = 0.05f + (wave.coerceAtLeast(0f)) * 0.22f
+                        val pa = Offset(a.x * size.width, a.y * size.height)
+                        val pb = Offset(b.x * size.width, b.y * size.height)
+                        val pc = Offset(c.x * size.width, c.y * size.height)
+                        val panePath = Path().apply {
+                            moveTo(pa.x, pa.y); lineTo(pb.x, pb.y); lineTo(pc.x, pc.y); close()
+                        }
+                        drawPath(panePath, color = Color.White.copy(alpha = highlightAlpha))
+                    }
+                }
+                return@onDrawBehind
+            }
+            drawRect(base)
+            drawRect(primaryBrush)
+            drawRect(secondaryBrush)
+            if (animated) {
+                ripples.forEach { r ->
+                    val cycle = ((t + r.phaseSec) % r.periodSec) / r.periodSec
+                    val center = Offset(size.width * r.originXFrac, size.height * r.originYFrac)
+                    val tint = if (r.usePrimary) primary else secondary
+                    // A real ripple radiates as more than one ring - a second,
+                    // slightly-delayed ring from the same origin (cycle - 0.3)
+                    // reads as a rain-drop splash instead of one static circle
+                    // expanding on its own.
+                    drawRippleRing(cycle, center, maxRadius, tint)
+                    drawRippleRing(cycle - 0.3f, center, maxRadius, tint)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The glass treatment for `DropdownMenu`-based popups: tinted shadow +
+ * hairline sheen, same recipe as [ScanEatCard]'s Surface — minus real-time
+ * backdrop blur, which `Modifier.hazeEffect` cannot provide here. Material3's
+ * `DropdownMenu` renders inside its own `Popup`/`PopupWindow`, a separate
+ * Android window from the screen content behind it; Haze captures the blur
+ * source via a `GraphicsLayer` that belongs to the *originating* window's
+ * Compose tree, so a popup in a different window has no access to it — this
+ * is a structural Android/Compose limitation, not a per-device rendering gap.
+ * [glassSheen]'s hairline and [ShadowTint]'s shadow tint are pure draw-scope
+ * effects with no cross-window dependency, so they still apply cleanly; pair
+ * with a translucent `containerColor` (e.g. `SurfaceVariant.copy(alpha = StandardCardAlpha)`)
+ * at the call site for the closest achievable match to the app's card glass.
+ */
+fun Modifier.glassPopupSurface(shape: Shape = RoundedCornerShape(CardRadius.CONTROL)): Modifier = this
+    // MIUI-observed bug (see ScanEatCard.kt): ambientColor/spotColor-tinted
+    // Modifier.shadow renders as a solid, hard-edged grey rectangle instead of
+    // a soft shadow on some OEM skins. Reverted to the neutral default shadow
+    // color.
+    .shadow(elevation = 8.dp, shape = shape)
+    // User-instructed, literal: "all popup menu in the app should use the
+    // same style as Tableau header" - edgeAlpha was 0.22f, a hand-tuned
+    // value distinct from FloatingTopBar/MainShell's own shared 0.28f
+    // standard (glassSheen's own default). Real backdrop blur itself can't
+    // cross the Popup's separate window (see this function's own doc
+    // comment above) - this literal parameter is the one part of "the same
+    // style" actually achievable here, now matched exactly.
+    .glassSheen(edgeAlpha = 0.28f, shape = shape)
+
+private fun DrawScope.drawRippleRing(cycle: Float, center: Offset, maxRadius: Float, tint: Color) {
+    if (cycle <= 0f || cycle >= 1f) return
+    val radius = cycle * maxRadius
+    val fade = 1f - cycle
+    val alpha = 0.16f * fade * fade
+    if (alpha <= 0.001f) return
+    drawCircle(
+        color = tint,
+        radius = radius,
+        center = center,
+        alpha = alpha,
+        style = Stroke(width = 1.5f + 2f * fade),
+    )
+}
+
+

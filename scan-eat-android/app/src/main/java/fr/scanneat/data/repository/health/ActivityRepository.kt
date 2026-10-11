@@ -1,0 +1,329 @@
+package fr.scanneat.data.repository.health
+
+import fr.scanneat.data.local.db.activity.ActivityDao
+import fr.scanneat.data.local.db.activity.ActivityEntity
+import fr.scanneat.data.local.db.toIsoString
+import fr.scanneat.data.local.db.toLocalDate
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.time.Instant
+import java.time.LocalDate
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.math.roundToInt
+
+// ============================================================================
+// ACTIVITY REPOSITORY — port of public/data/activity.js
+//
+// Burned kcal estimated with the MET equation:
+//   kcal = MET × weight_kg × hours
+// Source: Ainsworth et al., Compendium of Physical Activities 2011.
+// ============================================================================
+
+enum class ActivityType(val key: String, val met: Double, val labelFr: String) {
+    WALKING_BRISK("walking_brisk", 4.3, "Marche rapide"),
+    RUNNING      ("running",       9.8, "Course à pied"),
+    CYCLING      ("cycling",       7.0, "Vélo"),
+    SWIMMING     ("swimming",      7.0, "Natation"),
+    STRENGTH     ("strength",      5.0, "Musculation"),
+    YOGA         ("yoga",          2.8, "Yoga"),
+    HIIT         ("hiit",          8.0, "HIIT"),
+    OTHER        ("other",         4.0, "Autre");
+
+    companion object {
+        fun fromKey(k: String) = entries.firstOrNull { it.key == k } ?: OTHER
+    }
+}
+
+/**
+ * Sub-entries under a parent [ActivityType] - e.g. "bench_press"/"squat"/
+ * "deadlift" under STRENGTH, "trail"/"sprint"/"interval" under RUNNING. Purely
+ * descriptive (same MET as the parent type, no separate calorie model per
+ * sub-type - that level of precision needs exercise-specific MET tables this
+ * app doesn't carry yet), stored as a free-form key on ActivityEntity.subType.
+ */
+val ACTIVITY_SUB_TYPES: Map<ActivityType, List<String>> = mapOf(
+    ActivityType.STRENGTH to listOf("bench_press", "squat", "deadlift", "biceps_curl"),
+    ActivityType.SWIMMING to listOf("freestyle", "breaststroke", "butterfly"),
+    ActivityType.RUNNING to listOf("trail", "sprint", "interval"),
+    ActivityType.CYCLING to listOf("road", "mountain", "indoor"),
+)
+
+/**
+ * MET × weight_kg × (minutes / 60), using the fixed per-type MET table.
+ * Returns 0 for missing / invalid inputs — mirrors the JS behaviour.
+ */
+fun estimateKcalBurned(type: ActivityType, minutes: Int, weightKg: Double): Int {
+    if (minutes <= 0 || weightKg <= 0) return 0
+    return (type.met * weightKg * (minutes / 60.0)).roundToInt()
+}
+
+// Ainsworth Compendium of Physical Activities 2011 codes 02050/02054:
+// resistance training MET differs by *effort level*, not just "strength
+// training" as one flat number - light-to-moderate effort resistance
+// training (code 02050) is 3.5 METs, vigorous effort (code 02054) is 6.0
+// METs. STRENGTH.met (5.0) already sits at the moderate midpoint used as
+// the fallback below. There's still no established equation that converts
+// weightUsedKg (external load) into METs directly - that gap is real and
+// stays unfilled (see this function's own doc comment) - but total training
+// volume (sets × reps) IS a legitimate, session-observable effort-level
+// proxy the Compendium's own three-tier split is built around, so it's used
+// here instead of leaving sets/reps completely unused for calorie purposes.
+private const val STRENGTH_MET_LIGHT_MODERATE = 3.5
+private const val STRENGTH_MET_VIGOROUS = 6.0
+private const val STRENGTH_LOW_VOLUME_REPS = 30
+private const val STRENGTH_HIGH_VOLUME_REPS = 60
+
+private fun strengthMet(sets: Int?, reps: Int?): Double {
+    val totalReps = if (sets != null && reps != null) sets * reps else null
+    return when {
+        totalReps == null -> ActivityType.STRENGTH.met
+        totalReps < STRENGTH_LOW_VOLUME_REPS -> STRENGTH_MET_LIGHT_MODERATE
+        totalReps > STRENGTH_HIGH_VOLUME_REPS -> STRENGTH_MET_VIGOROUS
+        else -> ActivityType.STRENGTH.met
+    }
+}
+
+/**
+ * Pace-adjusted running / effort-tiered strength estimate — distanceKm/
+ * sets/reps/weightUsedKg were added to ActivityEntry this session and shown
+ * in ActivityScreen, but only ever fed a fixed per-type MET table that
+ * ignores them entirely: a 5km jog and a 20km run of the same duration
+ * produced identical burn numbers, and a 3×8 warmup set scored the same as
+ * a 5×20 high-volume session. For running specifically there's a well-
+ * established, verifiable metabolic equation (ACSM: VO2 ml/kg/min = 3.5 +
+ * 0.2 × speed_m_per_min, MET = VO2/3.5) that actually uses pace instead of
+ * a single flat MET value; for STRENGTH, [strengthMet] uses total training
+ * volume as an Ainsworth-Compendium-sourced effort tier (see its own doc
+ * comment). Left to the fixed-MET fallback for every other type, and for
+ * strength training's weightUsedKg specifically — no equivalent well-
+ * established equation exists for external resistance load the way it does
+ * for running pace or effort-tier, and fabricating one would be worse than
+ * not adjusting at all.
+ */
+fun estimateKcalBurnedWithDistance(type: ActivityType, minutes: Int, weightKg: Double, distanceKm: Double?, sets: Int? = null, reps: Int? = null): Int {
+    if (minutes <= 0 || weightKg <= 0) return 0
+    if (type == ActivityType.RUNNING && distanceKm != null && distanceKm > 0) {
+        val speedMPerMin = distanceKm * 1000.0 / minutes
+        // ACSM running equation is validated for speeds >= 134 m/min (~8 km/h);
+        // below that it under-predicts badly (that's walking-pace territory), so
+        // it's only applied in the range it was actually derived for.
+        if (speedMPerMin >= 134.0) {
+            val vo2 = 3.5 + 0.2 * speedMPerMin
+            val met = vo2 / 3.5
+            return (met * weightKg * (minutes / 60.0)).roundToInt()
+        }
+    }
+    if (type == ActivityType.STRENGTH) {
+        return (strengthMet(sets, reps) * weightKg * (minutes / 60.0)).roundToInt()
+    }
+    return estimateKcalBurned(type, minutes, weightKg)
+}
+
+data class ActivityEntry(
+    val id: String,
+    val date: LocalDate,
+    val type: ActivityType,
+    val minutes: Int,
+    val kcalBurned: Int,
+    val note: String = "",
+    val subType: String? = null,
+    val sets: Int? = null,
+    val reps: Int? = null,
+    val distanceKm: Double? = null,
+    val weightUsedKg: Double? = null,
+    val wasOutdoors: Boolean = false,
+)
+
+@Singleton
+class ActivityRepository @Inject constructor(
+    private val dao: ActivityDao,
+    private val healthConnect: HealthConnectRepository,
+) {
+
+    fun observeByDate(date: LocalDate, profileId: String = "default"): Flow<List<ActivityEntry>> =
+        dao.observeByDate(date.toIsoString(), profileId).map { list -> list.mapNotNull { it.toDomain() } }
+
+    suspend fun log(
+        type: ActivityType,
+        minutes: Int,
+        weightKg: Double,
+        kcalOverride: Int? = null,
+        note: String = "",
+        date: LocalDate = LocalDate.now(),
+        profileId: String = "default",
+        subType: String? = null,
+        sets: Int? = null,
+        reps: Int? = null,
+        distanceKm: Double? = null,
+        weightUsedKg: Double? = null,
+        wasOutdoors: Boolean = false,
+    ) {
+        val kcal = if (kcalOverride != null && kcalOverride > 0) kcalOverride
+                   else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm, sets, reps)
+        val loggedAt = System.currentTimeMillis()
+        dao.insert(ActivityEntity(
+            id           = UUID.randomUUID().toString(),
+            date         = date.toIsoString(),
+            type         = type.key,
+            minutes      = minutes.coerceAtLeast(0),
+            kcalBurned   = kcal,
+            note         = note,
+            loggedAt     = loggedAt,
+            profileId    = profileId,
+            subType      = subType,
+            sets         = sets?.coerceAtLeast(0),
+            reps         = reps?.coerceAtLeast(0),
+            distanceKm   = distanceKm?.coerceAtLeast(0.0),
+            weightUsedKg = weightUsedKg?.coerceAtLeast(0.0),
+            wasOutdoors  = wasOutdoors,
+        ))
+        dao.trim(MAX_HISTORY_ROWS, profileId)
+        // Health Connect had zero Activité wiring at all before this - a logged
+        // workout stayed invisible to it and any other app reading from it,
+        // unlike weight/hydration which already mirror.
+        healthConnect.writeActivity(type, minutes.coerceAtLeast(0), kcal, Instant.ofEpochMilli(loggedAt))
+    }
+
+    suspend fun delete(id: String) = dao.delete(id)
+
+    /**
+     * Edits an existing entry in place - Weight/Diary/Templates already support
+     * editing a logged entry, but Activity only ever supported delete-and-recreate.
+     * Reuses dao.insert()'s OnConflictStrategy.REPLACE on the primary key [id] as
+     * an upsert (same trick WeightRepository.log() gets for free from its date
+     * uniqueness), so no separate DAO update query is needed. Recomputes kcal the
+     * same way log() does, keeping the original loggedAt so the entry doesn't
+     * jump position in "most recently logged" orderings just from being edited.
+     */
+    suspend fun update(
+        id: String,
+        type: ActivityType,
+        minutes: Int,
+        weightKg: Double,
+        kcalOverride: Int? = null,
+        note: String = "",
+        date: LocalDate = LocalDate.now(),
+        profileId: String = "default",
+        subType: String? = null,
+        sets: Int? = null,
+        reps: Int? = null,
+        distanceKm: Double? = null,
+        weightUsedKg: Double? = null,
+        wasOutdoors: Boolean = false,
+    ) {
+        val kcal = if (kcalOverride != null && kcalOverride > 0) kcalOverride
+                   else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm, sets, reps)
+        // ActivityEntry (the domain model every screen/ViewModel already works
+        // with) doesn't expose loggedAt, so this looks the existing row's value
+        // up itself rather than requiring callers to thread it through - an edit
+        // shouldn't jump position in "most recently logged" orderings.
+        val loggedAt = dao.findById(id)?.loggedAt ?: System.currentTimeMillis()
+        dao.insert(ActivityEntity(
+            id           = id,
+            date         = date.toIsoString(),
+            type         = type.key,
+            minutes      = minutes.coerceAtLeast(0),
+            kcalBurned   = kcal,
+            note         = note,
+            loggedAt     = loggedAt,
+            profileId    = profileId,
+            subType      = subType,
+            sets         = sets?.coerceAtLeast(0),
+            reps         = reps?.coerceAtLeast(0),
+            distanceKm   = distanceKm?.coerceAtLeast(0.0),
+            weightUsedKg = weightUsedKg?.coerceAtLeast(0.0),
+            wasOutdoors  = wasOutdoors,
+        ))
+        // log() mirrors every write to Health Connect - omitting it here would leave
+        // an editted entry's HC record silently stale (still showing the pre-edit
+        // duration/kcal) with no error and no indication anything is out of sync.
+        // Health Connect has no update-in-place for a record it wrote (same
+        // documented limitation as WeightRepository.log()), so this writes a fresh
+        // record with the edited stats rather than trying to mutate the old one.
+        healthConnect.writeActivity(type, minutes.coerceAtLeast(0), kcal, Instant.ofEpochMilli(loggedAt))
+    }
+
+    suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<ActivityEntry> =
+        dao.getRange(from.toIsoString(), to.toIsoString(), profileId).mapNotNull { it.toDomain() }
+
+    /** Observing counterpart to [getRange] — lets a live view (e.g. Calendar's month markers) stay fresh while activity is logged elsewhere, instead of only refreshing on the next one-shot read. */
+    fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<ActivityEntry>> =
+        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.mapNotNull { it.toDomain() } }
+
+    /** All distinct workout dates across full history — for logStreakDays/longestLogStreak,
+     * which need every date ever logged, not just whatever a fixed-size getRange window
+     * happens to cover. Same pattern as ConsumptionRepository.getAllLoggedDates(). */
+    suspend fun getAllLoggedDates(profileId: String = "default"): Set<LocalDate> =
+        dao.getAllLoggedDates(profileId).mapNotNullTo(mutableSetOf()) { runCatching { it.toLocalDate() }.getOrNull() }
+
+    /**
+     * Pulls in workouts Health Connect has from an *external* source (a
+     * fitness tracker's own app, etc.) that aren't already imported - sync
+     * was previously write-only for Activité (unlike weight, which already
+     * reads back), so a tracker writing straight into Health Connect never
+     * reached Scan'eat's own history. Dedup is by Health Connect's own
+     * record id (ActivityEntity.externalSourceId) rather than a per-day
+     * convention like WeightRepository's: activity genuinely has multiple
+     * entries per day, so "already have one for this day" isn't a safe
+     * dedup signal here the way it is for weight. Inserted directly via the
+     * DAO (not log()) so an imported session is never re-mirrored back out
+     * to Health Connect as a brand-new, differently-id'd one.
+     */
+    suspend fun syncFromHealthConnect(profileId: String = "default", days: Int = 30) {
+        val zone = java.time.ZoneId.systemDefault()
+        val start = LocalDate.now().minusDays(days.toLong()).atStartOfDay(zone).toInstant()
+        val end = LocalDate.now().plusDays(1).atStartOfDay(zone).toInstant()
+        val external = healthConnect.readExternalActivity(start, end)
+        if (external.isEmpty()) return
+        val alreadyImported = dao.getImportedExternalIds(profileId).toSet()
+        for (session in external) {
+            if (session.id in alreadyImported) continue
+            val minutes = java.time.Duration.between(session.startTime, session.endTime).toMinutes().toInt().coerceAtLeast(1)
+            dao.insert(ActivityEntity(
+                id               = UUID.randomUUID().toString(),
+                date             = session.endTime.atZone(zone).toLocalDate().toIsoString(),
+                type             = session.type.key,
+                minutes          = minutes,
+                kcalBurned       = session.kcal,
+                loggedAt         = session.endTime.toEpochMilli(),
+                profileId        = profileId,
+                externalSourceId = session.id,
+            ))
+        }
+        dao.trim(MAX_HISTORY_ROWS, profileId)
+    }
+
+    private fun ActivityEntity.toDomain(): ActivityEntry? = runCatching {
+        ActivityEntry(
+            id           = id,
+            date         = date.toLocalDate(),
+            type         = ActivityType.fromKey(type),
+            minutes      = minutes,
+            kcalBurned   = kcalBurned,
+            note         = note,
+            subType      = subType,
+            sets         = sets,
+            reps         = reps,
+            distanceKm   = distanceKm,
+            weightUsedKg = weightUsedKg,
+            wasOutdoors  = wasOutdoors,
+        )
+    }.onFailure {
+        // Same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository/
+        // RecipeRepository/MealTemplateRepository/CustomFoodRepository/
+        // WeightRepository - this was the other sibling repo whose toDomain()
+        // wasn't guarded, so a single malformed `date` column (LocalDate.parse
+        // throws on it) crashed the whole observeByDate()/getRange()/
+        // observeRange() flow instead of just dropping that one row, taking
+        // down ActivityScreen/Dashboard/Calendar entirely rather than
+        // degrading gracefully.
+        android.util.Log.w("ActivityRepository", "Failed to parse activity entry id=$id", it)
+    }.getOrNull()
+
+    companion object {
+        /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS. */
+        const val MAX_HISTORY_ROWS = 5000
+    }
+}

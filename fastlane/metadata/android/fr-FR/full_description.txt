@@ -1,0 +1,18 @@
+Scan'eat vous aide à comprendre ce que vous mangez, en tenant compte de qui vous êtes.
+
+SCANNEZ ET COMPRENEZ
+Scannez le code-barres d'un produit ou photographiez son étiquette pour obtenir un score nutritionnel clair, avec les raisons précises derrière chaque point gagné ou perdu.
+
+ADAPTÉ À VOTRE PROFIL
+Déclarez vos allergènes, votre régime alimentaire et vos conditions de santé (diabète, grossesse, maladie rénale, syndrome de l'intestin irritable, maladie de Crohn, etc.) : chaque score, chaque recommandation et chaque alerte s'ajustent en conséquence — pas de conseil générique.
+
+SUIVEZ VOTRE JOURNAL
+Repas, poids, hydratation, activité physique, jeûne intermittent, traitements et dépenses alimentaires : tout dans un seul journal, avec des suggestions "recommandé / non recommandé" propres à votre profil.
+
+RECHERCHEZ N'IMPORTE QUOI
+La recherche couvre votre historique de scans, une base de référence d'aliments courants, et — pour aller plus loin — une recherche en ligne par nom, ingrédient ou additif dans Open Food Facts, avec des liens vers des sources officielles (ANSES/CIQUAL, USDA, EFSA, PubChem).
+
+VOS DONNÉES RESTENT CHEZ VOUS
+Pas de compte, pas de serveur central. Vos données de profil et de santé sont chiffrées et stockées uniquement sur votre appareil.
+
+Scan'eat ne fournit pas d'avis médical — c'est un outil d'information, pas un substitut à un professionnel de santé.

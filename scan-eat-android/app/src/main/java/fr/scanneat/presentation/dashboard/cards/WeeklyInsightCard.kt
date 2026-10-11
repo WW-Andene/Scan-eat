@@ -1,0 +1,119 @@
+package fr.scanneat.presentation.dashboard.cards
+
+import compose.icons.tablericons.ArrowDownRight
+import compose.icons.tablericons.ArrowUpRight
+import compose.icons.tablericons.CircleCheck
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.domain.engine.dashboard.CrossTrackerInsight
+import fr.scanneat.domain.engine.dashboard.InsightAgreement
+import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.ScanEatCard
+import fr.scanneat.presentation.ui.theme.dispWeight
+import fr.scanneat.presentation.ui.theme.semanticAmber
+import fr.scanneat.presentation.ui.theme.semanticGreen
+import fr.scanneat.presentation.ui.theme.IconSize
+import kotlin.math.abs
+
+/**
+ * Surfaces weeklyCrossTrackerInsight() - the one card on Dashboard that cross-
+ * references two different trackers (nutrition intake vs. the weight scale)
+ * instead of reporting on a single metric in isolation. Only rendered for
+ * CONSISTENT/MISMATCH (see DashboardScreen) - INCONCLUSIVE means neither
+ * signal is strong enough this week to say anything useful yet.
+ */
+@Composable
+internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useImperial: Boolean = false) {
+    val consistent = insight.agreement == InsightAgreement.CONSISTENT
+    val color = if (consistent) semanticGreen() else semanticAmber()
+    val isDeficit = insight.avgDailyDeficitKcal > 0
+    val messageRes = when {
+        isDeficit && consistent  -> R.string.dashboard_insight_deficit_losing
+        !isDeficit && consistent -> R.string.dashboard_insight_surplus_gaining
+        isDeficit                -> R.string.dashboard_insight_deficit_not_losing
+        else                     -> R.string.dashboard_insight_surplus_not_gaining
+    }
+    ScanEatCard(
+        contentPadding = PaddingValues(Spacing.L),
+        verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Icon(
+                if (consistent) TablerIcons.CircleCheck else TablerIcons.AlertTriangle,
+                null, tint = color, modifier = Modifier.size(16.dp),
+            )
+            Text(stringResource(R.string.dashboard_insight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+        }
+        val trend = insight.weightTrendKgPerWeek
+        val trendSign = if (trend >= 0) "+" else "-"
+        Text(
+            stringResource(messageRes, abs(insight.avgDailyDeficitKcal), "$trendSign${dispWeight(abs(trend), useImperial)}"),
+            style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.85f),
+        )
+        if (insight.weeklyActiveMinutes > 0) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                Icon(
+                    if (insight.weeklyActiveMinutes >= 150) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
+                    null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Tiny),
+                )
+                Text(
+                    stringResource(R.string.dashboard_insight_active_minutes, insight.weeklyActiveMinutes),
+                    style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+                )
+            }
+        }
+        // Fasting/hydration previously never appeared in this card at all - see
+        // weeklyCrossTrackerInsight's own doc comment on why they're separate
+        // context lines rather than folded into the weight-vs-intake agreement.
+        insight.weeklyFastingAdherencePct?.let { pct ->
+            Text(
+                stringResource(R.string.dashboard_insight_fasting_adherence, pct),
+                style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+            )
+        }
+        insight.weeklyHydrationAdherencePct?.let { pct ->
+            Text(
+                stringResource(R.string.dashboard_insight_hydration_adherence, pct),
+                style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+            )
+        }
+        // R&D audit finding: inconsistent hydration is a real, physiologically-
+        // grounded confounder of week-to-week scale weight (see
+        // weeklyCrossTrackerInsight's own doc comment) - shown as a caveat on
+        // the verdict above, not folded silently into it.
+        if (insight.hydrationReliabilityCaveat) {
+            Text(
+                stringResource(R.string.dashboard_insight_hydration_caveat),
+                style = MaterialTheme.typography.labelSmall, color = semanticAmber().copy(0.8f),
+            )
+        }
+        // Same reasoning as the hydration caveat above, for fasting - see
+        // WeightVsIntake.fastingReliabilityCaveat's own doc comment.
+        if (insight.fastingReliabilityCaveat) {
+            Text(
+                stringResource(R.string.dashboard_insight_fasting_caveat),
+                style = MaterialTheme.typography.labelSmall, color = semanticAmber().copy(0.8f),
+            )
+        }
+    }
+}

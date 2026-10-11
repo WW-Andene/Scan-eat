@@ -1,0 +1,253 @@
+package fr.scanneat.presentation.customfood
+
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.data.repository.recall.RecallEntry
+import fr.scanneat.data.repository.recall.RecallRepository
+import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.model.Product
+import fr.scanneat.domain.model.Profile
+import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.presentation.common.ActionFailureViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
+import javax.inject.Inject
+
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class CustomFoodViewModel @Inject constructor(
+    private val repo: CustomFoodRepository,
+    private val scanRepo: ScanRepository,
+    private val recallRepo: RecallRepository,
+    prefs: UserPreferences,
+) : ActionFailureViewModel() {
+    // Needed so the hint panel can cross-reference health conditions the same way
+    // ResultViewModel's identical pair already does for scanned products — the
+    // "💡 Bon à savoir" panel was previously reachable only from Result, despite
+    // CustomFoodRepository.toProduct() already making every custom/built-in food
+    // here just as eligible.
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+    val profile: StateFlow<Profile> = prefs.profile
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
+
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    /** Thin pass-through so the screen can build a Product for [fr.scanneat.domain.engine.nutrition.generateProductHints]
+     *  without reaching into the repository directly — toProduct() already works on any FoodEntry, custom or built-in. */
+    fun toProduct(entry: FoodEntry): Product = repo.toProduct(entry)
+
+    val foods: StateFlow<List<FoodEntry>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** id-keyed, for the rename action — FoodEntry itself carries no stable id. */
+    val foodsWithId: StateFlow<List<Pair<String, FoodEntry>>> = activeProfileId.flatMapLatest { id -> repo.observeAllWithId(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // R&D audit finding: a recalled product saved as a custom food (e.g. via
+    // importFromScan below) and re-logged from Diary silently skipped the
+    // RappelConso recall check a fresh scan would trigger - the barcode was
+    // captured and stored, but nothing downstream of that first scan ever
+    // used it again. id-keyed so FoodEntryRow can look up a given row's
+    // warning without re-running the check on every recomposition.
+    private val foodsWithIdAndBarcode = activeProfileId.flatMapLatest { id -> repo.observeAllWithIdAndBarcode(id) }
+
+    val recallWarnings: StateFlow<Map<String, RecallEntry>> = foodsWithIdAndBarcode
+        .map { list -> list.mapNotNull { (_, _, barcode) -> barcode }.filter { it.isNotBlank() } }
+        .distinctUntilChanged()
+        .flatMapLatest { barcodes ->
+            flow {
+                val byBarcode = barcodes.distinct().mapNotNull { bc -> recallRepo.checkBarcode(bc)?.let { bc to it } }.toMap()
+                emit(byBarcode)
+            }
+        }
+        .combine(foodsWithIdAndBarcode) { byBarcode, entries ->
+            entries.mapNotNull { (id, _, barcode) -> byBarcode[barcode]?.let { id to it } }.toMap()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query.asStateFlow()
+
+    // Derived from the same live `foods` flow (not a separate repo.search() call), so
+    // results can never go stale after a save/delete the way a one-shot search snapshot
+    // could — and debounced + recomputed via combine instead of launching an unbounded,
+    // uncancelled coroutine per keystroke.
+    val searchResults: StateFlow<List<FoodEntry>> =
+        combine(_query.debounce(200), foods) { q, customs -> q to customs }
+            .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 10, customs) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setQuery(q: String) {
+        _query.value = q
+    }
+
+    // Same pattern as RecipesViewModel/TemplatesViewModel - save/delete/rename/
+    // importFromScan previously called repo's Room writes completely unguarded,
+    // so an I/O failure (disk full, corrupt row) crashed the app instead of
+    // surfacing here as a one-shot snackbar.
+    fun save(
+        name: String,
+        kcal: Double,
+        proteinG: Double,
+        carbsG: Double,
+        fatG: Double,
+        fiberG: Double = 0.0,
+        saltG: Double = 0.0,
+        // CustomFoodRepository.save() already accepted/persisted this - built-in
+        // FOOD_DB entries carry aliases so a bilingual search finds them either
+        // way (searchFoodDB is alias-aware), but nothing here ever forwarded a
+        // value, so every custom food a user creates was permanently alias-less.
+        aliases: List<String> = emptyList(),
+        // Also already accepted/persisted by the repository (used for scan-import
+        // via importFromScan below) but never collectible on a manually-typed food
+        // until AddFoodDialog gained a barcode field - see that dialog's own comment.
+        barcode: String? = null,
+    ) {
+        guardedLaunch {
+            repo.save(name = name, kcal = kcal, proteinG = proteinG,
+                      carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases, barcode = barcode,
+                      profileId = activeProfileId.value)
+        }
+    }
+
+    // Same undo-delete pattern as WeightViewModel/MedicationViewModel/DiaryViewModel -
+    // snapshots the row (plus its barcode, which FoodEntry itself doesn't carry) right
+    // before deleting it so a snackbar "Undo" can restore it. Previously delete was the
+    // only tracker-style screen with no way back from a mis-tapped delete - a single
+    // confirm dialog was the only safeguard, unlike Weight/Medication's confirm-then-undo.
+    private var lastDeleted: Triple<String, FoodEntry, String?>? = null
+
+    /** Deletes by stable row id (not name) so two custom foods sharing a name can't cause one delete to remove both. */
+    fun delete(id: String) {
+        val entry = foodsWithId.value.firstOrNull { it.first == id }?.second
+        guardedLaunch {
+            val barcode = repo.findBarcode(id)
+            repo.delete(id)
+            if (entry != null) lastDeleted = Triple(id, entry, barcode)
+        }
+    }
+
+    /** Re-creates a deleted custom food (used by the "Undo" snackbar action) with the same id, so any
+     *  DiaryEntry/Recipe/MealTemplate already referencing it by id keeps its own nutrition snapshot intact. */
+    fun undoDelete() {
+        val (id, food, barcode) = lastDeleted ?: return
+        lastDeleted = null
+        guardedLaunch {
+            repo.save(
+                id = id, name = food.name, kcal = food.kcal, proteinG = food.proteinG,
+                carbsG = food.carbsG, fatG = food.fatG, fiberG = food.fiberG, saltG = food.saltG,
+                ironMg = food.ironMg, calciumMg = food.calciumMg, vitDUg = food.vitDUg, b12Ug = food.b12Ug,
+                aliases = food.aliases, barcode = barcode, profileId = activeProfileId.value,
+            )
+        }
+    }
+
+    /**
+     * Corrects an already-saved custom food's macros/name/aliases in place -
+     * previously the only way to fix a typo'd kcal/protein/etc value was
+     * delete-and-recreate (losing the row's id; any DiaryEntry/Recipe/
+     * MealTemplate that already logged it keeps its own nutrition values
+     * snapshotted independently at creation time, per CustomFoodRepository.
+     * rename()'s own doc comment, so those are unaffected either way).
+     * Preserves the existing barcode (if any) rather than trusting the edit
+     * dialog to round-trip one it never collects - see AddFoodDialog's own
+     * doc comment on why the barcode field is add-mode only.
+     */
+    fun update(
+        id: String,
+        name: String,
+        kcal: Double,
+        proteinG: Double,
+        carbsG: Double,
+        fatG: Double,
+        fiberG: Double = 0.0,
+        saltG: Double = 0.0,
+        aliases: List<String> = emptyList(),
+    ) {
+        if (name.isBlank()) return
+        guardedLaunch {
+            val existing = repo.findById(id)
+            repo.save(
+                id = id, name = name, kcal = kcal, proteinG = proteinG,
+                carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG,
+                // Preserved from the existing row, not collected by the edit
+                // dialog - see CustomFoodRepository.findById's own doc comment
+                // on why these would otherwise silently zero out.
+                ironMg = existing?.ironMg ?: 0.0, calciumMg = existing?.calciumMg ?: 0.0,
+                vitDUg = existing?.vitDUg ?: 0.0, b12Ug = existing?.b12Ug ?: 0.0,
+                aliases = aliases, barcode = repo.findBarcode(id), profileId = activeProfileId.value,
+            )
+        }
+    }
+
+    fun rename(id: String, newName: String) {
+        if (newName.isBlank()) return
+        // repo.rename() returns false (rather than throwing) on a name collision -
+        // surface that the same way as any other failed write, since the dialog
+        // otherwise closes as if the rename had succeeded while the food silently
+        // keeps its old name.
+        guardedLaunch {
+            val renamed = repo.rename(id, newName)
+            if (!renamed) flagActionFailed()
+        }
+    }
+
+    // New: expose the most recent scan so the user can import its nutrition directly
+    // as a custom food — previously every custom food had to be entered from scratch
+    // even when the user had just scanned the exact same product.
+    //
+    // observeHistoryChecked (not observeHistory) - unlike just browsing History, this
+    // actively turns a row's "nutrition" into a permanent custom_foods entry, so it
+    // needs the same nonFoodChecked guard findBetterInCategory already has: a legacy
+    // pre-classifyNonFood() row that's still sitting unverified shouldn't get its
+    // meaningless data immortalized as a custom food just because it happens to be
+    // the most recent scan.
+    val latestScan: StateFlow<ScanResult?> = activeProfileId.flatMapLatest { id -> scanRepo.observeHistoryChecked(limit = 1, profileId = id) }
+        .map { it.firstOrNull() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** Average kcal/100g across all saved custom foods — shown as a quick library stat. */
+    val avgKcal: StateFlow<Int?> = foods.map { list ->
+        if (list.isEmpty()) null else (list.sumOf { it.kcal } / list.size).toInt()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun importFromScan(scan: ScanResult) {
+        val n = scan.product.nutrition
+        guardedLaunch {
+            repo.save(
+                name     = scan.product.name,
+                kcal     = n.energyKcal,
+                proteinG = n.proteinG,
+                carbsG   = n.carbsG,
+                fatG     = n.fatG,
+                fiberG   = n.fiberG,
+                saltG    = n.saltG,
+                // Also previously omitted here (same gap ResultViewModel.saveToDestinations
+                // had) - CustomFoodRepository.save() had no params for these at all.
+                ironMg    = n.ironMg ?: 0.0,
+                calciumMg = n.calciumMg ?: 0.0,
+                vitDUg    = n.vitDUg ?: 0.0,
+                b12Ug     = n.b12Ug ?: 0.0,
+                // Previously omitted here (unlike ResultViewModel.saveToDestinations,
+                // already fixed to pass both) - without the barcode, upsertFood's
+                // fallback match is name-only, so a scan whose name happens to
+                // case-insensitively collide with an existing custom food silently
+                // overwrote that unrelated row's nutrition values instead of adding
+                // a new one, since two differently-barcoded products can share a
+                // generic display name (e.g. two brands both "Yaourt nature").
+                barcode  = scan.barcode,
+                category = scan.product.category,
+                profileId = activeProfileId.value,
+            )
+        }
+    }
+}

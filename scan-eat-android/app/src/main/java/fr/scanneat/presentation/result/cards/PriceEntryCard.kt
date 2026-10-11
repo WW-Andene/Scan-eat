@@ -1,0 +1,207 @@
+package fr.scanneat.presentation.result.cards
+
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CameraAlt
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.LocalOffer
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import fr.scanneat.R
+import fr.scanneat.data.repository.expense.PriceEntry
+import fr.scanneat.domain.engine.expense.ValueScore
+import fr.scanneat.domain.model.Grade
+import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.extractPriceFromText
+import fr.scanneat.util.formatDecimal
+
+/**
+ * Price entry for the scanned product, paired with a value-score badge once
+ * weight is known (priceEuros / weightG vs. the category's typical price/kg,
+ * see ValueScoreEstimator). Manual by default, but the "scan" button below
+ * can pre-fill the field from a photographed price tag (see
+ * extractPriceFromText's own doc comment) - the field stays fully editable
+ * either way, so a wrong/partial OCR read costs a tap to correct, never a
+ * "trust the scan or start over" choice. ScanViewModel's live version of
+ * this same idea (a price detected automatically alongside the barcode
+ * itself, not just this manual entry) shares the same extraction function.
+ */
+private val POOR_GRADES = setOf(Grade.D, Grade.E, Grade.F)
+
+@Composable
+internal fun PriceEntryCard(
+    entries: List<PriceEntry>,
+    currencySymbol: String,
+    // User-requested: "alerte prix élevé pour un produit mal noté" - a POOR
+    // value-score (expensive vs. the category's typical price/kg) on a
+    // product that also grades D/E/F is a real actionable signal ("you're
+    // paying a premium for something that scores badly") that the price/
+    // value-score badge alone doesn't call out.
+    grade: Grade,
+    onSave: (priceEuros: Double, weightG: Double?) -> Unit,
+    onDelete: (String) -> Unit,
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    ScanEatCard(contentPadding = androidx.compose.foundation.layout.PaddingValues(Spacing.L)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                Icon(Icons.Rounded.LocalOffer, null, tint = OnSurface.copy(0.6f))
+                Text(stringResource(R.string.result_price_title), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f), fontWeight = FontWeight.SemiBold)
+            }
+            TextButton(onClick = { showDialog = true }) {
+                Text(stringResource(R.string.result_price_add), color = AccentCoral, style = MaterialTheme.typography.labelMedium)
+            }
+        }
+        if (entries.isEmpty()) {
+            Text(stringResource(R.string.result_price_empty), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        } else {
+            entries.take(3).forEach { entry ->
+                Column {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Column {
+                            Text(dispCurrency(entry.priceEuros, currencySymbol), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                            entry.pricePerKg?.let { perKg ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
+                                    Text("${dispCurrency(perKg, currencySymbol)}/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                    entry.valueScore?.let { ValueScoreBadge(it) }
+                                }
+                            }
+                        }
+                        IconButton(onClick = { onDelete(entry.id) }) {
+                            Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f))
+                        }
+                    }
+                    if (entry.valueScore == ValueScore.POOR && grade in POOR_GRADES) {
+                        Text(
+                            stringResource(R.string.result_price_poor_grade_warning),
+                            style = MaterialTheme.typography.labelSmall, color = semanticRed(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    if (showDialog) {
+        PriceInputDialog(
+            onConfirm = { price, weight -> onSave(price, weight); showDialog = false },
+            onDismiss = { showDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun ValueScoreBadge(score: ValueScore) {
+    val (label, color) = when (score) {
+        ValueScore.GREAT   -> stringResource(R.string.result_price_value_great) to semanticGreen()
+        ValueScore.GOOD    -> stringResource(R.string.result_price_value_good) to semanticGreen()
+        ValueScore.AVERAGE -> stringResource(R.string.result_price_value_average) to semanticAmber()
+        // Was AccentCoral - Colors.kt's own header rule is that accent ("you
+        // can act here") and semantic ("this is good/bad") colors must never
+        // share a hue, or the distinction stops being readable. POOR is a
+        // negative signal like GREAT/GOOD/AVERAGE's own colors above, not an
+        // action affordance, and AccentCoral doesn't shift with
+        // LocalColorblindMode the way semanticRed() does.
+        ValueScore.POOR    -> stringResource(R.string.result_price_value_poor) to semanticRed()
+    }
+    Text(label, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
+}
+
+@Composable
+private fun PriceInputDialog(onConfirm: (Double, Double?) -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    var priceText by remember { mutableStateOf("") }
+    var weightText by remember { mutableStateOf("") }
+    val noPriceFoundMessage = stringResource(R.string.result_price_scan_not_found)
+    val scanPriceLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching { InputImage.fromFilePath(context, uri) }.getOrNull()?.let { image ->
+            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS).process(image)
+                .addOnSuccessListener { result ->
+                    val found = extractPriceFromText(result.text)
+                    if (found != null) priceText = found.formatDecimal(2)
+                    else Toast.makeText(context, noPriceFoundMessage, Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { Toast.makeText(context, noPriceFoundMessage, Toast.LENGTH_SHORT).show() }
+        } ?: Toast.makeText(context, noPriceFoundMessage, Toast.LENGTH_SHORT).show()
+    }
+    // Bounded, not just "> 0" - an unbounded price field previously accepted any
+    // value (including something like a pasted "999999999"), which then flows
+    // straight into the price/kg computation and value-score comparison. Upper
+    // bounds are generous (a real grocery item, even luxury/bulk) rather than tight.
+    val price = priceText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.01..9999.99 }
+    val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.result_price_add), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    OutlinedTextField(
+                        value = priceText, onValueChange = { priceText = it },
+                        label = { Text(stringResource(R.string.result_price_field_euros)) },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        colors = scanEatTextFieldColors(),
+                        modifier = Modifier.weight(1f),
+                    )
+                    // Pre-fills priceText above from a photographed price tag - the
+                    // field stays a plain editable OutlinedTextField either way, so a
+                    // wrong/partial OCR read is just as easy to fix as typing it
+                    // yourself, never a "trust the scan or start over" choice.
+                    IconButton(onClick = { scanPriceLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+                        Icon(Icons.Rounded.CameraAlt, stringResource(R.string.result_price_scan_cd), tint = OnBackground.copy(0.6f))
+                    }
+                }
+                OutlinedTextField(
+                    value = weightText, onValueChange = { weightText = it },
+                    label = { Text(stringResource(R.string.result_price_field_weight)) },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    colors = scanEatTextFieldColors(),
+                )
+                Text(stringResource(R.string.result_price_field_weight_hint), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { price?.let { onConfirm(it, weight) } }, enabled = price != null) {
+                Text(stringResource(R.string.common_save), color = AccentCoral)
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        // User-requested: one standard glass config app-wide - see
+        // StandardCardAlpha's own doc comment (ScanEatCard.kt).
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
+    )
+}

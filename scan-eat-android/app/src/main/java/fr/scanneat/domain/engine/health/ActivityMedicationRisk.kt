@@ -1,0 +1,64 @@
+package fr.scanneat.domain.engine.health
+
+import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
+import fr.scanneat.domain.engine.scoring.normalizeForMatching
+
+/**
+ * User-requested: the overtraining check (see [checkDailyOvertraining]) only
+ * personalized on Profile.ageYears/healthConditions - a user on a
+ * beta-blocker, anticoagulant, diuretic, or antidiabetic medication (logged
+ * in the Medication tab, not necessarily reflected in healthConditions at
+ * all) carries real exercise-relevant risks this app had zero awareness of.
+ *
+ * A saved [fr.scanneat.data.repository.health.Medication] only ever carries a
+ * free-text `name` - no substance/class link back to any drug database (the
+ * BDPM active-substance lookup only exists transiently at scan time via
+ * barcode). Same free-text-keyword-matching approach
+ * MedicationViewModel's own `INTERACTION_GROUPS` detector already uses for
+ * the identical problem, kept independent of that presentation-layer file
+ * (domain shouldn't depend on presentation) with its own keyword lists.
+ */
+enum class ActivityRelevantDrugClass { BETA_BLOCKER, ANTICOAGULANT, DIURETIC, ANTIDIABETIC }
+
+private val DRUG_CLASS_KEYWORDS: Map<ActivityRelevantDrugClass, List<String>> = mapOf(
+    // Blunts the heart-rate response exercise intensity is normally judged
+    // by - a user can be working much harder than their pulse suggests.
+    ActivityRelevantDrugClass.BETA_BLOCKER to listOf(
+        "bisoprolol", "metoprolol", "métoprolol", "atenolol", "aténolol",
+        "propranolol", "nebivolol", "nébivolol", "carvedilol", "acébutolol", "acebutolol", "céliprolol", "celiprolol", "sotalol",
+        // French brand names - users type what's on the box.
+        "cardensiel", "detensiel", "soprol", "lopressor", "seloken", "selozok", "tenormine", "avlocardyl", "temerit", "nebilox", "kredex", "sectral", "celectol", "sotalex",
+    ),
+    // Bleeding risk compounds with any impact/contact/fall risk.
+    ActivityRelevantDrugClass.ANTICOAGULANT to listOf(
+        "warfarine", "warfarin", "coumadine", "coumadin", "acenocoumarol",
+        "rivaroxaban", "apixaban", "dabigatran", "edoxaban", "héparine", "heparine", "heparin", "fluindione", "enoxaparine", "tinzaparine",
+        "previscan", "sintrom", "xarelto", "eliquis", "pradaxa", "lixiana", "lovenox", "innohep",
+    ),
+    // Fluid/electrolyte loss compounds with exercise's own sweat losses.
+    ActivityRelevantDrugClass.DIURETIC to listOf(
+        "hydrochlorothiazide", "indapamide", "furosémide", "furosemide",
+        "spironolactone", "bumétanide", "bumetanide", "lasilix", "fludex", "esidrex", "aldactone", "burinex",
+    ),
+    // Insulin/sulfonylureas/metformin all raise hypoglycemia risk during and
+    // after prolonged exertion - same real-world caution the diabetes
+    // healthConditions branch already covers, but a logged medication can
+    // apply even when that condition tag was never set.
+    ActivityRelevantDrugClass.ANTIDIABETIC to listOf(
+        "insuline", "insulin", "metformine", "metformin", "glibenclamide",
+        "gliclazide", "glimépiride", "glimepiride", "répaglinide", "repaglinide",
+        "glucophage", "stagid", "diamicron", "amarel", "daonil", "novonorm", "lantus", "levemir", "novorapid", "humalog", "toujeo", "tresiba", "apidra", "abasaglar",
+    ),
+).mapValues { (_, keywords) -> keywords.map { normalizeForMatching(it) } }
+
+fun detectActivityRelevantDrugClasses(activeMedicationNames: List<String>): Set<ActivityRelevantDrugClass> {
+    val normalized = activeMedicationNames.map { normalizeForMatching(it) }
+    // Word-boundary matching, not raw .contains() - context/logic audit
+    // finding: a free-text Medication.name is user-typed, not a controlled
+    // vocabulary (same reasoning IngredientMatcher.kt/FoodDrugInteractionDb.kt
+    // already document for the identical risk), so a short keyword like
+    // "insulin"/"heparin" could otherwise match inside an unrelated word and
+    // silently misclassify a medication into this app's beta-blocker/
+    // anticoagulant/diuretic/antidiabetic exercise-risk flags.
+    return DRUG_CLASS_KEYWORDS.filterValues { keywords -> normalized.any { name -> keywords.any { wordBoundaryMatch(name, it) } } }.keys
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Platform requirement (AppWidgetProviderInfo.initialLayout), independent of
+    Glance - see today_widget_loading.xml's own doc comment for why this one
+    classic View layout has to exist alongside an otherwise all-Compose app.
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:padding="12dp"
+    android:text="@string/widget_today_loading"
+    android:textSize="12sp" />

@@ -1,0 +1,144 @@
+package fr.scanneat.di
+
+import android.content.Context
+import android.net.ConnectivityManager
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import fr.scanneat.BuildConfig
+import fr.scanneat.data.remote.api.*
+import okhttp3.ConnectionSpec
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.concurrent.TimeUnit
+import javax.inject.Named
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+
+    @Provides @Singleton
+    fun provideConnectivityManager(@ApplicationContext context: Context): ConnectivityManager =
+        context.getSystemService(ConnectivityManager::class.java)
+
+    @Provides @Singleton
+    fun provideMoshi(): Moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+
+    @Provides @Singleton
+    fun provideOkHttp(): OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)   // Groq vision can be slow
+        .writeTimeout(30, TimeUnit.SECONDS)
+        // OkHttp defaults to [MODERN_TLS, COMPATIBLE_TLS], silently allowing a
+        // fallback to legacy TLS/cipher suites (e.g. against a MITM proxy that
+        // only supports them). The API key and scanned health data never need
+        // to travel over anything but modern TLS.
+        .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS))
+        .addInterceptor { chain ->
+            chain.proceed(
+                chain.request().newBuilder()
+                    .header("User-Agent", OFF_USER_AGENT)
+                    .build()
+            )
+        }
+        .apply {
+            // Debug-only: every request/response line (URLs, status, timing) was
+            // logging to Logcat unconditionally, including release builds.
+            // Level.BASIC doesn't include headers/body, so the API key itself
+            // was never exposed — but production has no reason to log network
+            // activity at all.
+            if (BuildConfig.DEBUG) {
+                addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BASIC
+                })
+            }
+        }
+        .build()
+
+    // Named "groq" — base URL is the Groq API; also used by ScanRepository
+    // to build dynamic server Retrofit instances (reuses same OkHttpClient).
+    @Provides @Singleton @Named("groq")
+    fun provideGroqRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://api.groq.com/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides @Singleton @Named("off")
+    fun provideOffRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://world.openfoodfacts.org/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides @Singleton @Named("opf")
+    fun provideOpfRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://world.openproductsfacts.org/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides @Singleton @Named("obf")
+    fun provideObfRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://world.openbeautyfacts.org/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    // Cerebras free-tier alternative to Groq — same OpenAI-compatible schema,
+    // different vendor, so OCR scoring survives one provider being down/rate-limited.
+    @Provides @Singleton @Named("cerebras")
+    fun provideCerebrasRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://api.cerebras.ai/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides @Singleton
+    fun provideGroqApi(@Named("groq") retrofit: Retrofit): GroqApi =
+        retrofit.create(GroqApi::class.java)
+
+    @Provides @Singleton
+    fun provideCerebrasApi(@Named("cerebras") retrofit: Retrofit): CerebrasApi =
+        retrofit.create(CerebrasApi::class.java)
+
+    @Provides @Singleton
+    fun provideOffApi(@Named("off") retrofit: Retrofit): OpenFoodFactsApi =
+        retrofit.create(OpenFoodFactsApi::class.java)
+
+    @Provides @Singleton
+    fun provideOpfApi(@Named("opf") retrofit: Retrofit): OpenProductsFactsApi =
+        retrofit.create(OpenProductsFactsApi::class.java)
+
+    @Provides @Singleton
+    fun provideObfApi(@Named("obf") retrofit: Retrofit): OpenBeautyFactsApi =
+        retrofit.create(OpenBeautyFactsApi::class.java)
+
+    // French government official product-recall open data (RappelConso) —
+    // see RappelConsoApi.kt's own header comment.
+    @Provides @Singleton @Named("rappelconso")
+    fun provideRappelConsoRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://data.economie.gouv.fr/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides @Singleton
+    fun provideRappelConsoApi(@Named("rappelconso") retrofit: Retrofit): RappelConsoApi =
+        retrofit.create(RappelConsoApi::class.java)
+}
