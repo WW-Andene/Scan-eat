@@ -213,14 +213,14 @@ internal class ScanHistoryQueries(
     }.getOrNull()
 
     fun observeFavorites(profileId: String = "default"): Flow<List<ScanResult>> =
-        dao.observeFavorites(profileId).map { entities -> entities.mapNotNull { toDomain(it) } }
+        dao.observeFavorites(profileId).map { entities -> entities.mapNotNull { toDomain(it)?.let(::current) } }
 
     /**
      * Searches the full history by product name/barcode, not just whatever
      * window the caller happens to have loaded - see ScanHistoryDao.searchByName.
      */
     fun searchHistory(query: String, profileId: String = "default"): Flow<List<ScanResult>> =
-        dao.searchByName(query, profileId).map { entities -> entities.mapNotNull { toDomain(it) } }
+        dao.searchByName(query, profileId).map { entities -> entities.mapNotNull { toDomain(it)?.let(::current) } }
 
     /**
      * Free-text search against the whole Open Food Facts catalog (name, brand,
