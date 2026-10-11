@@ -23,4 +23,12 @@ class InteractionBrandNamesTest {
         val w = detectInteractions(listOf("Previscan", "Kardégic 75"))
         assertTrue(w.contains(InteractionWarning.AnticoagAntiplatelet))
     }
+
+    @Test
+    fun `more common french brands are recognized`() {
+        assertTrue(detectInteractions(listOf("Previscan", "Aspégic 500")).contains(InteractionWarning.AnticoagAntiplatelet))
+        assertTrue(detectInteractions(listOf("Calciparine", "Mobic")).contains(InteractionWarning.AnticoagNsaid))
+        assertTrue(detectInteractions(listOf("Xarelto", "Feldène", "Surgam")).contains(InteractionWarning.AnticoagNsaid))
+        assertTrue(detectInteractions(listOf("Cipralex", "Humoryl")).contains(InteractionWarning.SsriMaoi))
+    }
 }

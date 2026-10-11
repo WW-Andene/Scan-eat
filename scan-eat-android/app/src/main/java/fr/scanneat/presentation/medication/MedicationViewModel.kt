@@ -82,22 +82,25 @@ private val INTERACTION_GROUPS = mapOf(
         "warfarine", "warfarin", "coumadine", "coumadin", "acenocoumarol", "rivaroxaban", "apixaban", "dabigatran", "héparine", "heparin",
         // Generics missing from the original list + French brand names (users type what's on the box).
         "fluindione", "previscan", "edoxaban", "enoxaparine", "enoxaparin", "tinzaparine", "daltéparine", "fondaparinux",
-        "sintrom", "xarelto", "eliquis", "pradaxa", "lixiana", "lovenox", "innohep", "fragmine", "arixtra",
+        "sintrom", "xarelto", "eliquis", "pradaxa", "lixiana", "lovenox", "innohep", "fragmine", "arixtra", "calciparine",
     ),
     DrugGroup.ANTIPLATELETS  to listOf(
         "aspirine", "aspirin", "acide acétylsalicylique", "clopidogrel", "prasugrel", "ticagrelor",
         "kardégic", "kardegic", "plavix", "efient", "brilique", "duoplavin",
+        // Aspirin brands very common in France (Aspégic = lysine acetylsalicylate).
+        "aspégic", "aspegic", "cardioaspirine", "aspirine du rhône",
     ),
     DrugGroup.NSAIDS         to listOf(
         "ibuprofène", "ibuprofen", "naproxène", "naproxen", "kétoprofène", "ketoprofen", "diclofénac", "diclofenac", "indométacine", "indomethacin", "méloxicam", "meloxicam",
         "célécoxib", "celecoxib", "étoricoxib", "etoricoxib", "piroxicam", "flurbiprofène", "acide méfénamique",
         "advil", "nurofen", "spedifen", "antarène", "voltarène", "voltarene", "bi-profénid", "profénid", "apranax", "celebrex",
+        "kétorolac", "ketorolac", "nimésulide", "nimesulide", "acide tiaprofénique", "mobic", "feldène", "feldene", "surgam", "antadys", "arcoxia", "nexen",
     ),
     DrugGroup.SSRI_SNRI      to listOf(
         "sertraline", "fluoxétine", "fluoxetine", "paroxétine", "paroxetine", "venlafaxine", "duloxétine", "duloxetine", "escitalopram", "citalopram", "fluvoxamine", "milnacipran",
-        "zoloft", "prozac", "deroxat", "effexor", "cymbalta", "seroplex", "seropram", "floxyfral", "ixel",
+        "zoloft", "prozac", "deroxat", "effexor", "cymbalta", "seroplex", "seropram", "floxyfral", "ixel", "cipralex",
     ),
-    DrugGroup.MAOI           to listOf("phénelzine", "phenelzine", "tranylcypromine", "moclobémide", "moclobemide", "sélégiline", "selegiline", "rasagiline", "safinamide", "azilect", "xadago"),
+    DrugGroup.MAOI           to listOf("phénelzine", "phenelzine", "tranylcypromine", "moclobémide", "moclobemide", "sélégiline", "selegiline", "rasagiline", "safinamide", "azilect", "xadago", "moclamine", "humoryl"),
 ).mapValues { (_, keywords) -> keywords.map { fr.scanneat.domain.engine.scoring.normalizeForMatching(it) } }
 
 /**

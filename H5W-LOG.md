@@ -1040,3 +1040,8 @@ wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
   from 150k to >=600k iterations (OWASP) via a `SCANEAT-ENC-V2` envelope, keeping V1 decrypt at 150k.
 - **Product observation (not a code defect):** plain salted chips score B (63) because thresholds are
   category-relative and sat fat/sugar are low; revisit weighting only as a deliberate methodology change.
+- **Medication interactions:** added missing common French brands (Aspégic, Cardioaspirine, Calciparine,
+  Mobic, Feldène, Surgam, Antadys, Arcoxia, Nexen, Cipralex, Moclamine, Humoryl) + kétorolac/nimésulide.
+  Verified by compiling the real `INTERACTION_GROUPS`/`detectInteractions` source extracted from the
+  (Hilt-bound) ViewModel into a standalone harness; the JUnit file itself was NOT run (needs Android build).
+- Static scan of `presentation/`/`data/`: no GlobalScope/runBlocking; every `!!` checked, all safe.
