@@ -9,6 +9,34 @@ import fr.scanneat.domain.model.Ingredient
 
 private val E_NUMBER_IN_TEXT = Regex("""(?<![A-Za-z0-9])[Ee][- ]?(\d{3,4}[a-z]?)(?![0-9a-z])""")
 
+private val ADDED_PHRASE = Regex("""\s+avec adjonction de\s+|\s+with added\s+""")
+// Legacy splitter: a separator not followed by a closing paren before any opening one.
+// Right for flat lists and for unbalanced OCR text, wrong for nested parentheses.
+private val FLAT_SPLIT = Regex("""[,;]\s*(?![^(]*\))|\s+avec adjonction de\s+|\s+with added\s+""")
+
+/**
+ * Splits on top-level commas/semicolons only, so "sauce (tomate, oignon (frais, bio)), sel"
+ * yields two ingredients, not the garbled "sauce (tomate" / "oignon (frais, bio))" the flat
+ * lookahead regex produced for nested groups. Unbalanced parentheses (common in OCR text)
+ * fall back to the flat regex rather than swallowing the rest of the list into one entry.
+ */
+private fun splitTopLevel(text: String): List<String> {
+    var depth = 0
+    val parts = mutableListOf<String>()
+    val cur = StringBuilder()
+    for (c in text) {
+        when {
+            c == '(' -> { depth++; cur.append(c) }
+            c == ')' -> { if (depth == 0) return text.split(FLAT_SPLIT); depth--; cur.append(c) }
+            (c == ',' || c == ';') && depth == 0 -> { parts += cur.toString(); cur.setLength(0) }
+            else -> cur.append(c)
+        }
+    }
+    if (depth != 0) return text.split(FLAT_SPLIT)
+    parts += cur.toString()
+    return parts.flatMap { it.split(ADDED_PHRASE) }
+}
+
 internal fun parseIngredients(text: String?): List<Ingredient> {
     if (text.isNullOrBlank()) return emptyList()
     // Split on commas/semicolons, and on "avec adjonction de"/"with added" -
@@ -22,7 +50,7 @@ internal fun parseIngredients(text: String?): List<Ingredient> {
     // separately-scored E290 additive hit. Splitting these apart lets both
     // pillars see "Eau de Source" (a whole food) and "gaz carbonique" (an
     // additive) as the two distinct things they actually are.
-    return text.split(Regex("""[,;]\s*(?![^(]*\))|\s+avec adjonction de\s+|\s+with added\s+"""))
+    return splitTopLevel(text)
         .flatMap { raw ->
             val name = raw.trim().trim('*', ' ')
             if (name.isBlank()) return@flatMap emptyList()
