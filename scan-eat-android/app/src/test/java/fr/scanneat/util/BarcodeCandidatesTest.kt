@@ -28,3 +28,13 @@ class BarcodeCandidatesTest {
         assertTrue(!hasValidGs1CheckDigit("3017620422004"))
     }
 }
+
+class UpcEExpansionTest {
+    @Test
+    fun `UPC-E expands to its UPC-A and EAN-13 forms`() {
+        // GS1 reference pair: UPC-E 04252614 <-> UPC-A 042100005264.
+        val c = barcodeCandidates("04252614")
+        assertTrue(c.toString(), "042100005264" in c)
+        assertTrue(c.toString(), "0042100005264" in c)
+    }
+}
