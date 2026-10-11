@@ -1036,8 +1036,7 @@ wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
 - Reviewed, no change: manifest posture (allowBackup=false, cleartext off, network security config,
   non-exported receivers/provider, no hard-coded secrets), backup import (size cap before parse,
   version check, authenticated AES-GCM), streak and weight-forecast math.
-- **Proposal (not done, can't be tested without the Android runtime):** raise backup-passphrase PBKDF2
-  from 150k to >=600k iterations (OWASP) via a `SCANEAT-ENC-V2` envelope, keeping V1 decrypt at 150k.
+- **Backup encryption hardened:** PBKDF2 raised 150k to 600k via a `SCANEAT-ENC-V2` envelope; V1 files still decrypt (tested against a hand-built V1 file). Cipher moved to java.util.Base64 (minSdk 26) so it is JVM-testable.
 - **Product observation (not a code defect):** plain salted chips score B (63) because thresholds are
   category-relative and sat fat/sugar are low; revisit weighting only as a deliberate methodology change.
 - **Medication interactions:** added missing common French brands (Aspégic, Cardioaspirine, Calciparine,

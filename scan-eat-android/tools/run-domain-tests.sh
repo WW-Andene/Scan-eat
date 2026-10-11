@@ -26,13 +26,13 @@ kc() { java -cp "$COMPILER_CP" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-st
 # Files that import Android / Room / Hilt-bound data classes cannot compile here.
 EXCLUDE='engine/nonconsumable|MedicationLookupDb|MedicationSubstanceDb|IngredientLineParser|LocalRecipeImport|SchemaOrgRecipeParser|SleepMoodCorrelation|IntakeSleepMoodLink|OvertrainingCheck'
 MAIN=$(find "$ROOT/main/java/fr/scanneat/domain" -name '*.kt' | grep -vE "$EXCLUDE")
-MAIN="$MAIN $ROOT/main/java/fr/scanneat/util/DecimalFormat.kt $ROOT/main/java/fr/scanneat/util/BarcodeNormalizer.kt $ROOT/main/java/fr/scanneat/util/OcrNameMatching.kt $ROOT/main/java/fr/scanneat/util/PriceOcr.kt"
+MAIN="$MAIN $ROOT/main/java/fr/scanneat/util/DecimalFormat.kt $ROOT/main/java/fr/scanneat/util/BarcodeNormalizer.kt $ROOT/main/java/fr/scanneat/util/OcrNameMatching.kt $ROOT/main/java/fr/scanneat/util/PriceOcr.kt $ROOT/main/java/fr/scanneat/data/repository/backup/BackupPassphraseCipher.kt"
 
 mkdir -p "$OUT/main" "$OUT/test"
 ERR=$(kc -cp "$STD" -d "$OUT/main" $MAIN | grep -E 'error:' || true)
 [ -z "$ERR" ] || { echo "$ERR"; exit 1; }
 
-TESTS=$(find "$ROOT"/test/java/fr/scanneat/domain/engine/{scoring,nutrition,expense,biolism,dashboard,medication} -name '*.kt')
+TESTS=$(find "$ROOT"/test/java/fr/scanneat/domain/engine/{scoring,nutrition,expense,biolism,dashboard,medication} "$ROOT"/test/java/fr/scanneat/data/repository/backup -name '*.kt')
 RUN_CP="$STD:$OUT/main:$LIB/junit-4.13.2.jar:$LIB/hamcrest-core-1.3.jar"
 ERR=$(kc -Xfriend-paths="$OUT/main" -cp "$RUN_CP" -d "$OUT/test" $TESTS | grep -E 'error:' || true)
 [ -z "$ERR" ] || { echo "$ERR"; exit 1; }
