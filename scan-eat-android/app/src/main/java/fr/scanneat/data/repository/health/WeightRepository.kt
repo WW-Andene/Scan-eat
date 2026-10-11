@@ -196,7 +196,9 @@ class WeightRepository @Inject constructor(
         val latest  = all.last()
         val cutoff  = LocalDate.now().minusDays(days.toLong())
         val recent  = all.filter { !it.date.isBefore(cutoff) }
-        val window  = recent.ifEmpty { listOf(all.first()) }
+        // No weigh-in inside the window: fall back to the LATEST entry, not the
+        // oldest - all.first() made min/max/delta reflect a weigh-in from years ago.
+        val window  = recent.ifEmpty { listOf(latest) }
         val first   = window.first()
         val delta   = (latest.weightKg - first.weightKg).roundTo1Decimal()
 
@@ -234,7 +236,10 @@ class WeightRepository @Inject constructor(
             den += (xn[i] - meanX) * (xn[i] - meanX)
         }
         if (den == 0.0) return 0.0
-        return ((num / den) * 7.0).roundTo1Decimal()
+        // Unrounded: this feeds weightForecast(), where rounding to 0.1 kg first
+        // turned a real 0.04 kg/week into "flat" and skewed forecast dates by up
+        // to ~40%. Every display formats it with %.1f itself.
+        return (num / den) * 7.0
     }
 
     private fun WeightEntity.toDomain(): WeightEntry? = runCatching {

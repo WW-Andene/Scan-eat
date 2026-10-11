@@ -72,7 +72,7 @@ internal fun WeightSummaryCard(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
-                val sign = if (s.deltaKg >= 0) "+" else ""
+                val sign = if (s.deltaKg >= 0) "+" else "-"
                 // Previously hardcoded "down = green, up = red" regardless of the
                 // user's actual goal — a user with a gain goal (goalWeightKg above
                 // current weight, e.g. a bulk/recovery program) saw progress toward
@@ -86,7 +86,7 @@ internal fun WeightSummaryCard(
                 Text(stringResource(R.string.weight_delta_kg, "$sign${dispWeight(kotlin.math.abs(s.deltaKg))}"), style = MaterialTheme.typography.labelSmall, color = dColor)
             }
             Column(horizontalAlignment = Alignment.End) {
-                val tSign = if (s.trendKgPerWeek >= 0) "+" else ""
+                val tSign = if (s.trendKgPerWeek >= 0) "+" else "-"
                 Text(stringResource(R.string.weight_trend_kg_week, "$tSign${dispWeight(kotlin.math.abs(s.trendKgPerWeek))}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                 if (forecast is WeightForecast.Ok) {
                     Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
