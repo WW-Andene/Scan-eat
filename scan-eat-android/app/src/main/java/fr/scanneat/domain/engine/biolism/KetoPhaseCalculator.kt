@@ -5,10 +5,7 @@ import kotlin.math.min
 // ─────────────────────────────────────────────────────────────────────────
 // KETO PHASE INFO
 // ─────────────────────────────────────────────────────────────────────────
-// `lang` defaults to "fr" and isn't yet threaded from user prefs at the call
-// site (TrackerViewModel) - same partial-wiring state as the other lang-aware
-// scoring functions (DietChecker/PersonalScoreEngine/AllergenDetector) whose
-// callers also don't source the live app language yet.
+// Both call sites (TrackerViewModel, KetosisProcessCard) pass the app language.
 fun BiolismEngine.ketoPhaseInfo(ketoHours: Double, ketoAdapted: Boolean, lang: String = "en"): KetoPhaseInfo {
     val en = lang == "en"
     return when {
