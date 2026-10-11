@@ -1907,6 +1907,7 @@
     <string name="result_veto_short_label">Incompatible</string>
     <string name="result_pillars_title">Détail des piliers</string>
     <string name="result_pillar_score">%1$d/%2$d</string>
+    <string name="result_ingredients_title">Ingrédients</string>
     <string name="result_nutrition_title">Nutrition / 100 g</string>
     <string name="result_nutri_energy">Énergie</string>
     <string name="result_nutri_fat">Lipides</string>

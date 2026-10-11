@@ -250,6 +250,8 @@ internal fun ResultContent(
         // Nutrition table
         NutritionTable(nutrition = scan.product.nutrition)
 
+        IngredientsSection(ingredients = scan.product.ingredients)
+
         // New: macro contribution row — shows how much of the daily reference values
         // (per 100g serving) this product covers. Previously the nutrition table showed
         // raw grams with no daily-context anchor, so users had no quick intuition of
