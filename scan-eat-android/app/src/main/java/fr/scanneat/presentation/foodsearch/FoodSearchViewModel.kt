@@ -91,6 +91,8 @@ data class FoodSearchItem(
     val vitEMg: Double,
     val vitKUg: Double,
     val b6Mg: Double,
+    // Total sugars g/100 g - enables "sucre<5" nutrient queries (see FoodSearchNutrientQuery).
+    val sugarsG: Double = 0.0,
     val category: FoodSearchCategory,
     val grade: Grade? = null,
     val scanId: Long? = null,

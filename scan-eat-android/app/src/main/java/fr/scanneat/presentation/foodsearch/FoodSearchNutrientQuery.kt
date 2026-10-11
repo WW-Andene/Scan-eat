@@ -19,6 +19,7 @@ private val NUTRIENT_ALIASES: Map<String, NutrientAlias> = buildMap {
     reg(listOf("protein", "proteine", "proteines", "protéine", "protéines"), 15.0) { it.proteinG }
     reg(listOf("carb", "carbs", "glucide", "glucides"), null) { it.carbsG }
     reg(listOf("fat", "gras", "lipide", "lipides", "matieres grasses", "matières grasses"), 17.5) { it.fatG }
+    reg(listOf("sugar", "sugars", "sucre", "sucres"), null) { it.sugarsG }
     reg(listOf("fiber", "fibre", "fibres"), 3.0) { it.fiberG }
     reg(listOf("salt", "sel"), 1.5) { it.saltG }
     // "sodium" is conventionally quoted in mg ("sodium<200"), but the item only carries salt in g:
@@ -42,7 +43,7 @@ private val NUTRIENT_ALIASES: Map<String, NutrientAlias> = buildMap {
     reg(listOf("b9", "folate", "folates", "vitamine b9"), null) { it.b9Ug }
 }
 
-// Recognizes "<nutrient> <operator> <number>", e.g. "fibres>5", "sodium >= 200" (mg),
+// Recognizes "<nutrient> <operator> <number>", e.g. "sucre<5", "sodium >= 200" (mg),
 // "protéine > 20" - a real threshold query over ANY nutrient FoodSearchItem
 // exposes, not just the 5 fixed filter chips above. Falls back, for a bare
 // nutrient word with no operator, to that nutrient's own "high X" default

@@ -1051,7 +1051,7 @@ wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
 - **Food search nutrient query:** `sodium<200` compared 200 to grams of salt (alias to saltG); sodium is now
   mg (= salt g x 400). Added filters for magnesium/potassium/zinc/vit C/A/E/K/B6/folate (already on the item
   but unfilterable). Doc example `sucre<5` was never supported (FoodSearchItem has no sugar field; adding
-  one touches every constructor site) — comment corrected, sugar filter remains a gap. Checked via a
+  one touches every constructor site) — comment corrected, sugar filter was a gap (now added, see next line). Checked via a
   standalone harness over the real source; the JUnit file is unrun (Hilt-bound module).
 
 ### Cycle 13 — real Gradle verification
@@ -1065,3 +1065,4 @@ Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request b
 - **Release minify verified:** `:app:minifyReleaseWithR8` BUILD SUCCESSFUL (no missing-class errors). `lintDebug`: 0 errors,
   335 warnings (font-cert "typos", plurals candidates, dependency updates: not actioned). Added explicit
   `dataExtractionRules` (exclude all domains). Not run: instrumented/UI tests, on-device R8 behaviour.
+- **Sugar filter added:** `FoodSearchItem.sugarsG` (defaulted) filled from FoodEntry/scan nutrition; `sucre<5`/`sugars>=20` work (explicit operator only). Gradle unit tests green (264).

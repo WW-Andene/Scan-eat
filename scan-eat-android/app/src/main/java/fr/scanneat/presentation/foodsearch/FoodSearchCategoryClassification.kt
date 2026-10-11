@@ -104,7 +104,7 @@ internal fun FoodEntry.toItem(isCustom: Boolean) = FoodSearchItem(
     name = name, kcal = kcal, proteinG = proteinG, carbsG = carbsG, fatG = fatG,
     fiberG = fiberG, saltG = saltG, ironMg = ironMg, calciumMg = calciumMg, vitDUg = vitDUg, b12Ug = b12Ug,
     vitCMg = vitCMg, magnesiumMg = magnesiumMg, potassiumMg = potassiumMg, zincMg = zincMg,
-    vitAUg = vitAUg, b9Ug = b9Ug, vitEMg = vitEMg, vitKUg = vitKUg, b6Mg = b6Mg,
+    vitAUg = vitAUg, b9Ug = b9Ug, vitEMg = vitEMg, vitKUg = vitKUg, b6Mg = b6Mg, sugarsG = sugarsG,
     category = if (isCustom) FoodSearchCategory.CUSTOM
                else FOOD_DB_CATEGORY_BY_NAME[name] ?: FoodSearchCategory.OTHER,
     grade = if (isCustom) scoreProduct(this.toProduct(), "fr").grade else FOOD_DB_GRADE_BY_NAME[name],
@@ -118,7 +118,7 @@ internal fun ScanResult.toItem(): FoodSearchItem {
         ironMg = n.ironMg ?: 0.0, calciumMg = n.calciumMg ?: 0.0, vitDUg = n.vitDUg ?: 0.0, b12Ug = n.b12Ug ?: 0.0,
         vitCMg = n.vitCMg ?: 0.0, magnesiumMg = n.magnesiumMg ?: 0.0, potassiumMg = n.potassiumMg ?: 0.0,
         zincMg = n.zincMg ?: 0.0, vitAUg = n.vitAUg ?: 0.0, b9Ug = n.b9Ug ?: 0.0,
-        vitEMg = n.vitEMg ?: 0.0, vitKUg = n.vitKUg ?: 0.0, b6Mg = n.b6Mg ?: 0.0,
+        vitEMg = n.vitEMg ?: 0.0, vitKUg = n.vitKUg ?: 0.0, b6Mg = n.b6Mg ?: 0.0, sugarsG = n.sugarsG,
         category = FoodSearchCategory.SCANNED, grade = audit.grade, scanId = dbId, favorite = favorite,
     )
 }
