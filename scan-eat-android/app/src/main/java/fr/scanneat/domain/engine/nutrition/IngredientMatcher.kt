@@ -32,9 +32,17 @@ import fr.scanneat.domain.model.Ingredient
 // detectInteractions (the anticoagulant/NSAID/SSRI/MAOI cross-interaction
 // engine) - both call this directly now instead of re-deriving a subtly
 // different, unprotected version of the same rule.
+// Compiled once per distinct needle: this is called in keyword-list x ingredient loops
+// (grocery aisles, food groups, receipt matching, interactions), where building the Regex
+// per call dominated the cost. Needles come from fixed keyword lists or the user's own
+// item names, so the cache is small; it is cleared if it ever grows past a generous cap.
+private val WORD_BOUNDARY_REGEX_CACHE = java.util.concurrent.ConcurrentHashMap<String, Regex>()
+
 internal fun wordBoundaryMatch(haystack: String, needle: String): Boolean {
     if (needle.isEmpty()) return false
-    return Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(haystack)
+    if (WORD_BOUNDARY_REGEX_CACHE.size > 4096) WORD_BOUNDARY_REGEX_CACHE.clear()
+    val re = WORD_BOUNDARY_REGEX_CACHE.getOrPut(needle) { Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])") }
+    return re.containsMatchIn(haystack)
 }
 
 /**

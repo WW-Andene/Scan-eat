@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.expenses
 
+import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
 import android.util.Base64
 import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
@@ -51,7 +52,7 @@ data class ReceiptReviewLine(
  *  containsWholeWord uses so "riz" doesn't match inside "chorizo". */
 private fun containsWholeWord(haystack: String, needle: String): Boolean {
     if (needle.isBlank()) return false
-    return Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(haystack)
+    return wordBoundaryMatch(haystack, needle)
 }
 
 /**

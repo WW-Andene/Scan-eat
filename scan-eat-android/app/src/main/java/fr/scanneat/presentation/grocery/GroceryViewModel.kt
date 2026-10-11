@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.grocery
 
+import fr.scanneat.domain.engine.nutrition.wordBoundaryMatch
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -36,7 +37,7 @@ data class GroceryBudgetEstimate(val totalEuros: Double, val matchedCount: Int, 
  *  already establishes in the scoring engine. */
 private fun containsWholeWord(haystack: String, needle: String): Boolean {
     if (needle.isBlank()) return false
-    return Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(haystack)
+    return wordBoundaryMatch(haystack, needle)
 }
 
 private fun Recipe.toGroceryInput(): GroceryRecipeInput =
