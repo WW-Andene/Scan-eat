@@ -63,6 +63,10 @@ private fun parseWeightG(quantity: String?): Double? {
     }
 }
 
+// Whole-token match: a substring test on "bio" also matched "en:antibiotic-free" and
+// "en:probiotics", awarding the organic score bonus to non-organic products.
+private val ORGANIC_LABEL_TAG = Regex("""(?:^|[:-])(?:organic|bio|biologique|biologico|ecologico)(?:$|[:-])""", RegexOption.IGNORE_CASE)
+
 /**
  * Map an OFF API product response to our domain Product model.
  * Pure function — no network, no side effects.
@@ -82,7 +86,7 @@ fun mapOffProduct(off: OffProductResponse): Product? {
     val ingredients = parsedIngredients + additiveTagsToIngredients(off.additivesTags, parsedIngredients)
 
     val labelTags = off.labelsTags ?: emptyList()
-    val organic   = labelTags.any { "organic" in it || "bio" in it }
+    val organic   = labelTags.any { ORGANIC_LABEL_TAG.containsMatchIn(it) }
 
     val category = resolveCategory(off.categoriesTags, name)
 

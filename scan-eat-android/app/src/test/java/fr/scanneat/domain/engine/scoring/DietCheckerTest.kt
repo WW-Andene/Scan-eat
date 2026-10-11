@@ -226,4 +226,37 @@ class DietCheckerTest {
         assertFalse(checkDiet(named("Vegan style burger", "beef", "onion"), DietKey.VEGAN).compliant)
         assertFalse(checkDiet(named("Saucisses végétales", "lait écrémé en poudre"), DietKey.VEGAN).compliant)
     }
+
+    // ---- Regression lock: standard French spelling "bœuf" (ligature) was never matched ----
+    // The pattern was b[oœ]euf, which matches "boeuf" but not "bœuf" (b + œ + uf).
+
+    @Test
+    fun `beef with oe ligature is meat for vegetarian vegan and kosher mixing`() {
+        assertFalse(checkDiet(productWithIngredients("bouillon de bœuf"), DietKey.VEGETARIAN).compliant)
+        assertFalse(checkDiet(productWithIngredients("BŒUF haché"), DietKey.VEGAN).compliant)
+        assertFalse(checkDiet(productWithIngredients("boeuf"), DietKey.VEGETARIAN).compliant)
+        assertFalse(checkDiet(productWithIngredients("bœuf", "crème"), DietKey.KOSHER).compliant)
+    }
+
+    // ---- Regression lock: plant milks with French elision (d'amande, d'avoine...) ----
+
+    @Test
+    fun `elided plant milks are vegan and dairy-free`() {
+        for (milk in listOf("lait d'amande", "lait d’avoine", "lait de noisette", "lait de riz", "lait de soja")) {
+            assertTrue(milk, checkDiet(productWithIngredients(milk), DietKey.VEGAN).compliant)
+            assertTrue(milk, checkDiet(productWithIngredients(milk), DietKey.DAIRY_FREE).compliant)
+        }
+        assertFalse(checkDiet(productWithIngredients("lait demi-écrémé"), DietKey.VEGAN).compliant)
+        assertFalse(checkDiet(productWithIngredients("lait de vache"), DietKey.DAIRY_FREE).compliant)
+    }
+
+    @Test
+    fun `caseinate and animal fats and rennet are caught`() {
+        assertFalse(checkDiet(productWithIngredients("caséinate de sodium"), DietKey.DAIRY_FREE).compliant)
+        assertFalse(checkDiet(productWithIngredients("saindoux"), DietKey.VEGETARIAN).compliant)
+        assertFalse(checkDiet(productWithIngredients("graisse animale"), DietKey.VEGETARIAN).compliant)
+        assertFalse(checkDiet(productWithIngredients("présure"), DietKey.VEGETARIAN).compliant)
+        assertTrue(checkDiet(productWithIngredients("présure végétale"), DietKey.VEGETARIAN).compliant)
+        assertFalse(checkDiet(productWithIngredients("calamars"), DietKey.VEGETARIAN).compliant)
+    }
 }

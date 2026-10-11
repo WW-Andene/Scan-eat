@@ -28,4 +28,24 @@ class AdditiveTagsENumberTest {
     fun `four-digit OFF additive tags are not truncated`() {
         assertEquals(listOf("E1422"), additiveTagsToIngredients(listOf("en:e1422"), emptyList()).map { it.eNumber })
     }
+
+    @Test
+    fun `nested parentheses keep their group together`() {
+        assertEquals(
+            listOf("sauce (tomate, oignon (frais, bio))", "sel"),
+            parseIngredients("sauce (tomate, oignon (frais, bio)), sel").map { it.name },
+        )
+        assertEquals(
+            listOf("chocolat (pâte de cacao, sucre)", "lait"),
+            parseIngredients("chocolat (pâte de cacao, sucre), lait").map { it.name },
+        )
+    }
+
+    @Test
+    fun `unbalanced parentheses still split the rest of the list`() {
+        assertEquals(
+            listOf("farine (blé", "eau", "sel"),
+            parseIngredients("farine (blé, eau, sel").map { it.name },
+        )
+    }
 }

@@ -33,6 +33,9 @@ private val TRAILING_CLAUSE = Regex("""[,;].*$""")
 private fun norm(s: String): String =
     Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(COMBINING_MARKS, "")
         .replace("œ", "oe")
+        // Web recipes use the typographic apostrophe ("d’huile d’olive"); every particle/alias
+        // match below assumes the straight one.
+        .replace("’", "'").replace("‘", "'")
 
 // Unit → grams per unit. Volumes use water density (close enough for
 // cooking liquids); spoons/cups use standard kitchen measures.
@@ -50,7 +53,9 @@ private val UNITS: List<Pair<Regex, Double>> = listOf(
     Regex("""tasses?|cups?|verres?""") to 240.0,
     Regex("""pinc[eé]es?|pinch(?:es)?""") to 0.5,
     Regex("""sachets?""") to 10.0,
-    Regex("""noix|knobs?""") to 15.0,
+    // "noix" is a unit only for a knob of fat ("une noix de beurre"); "10 noix de cajou" are 10
+    // cashews, not 10 x 15 g.
+    Regex("""noix(?=\s+(?:de\s+|d')(?:beurre|margarine|saindoux|creme|ghee))|knobs?""") to 15.0,
     Regex("""gousses?|cloves?""") to 5.0,
     Regex("""tranches?|slices?""") to 30.0,
     Regex("""poign[eé]es?|handfuls?""") to 30.0,
@@ -59,6 +64,8 @@ private val UNITS: List<Pair<Regex, Double>> = listOf(
 private val WORD_NUMBERS = mapOf(
     "un" to 1.0, "une" to 1.0, "deux" to 2.0, "trois" to 3.0, "quatre" to 4.0, "cinq" to 5.0,
     "six" to 6.0, "one" to 1.0, "two" to 2.0, "three" to 3.0, "four" to 4.0, "half" to 0.5, "demi" to 0.5,
+    "sept" to 7.0, "huit" to 8.0, "neuf" to 9.0, "dix" to 10.0, "douze" to 12.0,
+    "five" to 5.0, "seven" to 7.0, "eight" to 8.0, "nine" to 9.0, "ten" to 10.0, "twelve" to 12.0,
 )
 private val VULGAR = mapOf('½' to 0.5, '¼' to 0.25, '¾' to 0.75, '⅓' to 1.0 / 3, '⅔' to 2.0 / 3)
 

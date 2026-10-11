@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import fr.scanneat.R
@@ -37,13 +38,13 @@ internal fun WeeklyValueScoreCard(counts: Map<ValueScore, Int>) {
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
             if (goodCount > 0) {
                 Text(
-                    stringResource(R.string.dashboard_value_score_good, goodCount),
+                    pluralStringResource(R.plurals.dashboard_value_score_good, goodCount, goodCount),
                     style = MaterialTheme.typography.bodySmall, color = semanticGreen(), fontWeight = FontWeight.Medium,
                 )
             }
             if (poorCount > 0) {
                 Text(
-                    stringResource(R.string.dashboard_value_score_poor, poorCount),
+                    pluralStringResource(R.plurals.dashboard_value_score_poor, poorCount, poorCount),
                     style = MaterialTheme.typography.bodySmall, color = AccentCoral, fontWeight = FontWeight.Medium,
                 )
             }

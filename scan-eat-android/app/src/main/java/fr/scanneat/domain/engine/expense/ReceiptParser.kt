@@ -13,7 +13,13 @@ private val EXCLUDED_STEMS = listOf(
     "total", "s/total", "sous total", "montant", "tva", "eco-part", "eco part",
     "carte", "especes", "cheque", "cb ", "rendu", "a payer", "du client",
     "nb article", "nombre article",
+    "remise", "reduction", "fidelite", "avoir",
 )
+
+// Products whose names contain an excluded stem ("Carte d'Or" ice cream, "Fage
+// Total" yogurt, "Total 0%") - checked first so they aren't dropped as a
+// total/payment line.
+private val PRODUCT_EXCEPTIONS = Regex("""carte d.?or|\bfage\b|\btotal\s*\d+\s*%|yaourt.*\btotal\b""")
 
 // A trailing price: 1-4 digits, decimal separator (, or .), 2 digits,
 // optionally followed by a currency mark and/or an item count/discount code
@@ -36,9 +42,11 @@ fun parseReceiptLines(ocrText: String): List<ReceiptLine> {
         val line = rawLine.trim()
         if (line.isEmpty()) return@mapNotNull null
         val normalized = stripAccents(line).lowercase()
-        if (EXCLUDED_STEMS.any { normalized.contains(it) }) return@mapNotNull null
+        if (!PRODUCT_EXCEPTIONS.containsMatchIn(normalized) && EXCLUDED_STEMS.any { normalized.contains(it) }) return@mapNotNull null
 
         val match = TRAILING_PRICE.find(line) ?: return@mapNotNull null
+        // A leading minus ("-0,50") is a discount/refund, not a purchase.
+        if (line.getOrNull(match.range.first - 1) == '-') return@mapNotNull null
         val price = match.groupValues[1].replace(',', '.').toDoubleOrNull() ?: return@mapNotNull null
         if (price <= 0.0 || price > 500.0) return@mapNotNull null // a single receipt line above 500€ is far more likely a misread total than a real item
 

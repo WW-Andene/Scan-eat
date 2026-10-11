@@ -164,4 +164,33 @@ class AllergenDetectorTest {
     fun `gomasio is detected as sesame`() {
         assertTrue("sesame" in keys("gomasio"))
     }
+
+    @Test
+    fun `calamari spellings are molluscs`() {
+        assertTrue("molluscs" in keys("anneaux de calamars"))
+        assertTrue("molluscs" in keys("calamari"))
+        assertTrue("molluscs" in keys("calmars"))
+        assertTrue("molluscs" in keys("seiche"))
+    }
+
+    @Test
+    fun `noix de boeuf is a beef cut not a tree nut`() {
+        assertFalse("nuts" in keys("noix de bœuf"))
+        assertFalse("nuts" in keys("noix de boeuf"))
+        assertTrue("nuts" in keys("noix de cajou"))
+    }
+
+    @Test
+    fun `english crab and ovoproduits are detected`() {
+        assertTrue("crustaceans" in keys("crab meat"))
+        assertTrue("crustaceans" in keys("crab sticks"))
+        assertTrue("eggs" in keys("ovoproduits"))
+    }
+
+    @Test
+    fun `coconut milk written lait de noix de coco is not dairy`() {
+        assertFalse("lactose" in keys("lait de noix de coco"))
+        assertFalse("lactose" in keys("lait d'épeautre"))
+        assertTrue("lactose" in keys("lait de vache"))
+    }
 }

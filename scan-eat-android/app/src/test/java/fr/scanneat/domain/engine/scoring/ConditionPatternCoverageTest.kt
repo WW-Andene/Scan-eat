@@ -1,6 +1,8 @@
 package fr.scanneat.domain.engine.scoring
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 // Pregnancy alcohol veto / listeria deduction and migraine tyramine caution
@@ -29,5 +31,15 @@ class ConditionPatternCoverageTest {
     @Test
     fun `tyramine pattern covers plurals`() {
         assertEquals(emptyList<String>(), misses(TYRAMINE_SOURCE_PATTERN, listOf("fromages affinés", "saucissons", "salamis")))
+    }
+
+    @Test
+    fun `vinegars are not alcohol but wine and cider still are`() {
+        for (v in listOf("vinaigre de vin blanc", "vinaigre de cidre", "vinaigre d'alcool", "wine vinegar", "cider vinegar", "apple cider vinegar")) {
+            assertFalse(v, ALCOHOL_INGREDIENT_PATTERN.containsMatchIn(v))
+        }
+        for (a in listOf("vin rouge", "cidre", "wine", "sauce au porto", "alcool de canne")) {
+            assertTrue(a, ALCOHOL_INGREDIENT_PATTERN.containsMatchIn(a))
+        }
     }
 }

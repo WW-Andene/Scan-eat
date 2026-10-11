@@ -61,6 +61,10 @@ private val COMBINING_MARKS = Regex("[\\u0300-\\u036f]")
 fun normalizeKey(name: String): String =
     Normalizer.normalize(name.trim().lowercase(), Normalizer.Form.NFD)
         .replace(COMBINING_MARKS, "")
+        // "œufs" and "oeufs" are the same ingredient (the ligature has no NFD decomposition, so it
+        // survived normalization and produced two separate list rows); same for ’ vs '.
+        .replace("œ", "oe")
+        .replace("’", "'")
 
 private class GroceryAcc(val name: String, var grams: Double, val sources: MutableList<String>)
 

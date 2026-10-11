@@ -993,3 +993,120 @@ backup covers every non-cache table, recall lookup, OFF unit conversions, NOVA d
 
 Known limitation (product decision, not a bug): Premium is a manual toggle until Play
 Billing is configured in the Play Console.
+
+---
+
+## Cycle 13 — first cycle with an executable test run
+
+New: `scan-eat-android/tools/run-domain-tests.sh` compiles `domain/**` (minus the
+few Android/Room-bound files) with the Kotlin compiler bundled in the Gradle
+distribution and runs the domain JUnit suites — no Android SDK, ~30 s. Baseline
+(before this cycle's fixes): 173 + 19 tests green. Now 206 green. Still NOT run:
+Gradle/Android build, instrumented tests, anything under `presentation/`/`data/`.
+
+Defects found by probing real label phrases against the engines, each fixed with a
+regression test (fail-first verified for the diet/allergen, label and receipt ones):
+
+- **"bœuf" was never matched** (`b[oœ]euf` = "boeuf" only): beef passed vegetarian,
+  vegan and kosher meat+dairy checks, and `noix de bœuf` was flagged as a tree nut.
+  `\bb[oœ]uf\b` in category inference had the mirror bug (missed "boeuf").
+- **Plant milks flagged** as non-vegan / non-dairy-free: the `lait de (amande|…)`
+  exemption ignored French elision (`lait d'amande`, `d'avoine`); `lait de noix de
+  coco` was a false lactose allergen.
+- Gaps: caséinate (dairy-free/vegan), saindoux/suif/graisse animale/présure
+  (vegetarian/vegan/pescatarian), calamar(s)/calamari/seiche (molluscs), English
+  "crab", "ovoproduits".
+- **Label OCR** cut the ingredient list at "agent de conservation", dropping the
+  preservative, later ingredients and allergens (e.g. soy lecithin).
+- **Receipt parser** dropped "Fage Total"/"Carte d'Or" lines (bare `total`/`carte`
+  substrings) and listed negative discount lines ("-0,50") as purchases.
+- **parseIngredients** split nested parentheses at the wrong comma.
+
+Judged not bugs / left: glucose syrup & maltodextrin "de blé" flagged as gluten
+(conservative, EU labels them as wheat), "sauce soja"/"mayonnaise" not implying
+wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
+
+### Cycle 13 addendum
+- **Pregnancy alcohol veto fired on vinegar** ("vinaigre de vin/de cidre", "wine/cider vinegar"):
+  `ALCOHOL_INGREDIENT_PATTERN` matched the bare `vin`/`cidre` word (-61 points, veto) for any
+  dressing, mustard or pickle. Fixed + regression test; verified end to end through
+  `computePersonalScore`. "bière/vin sans alcool" still vetoes (conservative, left as is).
+- **OFF mapper** treated `en:antibiotic-free`/`en:probiotics` as organic (substring "bio"):
+  now whole-token match.
+- Reviewed, no change: manifest posture (allowBackup=false, cleartext off, network security config,
+  non-exported receivers/provider, no hard-coded secrets), backup import (size cap before parse,
+  version check, authenticated AES-GCM), streak and weight-forecast math.
+- **Backup encryption hardened:** PBKDF2 raised 150k to 600k via a `SCANEAT-ENC-V2` envelope; V1 files still decrypt (tested against a hand-built V1 file). Cipher moved to java.util.Base64 (minSdk 26) so it is JVM-testable.
+- **Product observation (not a code defect):** plain salted chips score B (63) because thresholds are
+  category-relative and sat fat/sugar are low; revisit weighting only as a deliberate methodology change.
+- **Medication interactions:** added missing common French brands (Aspégic, Cardioaspirine, Calciparine,
+  Mobic, Feldène, Surgam, Antadys, Arcoxia, Nexen, Cipralex, Moclamine, Humoryl) + kétorolac/nimésulide.
+  Verified by compiling the real `INTERACTION_GROUPS`/`detectInteractions` source extracted from the
+  (Hilt-bound) ViewModel into a standalone harness; the JUnit file itself was NOT run (needs Android build).
+- Static scan of `presentation/`/`data/`: no GlobalScope/runBlocking; every `!!` checked, all safe.
+- **Room migrations verified:** `scan-eat-android/tools/check-migrations.py` replays every
+  `MIGRATION_n_n+1` (all 39 are plain `execSQL` literals) from the v15 snapshot in SQLite and diffs against
+  `schemas/40.json`: 0 differences in tables, columns, types, nullability, defaults and indices. Destructive
+  fallback is debug-only. (Snapshots 20-24 omit an index that 15->16 creates; harmless, `IF NOT EXISTS`.)
+- **Food search nutrient query:** `sodium<200` compared 200 to grams of salt (alias to saltG); sodium is now
+  mg (= salt g x 400). Added filters for magnesium/potassium/zinc/vit C/A/E/K/B6/folate (already on the item
+  but unfilterable). Doc example `sucre<5` was never supported (FoodSearchItem has no sugar field; adding
+  one touches every constructor site) — comment corrected, sugar filter was a gap (now added, see next line). Checked via a
+  standalone harness over the real source; the JUnit file is unrun (Hilt-bound module).
+
+### Cycle 13 — real Gradle verification
+Installed the Android SDK (platform 35, build-tools 34) in a scratch dir and ran
+`./gradlew :app:testDebugUnitTest`: BUILD SUCCESSFUL, 261 tests / 38 suites, 0 failures, 0 errors
+(includes the Hilt-bound tests the JVM runner can't compile: medication brands, food-search query,
+scan view model). The whole debug Kotlin/KSP/Hilt compile passed. Not run: instrumented/UI tests,
+release/R8 build, on-device behaviour.
+Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request burst; a local
+`~/.gradle/init.d` script pointing Central at `maven-central.storage-download.googleapis.com/maven2/` fixed it.
+- **Release minify verified:** `:app:minifyReleaseWithR8` BUILD SUCCESSFUL (no missing-class errors). `lintDebug`: 0 errors,
+  335 warnings (font-cert "typos", plurals candidates, dependency updates: not actioned). Added explicit
+  `dataExtractionRules` (exclude all domains). Not run: instrumented/UI tests, on-device R8 behaviour.
+- **Sugar filter added:** `FoodSearchItem.sugarsG` (defaulted) filled from FoodEntry/scan nutrition; `sucre<5`/`sugars>=20` work (explicit operator only). Gradle unit tests green (262, 0 failures).
+- **Hydration goal:** a pregnant profile with sex "not specified" skipped the +300 mL EFSA pregnancy bonus (early
+  return); bonus now applied on both paths and computed in integer mL (no float truncation). Compiles; 262 Gradle
+  tests green; goal math extracted to pure `hydrationGoalMl` + `HydrationGoalTest` (fail-first verified; 266 Gradle tests green).
+- **View-model sweep done** (pantry expiry urgency, grocery/receipt word matching, medication adherence,
+  tracker logic): no other defects found. UI/instrumented tests remain unrun (need a device/emulator).
+- **Compose/UI static audit:** zero off-scale `.dp` literals (CLAUDE.md base-2 rule holds); no hard-coded
+  user-facing `Text("...")`; no unlabeled interactive icons; FR/EN strings in exact parity (1897 keys, placeholders match).
+- **Plural grammar:** "1 bonnes affaires" / "1 achats chers" / "N correspondance Annexe II" (and EN equivalents)
+  converted to `plurals` (FR+EN) with `pluralStringResource` at the three call sites; compiles, Gradle tests green.
+  Lint flags ~90 more `PluralsCandidate` strings, mostly the accepted "(s)" idiom; not converted.
+- **JVM Compose UI tests enabled** (no device/emulator; /dev/kvm is absent here): Robolectric 4.13 + compose
+  ui-test-junit4 as `testImplementation`, `isIncludeAndroidResources = true`. First tests render the real
+  `WeeklyValueScoreCard` with real FR/EN resources and assert the singular/plural strings
+  (`WeeklyValueScoreCardTest`). Full Gradle suite: 269 tests, 0 failures. Robolectric downloads its Android
+  jar from Maven Central on first use (transient 429 can fail one run; rerun once cached).
+  Still not possible here: instrumented tests on a real device, visual/layout inspection.
+- **Dashboard card render smoke tests** (`DashboardCardsSmokeTest`, Robolectric, FR + EN): TodayMacro, NutrientBudget,
+  Micronutrient, CalorieBalance, WeekDelta, FoodDiversity, WeeklyBars, MonthlyTrend rendered with empty/zero/extreme
+  data (up to 99 999 mg, 9 999 streak days, +-1e6 kcal deltas): no crash, no bad format args. Includes a
+  non-vacuity check that the locale's own string is displayed. Full Gradle suite: 285 tests, 0 failures.
+  Not covered: screens that need a ViewModel/Hilt graph, navigation, real device rendering.
+
+### Cycle 14 — reading-only (no compile/test/build, per request)
+Found by code reading, fixed with small edits; regression tests added but NOT run:
+- Recipe line parser: `noix` is a unit only before beurre/margarine/crème (`10 noix de cajou` was 150 g); `’` normalized;
+  number words up to douze/twelve.
+- Web recipe import (schema.org): `PT0M` no longer blocks the `cookTime` fallback; yields outside 1..100 ignored
+  (`500 g` was 500 servings, `0` a zero divisor); HTML tags/entities in name/ingredients/steps cleaned; IRI `@type`
+  accepted; pasted `http://` links upgraded to https (cleartext is blocked; local hosts exempt).
+- Photo recipe import: `1h30` read as 90 min; a title starting with "Recette" no longer treated as the steps
+  header; absurd digit runs no longer throw (`toInt()` -> lenient parse, total capped to 1..1440).
+- Grocery list: `œufs`/`oeufs` (and ’/') merge into one row; aisle overrides for juices, sauces/tins, nut butters,
+  dried fruit/veg (`jus d'orange` was Produce, `beurre de cacahuète` Dairy, `sauce tomate` Produce).
+- Reviewed, no change: CSV export (formula-injection guard on every free-text field), metabolics formulas
+  (Navy/Deurenberg/Katch-McArdle/DuBois/IBW/BAI), water-need formula, date/timezone handling, network client config.
+- **Medication adherence streak** counted every day with no medication due (incl. all days before the first
+  medication existed) as a perfect day because `all{}` on an empty list is true: a medication added yesterday showed
+  a streak up to 30. Such days are now neutral, and the run ends before any medication existed (matches
+  `weeklyAdherence`, which already excluded them). Fast `stop()` also clamps a negative duration on backward clock change.
+- **OFF category mapping** used raw substring tests on the joined tag string: `vin` matched vinegars/vinaigrettes,
+  `liquor` liquorice, `rum` crumbles/crumpets, `wine` wine-vinegars/wine-gums (all scored as alcoholic drinks ->
+  beverage thresholds, pregnancy veto, halal violation); `nut` matched coconut/doughnut/butternut and `seed`
+  rapeseed (oils scored as nuts); `cheese` matched cheesecakes. Those keywords now match whole tag tokens
+  (plural-tolerant); vinegars route to CONDIMENT. Other substring tests (`fat`, `oil`, `bread`...) left as they are.

@@ -43,6 +43,30 @@ class SchemaOrgRecipeParserTest {
         assertEquals(40.0, r.carbsG!!, 0.01)
     }
 
+    // A "PT0M" placeholder is non-null, so totalTime ?: cookTime never reached the real cookTime.
+    @Test
+    fun `zero totalTime falls back to cookTime`() {
+        assertEquals(25, parseSchemaOrgRecipe(html("""{"@type":"Recipe","name":"R","totalTime":"PT0M","cookTime":"PT25M"}"""), "u")!!.cookTimeMinutes)
+    }
+
+    // "500 g" used to become 500 servings and "0" a zero divisor for per-serving figures.
+    @Test
+    fun `non-serving yields are ignored`() {
+        assertNull(parseSchemaOrgRecipe(html("""{"@type":"Recipe","name":"R","recipeYield":"500 g"}"""), "u")!!.servings)
+        assertNull(parseSchemaOrgRecipe(html("""{"@type":"Recipe","name":"R","recipeYield":"0"}"""), "u")!!.servings)
+    }
+
+    @Test
+    fun `html entities and tags are cleaned and IRI types are recognised`() {
+        val r = parseSchemaOrgRecipe(
+            html("""{"@type":"https://schema.org/Recipe","name":"Tarte &amp; cr&egrave;me","recipeIngredient":["1 &frac12; tasse"],"recipeInstructions":["Cuire.<br>Servir &#039;chaud&#039;."]}"""),
+            "u",
+        )!!
+        assertEquals("Tarte & crème", r.name)
+        assertEquals(listOf("1 ½ tasse"), r.ingredients)
+        assertEquals(listOf("Cuire. Servir 'chaud'."), r.steps)
+    }
+
     @Test
     fun `finds a Recipe nested in @graph and steps grouped in sections`() {
         val r = parseSchemaOrgRecipe(
@@ -82,6 +106,28 @@ class RecipeTextParserTest {
         assertEquals(listOf("250 g de farine", "3 œufs", "50 cl de lait"), r.ingredients)
         assertEquals(listOf("Mélanger la farine et les œufs. Ajouter le lait petit à petit.", "Laisser reposer 1 h."), r.steps)
         assertEquals(90, r.cookTimeMinutes)
+    }
+
+    // Regression locks: "1h30" matched neither the minutes nor the hours pattern, and a title
+    // starting with "Recette" was swallowed as a steps header (and could not become the name).
+    @Test
+    fun `reads 1h30 and keeps a title that starts with Recette`() {
+        val lines = listOf(OcrLine("Recette de la tarte", 10, 0, 300, 60)) + stack(
+            "Ingrédients",
+            "2 pommes",
+            "Préparation",
+            "1. Cuire 1h30 au four.",
+        ).map { it.copy(top = it.top + 80, bottom = it.bottom + 80) }
+        val r = parseRecipeText(lines)!!
+        assertEquals("Recette de la tarte", r.name)
+        assertEquals(listOf("2 pommes"), r.ingredients)
+        assertEquals(90, r.cookTimeMinutes)
+    }
+
+    @Test
+    fun `absurd digit runs do not crash the import`() {
+        val r = parseRecipeText(stack("Ingrédients", "2 pommes", "Préparation", "1. Attendre 99999999999 min."))
+        assertNull(r!!.cookTimeMinutes)
     }
 
     @Test

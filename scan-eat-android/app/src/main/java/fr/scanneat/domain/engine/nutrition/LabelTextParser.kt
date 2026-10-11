@@ -92,11 +92,12 @@ private val NUTRIENT_RULES = listOf(
 )
 
 private val INGREDIENTS_HEADER = Regex("""ingr[eé]dients?\s*[:：]?""", RegexOption.IGNORE_CASE)
-// Accent-tolerant: matched against the original lower-cased text so ingredient
+// "conservation" must not end the list inside "agent(s) de conservation : sorbate..." (a
+// preservative line in the ingredients themselves). Accent-tolerant: matched against the original lower-cased text so ingredient
 // names keep their accents ("lait écrémé", not "lait ecreme").
 private val INGREDIENTS_END = Regex(
     """valeurs? nutritionnelles|informations? nutritionnelles|d[ée]claration nutritionnelle|nutrition|""" +
-        """[àa] conserver|conservation|[àa] consommer|poids net|net weight|fabriqu[ée]|distribu[ée]|""" +
+        """[àa] conserver|(?<!agent de )(?<!agents de )conservation|[àa] consommer|poids net|net weight|fabriqu[ée]|distribu[ée]|""" +
         """ddm|dluo|pour 100|per 100|store in|best before|[ée]nergie|energy|valeur [ée]nerg[ée]tique""",
 )
 private val TRACES = Regex("""(?:peut contenir|traces? (?:[ée]ventuelles? )?de|may contain|traces of)\s*[:：]?\s*([^.]*)""")

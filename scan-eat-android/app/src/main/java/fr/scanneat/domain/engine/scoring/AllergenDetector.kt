@@ -72,17 +72,17 @@ private val RULES: List<AllergenRule> = listOf(
         a("gluten|bl[eé]|froment|seigle|orge|avoine|oats?|wheat|barley|rye|spelt|semolina|durum|seitan|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge")),
 
     AllergenRule("lactose", "Lactose / Lait", "Lactose / Milk",
-        a("laits?(?! (?:de |d'|d’)(?:coco|amandes?|soja|avoine|riz|noisettes?|cajou|ch[aâ]taigne))|lactose|lactos[eé]rum|petit[- ]lait|cr[eè]mes?(?! de (?:tartre|marrons?|coco))|beurres?(?! de (?:cacao|karit[eé]|cacahu[eè]tes?|arachides?|noix|amandes?|noisettes?|coco|cajou|pomme))|babeurre|fromages?|yaourts?|yoghourts?|skyr|k[eé]fir|cas[eé]ines?|cas[eé]inates?|lactalbumine|lactoglobuline|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mozzarella|brie|camembert|roquefort|reblochon|emmenthal|pecorino|halloumi|paneer|mimolette|cantal|raclette|burrata|gorgonzola|parmesan|parmigiano|emmental|ricotta|mascarpone|cheddar|gouda|comt[eé]|feta|gruy[eè]re|cr[eè]me fra[iî]che|(?<!coconut |almond |oat |soy |soya |rice |cashew |hazelnut )milk|buttermilk|(?<!peanut |cocoa |shea |nut |almond |apple |cashew |hazelnut )butter|cream(?! of tartar)|cheeses?|whey|yog(?:h)?urts?|caseinates?|caseins?|lactoserum")),
+        a("laits?(?! (?:de |d'|d’)(?:coco|amandes?|soja|avoine|riz|noisettes?|cajou|noix|ch[aâ]taignes?|chanvre|[eé]peautre|quinoa|sarrasin|pois|macadamia))|lactose|lactos[eé]rum|petit[- ]lait|cr[eè]mes?(?! de (?:tartre|marrons?|coco))|beurres?(?! de (?:cacao|karit[eé]|cacahu[eè]tes?|arachides?|noix|amandes?|noisettes?|coco|cajou|pomme))|babeurre|fromages?|yaourts?|yoghourts?|skyr|k[eé]fir|cas[eé]ines?|cas[eé]inates?|lactalbumine|lactoglobuline|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mozzarella|brie|camembert|roquefort|reblochon|emmenthal|pecorino|halloumi|paneer|mimolette|cantal|raclette|burrata|gorgonzola|parmesan|parmigiano|emmental|ricotta|mascarpone|cheddar|gouda|comt[eé]|feta|gruy[eè]re|cr[eè]me fra[iî]che|(?<!coconut |almond |oat |soy |soya |rice |cashew |hazelnut )milk|buttermilk|(?<!peanut |cocoa |shea |nut |almond |apple |cashew |hazelnut )butter|cream(?! of tartar)|cheeses?|whey|yog(?:h)?urts?|caseinates?|caseins?|lactoserum")),
 
     // "albumine" alone added - egg-white protein is commonly labeled just
     // "albumine" on French ingredient lists (charcuterie binders, some baked
     // goods), not always "ovalbumine"/"blanc d'oeuf". Missing it was a real
     // false-negative risk on a mandatory Annex II allergen (item 3).
     AllergenRule("eggs", "Œufs", "Eggs",
-        a("eggs?|oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|albumine|albumen|ovomuco[iï]de|lysozyme|e[- ]?1105")),
+        a("eggs?|ovo-?produits?|oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|albumine|albumen|ovomuco[iï]de|lysozyme|e[- ]?1105")),
 
     AllergenRule("nuts", "Fruits à coque", "Tree nuts",
-        a("fruits? [àa] coques?|noix(?! de coco| de muscade| de saint[- ]jacques| de veau| de jambon| de porc| de b[oœ]euf| de p[eé]toncle| de beurre)|amandes?|almonds?|noisettes?|hazelnuts?|walnuts?|pistaches?|pistachios?|cajou|cashews?|p[eé]cans?|noix du br[eé]sil|brazil nuts?|macadamias?|pralin[eé]?|pralines?|massepain|marzipan|gianduja|frangipane|tree nuts?")),
+        a("fruits? [àa] coques?|noix(?! de coco| de muscade| de saint[- ]jacques| de veau| de jambon| de porc| de b(?:œ|oe)uf| de p[eé]toncle| de beurre)|amandes?|almonds?|noisettes?|hazelnuts?|walnuts?|pistaches?|pistachios?|cajou|cashews?|p[eé]cans?|noix du br[eé]sil|brazil nuts?|macadamias?|pralin[eé]?|pralines?|massepain|marzipan|gianduja|frangipane|tree nuts?")),
 
     AllergenRule("peanuts", "Arachides", "Peanuts",
         a("arachides?|cacahu[eè]tes?|peanuts?|groundnuts?|beurre de cacahu[eè]tes?")),
@@ -98,10 +98,10 @@ private val RULES: List<AllergenRule> = listOf(
         a("poissons?|saumons?|thons?|cabillauds?|merlus?|sardines?|maquereaux?|harengs?|anchois|morues?|filet de bar|darne de bar|truites?|colin|lieu|dorades?|sole|fl[eé]tan|[eé]glefin|lotte|tilapia|surimi|nuoc[- ]?m[aâ]m|bonites?|bonito|katsuobushi|dashi|espadon|swordfish|anguilles?|eels?|carpes?|sandre|limandes?|turbot|loup de mer|ichtyocolle|isinglass|fish|salmon|tuna|cod|anchov(?:y|ies)|sardines?|mackerel|herrings?|trout|pollock|haddock|halibut")),
 
     AllergenRule("crustaceans", "Crustacés", "Crustaceans",
-        a("crevettes?|crabes?|homards?|langoustes?|langoustines?|[eé]crevisses?|crustac[eé]s?|shrimps?|prawns?|lobsters?|crayfish|gambas?|scampi|krill|tourteaux?")),
+        a("crevettes?|crabs?|crabes?|homards?|langoustes?|langoustines?|[eé]crevisses?|crustac[eé]s?|shrimps?|prawns?|lobsters?|crayfish|gambas?|scampi|krill|tourteaux?")),
 
     AllergenRule("molluscs", "Mollusques", "Molluscs",
-        a("hu[iî]tres?|moules?|coquilles?|calmars?|encornets?|poulpes?|p[eé]toncles?|palourdes?|bigorneaux?|bulots?|mollusques?|oysters?|mussels?|squids?|clams?|scallops?|coquillages?|saint[- ]jacques|seiches?|cuttlefish|octopus|escargots?|snails?|praires?|ormeaux?|abalone|cockles?|whelks?")),
+        a("hu[iî]tres?|moules?|coquilles?|cal(?:a)?mars?|calamari|seiches?|ormeaux?|praires?|encornets?|poulpes?|p[eé]toncles?|palourdes?|bigorneaux?|bulots?|mollusques?|oysters?|mussels?|squids?|clams?|scallops?|coquillages?|saint[- ]jacques|seiches?|cuttlefish|octopus|escargots?|snails?|praires?|ormeaux?|abalone|cockles?|whelks?")),
 
     AllergenRule("sesame", "Sésame", "Sesame",
         a("s[eé]same|gomasio|gomashio|tahini|tahin")),

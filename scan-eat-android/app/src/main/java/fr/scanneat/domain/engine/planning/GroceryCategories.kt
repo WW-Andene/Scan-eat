@@ -67,6 +67,24 @@ private val CATEGORY_KEYWORDS: List<Pair<GroceryCategory, List<String>>> = listO
     ),
 )
 
+// First-match-wins on single keywords misfiles compound items whose *form* decides the aisle:
+// "jus d'orange" matched "orange" (Produce), "sauce tomate" / "tomates pelees en boite" matched
+// "tomate" (Produce), "beurre de cacahuete" matched "beurre" (Dairy). These whole-phrase
+// overrides run before the keyword scan. Cooking juices ("jus de viande") are not drinks.
+private val CATEGORY_OVERRIDES: List<Pair<GroceryCategory, Regex>> = listOf(
+    GroceryCategory.BEVERAGES to Regex(
+        """\b(?:jus(?!\s+(?:de\s+|d')?(?:viande|cuisson|boeuf|veau|volaille|poulet|roti))|juice|sirop|smoothie)\b""",
+    ),
+    GroceryCategory.PANTRY to Regex(
+        """\b(?:beurre|butter)\s+d[e']\s*(?:cacahuete|arachide|amande|noisette|cajou|cacao|karite)""" +
+            """|\b(?:peanut|almond|cashew|hazelnut|cocoa|shea)\s+butter""" +
+            """|\b(?:sauce|coulis|concentre|ketchup|conserve|boite|dried|canned|tinned)\b""" +
+            // "sec" only after a plant noun: "raisins secs" / "tomates sechees" are pantry items, but
+            // "vin sec" (beverage) and "saucisson sec" (charcuterie) must keep their own aisle.
+            """|\b(?:fruits?|abricots?|raisins?|tomates?|champignons?|figues?|dattes?|pruneaux|herbes?|legumes?|haricots?|poivrons?|piments?)\s+(?:secs?|seche[es]?s?)\b""",
+    ),
+)
+
 // Word-boundary match, not a raw substring - unbounded key.contains(it) let an
 // earlier-checked category's short keyword false-positive-match inside an unrelated
 // word: "vinaigre" (vinegar, PANTRY) starts with "vin" (wine, BEVERAGES, checked
@@ -75,6 +93,9 @@ private val CATEGORY_KEYWORDS: List<Pair<GroceryCategory, List<String>>> = listO
 // applied to AllergenDetector/DietChecker/IngredientMatcher for this exact bug class.
 fun groceryCategoryFor(name: String): GroceryCategory {
     val key = normalizeKey(name)
+    for ((category, pattern) in CATEGORY_OVERRIDES) {
+        if (pattern.containsMatchIn(key)) return category
+    }
     for ((category, keywords) in CATEGORY_KEYWORDS) {
         // Plural forms too ("tomates", "oeufs", "choux") - the keyword list is singular.
         if (keywords.any { wordBoundaryMatch(key, it) || wordBoundaryMatch(key, it + "s") || wordBoundaryMatch(key, it + "x") }) return category

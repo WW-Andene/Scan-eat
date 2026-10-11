@@ -19,15 +19,31 @@ private val NUTRIENT_ALIASES: Map<String, NutrientAlias> = buildMap {
     reg(listOf("protein", "proteine", "proteines", "protéine", "protéines"), 15.0) { it.proteinG }
     reg(listOf("carb", "carbs", "glucide", "glucides"), null) { it.carbsG }
     reg(listOf("fat", "gras", "lipide", "lipides", "matieres grasses", "matières grasses"), 17.5) { it.fatG }
+    reg(listOf("sugar", "sugars", "sucre", "sucres"), null) { it.sugarsG }
     reg(listOf("fiber", "fibre", "fibres"), 3.0) { it.fiberG }
-    reg(listOf("salt", "sel", "sodium"), 1.5) { it.saltG }
+    reg(listOf("salt", "sel"), 1.5) { it.saltG }
+    // "sodium" is conventionally quoted in mg ("sodium<200"), but the item only carries salt in g:
+    // aliasing it to saltG compared 200 against grams of salt, so the filter was meaningless.
+    // sodium(mg) = salt(g) / 2.5 * 1000 = salt(g) * 400. 600 mg ~ 1.5 g salt, same bar as "sel".
+    reg(listOf("sodium"), 600.0) { it.saltG * 400.0 }
     reg(listOf("iron", "fer"), 2.0) { it.ironMg }
     reg(listOf("calcium"), 100.0) { it.calciumMg }
     reg(listOf("vitamine d", "vitamined", "vitd"), null) { it.vitDUg }
     reg(listOf("b12", "vitamine b12", "vitaminb12"), null) { it.b12Ug }
+    // Micronutrients FoodSearchItem already carries (shown in the row's detail panel) but that
+    // could not be filtered on. No bare-word "high X" default: only explicit "potassium>500" style.
+    reg(listOf("magnesium", "magnésium"), null) { it.magnesiumMg }
+    reg(listOf("potassium"), null) { it.potassiumMg }
+    reg(listOf("zinc"), null) { it.zincMg }
+    reg(listOf("vitamine c", "vitaminec", "vitc", "vitamin c"), null) { it.vitCMg }
+    reg(listOf("vitamine a", "vitaminea", "vita", "vitamin a"), null) { it.vitAUg }
+    reg(listOf("vitamine e", "vitaminee", "vite", "vitamin e"), null) { it.vitEMg }
+    reg(listOf("vitamine k", "vitaminek", "vitk", "vitamin k"), null) { it.vitKUg }
+    reg(listOf("b6", "vitamine b6", "vitamin b6"), null) { it.b6Mg }
+    reg(listOf("b9", "folate", "folates", "vitamine b9"), null) { it.b9Ug }
 }
 
-// Recognizes "<nutrient> <operator> <number>", e.g. "sucre<5", "sodium >= 200",
+// Recognizes "<nutrient> <operator> <number>", e.g. "sucre<5", "sodium >= 200" (mg),
 // "protéine > 20" - a real threshold query over ANY nutrient FoodSearchItem
 // exposes, not just the 5 fixed filter chips above. Falls back, for a bare
 // nutrient word with no operator, to that nutrient's own "high X" default

@@ -103,7 +103,10 @@
     <string name="nonfood_history_title">Non-food products</string>
     <string name="nonfood_history_empty">No non-food products scanned yet.</string>
     <string name="nonfood_history_empty_favorites">No favorite non-food products yet.</string>
-    <string name="nonfood_history_prohibited_badge">⚠ %1$d Annex II match</string>
+    <plurals name="nonfood_history_prohibited_badge">
+        <item quantity="one">⚠ %1$d Annex II match</item>
+        <item quantity="other">⚠ %1$d Annex II matches</item>
+    </plurals>
     <string name="nonfood_history_restricted_badge">%1$d Annex III match(es)</string>
     <string name="scan_cd_scan">Scan</string>
     <string name="scan_no_camera_title">No camera detected</string>
@@ -1538,8 +1541,14 @@
     <string name="dashboard_chronic_gap_entry">%1$s: low %2$d/%3$d days (avg %4$d%% of target)</string>
     <string name="dashboard_insight_title">Weekly consistency</string>
     <string name="dashboard_value_score_title">Value for money (7 days)</string>
-    <string name="dashboard_value_score_good">%1$d great buys</string>
-    <string name="dashboard_value_score_poor">%1$d pricey buys</string>
+    <plurals name="dashboard_value_score_good">
+        <item quantity="one">%1$d great buy</item>
+        <item quantity="other">%1$d great buys</item>
+    </plurals>
+    <plurals name="dashboard_value_score_poor">
+        <item quantity="one">%1$d pricey buy</item>
+        <item quantity="other">%1$d pricey buys</item>
+    </plurals>
     <string name="dashboard_insight_deficit_losing">This week: average deficit of %1$d kcal/day, and weight is trending down (%2$s/week) — consistent.</string>
     <string name="dashboard_insight_surplus_gaining">This week: average surplus of %1$d kcal/day, and weight is trending up (%2$s/week) — consistent.</string>
     <string name="dashboard_insight_deficit_not_losing">This week: average deficit of %1$d kcal/day, but weight isn\'t trending down (%2$s/week) — worth a look.</string>
