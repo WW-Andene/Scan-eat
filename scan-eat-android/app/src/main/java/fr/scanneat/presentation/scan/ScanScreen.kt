@@ -129,7 +129,7 @@ fun ScanScreen(
     // non-@Composable function, which needs the State object itself rather than
     // the delegate-only property syntax.
     val shelfPeeksState = remember { mutableStateOf<List<ShelfPeek>>(emptyList()) }
-    val nextPeekIdState = remember { mutableStateOf(0L) }
+    val nextPeekIdState = remember { mutableLongStateOf(0L) }
     val shelfCoroutineScope = rememberCoroutineScope()
     LaunchedEffect(shelfMode) {
         if (!shelfMode) { shelfObjects = null; shelfPeeksState.value = emptyList() }

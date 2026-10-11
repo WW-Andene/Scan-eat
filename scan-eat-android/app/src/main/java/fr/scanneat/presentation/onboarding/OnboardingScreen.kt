@@ -81,7 +81,7 @@ fun OnboardingScreen(
     // foldables (smallestScreenWidthDp >= 600), so a rotation there (or any
     // locale/font-scale change, on any device) recreated the Activity and wiped
     // every field typed so far, resetting to page 0 with no way to recover.
-    var page by rememberSaveable { mutableStateOf(0) }
+    var page by rememberSaveable { mutableIntStateOf(0) }
     var selectedMode by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(ApiMode.DIRECT) }
     var apiKey by rememberSaveable { mutableStateOf("") }
     var apiKeyVisible by rememberSaveable { mutableStateOf(false) }

@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,7 +52,7 @@ import kotlin.math.roundToInt
 @Composable
 fun rememberTrackedWidth(): Pair<Dp, Modifier> {
     val density = LocalDensity.current
-    var widthPx by remember { mutableStateOf(0) }
+    var widthPx by remember { mutableIntStateOf(0) }
     val modifier = Modifier.onSizeChanged { widthPx = it.width }
     val widthDp = with(density) { widthPx.toDp() }
     return widthDp to modifier

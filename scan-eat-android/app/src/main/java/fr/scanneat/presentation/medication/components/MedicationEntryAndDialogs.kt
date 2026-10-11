@@ -197,7 +197,7 @@ internal fun MedicationReminderDialog(
     val m = medication
     var on by rememberSaveable(m.id) { mutableStateOf(m.reminderOn) }
     var time by rememberSaveable(m.id) { mutableStateOf(m.reminderTime) }
-    var daysMask by rememberSaveable(m.id) { mutableStateOf(m.scheduleDaysMask) }
+    var daysMask by rememberSaveable(m.id) { mutableIntStateOf(m.scheduleDaysMask) }
     var extraTimes by rememberSaveable(m.id) {
         mutableStateOf(m.extraReminderTimes.split(',').map { it.trim() }.filter { it.isNotEmpty() })
     }

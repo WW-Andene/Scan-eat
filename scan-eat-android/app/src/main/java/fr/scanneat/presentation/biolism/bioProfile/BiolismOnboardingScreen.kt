@@ -46,7 +46,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
     // Previously plain remember{} - rotation/process death (see OnboardingScreen's
     // identical fix) silently wiped the whole wizard back to step 0 with every
     // field blanked, losing anything already typed.
-    var step by rememberSaveable { mutableStateOf(0) }
+    var step by rememberSaveable { mutableIntStateOf(0) }
     var sex by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(BiolismSex.NOT_SPECIFIED) }
     var age by rememberSaveable { mutableStateOf("") }
     var height by rememberSaveable { mutableStateOf("") }

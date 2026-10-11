@@ -311,14 +311,15 @@ class GroceryViewModel @Inject constructor(
         if (pricedItems.isEmpty()) return@combine null
         var total = 0.0
         var matched = 0
+        // Normalized once up front rather than per grocery item (was items × prices normalizeKey calls).
+        val keyedPrices = prices.mapNotNull { p -> p.pricePerKg?.let { Triple(normalizeKey(p.productName), it, p.date) } }
         for (item in pricedItems) {
             val itemKey = normalizeKey(item.name)
-            val best = prices
-                .filter { it.pricePerKg != null }
-                .filter { p -> val pKey = normalizeKey(p.productName); containsWholeWord(pKey, itemKey) || containsWholeWord(itemKey, pKey) }
-                .maxByOrNull { it.date }
+            val best = keyedPrices
+                .filter { (pKey, _, _) -> containsWholeWord(pKey, itemKey) || containsWholeWord(itemKey, pKey) }
+                .maxByOrNull { it.third }
                 ?: continue
-            total += best.pricePerKg!! * (item.grams / 1000.0)
+            total += best.second * (item.grams / 1000.0)
             matched++
         }
         if (matched == 0) null else GroceryBudgetEstimate(totalEuros = total, matchedCount = matched, totalCount = pricedItems.size)
