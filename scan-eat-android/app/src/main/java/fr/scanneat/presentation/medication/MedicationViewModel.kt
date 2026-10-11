@@ -80,15 +80,24 @@ sealed class InteractionWarning {
 private val INTERACTION_GROUPS = mapOf(
     DrugGroup.ANTICOAGULANTS to listOf(
         "warfarine", "warfarin", "coumadine", "coumadin", "acenocoumarol", "rivaroxaban", "apixaban", "dabigatran", "héparine", "heparin",
+        // Generics missing from the original list + French brand names (users type what's on the box).
+        "fluindione", "previscan", "edoxaban", "enoxaparine", "enoxaparin", "tinzaparine", "daltéparine", "fondaparinux",
+        "sintrom", "xarelto", "eliquis", "pradaxa", "lixiana", "lovenox", "innohep", "fragmine", "arixtra",
     ),
-    DrugGroup.ANTIPLATELETS  to listOf("aspirine", "aspirin", "clopidogrel", "prasugrel", "ticagrelor"),
+    DrugGroup.ANTIPLATELETS  to listOf(
+        "aspirine", "aspirin", "acide acétylsalicylique", "clopidogrel", "prasugrel", "ticagrelor",
+        "kardégic", "kardegic", "plavix", "efient", "brilique", "duoplavin",
+    ),
     DrugGroup.NSAIDS         to listOf(
         "ibuprofène", "ibuprofen", "naproxène", "naproxen", "kétoprofène", "ketoprofen", "diclofénac", "diclofenac", "indométacine", "indomethacin", "méloxicam", "meloxicam",
+        "célécoxib", "celecoxib", "étoricoxib", "etoricoxib", "piroxicam", "flurbiprofène", "acide méfénamique",
+        "advil", "nurofen", "spedifen", "antarène", "voltarène", "voltarene", "bi-profénid", "profénid", "apranax", "celebrex",
     ),
     DrugGroup.SSRI_SNRI      to listOf(
-        "sertraline", "fluoxétine", "fluoxetine", "paroxétine", "paroxetine", "venlafaxine", "duloxétine", "duloxetine", "escitalopram",
+        "sertraline", "fluoxétine", "fluoxetine", "paroxétine", "paroxetine", "venlafaxine", "duloxétine", "duloxetine", "escitalopram", "citalopram", "fluvoxamine", "milnacipran",
+        "zoloft", "prozac", "deroxat", "effexor", "cymbalta", "seroplex", "seropram", "floxyfral", "ixel",
     ),
-    DrugGroup.MAOI           to listOf("phénelzine", "phenelzine", "tranylcypromine", "moclobémide", "moclobemide", "sélégiline", "selegiline"),
+    DrugGroup.MAOI           to listOf("phénelzine", "phenelzine", "tranylcypromine", "moclobémide", "moclobemide", "sélégiline", "selegiline", "rasagiline", "safinamide", "azilect", "xadago"),
 ).mapValues { (_, keywords) -> keywords.map { fr.scanneat.domain.engine.scoring.normalizeForMatching(it) } }
 
 /**
