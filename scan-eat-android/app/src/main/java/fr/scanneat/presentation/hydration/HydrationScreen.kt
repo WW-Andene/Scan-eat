@@ -132,7 +132,7 @@ fun HydrationScreen(
 
         // New: smart goal suggestion banner
         suggestedGoal.value?.let { suggested ->
-            item { HydrationSuggestedGoalBanner(suggested, onApply = { viewModel.setCustomGoal(it) }) }
+            item { HydrationSuggestedGoalBanner(suggested, onApply = { viewModel.setCustomGoal(null) }) }
         }
 
         // User-requested: real over-consumption warning (e.g. 10L/day) - see

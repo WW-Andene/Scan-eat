@@ -94,6 +94,14 @@ class HydrationViewModel @Inject constructor(
     val goal: StateFlow<Int> = combine(formulaGoal, customGoalMl) { formula, custom -> custom ?: formula }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
 
+    /** Goal without today's exercise bonus - what past days are judged against.
+     *  [goal] includes a bonus for activity logged *today*, so using it for
+     *  earlier days let today's workout retroactively break a streak of days
+     *  that each met their own goal. */
+    private val baselineGoal: Flow<Int> = combine(prefs.profile, customGoalMl) { profile, custom ->
+        custom ?: repo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, 0, profile.weightKg)
+    }
+
     // User-requested: does the app catch genuine over-consumption (e.g. 10L in
     // a day), not just under-consumption vs the goal? Previously no - see
     // checkOverhydration's own doc comment. Reactive to both intake and goal
@@ -107,7 +115,7 @@ class HydrationViewModel @Inject constructor(
     // Improvement: consecutive-days streak — counts backwards from yesterday
     // (today is still in progress, so excluding it avoids a misleading "1-day
     // streak" that resets every morning before the first glass).
-    val streak: StateFlow<Int> = combine(intake, goal, activeProfileId) { _, goalMl, id -> goalMl to id }.map { (goalMl, id) ->
+    val streak: StateFlow<Int> = combine(intake, baselineGoal, activeProfileId) { _, goalMl, id -> goalMl to id }.map { (goalMl, id) ->
         val all = repo.observeAll(id).first().toMap()
         var count = 0
         var date = LocalDate.now().minusDays(1)
@@ -128,17 +136,13 @@ class HydrationViewModel @Inject constructor(
         .map { all -> longestLogStreak(all.filter { (_, ml) -> ml > 0 }.mapTo(mutableSetOf()) { (date, _) -> date }) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    // New: smart goal suggestion — base goal + weight-scaled bonus (10 mL per kg
-    // above 70 kg) + extra 300 mL for very-active/extra-active profile, shown as a
-    // non-binding nudge when it differs from the current goal by ≥ 200 mL.
-    val suggestedGoalMl: StateFlow<Int?> = combine(goal, prefs.profile) { currentGoal, profile ->
-        val weightBonus = ((profile.weightKg ?: 70.0) - 70.0).coerceAtLeast(0.0) * 10
-        val activityBonus = when (profile.activityLevel) {
-            ActivityLevel.VERY_ACTIVE, ActivityLevel.EXTRA_ACTIVE -> 300
-            else -> 0
-        }
-        val suggested = (currentGoal + weightBonus + activityBonus).toInt()
-        if (suggested - currentGoal >= 200) suggested else null
+    // Goal suggestion: only when a custom goal is set and sits >= 200 mL below
+    // the profile formula. Previously it added a weight and an activity bonus
+    // on top of the current goal - but the formula goal already scales with
+    // weight and activity, so every heavier/active user on the formula was
+    // nudged to drink more than their own computed target.
+    val suggestedGoalMl: StateFlow<Int?> = combine(formulaGoal, customGoalMl) { formula, custom ->
+        if (custom != null && formula - custom >= 200) formula else null
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // 7 days of intake (date → ml) for the weekly bar chart
@@ -166,8 +170,9 @@ class HydrationViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /** Number of days in the last 7 (including today) where intake met or exceeded the goal. */
-    val weeklyGoalMetDays: StateFlow<Int> = combine(weeklyIntake, goal) { week, goalMl ->
-        week.count { (_, ml) -> ml >= goalMl }
+    val weeklyGoalMetDays: StateFlow<Int> = combine(weeklyIntake, goal, baselineGoal) { week, todayGoal, pastGoal ->
+        val today = LocalDate.now()
+        week.count { (date, ml) -> ml >= if (date == today) todayGoal else pastGoal }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // addGlass()/removeGlass() previously called repo's DataStore write completely
