@@ -48,6 +48,24 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
             nutrition.vitDUg?.let { NRow(stringResource(R.string.result_nutri_vitd), "${fmt1(it)} µg") }
             nutrition.b12Ug?.let { NRow(stringResource(R.string.result_nutri_vitb12), "${fmt1(it)} µg") }
             nutrition.vitCMg?.let { NRow(stringResource(R.string.result_nutri_vitc), "${fmt1(it)} mg") }
+            nutrition.addedSugarsG?.let { NRow(stringResource(R.string.result_nutri_addedsugars), "${fmt1(it)} g") }
+            nutrition.monounsaturatedFatG?.let { NRow(stringResource(R.string.result_nutri_mono), "${fmt1(it)} g") }
+            nutrition.polyunsaturatedFatG?.let { NRow(stringResource(R.string.result_nutri_poly), "${fmt1(it)} g") }
+            nutrition.omega3G?.let { NRow(stringResource(R.string.result_nutri_omega3), "${fmt1(it)} g") }
+            nutrition.omega6G?.let { NRow(stringResource(R.string.result_nutri_omega6), "${fmt1(it)} g") }
+            nutrition.magnesiumMg?.let { NRow(stringResource(R.string.result_nutri_magnesium), "${fmt1(it)} mg") }
+            nutrition.potassiumMg?.let { NRow(stringResource(R.string.result_nutri_potassium), "${fmt1(it)} mg") }
+            nutrition.zincMg?.let { NRow(stringResource(R.string.result_nutri_zinc), "${fmt1(it)} mg") }
+            nutrition.vitAUg?.let { NRow(stringResource(R.string.result_nutri_vita), "${fmt1(it)} µg") }
+            nutrition.vitEMg?.let { NRow(stringResource(R.string.result_nutri_vite), "${fmt1(it)} mg") }
+            nutrition.vitKUg?.let { NRow(stringResource(R.string.result_nutri_vitk), "${fmt1(it)} µg") }
+            nutrition.b1Mg?.let { NRow(stringResource(R.string.result_nutri_b1), "${fmt1(it)} mg") }
+            nutrition.b2Mg?.let { NRow(stringResource(R.string.result_nutri_b2), "${fmt1(it)} mg") }
+            nutrition.b3Mg?.let { NRow(stringResource(R.string.result_nutri_b3), "${fmt1(it)} mg") }
+            nutrition.b6Mg?.let { NRow(stringResource(R.string.result_nutri_b6), "${fmt1(it)} mg") }
+            nutrition.b9Ug?.let { NRow(stringResource(R.string.result_nutri_b9), "${fmt1(it)} µg") }
+            nutrition.caffeineMg?.let { NRow(stringResource(R.string.result_nutri_caffeine), "${fmt1(it)} mg") }
+            nutrition.alcoholPercentVol?.let { NRow(stringResource(R.string.result_nutri_alcohol), "${fmt1(it)} % vol") }
             // MicronutrientEstimator.kt: this product's source (OFF/LLM) declared none
             // of the mineral/vitamin fields above at all, so they're category-typical
             // estimates, not this specific product's real measured values - never
