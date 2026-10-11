@@ -327,11 +327,14 @@ fun AppNavGraph(
             )
         }
         composable(AppRoutes.REMINDERS)    { RemindersScreen(onBack = { navController.popBackStack() }) }
-        composable(AppRoutes.SCAN_HISTORY) {
-            ScanHistoryScreen(
+        composable(AppRoutes.SCAN_HISTORY) { entry ->
+            HistoryListDetail(
+                entry        = entry,
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
                 onBack       = { navController.popBackStack() },
                 onOpenNonFoodHistory = { navController.navigate(AppRoutes.NONFOOD_HISTORY) },
+                onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
+                onLog        = { navController.switchToTab(TopTab.Diary.route, collapseFirst = true) },
             )
         }
         composable(AppRoutes.FAVORITES) {

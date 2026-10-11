@@ -2070,4 +2070,5 @@
     <string name="calendar_month_minutes">%1$d min</string>
     <string name="calendar_month_hydration">%1$d mL</string>
     <string name="calendar_month_days">%1$d j actifs</string>
+    <string name="history_pane_select_hint">Sélectionnez un scan pour voir son analyse</string>
 </resources>

@@ -37,6 +37,9 @@ import kotlinx.coroutines.delay
  *  much later than the Journal header's equivalent. */
 private const val NAV_ARM_AUTO_CANCEL_MS = 10_000L
 
+/** Routes that lay out their own list/detail panes on wide screens - exempt from the readable-width cap. */
+private val LIST_DETAIL_ROUTES = setOf(AppRoutes.SCAN_HISTORY)
+
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun MainShell(
@@ -192,7 +195,7 @@ fun MainShell(
                         // Readable-width cap on medium+ widths: list/card screens
                         // were stretched edge-to-edge across a whole tablet.
                         // Chrome-less routes (scan camera, onboarding) stay full-bleed.
-                        modifier = if (isMediumOrWider && showNav) Modifier.fillMaxHeight().widthIn(max = 512.dp + 256.dp + 64.dp + 8.dp).fillMaxWidth()
+                        modifier = if (isMediumOrWider && showNav && currentRoute !in LIST_DETAIL_ROUTES) Modifier.fillMaxHeight().widthIn(max = 512.dp + 256.dp + 64.dp + 8.dp).fillMaxWidth()
                                    else Modifier.fillMaxSize(),
                     )
                 }
