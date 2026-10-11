@@ -18,7 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.onboarding.enumSaver

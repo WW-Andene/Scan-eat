@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*

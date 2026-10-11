@@ -1,15 +1,11 @@
 package fr.scanneat.presentation.recipes
 
 import compose.icons.tablericons.ClipboardList
-import compose.icons.tablericons.Plus
-import compose.icons.tablericons.Bulb
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
