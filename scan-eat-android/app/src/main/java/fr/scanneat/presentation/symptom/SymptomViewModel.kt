@@ -63,11 +63,13 @@ class SymptomViewModel @Inject constructor(
         Triple(list, type, id)
     }.flatMapLatest { (list, type, id) ->
         val relevant = if (type != null) list.filter { it.type == type } else list
-        val dates = relevant.map { it.date }.toSet()
+        val today = LocalDate.now()
+        // Only symptom days inside the diary/dose window: older ones have no
+        // data to correlate with and would only inflate the denominator.
+        val dates = relevant.map { it.date }.filter { !it.isBefore(today.minusDays(CORRELATION_WINDOW_DAYS)) }.toSet()
         if (dates.isEmpty()) {
             kotlinx.coroutines.flow.flowOf(emptyList())
         } else {
-            val today = LocalDate.now()
             consumptionRepo.observeRange(today.minusDays(CORRELATION_WINDOW_DAYS), today, id)
                 .map { diaryEntries -> symptomFoodCorrelations(dates, diaryEntries) }
         }
@@ -85,11 +87,13 @@ class SymptomViewModel @Inject constructor(
         Triple(list, type, id)
     }.flatMapLatest { (list, type, id) ->
         val relevant = if (type != null) list.filter { it.type == type } else list
-        val dates = relevant.map { it.date }.toSet()
+        val today = LocalDate.now()
+        // Only symptom days inside the diary/dose window: older ones have no
+        // data to correlate with and would only inflate the denominator.
+        val dates = relevant.map { it.date }.filter { !it.isBefore(today.minusDays(CORRELATION_WINDOW_DAYS)) }.toSet()
         if (dates.isEmpty()) {
             kotlinx.coroutines.flow.flowOf(emptyList())
         } else {
-            val today = LocalDate.now()
             medicationRepo.observeLogRange(today.minusDays(CORRELATION_WINDOW_DAYS), today, id)
                 .map { doses -> symptomMedicationCorrelations(dates, doses.map { it.date to it.medicationName }) }
         }

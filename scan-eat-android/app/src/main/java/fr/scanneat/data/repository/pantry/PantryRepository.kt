@@ -87,7 +87,8 @@ class PantryRepository @Inject constructor(
     ) {
         val current = if (barcode != null) dao.findByBarcode(barcode, profileId) ?: dao.findByNameNoBarcode(name, profileId)
         else dao.findByName(name, profileId)
-        if (current != null) {
+        // Only top up a row in the same unit: 300 g of eggs must not become "+300" on a 6-units row.
+        if (current != null && current.unit == unit.key) {
             dao.updateQuantity(current.id, current.quantity + quantity)
         } else {
             add(name, barcode, category, quantity, unit, expiryDate, profileId)
