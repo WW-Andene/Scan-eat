@@ -179,4 +179,18 @@ class AllergenDetectorTest {
         assertFalse("nuts" in keys("noix de boeuf"))
         assertTrue("nuts" in keys("noix de cajou"))
     }
+
+    @Test
+    fun `english crab and ovoproduits are detected`() {
+        assertTrue("crustaceans" in keys("crab meat"))
+        assertTrue("crustaceans" in keys("crab sticks"))
+        assertTrue("eggs" in keys("ovoproduits"))
+    }
+
+    @Test
+    fun `coconut milk written lait de noix de coco is not dairy`() {
+        assertFalse("lactose" in keys("lait de noix de coco"))
+        assertFalse("lactose" in keys("lait d'épeautre"))
+        assertTrue("lactose" in keys("lait de vache"))
+    }
 }
