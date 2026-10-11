@@ -140,6 +140,29 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         caffeine > 40.0  -> { score -= 1; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "elevated caffeine content" else "teneur en caféine élevée") + ")", -1.0, Severity.MINOR) }
     }
 
+    // Absolute energy density - every other threshold here is relative to the
+    // product's own category, so an energy-dense category (crisps ~540 kcal)
+    // was never penalised for it: a bag of crisps scored A, level with an apple.
+    // Nutri-Score counts energy against every food; this applies the same idea
+    // in steps of ~100 kcal/100 g. Oils (fat quality is judged elsewhere) and
+    // nuts/seeds (energy-dense whole foods) are exempt.
+    if (product.category != ProductCategory.OIL_FAT && product.category != ProductCategory.NUTS_SEEDS) {
+        val kcal = n.energyKcal
+        val (pts, sev) = when {
+            kcal > 500.0 -> 8 to Severity.MAJOR
+            kcal > 400.0 -> 6 to Severity.MODERATE
+            kcal > 300.0 -> 4 to Severity.MINOR
+            kcal > 200.0 -> 2 to Severity.MINOR
+            else -> 0 to Severity.MINOR
+        }
+        if (pts > 0) {
+            score -= pts
+            deductions += Deduction("negative_nutrients",
+                if (en) "Energy density ${kcal.formatDecimal(0)} kcal/100g" else "Densité énergétique ${kcal.formatDecimal(0)} kcal/100g",
+                -pts.toDouble(), sev)
+        }
+    }
+
     // Calorie density anomaly
     val (kcalLow, kcalHigh) = thresholds.expectedKcalRange
     if (n.energyKcal > kcalHigh * 1.25 || n.energyKcal < kcalLow * 0.5) {

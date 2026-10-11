@@ -128,8 +128,17 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // pulp content. Juice with pulp genuinely carries ~0.5-0.8g (USDA:
     // orange juice with pulp, pineapple juice), which is what med/high
     // (unchanged) already targets.
+    //
+    // Revised: the 9/13/17/25 g scale above treated juice sugar as intrinsic, but
+    // WHO (2015 sugars guideline) and EFSA (2022 opinion on dietary sugars) both
+    // count sugars in fruit juice as free sugars - without the fruit's cell
+    // structure and fibre. At 9/13 g a glass of orange juice outscored a whole
+    // orange or apple. Juice now uses a drink-scaled free-sugar scale (steps of
+    // 2.5 g/100 ml, the pace of Nutri-Score 2023's beverage sugar points);
+    // juice still ranks above sweetened soda through the processing/additive
+    // pillars.
     ProductCategory.BEVERAGE_JUICE   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.3,1.0,2.0),  Pair(20.0,60.0),   true,
-        sugarThresholds = Quadruple(9.0,13.0,17.0,25.0)),
+        sugarThresholds = Quadruple(2.5,5.0,7.5,10.0)),
     ProductCategory.BEVERAGE_WATER   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(0.0,5.0),     false),
     // Beer ~35-45kcal/100ml, wine ~70-90kcal/100ml, spirits ~220-280kcal/100ml -
     // a range wide enough to span all three without tripping the "energy

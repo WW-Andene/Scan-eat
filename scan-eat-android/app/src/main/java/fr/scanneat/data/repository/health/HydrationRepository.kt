@@ -85,9 +85,12 @@ class HydrationRepository @Inject constructor(
         val prefix = keyPrefix(profileId)
         // Materialize before mutating — removing from prefs while iterating its
         // own live key view risks a ConcurrentModificationException.
+        val importedPrefix = "hcimp_${profileId}_"
         val staleKeys = prefs.asMap().keys.filter { pref ->
-            pref.name.startsWith(prefix) &&
-                runCatching { LocalDate.parse(pref.name.removePrefix(prefix)) }.getOrNull()?.isBefore(cutoff) == true
+            listOf(prefix, importedPrefix).any { p ->
+                pref.name.startsWith(p) &&
+                    runCatching { LocalDate.parse(pref.name.removePrefix(p)) }.getOrNull()?.isBefore(cutoff) == true
+            }
         }
         for (pref in staleKeys) prefs.remove(pref)
     }
@@ -128,16 +131,26 @@ class HydrationRepository @Inject constructor(
      * Pulls in water logged externally (a smart bottle's own app, etc.) that
      * Health Connect has for [date] - Hydration was previously write-only
      * (R&D audit finding), unlike Weight/Activity which already read back.
-     * Merges via max(local, external) rather than adding, since this app
-     * stores one mutable running total per day, not individual entries - see
-     * readExternalHydrationTotalMl's own doc comment on why that's safely
-     * idempotent instead of double-counting on repeat syncs.
+     * Adds the external amount on top of the local total, tracking per day how
+     * much was already imported so repeat syncs never double-count.
      */
     suspend fun syncFromHealthConnect(date: LocalDate = LocalDate.now(), profileId: String = "default") {
         val external = healthConnect.readExternalHydrationTotalMl(date)
         if (external <= 0) return
-        val current = observe(date, profileId).first()
-        if (external > current) set(date, external, profileId)
+        // Additive and idempotent: water logged elsewhere (a smart bottle app) is
+        // added on top of what was logged here, counting only the part not
+        // imported yet. Previously max(local, external) - 1 L logged here plus
+        // 1 L from the bottle showed 1 L for the day instead of 2 L.
+        val importedKey = intPreferencesKey("hcimp_${profileId}_$date")
+        store.edit { prefs ->
+            val delta = external - (prefs[importedKey] ?: 0)
+            if (delta <= 0) return@edit
+            // Written straight to the store, not via add(): add() mirrors to Health
+            // Connect, which would duplicate the other app's own record there.
+            prefs[key(date, profileId)] = (prefs[key(date, profileId)] ?: 0) + delta
+            prefs[importedKey] = external
+            prune(prefs, profileId)
+        }
     }
 
     /** Convenience: +1 glass. */
