@@ -25,17 +25,20 @@ private val DRUG_CLASS_KEYWORDS: Map<ActivityRelevantDrugClass, List<String>> = 
     // by - a user can be working much harder than their pulse suggests.
     ActivityRelevantDrugClass.BETA_BLOCKER to listOf(
         "bisoprolol", "metoprolol", "métoprolol", "atenolol", "aténolol",
-        "propranolol", "nebivolol", "nébivolol", "carvedilol",
+        "propranolol", "nebivolol", "nébivolol", "carvedilol", "acébutolol", "acebutolol", "céliprolol", "celiprolol", "sotalol",
+        // French brand names - users type what's on the box.
+        "cardensiel", "detensiel", "soprol", "lopressor", "seloken", "selozok", "tenormine", "avlocardyl", "temerit", "nebilox", "kredex", "sectral", "celectol", "sotalex",
     ),
     // Bleeding risk compounds with any impact/contact/fall risk.
     ActivityRelevantDrugClass.ANTICOAGULANT to listOf(
         "warfarine", "warfarin", "coumadine", "coumadin", "acenocoumarol",
-        "rivaroxaban", "apixaban", "dabigatran", "héparine", "heparine", "heparin",
+        "rivaroxaban", "apixaban", "dabigatran", "edoxaban", "héparine", "heparine", "heparin", "fluindione", "enoxaparine", "tinzaparine",
+        "previscan", "sintrom", "xarelto", "eliquis", "pradaxa", "lixiana", "lovenox", "innohep",
     ),
     // Fluid/electrolyte loss compounds with exercise's own sweat losses.
     ActivityRelevantDrugClass.DIURETIC to listOf(
         "hydrochlorothiazide", "indapamide", "furosémide", "furosemide",
-        "spironolactone", "bumétanide", "bumetanide",
+        "spironolactone", "bumétanide", "bumetanide", "lasilix", "fludex", "esidrex", "aldactone", "burinex",
     ),
     // Insulin/sulfonylureas/metformin all raise hypoglycemia risk during and
     // after prolonged exertion - same real-world caution the diabetes
@@ -44,6 +47,7 @@ private val DRUG_CLASS_KEYWORDS: Map<ActivityRelevantDrugClass, List<String>> = 
     ActivityRelevantDrugClass.ANTIDIABETIC to listOf(
         "insuline", "insulin", "metformine", "metformin", "glibenclamide",
         "gliclazide", "glimépiride", "glimepiride", "répaglinide", "repaglinide",
+        "glucophage", "stagid", "diamicron", "amarel", "daonil", "novonorm", "lantus", "levemir", "novorapid", "humalog", "toujeo", "tresiba", "apidra", "abasaglar",
     ),
 ).mapValues { (_, keywords) -> keywords.map { normalizeForMatching(it) } }
 
