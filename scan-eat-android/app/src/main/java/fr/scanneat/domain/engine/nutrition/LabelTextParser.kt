@@ -126,12 +126,22 @@ fun parseLabelText(lines: List<OcrLine>, lang: String = "fr"): LabelParse {
     val values = mutableMapOf<String, Double>()
     for (line in ordered) {
         val n = fixOcrDigits(norm(line.text))
-        val rule = NUTRIENT_RULES.firstOrNull { it.label.containsMatchIn(n) } ?: continue
-        if (rule.key in values) continue
-        val labelEnd = rule.label.find(n)!!.range.last + 1
-        val inLine = firstNumber(n.substring(labelEnd))
-        val value = inLine ?: sameRowNumber(line, ordered)
-        if (value != null) values[rule.key] = value
+        // Every nutrient label on the line claims the number between its end and the next
+        // label's start. One label per line (the old behaviour) lost the parent nutrient on
+        // single-line OCR like "Glucides 30 g dont sucres 12 g" or "Matieres grasses 12 g
+        // dont satures 5 g" - total carbs/fat silently read as 0.
+        val found = NUTRIENT_RULES.mapNotNull { r -> r.label.find(n)?.let { m -> r to m } }
+            .sortedBy { it.second.range.first }
+        found.forEachIndexed { i, (rule, m) ->
+            if (rule.key in values) return@forEachIndexed
+            val labelEnd = m.range.last + 1
+            val segEnd = found.getOrNull(i + 1)?.second?.range?.first ?: n.length
+            val segment = if (segEnd >= labelEnd) n.substring(labelEnd, segEnd) else ""
+            // Several labels on one line also happens in the ingredient list ("sucre, sel (1,2%)"):
+            // there a bare number is a percentage, not a nutrient, so require a g/mg unit.
+            val value = firstNumber(segment, requireUnit = found.size > 1) ?: if (found.size == 1) sameRowNumber(line, ordered) else null
+            if (value != null) values[rule.key] = value
+        }
     }
     energyKcal(fixOcrDigits(normText))?.let { values["energy"] = it }
     if ("salt" !in values) values["sodium"]?.let { values["salt"] = it * 2.5 }
@@ -177,8 +187,8 @@ private fun draft(name: String, ingredients: List<Ingredient>, nutrition: Nutrit
     nutrition = nutrition,
 )
 
-private fun firstNumber(s: String): Double? =
-    NUMBER.findAll(s).firstOrNull { it.groupValues[2].lowercase() !in setOf("kcal", "kj") }
+private fun firstNumber(s: String, requireUnit: Boolean = false): Double? =
+    NUMBER.findAll(s).firstOrNull { it.groupValues[2].lowercase() !in setOf("kcal", "kj") && (!requireUnit || it.groupValues[2].isNotEmpty()) }
         ?.let { m -> m.groupValues[1].replace(',', '.').toDoubleOrNull()?.let { v -> if (m.groupValues[2].lowercase() == "mg") v / 1000.0 else v } }
 
 /** Nutrition tables are often OCR'd as a label column and value columns: take

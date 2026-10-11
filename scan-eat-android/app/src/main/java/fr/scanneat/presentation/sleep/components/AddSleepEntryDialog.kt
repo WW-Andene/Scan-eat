@@ -99,7 +99,7 @@ internal fun AddSleepEntryDialog(
                     // parsing previously let a typo (e.g. "80" instead of "8") set an
                     // impossible goal that SleepMoodCorrelation/DashboardGapAnalysis would
                     // then treat as a real target with no correcting UI feedback.
-                    onValueChange = { goalText = it; it.toDoubleOrNull()?.coerceIn(1.0, 24.0)?.let(onGoalChange) },
+                    onValueChange = { goalText = it; it.replace(',', '.').toDoubleOrNull()?.coerceIn(1.0, 24.0)?.let(onGoalChange) },
                     label = { Text(stringResource(R.string.sleep_goal_field_label)) },
                     singleLine = true, modifier = Modifier.fillMaxWidth(),
                     colors = scanEatTextFieldColors(),

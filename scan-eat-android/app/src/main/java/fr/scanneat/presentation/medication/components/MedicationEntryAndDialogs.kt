@@ -19,7 +19,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import fr.scanneat.util.formatDecimal
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.data.repository.health.MedicationLogEntry

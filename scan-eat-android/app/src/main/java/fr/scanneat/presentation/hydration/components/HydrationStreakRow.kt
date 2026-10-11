@@ -3,7 +3,6 @@ package fr.scanneat.presentation.hydration.components
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Calendar
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable

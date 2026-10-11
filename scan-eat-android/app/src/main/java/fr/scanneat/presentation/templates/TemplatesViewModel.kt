@@ -17,8 +17,7 @@ import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.planning.normalizeKey
 import fr.scanneat.domain.engine.scoring.checkDiet
-import fr.scanneat.domain.engine.scoring.checkUserAllergens
-import fr.scanneat.domain.engine.scoring.healthConditionCautions
+import fr.scanneat.domain.engine.scoring.personalWarning
 import fr.scanneat.domain.model.MealSlot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -87,14 +86,8 @@ class TemplatesViewModel @Inject constructor(
     val templateWarnings: StateFlow<Map<String, String>> = combine(templates, prefs.profile, language) { list, profile, lang ->
         list.mapNotNull { template ->
             val product = template.toCheckProduct()
-            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
-            val dietResult = checkDiet(product, profile.diet, lang)
-            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
-            val parts = mutableListOf<String>()
-            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
-            dietResult.reason?.let { parts += it }
-            conditionHits.firstOrNull()?.let { parts += it }
-            if (parts.isEmpty()) null else template.id to parts.joinToString(" · ")
+            val warning = personalWarning(product, profile, lang)
+            warning?.let { template.id to it }
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 

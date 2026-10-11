@@ -19,7 +19,6 @@ import fr.scanneat.domain.engine.health.OvertrainingSeverity
 import fr.scanneat.presentation.activity.components.overtrainingMessage
 import fr.scanneat.presentation.dashboard.DashboardSafetyWarning
 import fr.scanneat.presentation.medication.components.interactionWarningLabel
-import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard

@@ -10,9 +10,11 @@ import java.text.Normalizer
  * against a lookup database) - extracted here so a future change to the
  * matching rule only needs to happen once.
  */
+private val COMBINING_MARKS = Regex("\\p{Mn}")
+
 fun normalizeForOcrMatch(s: String): String =
     Normalizer.normalize(s, Normalizer.Form.NFD)
-        .replace(Regex("\\p{Mn}"), "")
+        .replace(COMBINING_MARKS, "")
         .lowercase()
         .filter { it.isLetterOrDigit() || it == ' ' }
         .trim()

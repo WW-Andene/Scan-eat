@@ -12,7 +12,6 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.domain.engine.expense.ValueScore
 import fr.scanneat.presentation.ui.theme.*
-import fr.scanneat.util.formatDecimal
 import java.time.format.DateTimeFormatter
 
 @Composable

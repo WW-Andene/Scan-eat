@@ -16,8 +16,10 @@ import kotlin.math.roundToInt
 // Results only pre-fill the add-recipe dialog for the user to review.
 // ============================================================================
 
+private val COMBINING_MARKS = Regex("\\p{Mn}+")
+
 private fun norm(s: String): String =
-    Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "").trim()
+    Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(COMBINING_MARKS, "").trim()
 
 private val INGREDIENTS_HEADER = Regex("""^ingredients?\b""")
 private val STEPS_HEADER = Regex("""^(preparation|etapes?|instructions?|methode|method|directions|recette)\b""")

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,7 +22,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.presentation.grocery.CheckableGroceryItem
@@ -145,7 +143,7 @@ internal fun GroceryItemRow(
 @Composable
 private fun EditGroceryQuantityDialog(itemName: String, initialGrams: Double, onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {
     var text by remember { mutableStateOf(if (initialGrams > 0) initialGrams.toInt().toString() else "") }
-    val grams = text.toDoubleOrNull()?.takeIf { it in 0.0..50000.0 }
+    val grams = text.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.0..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(itemName, color = OnBackground) },

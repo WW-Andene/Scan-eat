@@ -11,11 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material.icons.rounded.DirectionsRun
-import androidx.compose.material.icons.rounded.RestaurantMenu
-import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text

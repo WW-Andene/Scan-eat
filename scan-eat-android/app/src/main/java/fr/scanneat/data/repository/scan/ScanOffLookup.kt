@@ -27,6 +27,16 @@ import java.io.IOException
  * to scoreDirectBarcode since that's this file's only caller now that it's
  * been split out of ScanRepository.
  */
+/**
+ * Product display name in the app language. OFF resolves `product_name` to the
+ * request's `lc`, so for English the language-resolved field wins; the French-only
+ * `_fr` fields would otherwise show French names to English users. French keeps
+ * the original `_fr`-first precedence.
+ */
+private fun offDisplayName(dto: fr.scanneat.data.remote.api.OffProductDto, lang: String): String? =
+    if (lang == "en") dto.productName?.takeIf { it.isNotBlank() } ?: dto.productNameFr ?: dto.genericNameFr
+    else dto.productNameFr ?: dto.productName ?: dto.genericNameFr
+
 private fun productNotFoundMessage(lang: String) =
     if (lang == "en") "Product not found in Open Food Facts — add a photo to continue"
     else "Produit introuvable dans Open Food Facts — ajoutez une photo pour continuer"
@@ -54,7 +64,7 @@ internal class ScanOffLookup(
      * the product is in the database. This was the root cause behind cans
      * scanning as "not found" (see the Coke-can investigation).
      */
-    private suspend fun fetchOffProduct(barcode: String): OffResponse? = coroutineScope {
+    private suspend fun fetchOffProduct(barcode: String, lang: String): OffResponse? = coroutineScope {
         // OFF is a public, sometimes-flaky API - a transient 5xx/429/network blip
         // previously surfaced immediately as a hard failure here; it's now retried
         // with a short backoff (see ScanRetryUtil.kt). 404 still means "not
@@ -63,7 +73,7 @@ internal class ScanOffLookup(
             var lastErr: Throwable? = null
             repeat(OFF_MAX_ATTEMPTS) { attempt ->
                 try {
-                    return offApi.getProduct(code)
+                    return offApi.getProduct(code, lang = lang)
                 } catch (e: HttpException) {
                     if (e.code() == 404) return null
                     if (e.code() != 429 && e.code() !in 500..599) throw e
@@ -164,7 +174,7 @@ internal class ScanOffLookup(
                 if (System.currentTimeMillis() - cached.cachedAtMs < resultCacheTtlMs) return cached.result
             }
         }
-        val offResponse = fetchOffProduct(barcode)
+        val offResponse = fetchOffProduct(barcode, lang)
         // Checked before mapOffProduct (which only preserves the coarse
         // ProductCategory food-subcategory enum, not the raw tags) and before any
         // label-photo augmentation - reading a label photo against something
@@ -172,7 +182,7 @@ internal class ScanOffLookup(
         // would fabricate nutrition data for a product that was never meant to
         // carry any, not just under-serve a sparse but genuine food record.
         offResponse?.product?.let { dto ->
-            val name = dto.productNameFr ?: dto.productName ?: dto.genericNameFr ?: ""
+            val name = offDisplayName(dto, lang) ?: ""
             classifyNonFood(dto.categoriesTags, name, dto.brands)?.let { category ->
                 // Added 13/08/2026 - dto.ingredientsTextFr/ingredientsText were
                 // already fetched (OFF_FIELDS includes both) and sitting right
@@ -190,9 +200,9 @@ internal class ScanOffLookup(
         }
         val offProduct  = offResponse?.product?.let { dto ->
             mapOffProduct(OffProductResponse(
-                productName       = dto.productName,
-                productNameFr     = dto.productNameFr,
-                genericNameFr     = dto.genericNameFr,
+                productName       = if (lang == "en") offDisplayName(dto, lang) else dto.productName,
+                productNameFr     = dto.productNameFr.takeIf { lang != "en" },
+                genericNameFr     = dto.genericNameFr.takeIf { lang != "en" },
                 brands            = dto.brands,
                 categoriesTags    = dto.categoriesTags,
                 ingredientsTextFr = dto.ingredientsTextFr,
@@ -314,13 +324,13 @@ internal class ScanOffLookup(
         // results back to their raw ScanResult by barcode, so multiple blank-barcode OFF
         // entries would all collide on the same "" key and always resolve to the first one.
         val barcode = dto.code?.takeIf { it.isNotBlank() } ?: return null
-        val name = dto.productNameFr ?: dto.productName ?: dto.genericNameFr
+        val name = offDisplayName(dto, lang)
         if (name.isNullOrBlank()) return null
         if (classifyNonFood(dto.categoriesTags, name, dto.brands) != null) return null
         val product = mapOffProduct(OffProductResponse(
-            productName       = dto.productName,
-            productNameFr     = dto.productNameFr,
-            genericNameFr     = dto.genericNameFr,
+            productName       = if (lang == "en") offDisplayName(dto, lang) else dto.productName,
+            productNameFr     = dto.productNameFr.takeIf { lang != "en" },
+            genericNameFr     = dto.genericNameFr.takeIf { lang != "en" },
             brands            = dto.brands,
             categoriesTags    = dto.categoriesTags,
             ingredientsTextFr = dto.ingredientsTextFr,

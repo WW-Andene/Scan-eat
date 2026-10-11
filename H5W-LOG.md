@@ -956,3 +956,40 @@ follow-up pass to close out the sweep completely; (3) a fresh look at
 whether the server side (`scan-eat-server`) has accumulated the same
 unused-import drift, never checked from that specific angle (cycle 5 read
 every server file for logic, not for import hygiene).
+
+---
+
+## Cycle 12 — correctness / safety sweep (no build run)
+
+Findings and fixes (all verified by reading; regex changes additionally exercised
+against the JVM regex engine; nothing compiled or run through Gradle):
+
+- **Diets were French-only.** Vegetarian/vegan/pescatarian/dairy-free/halal/kosher/
+  gluten-free/paleo/carnivore/low-FODMAP patterns ignored English label text, so
+  e.g. "skimmed milk powder" or "chicken" passed as compliant. English term sets
+  added with plant-based qualifier guards (vegan cheese, coconut milk, butter beans,
+  cocoa butter...). A product *name* declaring a substitute ("Saucisses végétales")
+  no longer counts against itself; ingredients are still checked.
+- **Gluten-free flagged "sans gluten" / "gluten-free"** product names. Fixed (FR + EN).
+- **Allergens:** `noix de Saint-Jacques/veau/jambon` matched tree nuts; missing fish
+  (bonito, dashi, eel...), crustacean (gambas, krill), mollusc (coquillages,
+  escargots...), dairy (named cheeses), egg (albumen, ovomucoid), sesame (gomasio).
+- **Allergen/diet/condition chip was hand-copied in 9 view models and had drifted**
+  (health-condition cautions missing on History/Dashboard/scan preview/Meal plan; only
+  first allergen listed; trace-only worded as confirmed). Now `personalWarning()`.
+- **Label OCR** read one nutrient per line: "Glucides 65 g dont sucres 32 g" lost total
+  carbs. Multi-label lines now supported (unit required to avoid ingredient %).
+- **Manifest:** `READ_HYDRATION` was requested but undeclared (Health Connect rejects
+  the combined permission request).
+- **R8:** `SavedSearchFilter` (inside BackupBundle via Moshi reflection) had no keep rule.
+- **OFF:** barcode lookups always sent `lc=fr`; English now uses the language-resolved
+  name. User-Agent carried a stale version/URL.
+- **Decimal comma** ignored in sleep-goal and grocery-quantity fields.
+- Float noise in deduction text (salt derived from sodium); per-call Regex compilation
+  in scoring/parsing hot paths and five copies of `wordBoundaryMatch`; 229 unused imports.
+
+Checked, no change: base-2 dp rule, FR/EN string parity, all 39 migrations registered,
+backup covers every non-cache table, recall lookup, OFF unit conversions, NOVA default.
+
+Known limitation (product decision, not a bug): Premium is a manual toggle until Play
+Billing is configured in the Play Console.

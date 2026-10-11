@@ -128,4 +128,28 @@ class LabelConsistencyAndOcrTest {
         assertTrue(LabelInconsistency.SUGARS_ABOVE_CARBS in r.inconsistencies)
         assertTrue(LabelInconsistency.ENERGY_MISMATCH in r.inconsistencies)
     }
+
+    @Test
+    fun `reads parent and child nutrients when OCR puts both on one line`() {
+        val r = parseLabelText(stack(
+            "Valeurs nutritionnelles pour 100 g",
+            "Matières grasses 21 g dont acides gras saturés 9,5 g",
+            "Glucides 65 g dont sucres 32 g",
+        ))
+        val n = r.product.nutrition
+        assertEquals(21.0, n.fatG, 0.01)
+        assertEquals(9.5, n.saturatedFatG, 0.01)
+        assertEquals(65.0, n.carbsG, 0.01)
+        assertEquals(32.0, n.sugarsG, 0.01)
+    }
+
+    @Test
+    fun `ingredient percentages on a multi-label line are not read as nutrients`() {
+        val r = parseLabelText(stack(
+            "Ingrédients : farine de blé, sucre, sel (1,2%), levure.",
+            "Valeurs nutritionnelles pour 100 g",
+            "Sel 0,45 g",
+        ))
+        assertEquals(0.45, r.product.nutrition.saltG, 0.01)
+    }
 }

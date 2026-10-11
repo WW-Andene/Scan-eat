@@ -28,6 +28,49 @@ internal fun b(inner: String): Regex =
     // rejected every plural a pattern didn't spell out explicitly.
     Regex("(?<![a-zà-ÿ0-9])(?:$inner)[sx]?(?![a-zà-ÿ0-9])", RegexOption.IGNORE_CASE)
 
+// ============================================================================
+// English term sets. Every forbidden list below was written for French label
+// text; OFF's ingredients_text (the fallback when no _fr text exists) and
+// photo-read labels are frequently English for imported products, and a vegan
+// check that doesn't know "milk"/"egg"/"gelatin" reports "Skimmed milk powder,
+// whey, egg" as compliant - the dangerous direction of error for a diet filter.
+// Each set is added alongside (never instead of) the French pattern(s).
+// ============================================================================
+
+// A qualifier right before the word ("vegan cheese", "dairy-free milk", "meat-free
+// burger") means the product is the plant-based substitute, not the animal food -
+// the product name is part of the haystack, so without this a vegan user scanning a
+// vegan cheese would be told it contains cheese.
+private const val SUBSTITUTE_GUARD =
+    "(?<!vegan )(?<!vegan-)(?<!vegetarian )(?<!vegetable )(?<!plant-based )(?<!plant based )(?<!dairy-free )(?<!dairy free )" +
+        "(?<!non-dairy )(?<!meat-free )(?<!meatless )(?<!imitation )(?<!veggie )(?<!egg-free )(?<!egg free )"
+private const val FREE_FROM_SUFFIX = "(?![- ]free)"
+
+internal val EN_MEAT = b(SUBSTITUTE_GUARD + "(?:meats?|beef|pork|chicken|turkey|duck|lamb|mutton|veal|rabbit|venison|ham|sausages?|salami|pepperoni|prosciutto|chorizo|bacon|lard|tallow|suet|pâté|foie gras|gelatin(?:e)?(?!\\s+(?:halal|vegetable|vegetarian|plant))|animal rennet|collagen|pepsin|bone broth|meat extract|meat stock)" + FREE_FROM_SUFFIX)
+internal val EN_FISH = b(SUBSTITUTE_GUARD + "(?:fish|salmon|tuna|cod|sardines?|mackerel|anchov(?:y|ies)|herring|trout|pollock|haddock|halibut|shellfish|crustaceans?|shrimps?|prawns?|lobsters?|crabs?|oysters?|mussels?|squids?|octopus|clams?|scallops?|molluscs?|isinglass)" + FREE_FROM_SUFFIX)
+internal val EN_DAIRY = b(SUBSTITUTE_GUARD +
+    "(?:(?<!coconut )(?<!almond )(?<!oat )(?<!soy )(?<!soya )(?<!rice )(?<!cashew )(?<!hazelnut )(?<!nut )milk|buttermilk|" +
+    "(?<!peanut )(?<!cocoa )(?<!shea )(?<!nut )(?<!almond )(?<!apple )(?<!cashew )(?<!hazelnut )(?<!coconut )butter(?! beans?)|" +
+    "(?<!coconut )cream(?! of tartar)|cheeses?|yog(?:h)?urts?|whey|casein(?:ate)?s?|lactose|lactoserum|ghee|kefir|skyr|lactalbumin|lactoglobulin|mascarpone|ricotta|mozzarella|parmesan|cheddar)" +
+    FREE_FROM_SUFFIX)
+internal val EN_EGG = b(SUBSTITUTE_GUARD + "(?:eggs?|egg yolks?|egg whites?|albumen|ovalbumin|ovomucoid|lysozyme|mayonnaise)" + FREE_FROM_SUFFIX)
+internal val EN_ANIMAL_OTHER = b("honey|propolis|royal jelly|beeswax|carmine|cochineal|shellac|lanolin|bone phosphate")
+internal val EN_PORK = b("pork|bacon|ham|lard|salami|pepperoni|prosciutto|pancetta|chorizo|sausages?|swine|gelatin(?:e)?(?!\\s+(?:halal|vegetable|vegetarian|plant|fish))")
+internal val EN_SHELLFISH = b("shellfish|crustaceans?|shrimps?|prawns?|lobsters?|crabs?|oysters?|mussels?|squids?|octopus|clams?|scallops?|molluscs?|eel|shark|sturgeon|rabbit|hare|horse|camel")
+// "gluten" itself must not match inside "gluten-free"/"sans gluten"/"free from gluten".
+internal val EN_GLUTEN = b("(?<!free from )(?<!sans )gluten(?![- ]free)|wheat(?![- ]free)|barley|rye|spelt|oat(?!s?(?:[- ]free| gluten[- ]free))|semolina|durum|bulgur|couscous|seitan|farro|kamut|triticale|malt|breadcrumbs?")
+
+// A product NAME that declares itself a plant-based / free-from substitute ("Saucisses
+// végétales", "Alternative végétale au fromage", "Vegan cheese", "Meat-free burger")
+// necessarily contains the animal word it replaces. checkDiet() therefore skips the
+// product name (ingredients are still checked) for the animal-product diets when this
+// matches - otherwise the exact products those diets exist for are flagged as violations.
+internal val SUBSTITUTE_NAME_PATTERN = Regex(
+    "v[eé]g[eé]tal|v[eé]g[eé]tarien|v[eé]gan|vegan|plant[- ]based|veggie|meat[- ]?free|meatless|dairy[- ]free|non[- ]dairy|egg[- ]free|sans (?:viande|lait|lactose|[oœ]ufs?)",
+    RegexOption.IGNORE_CASE,
+)
+internal val SUBSTITUTE_NAME_DIETS = setOf(DietKey.VEGETARIAN, DietKey.VEGAN, DietKey.PESCATARIAN, DietKey.DAIRY_FREE)
+
 internal data class DietDef(
     val forbidden: List<Regex> = emptyList(),
     val preferred: List<Regex> = emptyList(),
@@ -42,6 +85,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.VEGETARIAN to DietDef(
         forbidden = listOf(
+            EN_MEAT, EN_FISH,
             // (?! v[eé]g[eé]tale), not (?! halal) - halal certification says nothing about
             // whether gelatin is animal-derived (it's orthogonal to vegetarianism), so the
             // earlier (?! halal) lookahead let "gélatine halal" - still animal, just
@@ -56,6 +100,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.VEGAN to DietDef(
         forbidden = listOf(
+            EN_MEAT, EN_FISH, EN_DAIRY, EN_EGG, EN_ANIMAL_OTHER,
             b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lapin|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|andouillettes?|andouilles?|confit|rillette|terrines?|pat[eé](?!s)|pâté|foie gras|g[eé]lati?ne(?! v[eé]g[eé]tale)|pr[eé]sure animale|collag[eè]ne|pepsine|isinglass|colle de poisson"),
             b("poisson|saumon|thon|cabillaud|sardine|maquereau|anchois|hareng|crustac[eé]|crevette|homard|crabe|hu[iî]tre|moule|calmar|poulpe"),
             b("lait(?! de (coco|soja|amande|avoine|riz))|lactos[eé]rum|petit[- ]lait|cr[eè]me(?! v[eé]g[eé]tale| de tartre| de coco)|beurre(?! de (?:cacao|karit[eé]|cacahu[eè]tes?|coco|amandes?|noisettes?|cajou)| d'arachides?)|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mascarpone|ricotta|mozzarella|parmesan|emmental"),
@@ -100,6 +145,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.PESCATARIAN to DietDef(
         forbidden = listOf(
+            EN_MEAT,
             // Standard pescatarian diets exclude land-animal derivatives the same as
             // vegetarian ones - gelatin/rennet/collagen/pepsin are typically bovine or
             // porcine, so without this a product whose only violation is bovine gelatin
@@ -119,6 +165,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.HALAL to DietDef(
         forbidden = listOf(
+            EN_PORK, ALCOHOL_INGREDIENT_PATTERN,
             b("porc|cochon|lard|lardon|jambon|saucisson|bacon|salami|chorizo|pepperoni|couenne|boudin|saindoux|suif|andouille|pancetta|mortadelle|guanciale"),
             b("graisse animale(?! halal)|mati[eè]re grasse animale(?! halal)"),
             b("alcool|[eé]thanol|vin(?! blanc de cuisson sans alcool)|bi[eè]re|biere|liqueur|rhum|whisky|whiskey|gin|vodka|spiritueux|kirsch|cognac|armagnac|calvados|porto|champagne|eau[- ]de[- ]vie"),
@@ -136,6 +183,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.KOSHER to DietDef(
         forbidden = listOf(
+            EN_PORK, EN_SHELLFISH,
             b("porc|cochon|lard|lardon|jambon|saucisson|bacon|salami|chorizo|pepperoni|saindoux|suif|pancetta|couenne"),
             b("crustac[eé]|crevette|homard|crabe|langouste|langoustine|[eé]crevisse|hu[iî]tre|moule|calmar|encornet|poulpe|p[eé]toncle|palourde|bigorneau|bulot"),
             b("lapin|li[eè]vre|cheval|sanglier|chameau|autruche"),
@@ -150,7 +198,8 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.GLUTEN_FREE to DietDef(
         forbidden = listOf(
-            b("gluten|bl[eé]|froment|seigle|orge|avoine(?! sans gluten)|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge"),
+            EN_GLUTEN,
+            b("(?<!sans )(?<!sans-)(?<!sans tout )gluten(?![- ]free)|bl[eé]|froment|seigle|orge|avoine(?! sans gluten)|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge"),
         ),
         // GLUTEN_FREE sits in CERTIFICATION_OVERRIDE_DIETS below (same safety-net
         // as HALAL/KOSHER/VEGAN: a real certification trumps a regex false
@@ -168,6 +217,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.DAIRY_FREE to DietDef(
         forbidden = listOf(
+            EN_DAIRY,
             b("lait(?! de (coco|soja|amande|avoine|riz))|lactos[eé]rum|petit[- ]lait|cr[eè]me(?! de coco| v[eé]g[eé]tale| de tartre)|beurre(?! de (?:cacao|karit[eé]|cacahu[eè]tes?|coco|amandes?|noisettes?|cajou)| d'arachides?)|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|lactose|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mascarpone|ricotta|mozzarella|parmesan|emmental"),
         ),
         noteFr = "Exclut tous produits laitiers.",
@@ -176,6 +226,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.PALEO to DietDef(
         forbidden = listOf(
+            b("wheat|barley|rye|spelt|oats?|corn|rice|malt|beans?|lentils?|chickpeas?|peanuts?|soy|soya|refined sugar|glucose syrup|corn syrup|maltodextrin"), EN_DAIRY,
             b("bl[eé]|froment|seigle|orge|avoine|[eé]peautre|kamut|triticale|ma[iï]s|riz|farine de bl[eé]|farine de seigle|malt"),
             b("lait(?! de (coco|soja|amande|avoine|riz))|lactos[eé]rum|cr[eè]me(?! de coco| v[eé]g[eé]tale| de tartre)|beurre(?! de (?:cacao|karit[eé]|cacahu[eè]tes?|coco|amandes?|noisettes?|cajou)| d'arachides?)|fromage|yaourt|cas[eé]ine|lactose|whey"),
             b("haricot|lentille|pois chiche|soja|arachide|cacahu[eè]te|f[eè]ve"),
@@ -187,6 +238,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.LOW_FODMAP to DietDef(
         forbidden = listOf(
+            b("wheat|rye|barley|onions?|garlic|apples?|pears?|mango|watermelon|honey|agave|(?:high[- ])?fructose|inulin|chicory|artichoke|milk(?! lactose[- ]free)|lactose|beans|lentils?|chickpeas?|sorbitol|mannitol|xylitol|maltitol"),
             // pomme(?! de terre) - "pomme" alone (apple) is high-FODMAP (fructose) and
             // correctly forbidden, but the bare word "pomme" also matches inside "pomme
             // de terre" (potato) - itself low-FODMAP - via this list's own word-boundary
@@ -209,6 +261,7 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.CARNIVORE to DietDef(
         forbidden = listOf(
+            b("wheat|flour|sugar|fruits?|vegetables?|cereals?|rice|quinoa|corn|beans?|lentils?|peas?|soy|soya|peanuts?|vegetable oil|olive oil"),
             b("bl[eé]|farine|sucre|fruit|l[eé]gume|c[eé]r[eé]ale|riz|quinoa|ma[iï]s|haricot|lentille|pois|soja|arachide|huile v[eé]g[eé]tale|huile d'olive"),
         ),
         noteFr = "Exclut tout ingrédient végétal.",
@@ -229,8 +282,8 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 // Ruminant/poultry meat only, not KOSHER's own pork-specific forbidden list
 // (pork is already caught there) - and no fish/egg here, since kosher fish/
 // eggs are pareve (neutral) and may be eaten with either meat or dairy.
-internal val KOSHER_MEAT_PATTERN = b("viande|b[oœ]euf|veau|poulet|dinde|canard|agneau|mouton|lard|lardon|saucisse|saucisson|chorizo|merguez|pastrami|corned[- ]beef")
-internal val KOSHER_DAIRY_PATTERN = b("lait(?! de (coco|soja|amande|avoine|riz))|lactos[eé]rum|petit[- ]lait|cr[eè]me(?! v[eé]g[eé]tale| de tartre| de coco)|beurre(?! de (?:cacao|karit[eé]|cacahu[eè]tes?|coco|amandes?|noisettes?|cajou)| d'arachides?)|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mascarpone|ricotta|mozzarella|parmesan|emmental")
+internal val KOSHER_MEAT_PATTERN = b("meats?|beef|veal|chicken|turkey|duck|lamb|mutton|bacon|sausages?|corned beef|viande|b[oœ]euf|veau|poulet|dinde|canard|agneau|mouton|lard|lardon|saucisse|saucisson|chorizo|merguez|pastrami|corned[- ]beef")
+internal val KOSHER_DAIRY_PATTERN = b("(?<!coconut )(?<!almond )(?<!oat )(?<!soy )(?<!rice )milk|cheeses?|yog(?:h)?urts?|cream(?! of tartar)|(?<!peanut )(?<!cocoa )(?<!shea )(?<!nut )butter|casein|lait(?! de (coco|soja|amande|avoine|riz))|lactos[eé]rum|petit[- ]lait|cr[eè]me(?! v[eé]g[eé]tale| de tartre| de coco)|beurre(?! de (?:cacao|karit[eé]|cacahu[eè]tes?|coco|amandes?|noisettes?|cajou)| d'arachides?)|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mascarpone|ricotta|mozzarella|parmesan|emmental")
 
 // Diets where a certification mark overrides detected violations
 internal val CERTIFICATION_OVERRIDE_DIETS = setOf(DietKey.HALAL, DietKey.KOSHER, DietKey.VEGAN, DietKey.GLUTEN_FREE)

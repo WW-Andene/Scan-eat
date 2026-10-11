@@ -6,11 +6,12 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.recall.RecallRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.scoring.checkDiet
-import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import fr.scanneat.domain.engine.scoring.personalWarning
 import fr.scanneat.domain.model.Grade
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.common.ActionFailureViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -218,14 +219,10 @@ class ScanHistoryViewModel @Inject constructor(
     val historyWarnings: StateFlow<Map<Long, String>> = combine(filtered, prefs.profile, language) { scans, profile, lang ->
         scans.mapNotNull { scan ->
             if (scan.dbId <= 0) return@mapNotNull null
-            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(scan.product, profile.allergens, lang) else emptyList()
-            val dietResult = checkDiet(scan.product, profile.diet, lang)
-            val parts = mutableListOf<String>()
-            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
-            dietResult.reason?.let { parts += it }
-            if (parts.isEmpty()) null else scan.dbId to parts.joinToString(" · ")
+            val warning = personalWarning(scan.product, profile, lang)
+            warning?.let { scan.dbId to it }
         }.toMap()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+    }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     fun setQuery(q: String) { _query.value = q }
     fun setFavoritesOnly(value: Boolean) { _favoritesOnly.value = value }

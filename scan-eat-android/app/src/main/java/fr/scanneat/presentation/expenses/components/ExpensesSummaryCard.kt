@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.presentation.ui.theme.*
-import fr.scanneat.util.formatDecimal
 
 internal enum class ExpensesSummaryMode { DAY, WEEK, MONTH }
 

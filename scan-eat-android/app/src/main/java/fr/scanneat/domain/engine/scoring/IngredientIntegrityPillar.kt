@@ -6,6 +6,10 @@ import fr.scanneat.domain.model.*
 // SECTION 9: PILLAR 5 — INGREDIENT INTEGRITY (max 15)
 // ============================================================================
 
+private val REFINED_MARKER = Regex("""sirop|huile|farine raffinée|amidon modifié|isolat|concentré""", RegexOption.IGNORE_CASE)
+private val ISOLATE_MARKER = Regex("""isolat|hydrolysat|concentré|modifié|extrait sec""", RegexOption.IGNORE_CASE)
+private val SUGAR_PREFIX = Regex("""^sucre""", RegexOption.IGNORE_CASE)
+
 // Word-boundary match rather than raw `.contains` - plain substring search lets
 // e.g. "riz" match inside "chorizo" or "eau" match inside "gâteau"/"veau",
 // wrongly counting processed ingredients as whole foods. Optional trailing
@@ -17,7 +21,7 @@ private fun containsWord(text: String, word: String): Boolean =
 private fun isWholeFood(ingredient: Ingredient, category: ProductCategory): Boolean {
     if (ingredient.isWholeFood == true) return true
     val lower = ingredient.name.lowercase()
-    if (Regex("""sirop|huile|farine raffinée|amidon modifié|isolat|concentré""", RegexOption.IGNORE_CASE).containsMatchIn(lower)) return false
+    if (REFINED_MARKER.containsMatchIn(lower)) return false
     // User-reported: "eau" matched WHOLE_FOOD_KEYWORDS unconditionally, so a
     // ready meal/sauce/soup listing "Eau" as ingredient #1 by weight (EU FIC
     // 1169/2011 descending-weight ordering makes this common - water is the
@@ -67,7 +71,7 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     val nonAdditive = product.ingredients.filter { findAdditive(it.eNumber, it.name, it.category) == null }
     val recognizable = nonAdditive.count { ing ->
         val n = ing.name.lowercase()
-        n.length < 40 && !Regex("""isolat|hydrolysat|concentré|modifié|extrait sec""", RegexOption.IGNORE_CASE).containsMatchIn(n)
+        n.length < 40 && !ISOLATE_MARKER.containsMatchIn(n)
     }
     // nonAdditive.isEmpty() (a product whose entire declared ingredient list
     // is additives, e.g. ["E330", "E331", "E202"]) previously defaulted to
@@ -120,7 +124,7 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
         // AdditivesDb.findAdditive already applies for the identical nested-
         // substring shape.
         HIDDEN_SUGAR_NAMES.filter { n.contains(it) }.maxByOrNull { it.length }?.let { sugarAliases += it }
-        if (Regex("""^sucre""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name.trim())) sugarAliases += "sucre"
+        if (SUGAR_PREFIX.containsMatchIn(ing.name.trim())) sugarAliases += "sucre"
     }
     if (sugarAliases.size >= 2) {
         deductions += Deduction("ingredient_integrity", (if (en) "${sugarAliases.size} distinct sugar sources: " else "${sugarAliases.size} sources de sucre distinctes : ") + sugarAliases.joinToString(), -2.0, Severity.MODERATE)

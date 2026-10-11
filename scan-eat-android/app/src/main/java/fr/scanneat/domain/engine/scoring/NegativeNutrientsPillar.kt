@@ -12,6 +12,10 @@ import fr.scanneat.util.formatDecimal
  *  silently desynced the deduction from the veto it's meant to accompany. */
 internal const val HIGH_ABV_THRESHOLD = 15.0
 
+/** Rounds to 2 decimals and drops a trailing ".0" so derived values (e.g. salt computed from
+ *  sodium) don't surface float noise like 1.0250000000000001 in user-visible text. */
+private fun gramsLabel(v: Double): String = (Math.round(v * 100) / 100.0).toString().removeSuffix(".0")
+
 fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
     val MAX = 25
@@ -26,9 +30,9 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val (satMod, satMaj, satCrit) = thresholds.satFatThresholds
     val satLabel = if (en) "Saturated fat" else "Graisses saturées"
     when {
-        sat > satCrit -> { score -= 9; deductions += Deduction("negative_nutrients", "$satLabel ${sat}g/100g (>$satCrit " + (if (en) "critical" else "critique") + ")", -9.0, Severity.CRITICAL) }
-        sat > satMaj  -> { score -= 6; deductions += Deduction("negative_nutrients", "$satLabel ${sat}g/100g (>$satMaj " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
-        sat > satMod  -> { score -= 3; deductions += Deduction("negative_nutrients", "$satLabel ${sat}g/100g (>$satMod " + (if (en) "moderate" else "modéré") + ")", -3.0, Severity.MODERATE) }
+        sat > satCrit -> { score -= 9; deductions += Deduction("negative_nutrients", "$satLabel ${gramsLabel(sat)}g/100g (>$satCrit " + (if (en) "critical" else "critique") + ")", -9.0, Severity.CRITICAL) }
+        sat > satMaj  -> { score -= 6; deductions += Deduction("negative_nutrients", "$satLabel ${gramsLabel(sat)}g/100g (>$satMaj " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
+        sat > satMod  -> { score -= 3; deductions += Deduction("negative_nutrients", "$satLabel ${gramsLabel(sat)}g/100g (>$satMod " + (if (en) "moderate" else "modéré") + ")", -3.0, Severity.MODERATE) }
     }
 
     // Sugars
@@ -37,10 +41,10 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
                      else (if (en) "Total sugars (added not declared)" else "Sucres totaux (sucres ajoutés non déclarés)")
     val (sMinor, sMod, sMaj, sCrit) = thresholds.sugarThresholds
     when {
-        sugars > sCrit -> { score -= 12; deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sCrit " + (if (en) "critical" else "critique") + ")", -12.0, Severity.CRITICAL) }
-        sugars > sMaj  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMaj " + (if (en) "major" else "majeur") + ")", -9.0, Severity.MAJOR) }
-        sugars > sMod  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMod " + (if (en) "moderate" else "modéré") + ")", -6.0, Severity.MODERATE) }
-        sugars > sMinor -> { score -= 3; deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMinor " + (if (en) "minor" else "mineur") + ")", -3.0, Severity.MINOR) }
+        sugars > sCrit -> { score -= 12; deductions += Deduction("negative_nutrients", "$sugarLabel ${gramsLabel(sugars)}g/100g (>$sCrit " + (if (en) "critical" else "critique") + ")", -12.0, Severity.CRITICAL) }
+        sugars > sMaj  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$sugarLabel ${gramsLabel(sugars)}g/100g (>$sMaj " + (if (en) "major" else "majeur") + ")", -9.0, Severity.MAJOR) }
+        sugars > sMod  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$sugarLabel ${gramsLabel(sugars)}g/100g (>$sMod " + (if (en) "moderate" else "modéré") + ")", -6.0, Severity.MODERATE) }
+        sugars > sMinor -> { score -= 3; deductions += Deduction("negative_nutrients", "$sugarLabel ${gramsLabel(sugars)}g/100g (>$sMinor " + (if (en) "minor" else "mineur") + ")", -3.0, Severity.MINOR) }
     }
 
     // Salt — category-relative like sat fat/sugar above, not a flat cutoff.
@@ -58,16 +62,16 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val (saltMinor, saltMod, saltMaj) = thresholds.saltThresholds
     val saltLabel = if (en) "Salt" else "Sel"
     when {
-        salt > saltMaj  -> { score -= 6; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>$saltMaj " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
-        salt > saltMod  -> { score -= 4; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>$saltMod " + (if (en) "moderate" else "modéré") + ")", -4.0, Severity.MODERATE) }
-        salt > saltMinor -> { score -= 2; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>$saltMinor " + (if (en) "minor" else "mineur") + ")", -2.0, Severity.MINOR) }
+        salt > saltMaj  -> { score -= 6; deductions += Deduction("negative_nutrients", "$saltLabel ${gramsLabel(salt)}g/100g (>$saltMaj " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
+        salt > saltMod  -> { score -= 4; deductions += Deduction("negative_nutrients", "$saltLabel ${gramsLabel(salt)}g/100g (>$saltMod " + (if (en) "moderate" else "modéré") + ")", -4.0, Severity.MODERATE) }
+        salt > saltMinor -> { score -= 2; deductions += Deduction("negative_nutrients", "$saltLabel ${gramsLabel(salt)}g/100g (>$saltMinor " + (if (en) "minor" else "mineur") + ")", -2.0, Severity.MINOR) }
     }
 
     // Trans fat
     val trans = n.transFatG ?: 0.0
     if (trans > 0.1) {
         score -= 10
-        deductions += Deduction("negative_nutrients", if (en) "Trans fat present: ${trans}g/100g (no safe level)" else "Présence de graisses trans : ${trans}g/100g (aucun seuil sûr)", -10.0, Severity.CRITICAL)
+        deductions += Deduction("negative_nutrients", if (en) "Trans fat present: ${gramsLabel(trans)}g/100g (no safe level)" else "Présence de graisses trans : ${gramsLabel(trans)}g/100g (aucun seuil sûr)", -10.0, Severity.CRITICAL)
     }
 
     // Alcohol — WHO/IARC classify ethanol as a Group 1 carcinogen with no

@@ -21,8 +21,7 @@ import fr.scanneat.domain.engine.medication.findMedicationByBarcode
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableCategory
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
 import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
-import fr.scanneat.domain.engine.scoring.checkDiet
-import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import fr.scanneat.domain.engine.scoring.personalWarning
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.medication.InteractionWarning
 import fr.scanneat.presentation.medication.detectInteractions
@@ -243,12 +242,7 @@ class ScanViewModel @Inject constructor(
     // screen that *does* check it.
     val cachedPreviewWarning: StateFlow<String?> = combine(cachedPreview, prefs.profile, language) { cached, profile, lang ->
         val product = cached?.product ?: return@combine null
-        val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
-        val dietResult = checkDiet(product, profile.diet, lang)
-        val parts = mutableListOf<String>()
-        allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
-        dietResult.reason?.let { parts += it }
-        if (parts.isEmpty()) null else parts.joinToString(" · ")
+        personalWarning(product, profile, lang)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _recentBarcodes = MutableStateFlow<List<String>>(emptyList())

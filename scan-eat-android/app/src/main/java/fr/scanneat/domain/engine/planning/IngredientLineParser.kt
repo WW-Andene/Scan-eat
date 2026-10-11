@@ -23,8 +23,15 @@ data class ParsedIngredient(
     val gramsEstimated: Boolean,
 )
 
+private val COMBINING_MARKS = Regex("\\p{Mn}+")
+private val WHITESPACE = Regex("""\s+""")
+private val PARENTHETICAL = Regex("""\(.*?\)""")
+private val LEADING_BULLET = Regex("""^[-•*·\s]+""")
+private val LEADING_PARTICLE = Regex("""^(de |d'|du |des |of )""")
+private val TRAILING_CLAUSE = Regex("""[,;].*$""")
+
 private fun norm(s: String): String =
-    Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
+    Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(COMBINING_MARKS, "")
         .replace("œ", "oe")
 
 // Unit → grams per unit. Volumes use water density (close enough for
@@ -64,7 +71,7 @@ private val DECIMAL_OR_VULGAR = Regex("""^(\d+(?:[.,]\d+)?)?\s*([½¼¾⅓⅔])?
 private val FILLER = Regex("""\b(de|d'|du|des|of|the|a|an|frais|fraiche|fresh|bio|environ|about|gros|grosse|petits?|petites?|moyens?|moyennes?|large|small|medium|hache[es]?|chopped|emince[es]?|sliced|rape[es]?|grated|en des|en morceaux|pour la cuisson|facultatif|optional)\b""")
 
 fun parseIngredientLine(line: String): ParsedIngredient {
-    var rest = norm(line).replace(Regex("""\(.*?\)"""), " ").replace(Regex("""^[-•*·\s]+"""), "").trim()
+    var rest = norm(line).replace(PARENTHETICAL, " ").replace(LEADING_BULLET, "").trim()
 
     // ---- quantity ----
     var qty: Double? = null
@@ -94,7 +101,7 @@ fun parseIngredientLine(line: String): ParsedIngredient {
     }
 
     // ---- food ----
-    val cleaned = rest.replace(Regex("""^(de |d'|du |des |of )"""), "").replace(Regex("""[,;].*$"""), "").trim()
+    val cleaned = rest.replace(LEADING_PARTICLE, "").replace(TRAILING_CLAUSE, "").trim()
     val food = matchFood(cleaned)
 
     val (grams, estimated) = when {
@@ -115,7 +122,7 @@ private fun matchFood(text: String): FoodEntry? {
     // An exact name/alias match on any word window wins over prefix search
     // ("farine" is the plain flour, not "farine complète"). Windows keep
     // linking words ("pommes de terre"); plurals are tried word by word.
-    val raw = text.replace("'", "' ").split(Regex("""\s+""")).filter { it.isNotBlank() }
+    val raw = text.replace("'", "' ").split(WHITESPACE).filter { it.isNotBlank() }
     for (size in raw.size downTo 1) {
         for (start in 0..raw.size - size) {
             val window = raw.subList(start, start + size)
@@ -125,7 +132,7 @@ private fun matchFood(text: String): FoodEntry? {
             exactFood(window.joinToString(" ") { w -> if (w.length > 3 && (w.endsWith("s") || w.endsWith("x"))) w.dropLast(1) else w })?.let { return it }
         }
     }
-    val words = FILLER.replace(text, " ").split(Regex("""\s+""")).filter { it.length >= 2 }
+    val words = FILLER.replace(text, " ").split(WHITESPACE).filter { it.length >= 2 }
     searchFoodDB(text, limit = 1).firstOrNull()?.let { return it }
     for (size in words.size downTo 1) {
         for (start in 0..words.size - size) {
@@ -147,7 +154,7 @@ private val EXACT_INDEX: Map<String, FoodEntry> by lazy {
     }
 }
 
-private fun key(s: String) = norm(s).replace("'", " ").replace(Regex("\\s+"), " ").trim()
+private fun key(s: String) = norm(s).replace("'", " ").replace(WHITESPACE, " ").trim()
 
 private fun exactFood(phrase: String): FoodEntry? = EXACT_INDEX[key(phrase)]
 

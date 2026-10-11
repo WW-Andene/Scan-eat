@@ -25,6 +25,10 @@
 # otherwise Moshi-protected - without these, R8 renames their fields in
 # release builds and every restore silently drops that section of the backup.
 -keep class fr.scanneat.data.backup.** { *; }
+# Serialized into BackupBundle by Moshi's reflective Kotlin adapter (it is a kotlinx
+# @Serializable class, so no Moshi codegen) - without this R8 renames its properties and
+# the saved-filter backup keys stop matching across builds.
+-keep class fr.scanneat.data.repository.foodsearch.SavedSearchFilter { *; }
 -keep class fr.scanneat.data.repository.reminders.ReminderSettings { *; }
 -keep class fr.scanneat.data.repository.reminders.CustomReminder { *; }
 -keep class fr.scanneat.data.repository.health.FastCompletion { *; }

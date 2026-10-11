@@ -19,7 +19,6 @@ import fr.scanneat.R
 import fr.scanneat.domain.model.NovaClass
 import fr.scanneat.domain.model.ScoreAudit
 import fr.scanneat.presentation.ui.theme.CardRadius
-import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
