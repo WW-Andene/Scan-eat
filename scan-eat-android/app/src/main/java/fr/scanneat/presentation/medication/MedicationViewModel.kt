@@ -59,6 +59,10 @@ sealed class InteractionWarning {
     // missing this equally common real-world instance (someone taking daily
     // low-dose aspirin who also reaches for ibuprofen for pain).
     data object NsaidAntiplatelet : InteractionWarning()
+    // SSRI/SNRI impair platelet aggregation, so combined with an anticoagulant,
+    // NSAID or antiplatelet they raise bleeding risk (a well-documented
+    // interaction, distinct from the SSRI + MAOI serotonin-syndrome pairing).
+    data object SsriBleeding : InteractionWarning()
 }
 
 // Known high-risk keyword patterns: maps a drug class to a set of name substrings.
@@ -138,6 +142,8 @@ internal fun detectInteractions(activeMedicationNames: List<String>): List<Inter
     val hasSsri = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.SSRI_SNRI]!!.any { wordBoundaryMatch(name, it) } }
     val hasMaoi = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.MAOI]!!.any { wordBoundaryMatch(name, it) } }
     if (hasSsri && hasMaoi) warnings += InteractionWarning.SsriMaoi
+    // SSRI/SNRI + any bleeding-risk agent
+    if (hasSsri && (hasAnticoag || hasAin || hasAntiplatelet)) warnings += InteractionWarning.SsriBleeding
     return warnings
 }
 

@@ -63,6 +63,7 @@ internal fun interactionWarningLabel(warning: InteractionWarning): String = when
     is InteractionWarning.SsriMaoi      -> stringResource(R.string.medication_interaction_ssri_maoi)
     is InteractionWarning.AnticoagAntiplatelet -> stringResource(R.string.medication_interaction_anticoag_antiplatelet)
     is InteractionWarning.NsaidAntiplatelet -> stringResource(R.string.medication_interaction_nsaid_antiplatelet)
+    is InteractionWarning.SsriBleeding -> stringResource(R.string.medication_interaction_ssri_bleeding)
 }
 
 @Composable

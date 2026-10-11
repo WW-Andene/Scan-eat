@@ -31,4 +31,12 @@ class InteractionBrandNamesTest {
             assertTrue(nsaid, detectInteractions(listOf("Xarelto", nsaid)).contains(InteractionWarning.AnticoagNsaid))
         }
     }
+
+    @Test
+    fun `SSRI plus bleeding-risk drug warns`() {
+        for (other in listOf("Xarelto", "Advil", "Kardégic")) {
+            assertTrue(other, detectInteractions(listOf("Prozac", other)).contains(InteractionWarning.SsriBleeding))
+        }
+        assertTrue(detectInteractions(listOf("Prozac", "Doliprane")).isEmpty())
+    }
 }
