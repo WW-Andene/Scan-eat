@@ -301,7 +301,7 @@ internal class ScanHistoryQueries(
      * used for ResultViewModel's score-delta badge and history sparkline.
      */
     suspend fun priorScores(barcode: String?, productName: String, beforeMillis: Long, profileId: String = "default", limit: Int = 6): List<Int> =
-        scoreHistoryDao.recentScoresBefore(matchKeyFor(barcode, productName), beforeMillis, limit, profileId)
+        scoreHistoryDao.recentScoresBefore(matchKeyFor(barcode, productName), beforeMillis, limit, profileId, ENGINE_VERSION)
 
     /** Top-N most-frequently-scanned products, counted from the append-only score log - see ScanHistoryDao.observeTopScanned's own doc comment. */
     fun observeTopScanned(profileId: String = "default", limit: Int = 3): Flow<List<TopScannedRow>> =

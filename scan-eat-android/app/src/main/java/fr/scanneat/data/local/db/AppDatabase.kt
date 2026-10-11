@@ -66,7 +66,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MoodEntity::class,
         MisclassificationReportEntity::class,
     ],
-    version = 40,
+    version = 41,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -683,5 +683,13 @@ val MIGRATION_39_40 = object : Migration(39, 40) {
                 "PRIMARY KEY(`id`))"
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_misclassification_reports_profileId_reportedAt` ON `misclassification_reports` (`profileId`, `reportedAt`)")
+    }
+}
+
+val MIGRATION_40_41 = object : Migration(40, 41) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v40 → v41: scan_score_history.engineVersion - the score-delta badge only
+        // compares scores from the same engine (pre-existing rows stay '' and drop out).
+        db.execSQL("ALTER TABLE `scan_score_history` ADD COLUMN `engineVersion` TEXT NOT NULL DEFAULT ''")
     }
 }
