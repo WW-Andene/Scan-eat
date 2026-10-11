@@ -7,6 +7,8 @@ import fr.scanneat.domain.model.Ingredient
 // ingredients text and additives tags into our domain Ingredient list.
 // ============================================================================
 
+private val E_NUMBER_IN_TEXT = Regex("""(?<![A-Za-z0-9])[Ee][- ]?(\d{3,4}[a-z]?)(?![0-9a-z])""")
+
 internal fun parseIngredients(text: String?): List<Ingredient> {
     if (text.isNullOrBlank()) return emptyList()
     // Split on commas/semicolons, and on "avec adjonction de"/"with added" -
@@ -21,11 +23,18 @@ internal fun parseIngredients(text: String?): List<Ingredient> {
     // pillars see "Eau de Source" (a whole food) and "gaz carbonique" (an
     // additive) as the two distinct things they actually are.
     return text.split(Regex("""[,;]\s*(?![^(]*\))|\s+avec adjonction de\s+|\s+with added\s+"""))
-        .mapNotNull { raw ->
+        .flatMap { raw ->
             val name = raw.trim().trim('*', ' ')
-            if (name.isBlank()) return@mapNotNull null
-            val eNumber = Regex("""[Ee](\d{3}[a-zA-Z]?)""").find(name)?.let { "E${it.groupValues[1]}" }
-            Ingredient(name = name, eNumber = eNumber)
+            if (name.isBlank()) return@flatMap emptyList()
+            // Every E-number in the segment, 3 or 4 digits, optionally spaced/hyphenated
+            // ("E 330", "E-202"). Previously only the first, and \d{3} truncated
+            // E1422 (modified starch) to E142 (Green S colorant). A grouped
+            // ingredient ("émulsifiants (E322, E471)") keeps the first E-number;
+            // each further one becomes its own synthetic ingredient, the same
+            // shape additiveTagsToIngredients uses.
+            val eNumbers = E_NUMBER_IN_TEXT.findAll(name).map { "E${it.groupValues[1]}" }.distinct().toList()
+            listOf(Ingredient(name = name, eNumber = eNumbers.firstOrNull())) +
+                eNumbers.drop(1).map { Ingredient(name = it, eNumber = it) }
         }
         .filter { it.name.length > 1 }
 }
