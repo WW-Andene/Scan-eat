@@ -1071,3 +1071,8 @@ Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request b
   tests green; goal math extracted to pure `hydrationGoalMl` + `HydrationGoalTest` (fail-first verified; 266 Gradle tests green).
 - **View-model sweep done** (pantry expiry urgency, grocery/receipt word matching, medication adherence,
   tracker logic): no other defects found. UI/instrumented tests remain unrun (need a device/emulator).
+- **Compose/UI static audit:** zero off-scale `.dp` literals (CLAUDE.md base-2 rule holds); no hard-coded
+  user-facing `Text("...")`; no unlabeled interactive icons; FR/EN strings in exact parity (1897 keys, placeholders match).
+- **Plural grammar:** "1 bonnes affaires" / "1 achats chers" / "N correspondance Annexe II" (and EN equivalents)
+  converted to `plurals` (FR+EN) with `pluralStringResource` at the three call sites; compiles, Gradle tests green.
+  Lint flags ~90 more `PluralsCandidate` strings, mostly the accepted "(s)" idiom; not converted.

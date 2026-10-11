@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -115,7 +116,7 @@ private fun NonFoodHistoryRow(item: NonFoodScanItem, onToggleFavorite: () -> Uni
                 Text("$dateStr$brandPart", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
                 if (item.prohibitedCount > 0) {
                     Text(
-                        stringResource(R.string.nonfood_history_prohibited_badge, item.prohibitedCount),
+                        pluralStringResource(R.plurals.nonfood_history_prohibited_badge, item.prohibitedCount, item.prohibitedCount),
                         style = MaterialTheme.typography.labelSmall, color = semanticRed(),
                     )
                 } else if (item.restrictedCount > 0) {
