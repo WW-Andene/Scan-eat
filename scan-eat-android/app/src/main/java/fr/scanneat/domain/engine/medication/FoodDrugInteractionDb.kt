@@ -52,11 +52,13 @@ private data class DrugKeywordGroup(val drugClass: FoodInteractionDrugClass, val
 private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
     DrugKeywordGroup(
         FoodInteractionDrugClass.ANTICOAGULANT_VKA,
-        listOf("warfarine", "warfarin", "coumadine", "coumadin", "acenocoumarol"),
+        // fluindione (Previscan) is France's most-prescribed AVK; brands too,
+        // since users type the name printed on the box.
+        listOf("warfarine", "warfarin", "coumadine", "coumadin", "acenocoumarol", "fluindione", "previscan", "sintrom", "minisintrom"),
     ),
     DrugKeywordGroup(
         FoodInteractionDrugClass.MAOI,
-        listOf("phenelzine", "tranylcypromine", "moclobemide", "selegiline"),
+        listOf("phenelzine", "tranylcypromine", "moclobemide", "selegiline", "moclamine", "deprenyl"),
     ),
     DrugKeywordGroup(
         FoodInteractionDrugClass.STATIN_OR_CCB,
@@ -71,7 +73,10 @@ private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
         // in this list since the interaction is real, not absent, but the
         // caution text below is worded to reflect that difference rather
         // than implying equal severity across all three.
-        listOf("atorvastatine", "simvastatine", "amlodipine", "felodipine", "nifedipine"),
+        listOf(
+            "atorvastatine", "atorvastatin", "simvastatine", "simvastatin", "amlodipine", "felodipine", "nifedipine",
+            "tahor", "zocor", "inegy", "caduet", "amlor", "adalate", "chronadalate", "flodil",
+        ),
     ),
     DrugKeywordGroup(
         // ACE inhibitors and sartans (ARBs) both reduce aldosterone-driven
@@ -83,11 +88,12 @@ private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
         listOf(
             "enalapril", "lisinopril", "ramipril", "perindopril", "captopril", "quinapril", "trandolapril",
             "losartan", "valsartan", "irbesartan", "candesartan", "telmisartan", "olmesartan",
+            "triatec", "coversyl", "renitec", "zestril", "cozaar", "tareg", "aprovel", "atacand", "micardis", "olmetec", "alteis", "exforge",
         ),
     ),
     DrugKeywordGroup(
         FoodInteractionDrugClass.LEVOTHYROXINE,
-        listOf("levothyroxine", "levothyrox", "euthyrox", "l-thyroxine"),
+        listOf("levothyroxine", "levothyrox", "euthyrox", "l-thyroxine", "l-thyroxin", "tcaps", "thyrofix"),
     ),
 ).map { it.copy(keywords = it.keywords.map(::normalizeForMatching)) }
 
@@ -174,7 +180,8 @@ fun checkFoodDrugInteractions(name: String, ingredients: List<Ingredient>, activ
     if (activeDrugClasses.isEmpty()) return emptyList()
     val haystack = normalizeForMatching(name + " " + ingredients.joinToString(" ") { it.name })
     return FOOD_CAUTIONS
-        .filter { it.drugClass in activeDrugClasses && it.foodKeywords.any { kw -> wordBoundaryMatch(haystack, kw) } }
+        .filter { it.drugClass in activeDrugClasses && // Plural label forms ("épinards", "pamplemousses", "choux") too - the keywords are singular.
+            it.foodKeywords.any { kw -> wordBoundaryMatch(haystack, kw) || wordBoundaryMatch(haystack, kw + "s") || wordBoundaryMatch(haystack, kw + "x") } }
         .map { if (lang == "en") it.cautionEn else it.cautionFr }
 }
 
