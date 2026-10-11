@@ -108,7 +108,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
         contentAlignment = Alignment.Center,
     ) {
         ScanEatCard(
-            modifier = Modifier.padding(Spacing.XL).heightIn(max = maxHeight - 48.dp),
+            modifier = Modifier.padding(Spacing.XL).widthIn(max = 512.dp).heightIn(max = maxHeight - 48.dp),  // width cap: card stretched across tablets
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             contentPadding = PaddingValues(Spacing.XL),
             accent = Gold,
