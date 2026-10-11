@@ -1076,3 +1076,9 @@ Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request b
 - **Plural grammar:** "1 bonnes affaires" / "1 achats chers" / "N correspondance Annexe II" (and EN equivalents)
   converted to `plurals` (FR+EN) with `pluralStringResource` at the three call sites; compiles, Gradle tests green.
   Lint flags ~90 more `PluralsCandidate` strings, mostly the accepted "(s)" idiom; not converted.
+- **JVM Compose UI tests enabled** (no device/emulator; /dev/kvm is absent here): Robolectric 4.13 + compose
+  ui-test-junit4 as `testImplementation`, `isIncludeAndroidResources = true`. First tests render the real
+  `WeeklyValueScoreCard` with real FR/EN resources and assert the singular/plural strings
+  (`WeeklyValueScoreCardTest`). Full Gradle suite: 269 tests, 0 failures. Robolectric downloads its Android
+  jar from Maven Central on first use (transient 429 can fail one run; rerun once cached).
+  Still not possible here: instrumented tests on a real device, visual/layout inspection.

@@ -132,6 +132,13 @@ android {
 
     // android-build.yml runs `./gradlew lintDebug` in CI. abortOnError keeps real
     // lint errors (not just warnings) failing that gate rather than only warning.
+    testOptions {
+        unitTests {
+            // Robolectric UI tests load the app's real resources (strings/plurals/themes).
+            isIncludeAndroidResources = true
+        }
+    }
+
     lint {
         abortOnError      = true
         checkReleaseBuilds = true
@@ -215,6 +222,10 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
+    // JVM Compose UI tests (no device/emulator): Robolectric hosts the Android framework.
+    testImplementation(libs.robolectric)
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(platform(libs.compose.bom))
