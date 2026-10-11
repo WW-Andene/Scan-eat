@@ -43,6 +43,30 @@ class SchemaOrgRecipeParserTest {
         assertEquals(40.0, r.carbsG!!, 0.01)
     }
 
+    // A "PT0M" placeholder is non-null, so totalTime ?: cookTime never reached the real cookTime.
+    @Test
+    fun `zero totalTime falls back to cookTime`() {
+        assertEquals(25, parseSchemaOrgRecipe(html("""{"@type":"Recipe","name":"R","totalTime":"PT0M","cookTime":"PT25M"}"""), "u")!!.cookTimeMinutes)
+    }
+
+    // "500 g" used to become 500 servings and "0" a zero divisor for per-serving figures.
+    @Test
+    fun `non-serving yields are ignored`() {
+        assertNull(parseSchemaOrgRecipe(html("""{"@type":"Recipe","name":"R","recipeYield":"500 g"}"""), "u")!!.servings)
+        assertNull(parseSchemaOrgRecipe(html("""{"@type":"Recipe","name":"R","recipeYield":"0"}"""), "u")!!.servings)
+    }
+
+    @Test
+    fun `html entities and tags are cleaned and IRI types are recognised`() {
+        val r = parseSchemaOrgRecipe(
+            html("""{"@type":"https://schema.org/Recipe","name":"Tarte &amp; cr&egrave;me","recipeIngredient":["1 &frac12; tasse"],"recipeInstructions":["Cuire.<br>Servir &#039;chaud&#039;."]}"""),
+            "u",
+        )!!
+        assertEquals("Tarte & crème", r.name)
+        assertEquals(listOf("1 ½ tasse"), r.ingredients)
+        assertEquals(listOf("Cuire. Servir 'chaud'."), r.steps)
+    }
+
     @Test
     fun `finds a Recipe nested in @graph and steps grouped in sections`() {
         val r = parseSchemaOrgRecipe(

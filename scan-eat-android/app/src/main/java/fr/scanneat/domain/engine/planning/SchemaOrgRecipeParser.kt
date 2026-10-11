@@ -51,10 +51,10 @@ fun parseSchemaOrgRecipe(html: String, sourceUrl: String): FetchedRecipeResult? 
     val nutrition = recipe["nutrition"] as? JsonObject
     val kcal = nutrition?.let { coerce(numFrom(it["calories"]), 10_000.0) }?.takeIf { it > 0.0 }
     return FetchedRecipeResult(
-        name = stringOr(recipe["name"]),
+        name = cleanHtml(stringOr(recipe["name"])),
         servings = yieldToServings(recipe["recipeYield"])?.toString(),
-        ingredients = stringArray(recipe["recipeIngredient"]),
-        steps = extractSteps(recipe["recipeInstructions"]),
+        ingredients = stringArray(recipe["recipeIngredient"]).map { cleanHtml(it) }.filter { it.isNotEmpty() },
+        steps = extractSteps(recipe["recipeInstructions"]).map { cleanHtml(it) }.filter { it.isNotEmpty() },
         cookTimeMinutes = parseISODuration(recipe["totalTime"]) ?: parseISODuration(recipe["cookTime"]),
         kcal = kcal,
         proteinG = kcal?.let { coerce(numFrom(nutrition["proteinContent"]), 1_000.0) },
@@ -67,14 +67,46 @@ fun parseSchemaOrgRecipe(html: String, sourceUrl: String): FetchedRecipeResult? 
 private fun findRecipe(element: JsonElement): JsonObject? = when (element) {
     is JsonObject -> {
         val isRecipe = when (val type = element["@type"]) {
-            is JsonPrimitive -> type.contentOrNull == "Recipe"
-            is JsonArray -> type.any { it is JsonPrimitive && it.contentOrNull == "Recipe" }
+            is JsonPrimitive -> isRecipeType(type.contentOrNull)
+            is JsonArray -> type.any { it is JsonPrimitive && isRecipeType(it.contentOrNull) }
             else -> false
         }
         if (isRecipe) element else element["@graph"]?.let { findRecipe(it) }
     }
     is JsonArray -> element.firstNotNullOfOrNull { findRecipe(it) }
     else -> null
+}
+
+// "Recipe", but also the prefixed/IRI forms some sites emit ("schema:Recipe", "https://schema.org/Recipe").
+private fun isRecipeType(type: String?): Boolean =
+    type != null && (type == "Recipe" || type.endsWith("/Recipe") || type.endsWith(":Recipe"))
+
+private val HTML_TAG = Regex("<[^>]*>")
+private val NUMERIC_ENTITY = Regex("&#(x[0-9a-fA-F]+|[0-9]+);")
+private val NAMED_ENTITY = Regex("&([a-zA-Z0-9]+);")
+private val NAMED_ENTITIES = mapOf(
+    "amp" to "&", "lt" to "<", "gt" to ">", "quot" to "\"", "apos" to "'", "nbsp" to " ",
+    "eacute" to "é", "egrave" to "è", "ecirc" to "ê", "euml" to "ë", "agrave" to "à", "acirc" to "â",
+    "ccedil" to "ç", "ocirc" to "ô", "ucirc" to "û", "ugrave" to "ù", "icirc" to "î", "iuml" to "ï",
+    "Eacute" to "É", "Egrave" to "È", "Agrave" to "À", "Ccedil" to "Ç", "oelig" to "œ",
+    "rsquo" to "’", "lsquo" to "‘", "laquo" to "«", "raquo" to "»", "ndash" to "–", "mdash" to "—",
+    "hellip" to "…", "deg" to "°", "euro" to "€", "frac12" to "½", "frac14" to "¼", "frac34" to "¾",
+)
+
+/**
+ * JSON-LD text from recipe plugins routinely carries HTML: tags (`<br>`, `<p>`) and entities
+ * (`&amp;`, `&#039;`, `&eacute;`). Shown raw they read as garbage in the imported recipe, so strip
+ * tags, decode the common entities and collapse whitespace. Unknown entities are left untouched.
+ */
+private fun cleanHtml(s: String): String {
+    var t = HTML_TAG.replace(s, " ")
+    t = NUMERIC_ENTITY.replace(t) { m ->
+        val g = m.groupValues[1]
+        val cp = if (g.startsWith("x") || g.startsWith("X")) g.substring(1).toIntOrNull(16) else g.toIntOrNull()
+        if (cp != null && cp in 1..0x10FFFF) String(Character.toChars(cp)) else m.value
+    }
+    t = NAMED_ENTITY.replace(t) { m -> NAMED_ENTITIES[m.groupValues[1]] ?: m.value }
+    return t.replace(Regex("\\s+"), " ").trim()
 }
 
 private fun stringOr(element: JsonElement?, fallback: String = ""): String =
@@ -106,17 +138,33 @@ private fun extractSteps(element: JsonElement?): List<String> = when (element) {
     else -> emptyList()
 }
 
-/** Null when recipeYield is absent or unparsable - never a fabricated "1 serving". */
-private fun yieldToServings(element: JsonElement?): Int? = when (element) {
-    is JsonPrimitive -> element.intOrNull ?: Regex("(\\d+)").find(element.contentOrNull ?: "")?.groupValues?.get(1)?.toIntOrNull()
-    is JsonArray -> yieldToServings(element.firstOrNull())
-    else -> null
+/**
+ * Null when recipeYield is absent or unparsable - never a fabricated "1 serving". Also null for a
+ * count outside 1..100: a yield like "500 g" / "1 litre" would otherwise become 500 servings, and
+ * "0" would put a zero divisor into every per-serving figure downstream.
+ */
+private fun yieldToServings(element: JsonElement?): Int? {
+    val n = when (element) {
+        is JsonPrimitive -> element.intOrNull ?: Regex("(\\d+)").find(element.contentOrNull ?: "")?.groupValues?.get(1)?.toIntOrNull()
+        is JsonArray -> return yieldToServings(element.firstOrNull())
+        else -> null
+    }
+    return n?.takeIf { it in 1..100 }
 }
 
+/**
+ * Minutes, or null when absent/unparsable/zero. A zero duration ("PT0M", "PT", "PT0S" - common
+ * placeholders on pages with no timing) must read as "unknown", otherwise it is non-null and the
+ * caller's `totalTime ?: cookTime` never falls back to the real cookTime.
+ */
 private fun parseISODuration(element: JsonElement?): Int? {
-    val s = (element as? JsonPrimitive)?.contentOrNull ?: return null
-    val m = Regex("^P(?:\\d+D)?T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?$").matchEntire(s) ?: return null
-    return (m.groupValues[1].toIntOrNull() ?: 0) * 60 + (m.groupValues[2].toIntOrNull() ?: 0) + (m.groupValues[3].toIntOrNull() ?: 0) / 60
+    val s = (element as? JsonPrimitive)?.contentOrNull?.trim() ?: return null
+    val m = Regex("^P(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?$", RegexOption.IGNORE_CASE).matchEntire(s) ?: return null
+    val days = m.groupValues[1].toIntOrNull() ?: 0
+    val hours = m.groupValues[2].toIntOrNull() ?: 0
+    val minutes = m.groupValues[3].toIntOrNull() ?: 0
+    val seconds = m.groupValues[4].toIntOrNull() ?: 0
+    return (days * 24 * 60 + hours * 60 + minutes + seconds / 60).takeIf { it > 0 }
 }
 
 // Values often carry units in the string ("350 calories", "12 g").
