@@ -20,7 +20,13 @@ data class SleepEntry(
     val quality: Int,
     val notes: String,
 ) {
-    val durationHours: Double get() = (wakeMs - bedtimeMs).coerceAtLeast(0L) / 3_600_000.0
+    // Entries saved before the add-dialog fix anchored an after-midnight bedtime
+    // to the previous day, adding exactly 24 h (01:00 -> 08:00 stored as 31 h).
+    // No real sleep exceeds 24 h, so those are corrected on read.
+    val durationHours: Double get() {
+        val h = (wakeMs - bedtimeMs).coerceAtLeast(0L) / 3_600_000.0
+        return if (h > 24.0) h - 24.0 else h
+    }
 }
 
 @Singleton

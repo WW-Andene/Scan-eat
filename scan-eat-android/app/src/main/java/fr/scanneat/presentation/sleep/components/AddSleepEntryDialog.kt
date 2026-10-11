@@ -39,14 +39,13 @@ internal fun AddSleepEntryDialog(
             val bedtime = LocalTime.parse(bedtimeStr)
             val wake = LocalTime.parse(wakeStr)
             val today = LocalDate.now()
-            val bedtimeDateTime = LocalDateTime.of(today.minusDays(1), bedtime)
-            var wakeDateTime = LocalDateTime.of(today, wake)
-            // Same overnight-span correction as StartFastForm's customHours -
-            // if wake time is earlier in the day than bedtime and we already
-            // anchored bedtime to yesterday, wake belongs to today; but if the
-            // user typed a same-day nap-like pair (bedtime AFTER wake time),
-            // nudge wake forward a day so duration stays positive.
-            if (wakeDateTime.isBefore(bedtimeDateTime)) wakeDateTime = wakeDateTime.plusDays(1)
+            // Wake is this morning. Bedtime is yesterday evening only when it's later
+            // in the day than wake (23:00 -> 07:00); a bedtime before wake (01:00 ->
+            // 08:00, or a 14:00 -> 15:00 nap) is the same day. Always anchoring
+            // bedtime to yesterday recorded 01:00 -> 08:00 as 31 h of sleep.
+            val wakeDateTime = LocalDateTime.of(today, wake)
+            val bedtimeDateTime = if (bedtime.isBefore(wake)) LocalDateTime.of(today, bedtime)
+                                  else LocalDateTime.of(today.minusDays(1), bedtime)
             val bedtimeMs = bedtimeDateTime.atZone(zone).toInstant().toEpochMilli()
             val wakeMs = wakeDateTime.atZone(zone).toInstant().toEpochMilli()
             val hours = (wakeMs - bedtimeMs) / 3_600_000.0
