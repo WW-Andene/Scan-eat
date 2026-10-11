@@ -1062,3 +1062,6 @@ scan view model). The whole debug Kotlin/KSP/Hilt compile passed. Not run: instr
 release/R8 build, on-device behaviour.
 Tip for sandboxes: repo.maven.apache.org may return 429 under Gradle's request burst; a local
 `~/.gradle/init.d` script pointing Central at `maven-central.storage-download.googleapis.com/maven2/` fixed it.
+- **Release minify verified:** `:app:minifyReleaseWithR8` BUILD SUCCESSFUL (no missing-class errors). `lintDebug`: 0 errors,
+  335 warnings (font-cert "typos", plurals candidates, dependency updates: not actioned). Added explicit
+  `dataExtractionRules` (exclude all domains). Not run: instrumented/UI tests, on-device R8 behaviour.
