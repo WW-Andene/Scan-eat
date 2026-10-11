@@ -121,7 +121,7 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
             productName = recipe.name,
             portionG    = grams.coerceAtLeast(1.0),
             nutrition   = recipe.nutritionPer100g,
-            source      = ScanSource.LLM,
+            source      = ScanSource.MANUAL, // user-built recipe, not an AI photo estimate
             // Previously omitted, defaulting to emptyList() - DiaryViewModel.diaryWarnings
             // runs entry.toCheckProduct() against this list to surface allergen/diet
             // warnings on logged entries, so a recipe logged straight from Recipes never
