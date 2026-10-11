@@ -159,4 +159,71 @@ class DietCheckerTest {
         val result = checkDiet(highCarb, DietKey.KETO)
         assertFalse(result.compliant)
     }
+
+    // ---- Regression lock: English ingredient text (imported products) ----
+
+    private fun named(name: String, vararg ingredients: String) = Product(
+        name = name,
+        category = ProductCategory.OTHER,
+        novaClass = NovaClass.UNPROCESSED,
+        ingredients = ingredients.map { Ingredient(name = it, category = IngredientCategory.FOOD) },
+        nutrition = zeroNutrition,
+    )
+
+    @Test
+    fun `vegan flags English milk egg honey and gelatin`() {
+        for (ing in listOf("skimmed milk powder", "whey", "egg yolk", "honey", "gelatin", "butter", "cheddar cheese")) {
+            assertFalse("$ing should violate vegan", checkDiet(productWithIngredients(ing), DietKey.VEGAN).compliant)
+        }
+    }
+
+    @Test
+    fun `vegetarian flags English meat and fish but not plant ingredients`() {
+        for (ing in listOf("chicken", "beef", "pork fat", "tuna", "shrimp", "bacon bits")) {
+            assertFalse("$ing should violate vegetarian", checkDiet(productWithIngredients(ing), DietKey.VEGETARIAN).compliant)
+        }
+        assertTrue(checkDiet(productWithIngredients("tomato", "butter beans", "cocoa butter", "coconut milk", "peanut butter", "eggplant"), DietKey.VEGETARIAN).compliant)
+        assertTrue(checkDiet(productWithIngredients("coconut milk", "cocoa butter", "almond milk", "eggplant", "butter beans"), DietKey.VEGAN).compliant)
+    }
+
+    @Test
+    fun `dairy-free flags English dairy but not plant milks or nut butters`() {
+        assertFalse(checkDiet(productWithIngredients("whole milk"), DietKey.DAIRY_FREE).compliant)
+        assertFalse(checkDiet(productWithIngredients("cream cheese"), DietKey.DAIRY_FREE).compliant)
+        assertTrue(checkDiet(productWithIngredients("oat milk", "shea butter", "coconut cream"), DietKey.DAIRY_FREE).compliant)
+    }
+
+    @Test
+    fun `gluten-free flags English wheat barley and malt`() {
+        for (ing in listOf("wheat flour", "barley malt", "rye", "semolina")) {
+            assertFalse("$ing should violate gluten-free", checkDiet(productWithIngredients(ing), DietKey.GLUTEN_FREE).compliant)
+        }
+    }
+
+    @Test
+    fun `gluten-free does not flag a product named sans gluten or gluten-free`() {
+        assertTrue(checkDiet(named("Pain sans gluten", "farine de maïs", "eau"), DietKey.GLUTEN_FREE).compliant)
+        assertTrue(checkDiet(named("Gluten-free bread", "corn flour", "water"), DietKey.GLUTEN_FREE).compliant)
+    }
+
+    @Test
+    fun `halal flags English pork and alcohol`() {
+        assertFalse(checkDiet(productWithIngredients("pork gelatin"), DietKey.HALAL).compliant)
+        assertFalse(checkDiet(productWithIngredients("red wine"), DietKey.HALAL).compliant)
+    }
+
+    // ---- Regression lock: plant-based substitutes named after the animal food ----
+
+    @Test
+    fun `plant-based substitute names are not flagged by their own name`() {
+        assertTrue(checkDiet(named("Saucisses végétales", "protéines de pois", "eau"), DietKey.VEGETARIAN).compliant)
+        assertTrue(checkDiet(named("Vegan cheese", "coconut oil", "starch"), DietKey.VEGAN).compliant)
+        assertTrue(checkDiet(named("Alternative végétale au fromage", "huile de coco"), DietKey.DAIRY_FREE).compliant)
+    }
+
+    @Test
+    fun `substitute name does not hide a real animal ingredient`() {
+        assertFalse(checkDiet(named("Vegan style burger", "beef", "onion"), DietKey.VEGAN).compliant)
+        assertFalse(checkDiet(named("Saucisses végétales", "lait écrémé en poudre"), DietKey.VEGAN).compliant)
+    }
 }

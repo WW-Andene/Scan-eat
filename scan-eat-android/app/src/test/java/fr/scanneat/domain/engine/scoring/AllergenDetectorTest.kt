@@ -114,4 +114,54 @@ class AllergenDetectorTest {
         assertEquals(1, result.size)
         assertEquals("lactose", result.first().key)
     }
+
+    // ---- Regression lock: coverage gaps found in the allergen-pattern audit ----
+
+    private fun keys(vararg names: String) = detectAllergens(productWithIngredients(*names)).map { it.key }.toSet()
+
+    @Test
+    fun `noix de saint-jacques is a mollusc not a tree nut`() {
+        val k = keys("noix de Saint-Jacques")
+        assertTrue("molluscs" in k)
+        assertFalse("nuts" in k)
+    }
+
+    @Test
+    fun `noix de veau and noix de jambon are not tree nuts`() {
+        assertFalse("nuts" in keys("noix de veau", "noix de jambon"))
+    }
+
+    @Test
+    fun `plain noix and noix de cajou still match tree nuts`() {
+        assertTrue("nuts" in keys("noix"))
+        assertTrue("nuts" in keys("noix de cajou"))
+    }
+
+    @Test
+    fun `bonito and dashi are detected as fish`() {
+        assertTrue("fish" in keys("dashi"))
+        assertTrue("fish" in keys("katsuobushi"))
+    }
+
+    @Test
+    fun `gambas and krill are crustaceans`() {
+        assertTrue("crustaceans" in keys("gambas"))
+        assertTrue("crustaceans" in keys("krill"))
+    }
+
+    @Test
+    fun `escargots and coquillages are molluscs`() {
+        assertTrue("molluscs" in keys("escargots"))
+        assertTrue("molluscs" in keys("coquillages"))
+    }
+
+    @Test
+    fun `camembert listed alone is detected as milk`() {
+        assertTrue("lactose" in keys("camembert"))
+    }
+
+    @Test
+    fun `gomasio is detected as sesame`() {
+        assertTrue("sesame" in keys("gomasio"))
+    }
 }

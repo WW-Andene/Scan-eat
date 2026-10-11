@@ -65,6 +65,10 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
     val def = DIET_DEFS[dietKey] ?: return DietResult(true, emptyList(), emptyList(), false, null)
 
     val haystacks: List<String> = listOf(product.name) + product.ingredients.map { it.name }
+    // See SUBSTITUTE_NAME_PATTERN: a plant-based/free-from product name legitimately contains
+    // the animal word it replaces, so it doesn't count as evidence of a violation.
+    val forbiddenHaystacks: List<String> =
+        if (dietKey in SUBSTITUTE_NAME_DIETS && SUBSTITUTE_NAME_PATTERN.containsMatchIn(product.name)) haystacks.drop(1) else haystacks
 
     // Matches against a lowercased copy - same accented-uppercase gap as
     // AllergenDetector.detectAllergens() (RegexOption.IGNORE_CASE alone doesn't
@@ -72,12 +76,13 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
     // compliant. firstOrNull still returns the original-casing element from
     // [haystacks], so violation/preferredHits text keeps its original casing.
     fun testAny(re: Regex): String? = haystacks.firstOrNull { re.containsMatchIn(it.lowercase()) }
+    fun testForbidden(re: Regex): String? = forbiddenHaystacks.firstOrNull { re.containsMatchIn(it.lowercase()) }
 
     val violations    = mutableListOf<String>()
     val preferredHits = mutableListOf<String>()
 
     for (re in def.forbidden) {
-        testAny(re)?.let { violations += it }
+        testForbidden(re)?.let { violations += it }
     }
     for (re in def.preferred) {
         testAny(re)?.let { preferredHits += it }
