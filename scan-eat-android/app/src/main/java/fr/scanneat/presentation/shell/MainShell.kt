@@ -84,68 +84,134 @@ fun MainShell(
     // own scrolling content as this nav's blur source via the same
     // LocalBottomNavHazeState provided below (a different composable subtree
     // than this one, hence the CompositionLocal instead of a direct param).
-    Box(Modifier.fillMaxSize().background(Background)) {
-        CompositionLocalProvider(LocalBottomNavHazeState provides bottomNavHazeState, LocalPopupOverlay provides popupOverlay) {
-            AppNavGraph(
-                navController    = navController,
-                startDestination = when {
-                    startOnboarding    -> AppRoutes.ONBOARDING
-                    startRoute != null -> startRoute
-                    else               -> TopTab.Dashboard.route
-                },
-                modifier         = Modifier.fillMaxSize(),
-            )
+    // Adaptive layout (F29). Width classes follow Material's window size
+    // breakpoints, expressed as sums of distinct scale tokens: 600dp =
+    // 512 + 64 + 24 (medium), 840dp = 512 + 256 + 64 + 8 (expanded).
+    BoxWithConstraints(Modifier.fillMaxSize().background(Background)) {
+        val isMediumOrWider = maxWidth >= 512.dp + 64.dp + 24.dp
+        val isExpanded = maxWidth >= 512.dp + 256.dp + 64.dp + 8.dp
+        val useRail = isExpanded && showNav
+        val haptics = LocalHapticFeedback.current
+        val hierarchy = backStack.value?.destination?.hierarchy
+
+        // Shared by the bottom bar and the side rail so both keep identical
+        // tap / long-press-to-arm-and-swap behaviour.
+        @Composable
+        fun NavTabItem(tab: TopTab, modifier: Modifier) {
+            val isSelected = hierarchy?.any { it.route == tab.route } == true
+            val isArmed = armedNavTab == tab
+            val isReplaceTarget = armedNavTab != null && !isArmed
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = modifier
+                    .then(
+                        if (isArmed) Modifier.background(AccentCoral.copy(alpha = 0.14f))
+                        else if (isReplaceTarget) Modifier.background(AccentCoral.copy(alpha = 0.06f))
+                        else Modifier
+                    )
+                    .combinedClickable(
+                        onClick = {
+                            val armed = armedNavTab
+                            if (armed != null) {
+                                if (armed != tab) {
+                                    val fromIdx = navTabs.indexOf(armed)
+                                    val toIdx = navTabs.indexOf(tab)
+                                    val newOrder = navTabs.toMutableList()
+                                    newOrder[fromIdx] = tab
+                                    newOrder[toIdx] = armed
+                                    shellViewModel.setNavTabOrder(serializeTopTabOrder(newOrder))
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
+                                armedNavTab = null
+                            } else {
+                                // collapseFirst = true: a nav tap can happen from any
+                                // depth, so the tab's own back stack is collapsed to its
+                                // root before restoreState brings it back.
+                                navController.switchToTab(tab.route, collapseFirst = true)
+                            }
+                        },
+                        onLongClick = {
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            armedNavTab = if (armedNavTab == tab) null else tab
+                        },
+                    ),
+            ) {
+                Icon(
+                    tab.icon, stringResource(tab.labelRes),
+                    tint = if (isSelected) AccentCoral else IconInactive,
+                    modifier = Modifier.size(IconSize.Nav),
+                )
+                Spacer(Modifier.height(Spacing.XS))
+                Text(
+                    stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
+                    color = if (isSelected) AccentCoral else IconInactive,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
-        // Gated on rememberReducedMotion(), like every other prominent animation
-        // in the app (see Motion.kt's own doc comment) - this one was added
-        // without the check, unlike ambientGloom/pressScale/rememberHeroEntrance.
+
+        val navShape = RoundedCornerShape(CardRadius.PROMINENT)
+        // Gated on rememberReducedMotion(), like every other prominent animation.
         val reduceMotion = rememberReducedMotion()
+
+        Row(Modifier.fillMaxSize()) {
+            // Expanded widths (tablets, unfolded foldables, landscape large
+            // phones): navigation moves to a floating side rail so content
+            // keeps its full height instead of sitting above a wide, sparse
+            // bottom bar.
+            if (useRail) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical + WindowInsetsSides.Start))
+                        .padding(start = FloatingChromeMargin.horizontal, top = Spacing.L, bottom = Spacing.L)
+                        .width(96.dp)
+                        .shadow(elevation = 8.dp, shape = navShape)
+                        .clip(navShape)
+                        .hazeEffect(state = bottomNavHazeState, style = FrostedGlassStyle)
+                        .glassSheen(edgeAlpha = 0.28f, shape = navShape),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.S, Alignment.CenterVertically),
+                ) {
+                    navTabs.forEach { tab -> NavTabItem(tab, Modifier.fillMaxWidth().height(64.dp)) }
+                }
+            }
+            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.TopCenter) {
+                CompositionLocalProvider(
+                    LocalBottomNavHeight provides if (useRail) 0.dp else BottomNavPillTotalHeight,
+                    LocalBottomNavHazeState provides bottomNavHazeState,
+                    LocalPopupOverlay provides popupOverlay,
+                ) {
+                    AppNavGraph(
+                        navController    = navController,
+                        startDestination = when {
+                            startOnboarding    -> AppRoutes.ONBOARDING
+                            startRoute != null -> startRoute
+                            else               -> TopTab.Dashboard.route
+                        },
+                        // Readable-width cap on medium+ widths: list/card screens
+                        // were stretched edge-to-edge across a whole tablet.
+                        // Chrome-less routes (scan camera, onboarding) stay full-bleed.
+                        modifier = if (isMediumOrWider && showNav) Modifier.fillMaxHeight().widthIn(max = 512.dp + 256.dp + 64.dp + 8.dp).fillMaxWidth()
+                                   else Modifier.fillMaxSize(),
+                    )
+                }
+            }
+        }
+
         AnimatedVisibility(
-            visible  = showNav,
+            visible  = showNav && !useRail,
             enter    = if (reduceMotion) EnterTransition.None else fadeIn(),
             exit     = if (reduceMotion) ExitTransition.None else fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter),
         ) {
-            // Floating/detached bottom nav — margin on every side instead of the
-            // previous edge-to-edge bar, rounded on all four corners (not just the
-            // top two), glassy + elevated so it reads as a chrome piece hovering
-            // over the content rather than fused to the screen edge. Handles its
-            // own nav-bar inset (windowInsets = 0 below) so the floating gap is the
-            // *only* gap, instead of stacking on top of NavigationBar's own default
-            // system-bar padding.
-            // User-reported: this used to be an outer Box (glassSheen's own clip +
-            // hairline draw) wrapping an inner Surface (its own separate shadow/
-            // clip/hazeEffect) - two independently-clipped objects stacked, whose
-            // bounds didn't line up, showing as a stray rectangle at the nav's edge
-            // (same root cause already fixed in ScanEatCard/FloatingTopBar - see
-            // those files' own comments). Collapsed into the single content Row's
-            // own modifier chain below - one object, one set of bounds.
-            val navShape = RoundedCornerShape(CardRadius.PROMINENT)
-            // Replaces Material3's NavigationBar/NavigationBarItem with a plain Row
-            // of custom items so long-press-to-arm can be layered on cleanly.
-            //
-            // User-reported: tab switching itself became slow/unresponsive/
-            // misfiring. Two prior attempts hand-rolled the tap-vs-hold gesture
-            // with a custom awaitEachGesture loop consuming every pointer event
-            // manually - functionally repairable each time a new failure mode
-            // showed up, but a plain tap had no ripple/press feedback at all
-            // (nothing indicated a tap had registered until navigation actually
-            // completed) and evidently still misfired in practice. Replaced with
-            // Modifier.combinedClickable(onClick, onLongClick) - Compose's own
-            // battle-tested primitive for exactly this case, with built-in ripple
-            // feedback and correct touch-slop/timing handled by the framework
-            // instead of hand-timed code. Trade-off: long-press duration is now
-            // the platform's standard timeout (~500ms), not a custom 2s.
-            val haptics = LocalHapticFeedback.current
-
+            // Floating, detached, glassy bottom nav - a single content Row with
+            // one modifier chain (one object, one set of bounds). On medium
+            // widths it's capped so five tabs don't spread across a tablet.
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .then(if (isMediumOrWider) Modifier.widthIn(max = 512.dp + 64.dp) else Modifier.fillMaxWidth())
                     .windowInsetsPadding(WindowInsets.navigationBars)
-                    // Shared with FloatingTopBar (see FloatingChromeMargin's own doc
-                    // comment) - keeps this bottom margin identical to the header's
-                    // top margin instead of the two independent literals this used
-                    // to be.
                     .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
                     .shadow(elevation = 8.dp, shape = navShape)
                     .clip(navShape)
@@ -155,83 +221,13 @@ fun MainShell(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val hierarchy = backStack.value?.destination?.hierarchy
-                navTabs.forEach { tab ->
-                    val isSelected = hierarchy?.any { it.route == tab.route } == true
-                    val isArmed = armedNavTab == tab
-                    val isReplaceTarget = armedNavTab != null && !isArmed
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .then(
-                                if (isArmed) Modifier.background(AccentCoral.copy(alpha = 0.14f))
-                                else if (isReplaceTarget) Modifier.background(AccentCoral.copy(alpha = 0.06f))
-                                else Modifier
-                            )
-                            // Keyed on navOrderCsv.value (not just tab.route): the
-                            // click/long-click lambdas below close over navTabs, a
-                            // plain recomputed val, not a State-backed read - a tab
-                            // whose slot doesn't move in a swap would otherwise keep
-                            // running with the stale pre-swap list captured before
-                            // that swap.
-                            .combinedClickable(
-                                onClick = {
-                                    val armed = armedNavTab
-                                    if (armed != null) {
-                                        if (armed != tab) {
-                                            val fromIdx = navTabs.indexOf(armed)
-                                            val toIdx = navTabs.indexOf(tab)
-                                            val newOrder = navTabs.toMutableList()
-                                            newOrder[fromIdx] = tab
-                                            newOrder[toIdx] = armed
-                                            shellViewModel.setNavTabOrder(serializeTopTabOrder(newOrder))
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        }
-                                        armedNavTab = null
-                                    } else {
-                                        // User-reported: tapping a nav tab while deep in a
-                                        // sub-page (e.g. a detail screen pushed from within a
-                                        // tab) restored that same sub-page instead of the
-                                        // tab's own root - restoreState=true below faithfully
-                                        // restores whatever was saved, but nothing collapsed
-                                        // the tab's own back stack to its root before it got
-                                        // saved. Reuses switchToTab's own collapseFirst,
-                                        // already used by 6 internal deep-link call sites in
-                                        // AppNavGraph.kt for the same reason - here it must
-                                        // always run (collapseFirst = true) since a navbar tap
-                                        // can happen from any depth, not just one level deep.
-                                        navController.switchToTab(tab.route, collapseFirst = true)
-                                    }
-                                },
-                                onLongClick = {
-                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    armedNavTab = if (armedNavTab == tab) null else tab
-                                },
-                            ),
-                    ) {
-                        Icon(
-                            tab.icon, stringResource(tab.labelRes),
-                            tint = if (isSelected) AccentCoral else IconInactive,
-                            modifier = Modifier.size(IconSize.Nav),
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
-                            color = if (isSelected) AccentCoral else IconInactive,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
+                navTabs.forEach { tab -> NavTabItem(tab, Modifier.weight(1f).fillMaxHeight()) }
             }
         }
 
         // Rendered last (highest z-order) so an open popup menu always sits
-        // above both the screen content and the floating header/nav chrome -
-        // see PopupOverlayController's own doc comment for why this exists
-        // instead of ScanEatDropdownMenu's previous Popup-based rendering.
+        // above both the screen content and the floating chrome - see
+        // PopupOverlayController's own doc comment.
         popupOverlay.content?.invoke()
     }
 }

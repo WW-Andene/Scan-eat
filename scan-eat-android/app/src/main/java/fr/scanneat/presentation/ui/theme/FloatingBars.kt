@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -241,10 +242,21 @@ fun FloatingTopBar(
 }
 
 /** FloatingTopBar's own pill height (56dp title row + FloatingChromeMargin.vertical top/bottom) — not including the device's own status-bar inset, which [FloatingScreenScaffold] adds separately. */
-val FloatingTopBarHeight = 48.dp + FloatingChromeMargin.vertical * 2
+val FloatingTopBarHeight = 96.dp + 16.dp   // 48dp pill + 2 × FloatingChromeMargin.vertical (32dp)
 
 /** MainShell's floating bottom nav's own pill height (64dp NavigationBar + FloatingChromeMargin.vertical top/bottom) — not including the device's own navigation-bar inset. */
-val FloatingBottomNavHeight = 64.dp + FloatingChromeMargin.vertical * 2
+val FloatingBottomNavHeight: Dp
+    @Composable @ReadOnlyComposable get() = LocalBottomNavHeight.current
+
+/** Pill (64dp) + 2 × FloatingChromeMargin.vertical (32dp) — the phone/medium-width bottom bar. */
+val BottomNavPillTotalHeight: Dp = 128.dp
+
+/**
+ * Bottom clearance screens must reserve for MainShell's nav. Provided by
+ * MainShell: [BottomNavPillTotalHeight] when the floating bottom bar is shown,
+ * 0.dp on expanded widths where navigation moves to a side rail instead.
+ */
+val LocalBottomNavHeight = compositionLocalOf { BottomNavPillTotalHeight }
 
 /**
  * Wraps a screen's content in the app's floating-chrome layout: a full-bleed
