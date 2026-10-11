@@ -291,7 +291,7 @@ fun ScanScreen(
                 // and dismissible per-barcode (see dismissRecallWarning's own doc comment).
                 ErrorBanner(
                     message = message,
-                    modifier = Modifier.padding(top = topInset + Spacing.XXL * 3 + 96.dp, start = Spacing.M, end = Spacing.M),
+                    modifier = Modifier.padding(top = topInset + 128.dp + 64.dp, start = Spacing.M, end = Spacing.M),
                     onDismiss = { viewModel.dismissRecallWarning() },
                 )
             }

@@ -50,7 +50,7 @@ fun EmptyListState(icon: ImageVector, message: String, ctaLabel: String? = null,
             Box(contentAlignment = Alignment.Center) {
                 Box(
                     modifier = Modifier
-                        .size(IconSize.EmptyState * 2.2f)
+                        .size(96.dp)
                         .background(
                             Brush.radialGradient(
                                 listOf(AccentCoral.copy(alpha = 0.14f * breathingPulse), Color.Transparent),

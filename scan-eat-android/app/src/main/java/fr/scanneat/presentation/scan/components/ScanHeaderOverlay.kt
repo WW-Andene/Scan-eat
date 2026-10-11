@@ -123,7 +123,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
     // construction already fixed elsewhere (see ScanActionControls.kt's own
     // comment) - collapsed into one Box.
     Box(
-        modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + Spacing.XXL * 3)
+        modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + 96.dp)
             .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
             .clip(RoundedCornerShape(CardRadius.PROMINENT))
             .background(SurfaceVariant.copy(alpha = StandardCardAlpha), RoundedCornerShape(CardRadius.PROMINENT))

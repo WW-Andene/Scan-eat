@@ -19,13 +19,13 @@ import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
 
-/** Fixed label-column width (72dp = Spacing.XXL*2 + Spacing.SM), shared with
+/** Fixed label-column width (72dp = 64.dp + 8.dp), shared with
  *  the idealCaption row below so its start padding can never drift out of
  *  alignment with the label above it again. */
-private val BudgetLabelWidth = Spacing.XXL * 2 + Spacing.SM
+private val BudgetLabelWidth = 64.dp + 8.dp
 
-/** Fixed value-column width (64dp = Spacing.XXL*2). */
-private val BudgetValueWidth = Spacing.XXL * 2
+/** Fixed value-column width (64dp). */
+private val BudgetValueWidth = 64.dp
 
 /**
  * Daily "don't exceed" budgets (saturated fat / free sugars / salt) - DailyTargets

@@ -71,7 +71,7 @@ import dev.chrisbanes.haze.hazeSource
  */
 object FloatingChromeMargin {
     val horizontal: Dp = Spacing.L
-    val vertical: Dp = Spacing.L * 2
+    val vertical: Dp = Spacing.XXL
 }
 
 val FrostedGlassStyle: HazeStyle
