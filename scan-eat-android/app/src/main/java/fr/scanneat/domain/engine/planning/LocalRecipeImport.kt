@@ -22,13 +22,18 @@ private fun norm(s: String): String =
     Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(COMBINING_MARKS, "").trim()
 
 private val INGREDIENTS_HEADER = Regex("""^ingredients?\b""")
-private val STEPS_HEADER = Regex("""^(preparation|etapes?|instructions?|methode|method|directions|recette)\b""")
+// "recette" counts as a steps header only on its own line ("Recette :"); as a title prefix
+// ("Recette de la tarte aux pommes") it would swallow the title and file everything before the
+// "Ingrédients" header under steps.
+private val STEPS_HEADER = Regex("""^((preparation|etapes?|instructions?|methode|method|directions)\b|recette\s*:?\s*$)""")
 private val QUANTITY_START = Regex("""^[-•*·]?\s*(\d+[\d.,/]*|[½¼¾⅓]|une?|deux|trois|quatre|cinq|six|quelques|a pinch|une pincee|1/2)\b""")
 private val UNIT = Regex("""\b(\d+\s*(g|kg|mg|ml|cl|dl|l)|c\.?\s*a\.?\s*[sc]|cuill|cuillere|tasse|cups?|tbsp|tsp|pincee|sachet|gousses?|tranches?|boites?)\b""")
 private val STEP_NUMBER = Regex("""^(\d+)[.)]\s*""")
 private val SERVINGS = Regex("""(\d+)\s*(personnes?|pers\.?|portions?|parts?|servings?|people)""")
 private val MINUTES = Regex("""(\d+)\s*(min|minutes)\b""")
 private val HOURS = Regex("""(\d+)\s*h(?:eures?|ours?)?\b""")
+// French "1h30" / "2 h 15": no boundary after the h, so neither HOURS nor MINUTES sees it.
+private val HOURS_MINUTES = Regex("""(\d{1,2})\s*h\s*(\d{2})\b""")
 
 /** Reads a recipe from OCR lines of a recipe card or cookbook page. */
 fun parseRecipeText(lines: List<OcrLine>): FetchedRecipeResult? {
@@ -59,7 +64,14 @@ fun parseRecipeText(lines: List<OcrLine>): FetchedRecipeResult? {
     if (ingredients.isEmpty() && steps.isEmpty()) return null
 
     val all = norm(ordered.joinToString(" ") { it.text })
-    val minutes = MINUTES.findAll(all).sumOf { it.groupValues[1].toInt() } + HOURS.findAll(all).sumOf { it.groupValues[1].toInt() * 60 }
+    // OCR can produce arbitrary digit runs ("99999999999 min"); toInt() would throw and fail the
+    // whole import, so parse leniently and discard any total no recipe could plausibly have.
+    fun num(s: String) = s.toIntOrNull()?.coerceIn(0, 10_000) ?: 0
+    val hmTotal = HOURS_MINUTES.findAll(all).sumOf { num(it.groupValues[1]) * 60 + num(it.groupValues[2]) }
+    val withoutHm = HOURS_MINUTES.replace(all, " ")
+    val minutes = hmTotal +
+        MINUTES.findAll(withoutHm).sumOf { num(it.groupValues[1]) } +
+        HOURS.findAll(withoutHm).sumOf { num(it.groupValues[1]) * 60 }
     val name = ordered.filter { it.top <= ordered.maxOf { l -> l.bottom } * 0.3 }
         .filter { l -> norm(l.text).let { n -> n.count(Char::isLetter) >= 3 && !INGREDIENTS_HEADER.containsMatchIn(n) && !STEPS_HEADER.containsMatchIn(n) } }
         .maxByOrNull { it.height }?.text?.trim().orEmpty()
@@ -68,7 +80,7 @@ fun parseRecipeText(lines: List<OcrLine>): FetchedRecipeResult? {
         servings = SERVINGS.find(all)?.groupValues?.get(1),
         ingredients = ingredients,
         steps = steps,
-        cookTimeMinutes = minutes.takeIf { it > 0 },
+        cookTimeMinutes = minutes.takeIf { it in 1..1_440 },
         kcal = null, proteinG = null, fatG = null, carbsG = null,
         sourceUrl = "",
     )

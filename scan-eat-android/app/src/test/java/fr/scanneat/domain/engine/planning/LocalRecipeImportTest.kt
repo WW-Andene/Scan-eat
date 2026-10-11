@@ -108,6 +108,28 @@ class RecipeTextParserTest {
         assertEquals(90, r.cookTimeMinutes)
     }
 
+    // Regression locks: "1h30" matched neither the minutes nor the hours pattern, and a title
+    // starting with "Recette" was swallowed as a steps header (and could not become the name).
+    @Test
+    fun `reads 1h30 and keeps a title that starts with Recette`() {
+        val lines = listOf(OcrLine("Recette de la tarte", 10, 0, 300, 60)) + stack(
+            "Ingrédients",
+            "2 pommes",
+            "Préparation",
+            "1. Cuire 1h30 au four.",
+        ).map { it.copy(top = it.top + 80, bottom = it.bottom + 80) }
+        val r = parseRecipeText(lines)!!
+        assertEquals("Recette de la tarte", r.name)
+        assertEquals(listOf("2 pommes"), r.ingredients)
+        assertEquals(90, r.cookTimeMinutes)
+    }
+
+    @Test
+    fun `absurd digit runs do not crash the import`() {
+        val r = parseRecipeText(stack("Ingrédients", "2 pommes", "Préparation", "1. Attendre 99999999999 min."))
+        assertNull(r!!.cookTimeMinutes)
+    }
+
     @Test
     fun `no recipe-like text returns null`() {
         assertNull(parseRecipeText(stack("Bonjour", "Merci")))
