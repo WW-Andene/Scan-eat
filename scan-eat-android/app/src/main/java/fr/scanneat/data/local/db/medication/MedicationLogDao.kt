@@ -48,6 +48,17 @@ interface MedicationLogDao {
         return true
     }
 
+    @Query("SELECT COUNT(*) FROM medication_log WHERE medicationId = :medicationId AND date = :date AND profileId = :profileId")
+    suspend fun countByMedicationAndDate(medicationId: String, date: String, profileId: String): Int
+
+    /** Inserts only while fewer than [max] doses are logged for that medication/day. */
+    @Transaction
+    suspend fun insertIfBelow(medicationId: String, date: String, profileId: String, max: Int, build: () -> MedicationLogEntity): Boolean {
+        if (countByMedicationAndDate(medicationId, date, profileId) >= max) return false
+        insert(build())
+        return true
+    }
+
     @Query("DELETE FROM medication_log WHERE id = :id")
     suspend fun delete(id: String)
 

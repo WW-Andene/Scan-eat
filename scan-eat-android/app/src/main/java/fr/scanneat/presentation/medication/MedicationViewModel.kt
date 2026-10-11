@@ -251,7 +251,7 @@ class MedicationViewModel @Inject constructor(
                 var streak = 0
                 var date = today.minusDays(1)
                 repeat(30) {
-                    val takenIds = logsByDate[date]?.map { it.medicationId }?.toSet() ?: emptySet()
+                    val dosesById = logsByDate[date]?.groupingBy { it.medicationId }?.eachCount() ?: emptyMap()
                     // Was `activeMeds.filter { existed on [date] }`, i.e. filtered by
                     // the CURRENT `active` flag first - deactivating a medication (not
                     // deleting it) retroactively dropped it out of every past day's
@@ -260,7 +260,7 @@ class MedicationViewModel @Inject constructor(
                     // wasActiveOn() checks createdAt/deactivatedAt against [date]
                     // itself, independent of the medication's current active state.
                     val relevantMeds = allMeds.filter { med -> med.wasActiveOn(date) }
-                    if (relevantMeds.all { it.id in takenIds }) { streak++; date = date.minusDays(1) }
+                    if (relevantMeds.all { (dosesById[it.id] ?: 0) >= it.dosesPerDay }) { streak++; date = date.minusDays(1) }
                     else return@map streak
                 }
                 streak
@@ -289,8 +289,8 @@ class MedicationViewModel @Inject constructor(
                     if (relevantMeds.isEmpty()) {
                         DayAdherence(date, null)
                     } else {
-                        val takenIds = logsByDate[date]?.map { it.medicationId }?.toSet() ?: emptySet()
-                        DayAdherence(date, relevantMeds.count { it.id in takenIds } * 100 / relevantMeds.size)
+                        val dosesById = logsByDate[date]?.groupingBy { it.medicationId }?.eachCount() ?: emptyMap()
+                        DayAdherence(date, relevantMeds.count { (dosesById[it.id] ?: 0) >= it.dosesPerDay } * 100 / relevantMeds.size)
                     }
                 }
             }

@@ -35,6 +35,7 @@ internal fun MedicationEntryRow(
     medication: Medication,
     takenToday: MedicationLogEntry?,
     onToggleTaken: () -> Unit,
+    dosesTaken: Int = if (takenToday != null) 1 else 0,
     onSetActive: (Boolean) -> Unit,
     onOpenReminder: () -> Unit,
     onEdit: () -> Unit,
@@ -90,6 +91,13 @@ internal fun MedicationEntryRow(
             // Haptic on toggle - same tactile vocabulary as Grocery's checkbox
             // toggle (GroceryScreen.kt), a near-identical discrete on/off
             // interaction that already had one while this one didn't.
+            if (medication.dosesPerDay > 1) {
+                Text(
+                    "$dosesTaken/${medication.dosesPerDay}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (takenToday != null) Teal else OnSurface.copy(0.6f),
+                )
+            }
             IconButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onToggleTaken() }) {
                 Icon(
                     if (takenToday != null) Icons.Rounded.CheckCircle else Icons.Rounded.CheckCircleOutline,

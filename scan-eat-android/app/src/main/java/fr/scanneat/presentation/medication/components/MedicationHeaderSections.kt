@@ -101,7 +101,8 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
 @Composable
 internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTaken: List<MedicationLogEntry>) {
     val active = medications.filter { it.active }
-    val allTaken = active.isNotEmpty() && active.all { m -> todayTaken.any { it.medicationId == m.id } }
+    val dosesById = todayTaken.groupingBy { it.medicationId }.eachCount()
+    val allTaken = active.isNotEmpty() && active.all { m -> (dosesById[m.id] ?: 0) >= m.dosesPerDay }
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
@@ -122,7 +123,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
             )
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), modifier = Modifier.fillMaxWidth()) {
                 active.forEach { m ->
-                    val taken = todayTaken.any { it.medicationId == m.id }
+                    val taken = (dosesById[m.id] ?: 0) >= m.dosesPerDay
                     Surface(shape = RoundedCornerShape(50), color = if (taken) Teal.copy(0.2f) else OnSurface.copy(0.08f)) {
                         Row(
                             Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),

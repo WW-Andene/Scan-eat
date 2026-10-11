@@ -151,11 +151,16 @@ fun MedicationScreen(
                 }
             }
             items(medications.value, key = { it.id }) { m ->
-                val takenToday = todayTaken.value.find { it.medicationId == m.id }
+                // Multi-dose: each tap logs the next dose; once all are logged, a tap
+                // undoes the most recent one.
+                val doses = todayTaken.value.filter { it.medicationId == m.id }
+                val allDosesTaken = doses.size >= m.dosesPerDay
+                val latestDose = doses.maxByOrNull { it.takenAt }
                 MedicationEntryRow(
                     medication = m,
-                    takenToday = takenToday,
-                    onToggleTaken = { if (takenToday != null) viewModel.undoTaken(takenToday) else viewModel.markTaken(m) },
+                    takenToday = if (allDosesTaken) latestDose else null,
+                    dosesTaken = doses.size,
+                    onToggleTaken = { if (allDosesTaken && latestDose != null) viewModel.undoTaken(latestDose) else viewModel.markTaken(m) },
                     onSetActive = { active -> viewModel.setActive(m, active) },
                     onOpenReminder = { reminderTarget = m },
                     onEdit = { editTarget = m },

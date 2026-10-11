@@ -84,7 +84,7 @@ internal fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, useImperia
             if (detail.medicationsTaken.isNotEmpty()) {
                 DetailRow(
                     colorFor(CalendarSource.MEDICATION),
-                    stringResource(R.string.calendar_day_medication, detail.medicationsTaken.joinToString(", ") { it.medicationName }),
+                    stringResource(R.string.calendar_day_medication, detail.medicationsTaken.groupingBy { it.medicationName }.eachCount().entries.joinToString(", ") { (name, n) -> if (n > 1) "$name ×$n" else name }),
                 )
             }
             // The month grid's NOTE dot previously had nowhere to lead - tapping a

@@ -346,7 +346,7 @@ class DashboardViewModel @Inject constructor(
         // two screens could show two different numbers for the same day.
         }.combine(hydrationRepo.customGoalMl(id)) { (inputs, todayActivity, workoutDates), customGoal ->
             val activeMeds = inputs.meds.filter { it.active }
-            val takenIds = inputs.todayLogs.map { it.medicationId }.toSet()
+            val dosesById = inputs.todayLogs.groupingBy { it.medicationId }.eachCount()
             val formulaGoal = hydrationRepo.goalMl(
                 inputs.profile.sex, inputs.profile.activityLevel, inputs.profile.healthConditions,
                 // Activity tab R&D improvement: today's actually-logged exercise
@@ -358,7 +358,7 @@ class DashboardViewModel @Inject constructor(
                 hydrationMl     = inputs.hydrationMl,
                 hydrationGoalMl = customGoal ?: formulaGoal,
                 fastingActive   = inputs.fasting?.takeIf { it.isActive },
-                medsTakenCount  = activeMeds.count { it.id in takenIds },
+                medsTakenCount  = activeMeds.count { (dosesById[it.id] ?: 0) >= it.dosesPerDay },
                 medsActiveCount = activeMeds.size,
                 workoutStreak   = logStreakDays(workoutDates, date),
             )

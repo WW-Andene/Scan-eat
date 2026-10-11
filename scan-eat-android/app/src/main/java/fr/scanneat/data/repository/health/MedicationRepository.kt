@@ -58,6 +58,9 @@ data class Medication(
     /** True when [day] is one of this medication's scheduled days -
      *  scheduleDaysMask == 0 means "every day", matching every pre-existing
      *  medication's implicit behavior before this field existed. */
+    /** Doses expected per scheduled day: one per distinct reminder time. */
+    val dosesPerDay: Int get() = reminderTimes.distinct().size.coerceAtLeast(1)
+
     fun isScheduledOn(day: java.time.DayOfWeek): Boolean =
         scheduleDaysMask == 0 || (scheduleDaysMask and (1 shl (day.value - 1))) != 0
 }
@@ -181,7 +184,9 @@ class MedicationRepository @Inject constructor(
         logDao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.mapNotNull { it.toLogDomain() } }
 
     suspend fun logTaken(medication: Medication, date: LocalDate = LocalDate.now(), profileId: String = "default") {
-        logDao.insertIfAbsent(medication.id, date.toIsoString(), profileId) {
+        // Up to one log per scheduled dose - insertIfAbsent allowed only one per day,
+        // so the 2nd/3rd dose of a multi-dose medication could never be recorded.
+        logDao.insertIfBelow(medication.id, date.toIsoString(), profileId, medication.dosesPerDay) {
             MedicationLogEntity(
                 id             = UUID.randomUUID().toString(),
                 medicationId   = medication.id,

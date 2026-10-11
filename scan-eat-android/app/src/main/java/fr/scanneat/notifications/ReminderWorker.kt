@@ -127,7 +127,13 @@ class ReminderWorker @AssistedInject constructor(
             checkMeal(cr.on, cr.time, remindersRepo.customLastFiredKey(cr.id), now, cr.id, cr.label, cr.label, NotifChannel.CUSTOM)
         }
 
-        val takenMedIds = medicationRepo.observeLogByDate(LocalDate.now(), profileId).first().map { it.medicationId }.toSet()
+        // Doses logged today per medication. Dose slot k (in time order) counts as
+        // taken once more than k doses are logged - previously one logged dose
+        // silenced the re-notify for every remaining slot, so a missed evening
+        // dose of a twice-daily medication got no follow-up once the morning one
+        // was logged.
+        val dosesTakenToday = medicationRepo.observeLogByDate(LocalDate.now(), profileId).first()
+            .groupingBy { it.medicationId }.eachCount()
         val today = LocalDate.now().dayOfWeek
         medicationRepo.observeAll(profileId).first()
             .filter { it.active && it.reminderOn && it.isScheduledOn(today) }
@@ -140,7 +146,9 @@ class ReminderWorker @AssistedInject constructor(
                 // own reminder at all. Each of med.reminderTimes (reminderTime plus
                 // any extraReminderTimes) now fires and re-notifies independently via
                 // its own per-slot key (medicationLastFiredKey(id, time)).
+                val slotOrder = med.reminderTimes.sortedBy { runCatching { LocalTime.parse(it) }.getOrNull() ?: LocalTime.MAX }
                 med.reminderTimes.forEach { time ->
+                    val slotTaken = (dosesTakenToday[med.id] ?: 0) > slotOrder.indexOf(time)
                     val slotId = medicationNotificationId(med.id, time)
                     val justFired = checkMeal(true, time, remindersRepo.medicationLastFiredKey(med.id, time), now, slotId, title, body, NotifChannel.MEDICATION)
 
@@ -148,11 +156,9 @@ class ReminderWorker @AssistedInject constructor(
                     // regardless of whether the dose was ever logged. MedicationLogEntry
                     // already records real per-dose "taken" timestamps, so re-notify every
                     // hour until it's logged, instead of only reminding once. "Taken today"
-                    // is still a single daily flag per medication (not per time slot - see
-                    // MedicationLogEntry's own shape), so logging any one dose quiets every
-                    // remaining slot's re-notify for the rest of the day.
+                    // is tracked per slot via dosesTakenToday/slotTaken above.
                     val alreadyFiredToday = justFired || remindersRepo.wasFiredToday(remindersRepo.medicationLastFiredKey(med.id, time))
-                    if (!justFired && alreadyFiredToday && med.id !in takenMedIds &&
+                    if (!justFired && alreadyFiredToday && !slotTaken &&
                         remindersRepo.medicationRenotifyDueAndMark(med.id, time, MEDICATION_RENOTIFY_MINUTES)) {
                         // Was the exact same title/body as the original on-time reminder,
                         // repeated verbatim every hour indefinitely until logged - reads as
