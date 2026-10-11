@@ -1033,3 +1033,10 @@ wheat/egg without the ingredient being listed, wine vinegar flagged non-halal.
   `computePersonalScore`. "bière/vin sans alcool" still vetoes (conservative, left as is).
 - **OFF mapper** treated `en:antibiotic-free`/`en:probiotics` as organic (substring "bio"):
   now whole-token match.
+- Reviewed, no change: manifest posture (allowBackup=false, cleartext off, network security config,
+  non-exported receivers/provider, no hard-coded secrets), backup import (size cap before parse,
+  version check, authenticated AES-GCM), streak and weight-forecast math.
+- **Proposal (not done, can't be tested without the Android runtime):** raise backup-passphrase PBKDF2
+  from 150k to >=600k iterations (OWASP) via a `SCANEAT-ENC-V2` envelope, keeping V1 decrypt at 150k.
+- **Product observation (not a code defect):** plain salted chips score B (63) because thresholds are
+  category-relative and sat fat/sugar are low; revisit weighting only as a deliberate methodology change.
