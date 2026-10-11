@@ -8,7 +8,7 @@ import com.google.mlkit.vision.label.ImageLabeling
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.domain.engine.nutrition.FoodEntry
-import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.planning.findFoodByName
 import fr.scanneat.domain.engine.nutrition.toProduct
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -36,7 +36,8 @@ class OnDeviceFoodIdentifier @javax.inject.Inject constructor() {
             label(InputImage.fromBitmap(bitmap, 0))
         }
         return labels.sortedByDescending { it.confidence }
-            .firstNotNullOfOrNull { searchFoodDB(it.text, limit = 1).firstOrNull() }
+            .filter { it.text.lowercase() !in GENERIC_LABELS }
+            .firstNotNullOfOrNull { findFoodByName(it.text) }
     }
 
     fun toResultProduct(food: FoodEntry) = food.toProduct(100.0)
@@ -49,5 +50,13 @@ class OnDeviceFoodIdentifier @javax.inject.Inject constructor() {
 
     private companion object {
         const val MIN_CONFIDENCE = 0.6f
+
+        /** Labels the model gives for any food shot - they name no specific food and
+         *  would otherwise prefix-match an unrelated entry ("Fruit" -> "fruit de la passion"). */
+        val GENERIC_LABELS = setOf(
+            "food", "fruit", "vegetable", "dish", "cuisine", "meal", "ingredient", "produce", "plant",
+            "tableware", "plate", "bowl", "cutlery", "recipe", "baked goods", "fast food", "junk food",
+            "snack", "dessert", "natural foods", "superfood", "leaf", "flower", "table", "drink",
+        )
     }
 }

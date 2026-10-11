@@ -42,7 +42,34 @@ data class LabelParse(
     val nutrientsRead: Set<String>,
     val ingredientsRead: Boolean,
     val barcode: String?,
+    /** Physically impossible / inconsistent values - the photo was probably misread. */
+    val inconsistencies: List<LabelInconsistency> = emptyList(),
 )
+
+enum class LabelInconsistency { SUGARS_ABOVE_CARBS, SATURATED_ABOVE_FAT, MACROS_ABOVE_100G, ENERGY_MISMATCH }
+
+/**
+ * Plausibility checks a real label always satisfies. Energy uses the EU
+ * conversion factors (Reg. 1169/2011 Annex XIV: 4 kcal/g carbohydrate and
+ * protein, 9 fat, 2 fibre); declared energy may round, so only a gap over
+ * 25 % (and 20 kcal) is flagged.
+ */
+fun checkLabelConsistency(n: NutritionPer100g, read: Set<String>): List<LabelInconsistency> = buildList {
+    if ("sugars" in read && "carbs" in read && n.sugarsG > n.carbsG + 0.5) add(LabelInconsistency.SUGARS_ABOVE_CARBS)
+    if ("saturatedFat" in read && "fat" in read && n.saturatedFatG > n.fatG + 0.5) add(LabelInconsistency.SATURATED_ABOVE_FAT)
+    if (n.fatG + n.carbsG + n.proteinG + n.fiberG + n.saltG > 101.0) add(LabelInconsistency.MACROS_ABOVE_100G)
+    if ("energy" in read && listOf("fat", "carbs", "protein").all { it in read }) {
+        val computed = 4 * n.carbsG + 4 * n.proteinG + 9 * n.fatG + 2 * n.fiberG
+        val gap = kotlin.math.abs(computed - n.energyKcal)
+        if (gap > 20.0 && gap > 0.25 * maxOf(computed, n.energyKcal)) add(LabelInconsistency.ENERGY_MISMATCH)
+    }
+}
+
+// OCR confuses letters and digits inside numbers ("1O g", "l2 g", "0,S g").
+private fun fixOcrDigits(s: String): String =
+    s.replace(Regex("""(?<=\d)[oO](?=[\d.,\s]|g\b)|(?<=[\s:])[oO](?=[.,]\d)""")) { "0" }
+        .replace(Regex("""(?<=[\s:]|^)[lI|](?=\d)|(?<=\d)[lI|](?=\d)""")) { "1" }
+        .replace(Regex("""(?<=\d[.,])[sS](?=\s*g\b)""")) { "5" }
 
 private fun norm(s: String): String =
     Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
@@ -98,7 +125,7 @@ fun parseLabelText(lines: List<OcrLine>, lang: String = "fr"): LabelParse {
     // ---- Nutrition ----
     val values = mutableMapOf<String, Double>()
     for (line in ordered) {
-        val n = norm(line.text)
+        val n = fixOcrDigits(norm(line.text))
         val rule = NUTRIENT_RULES.firstOrNull { it.label.containsMatchIn(n) } ?: continue
         if (rule.key in values) continue
         val labelEnd = rule.label.find(n)!!.range.last + 1
@@ -106,7 +133,7 @@ fun parseLabelText(lines: List<OcrLine>, lang: String = "fr"): LabelParse {
         val value = inLine ?: sameRowNumber(line, ordered)
         if (value != null) values[rule.key] = value
     }
-    energyKcal(normText)?.let { values["energy"] = it }
+    energyKcal(fixOcrDigits(normText))?.let { values["energy"] = it }
     if ("salt" !in values) values["sodium"]?.let { values["salt"] = it * 2.5 }
 
     val nutrition = NutritionPer100g(
@@ -138,6 +165,7 @@ fun parseLabelText(lines: List<OcrLine>, lang: String = "fr"): LabelParse {
         nutrientsRead = values.keys - "sodium",
         ingredientsRead = ingredients.isNotEmpty(),
         barcode = barcode,
+        inconsistencies = checkLabelConsistency(nutrition, values.keys),
     )
 }
 
@@ -160,7 +188,7 @@ private fun sameRowNumber(label: OcrLine, all: List<OcrLine>): Double? {
     return all.asSequence()
         .filter { it !== label && it.left >= label.right - tolerance && kotlin.math.abs(it.centerY - label.centerY) <= tolerance }
         .sortedBy { it.left }
-        .mapNotNull { firstNumber(norm(it.text)) }
+        .mapNotNull { firstNumber(fixOcrDigits(norm(it.text))) }
         .firstOrNull()
 }
 

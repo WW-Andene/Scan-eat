@@ -247,6 +247,7 @@ fun RecipesScreen(
     if (showAdd) {
         val searchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
         val prefill = importPrefill
+        val importedSplit = remember(prefill) { prefill?.let { splitImportedIngredients(it) } }
         AddRecipeDialog(
             onDismiss = { showAdd = false; importPrefill = null },
             onConfirm = { name, comps, servings, notes -> viewModel.save(name, comps, servings, notes); showAdd = false; importPrefill = null },
@@ -254,7 +255,8 @@ fun RecipesScreen(
             onQueryChange = viewModel::setIngredientQuery,
             initialName     = prefill?.name ?: "",
             initialServings = prefill?.servings?.toIntOrNull() ?: 1,
-            initialNotes    = prefill?.let { formatImportedNotes(it) } ?: "",
+            initialNotes    = prefill?.let { formatImportedNotes(it, importedSplit!!) } ?: "",
+            initialComponents = importedSplit?.components ?: emptyList(),
         )
     }
     editIngredientsTarget?.let { recipe ->

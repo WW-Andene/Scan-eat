@@ -11,19 +11,44 @@ import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
+import fr.scanneat.data.repository.planning.RecipeComponent
+import fr.scanneat.domain.engine.planning.parseIngredientLine
+import fr.scanneat.domain.engine.planning.toRecipeComponent
 import java.io.ByteArrayOutputStream
 
 /**
- * FetchedRecipeResult's ingredients/steps are free text (no gram weight to build a real
- * RecipeComponent from — see that class's own doc comment), so an imported recipe's full
- * detail lands here as pre-filled notes text instead of being silently dropped, while the
- * user adds macro-tracked ingredients via the normal search flow in AddRecipeDialog.
+ * An imported recipe's ingredient lines are parsed locally (IngredientLineParser):
+ * lines that match a food become real RecipeComponents with nutrition; the rest,
+ * plus the steps and source, land in the notes for the user to finish by hand.
  */
+/** Imported ingredient lines matched to the food database (with grams), plus the lines that weren't. */
+internal data class ImportedIngredients(
+    val components: List<RecipeComponent>,
+    val unmatched: List<String>,
+    val estimated: List<String>,
+)
+
+internal fun splitImportedIngredients(result: FetchedRecipeResult): ImportedIngredients {
+    val parsed = result.ingredients.map(::parseIngredientLine)
+    val matched = parsed.mapNotNull { p -> p.toRecipeComponent()?.let { p to it } }
+    return ImportedIngredients(
+        components = matched.map { it.second },
+        unmatched = parsed.filter { p -> matched.none { it.first === p } }.map { it.line },
+        estimated = matched.filter { it.first.gramsEstimated }.map { it.first.line },
+    )
+}
+
 @Composable
-internal fun formatImportedNotes(result: FetchedRecipeResult): String = buildString {
-    if (result.ingredients.isNotEmpty()) {
+internal fun formatImportedNotes(result: FetchedRecipeResult, split: ImportedIngredients = splitImportedIngredients(result)): String = buildString {
+    // Matched lines are already in the ingredient list; only the rest needs transcribing.
+    if (split.unmatched.isNotEmpty()) {
         appendLine(stringResource(R.string.recipes_import_notes_ingredients))
-        result.ingredients.forEach { appendLine("- $it") }
+        split.unmatched.forEach { appendLine("- $it") }
+        appendLine()
+    }
+    if (split.estimated.isNotEmpty()) {
+        appendLine(stringResource(R.string.recipes_import_notes_estimated))
+        split.estimated.forEach { appendLine("- $it") }
         appendLine()
     }
     if (result.steps.isNotEmpty()) {
