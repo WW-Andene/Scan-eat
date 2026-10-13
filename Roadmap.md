@@ -25,6 +25,237 @@ que ce document ne contienne aucune information erronée (philosophie du README)
 
 ---
 
+# Audit approfondi du moteur de score (passe 6)
+
+Périmètre : `domain/engine/scoring/` (35 fichiers, ~5 200 lignes), la base d'additifs, `OffMapper` /
+`OffCategoryMapping` / `OffIngredientParsing` (données d'entrée du score), `DailyTargets` /
+`BmrCalculations` et les ajustements personnels.
+
+**Méthode.** J'ai lu les piliers ligne à ligne. Les faits ont été comparés aux textes de référence (règlements UE,
+EFSA, CIRC, OMS). Surtout, les fonctions de catégorisation ont été **portées à l'identique en
+Python et exécutées sur de vrais produits Open Food Facts** : les 10 produits les plus scannés en
+France pour 39 catégories, et 300 produits pour la couverture des additifs. Les scripts sont dans le
+scratchpad de la session, et les chiffres ci-dessous en sont la sortie brute.
+
+Légende : ✅ vérifié par exécution sur données réelles · 📖 vérifié par lecture du code et des sources ·
+⚠️ effet latent (le chemin existe dans le code, mais les données qui le déclenchent sont rares en France).
+
+## Architecture rappelée
+
+Score de 0 à 100 = Transformation (20) + Densité nutritionnelle (25) + Nutriments négatifs (25) + Additifs (15)
++ Intégrité des ingrédients (15), auquel s'ajoutent les bonus (plafonnés à 10) et les pénalités globales, puis un **veto** qui plafonne la note.
+Les seuils dépendent de la **catégorie** du produit (`CategoryThresholds`). La catégorie est donc la clé de voûte :
+une catégorie fausse rend faux tous les piliers à la fois.
+
+## Ce qui est juste (vérifié)
+
+- Valeurs nutritionnelles de référence (VNR) de l'annexe XIII du règlement 1169/2011 (fer 14, calcium 800, vitamine D 5 µg, vitamine C 80, vitamine A 800, vitamine E 12, B12 2,5,
+  magnésium 375, potassium 2000, zinc 10), et seuil « quantité significative » de 15 % 📖.
+- Références EFSA dans `DailyTargets` : fer 11/16 mg, zinc 9,4/7,5, vitamine C 110/95, vitamine A 750/650, calcium 950,
+  vitamine D 15 µg, B12 4 µg, magnésium 350/300, potassium 3500, folates 330 ; suppléments de grossesse +70/+260/+500 kcal
+  et +1/+9/+28 g de protéines 📖.
+- Sucres libres 10 % / 5 % (OMS), graisses saturées 10 %, facteur sodium → sel de 2,5, alcool classé CIRC groupe 1 📖.
+- Statuts réglementaires : E171 interdit dans l'UE (règlement 2022/63), E127 interdit par la FDA (janvier 2025), E924, E216 et E217 non autorisés dans l'UE 📖.
+- Les 14 allergènes de l'annexe II, avec la gestion des traces ; régime végan (E120, E542, E901, E904, lanoline…) 📖.
+
+---
+
+## Findings, par ordre de travail
+
+### S1. La catégorisation Open Food Facts est massivement fausse 🔴 ✅
+`mapCategory` concatène **toute la hiérarchie** `categories_tags` (parents compris) et cherche des
+**sous-chaînes** dans un ordre fixe. Or les tags parents d'Open Food Facts sont génériques :
+`en:plant-based-foods-and-beverages` (presque tous les produits végétaux, et qui contient « beverage »),
+`en:cereals-and-potatoes` (pain, riz, pâtes, farines, chips : contient « cereal »), `en:prepared-meats`
+(jambons : pas « processed-meat », mais « meat »), `en:breaded-fish…` (contient « bread »).
+Il manque aussi des catégories entières : `GRAIN`, `FRESH_PRODUCE`, `EGG` et `ICE_CREAM` ne sont **jamais** produites à
+partir des tags, et le lait, la crème et le sucre retombent en `OTHER`.
+
+Catégorie finale (après le rattrapage par le nom de `resolveCategory`), pour les 10 produits les plus scannés en France :
+
+| Catégorie OFF | Catégorie attribuée par l'app |
+|---|---|
+| Pains | **BREAKFAST_CEREAL 10/10** |
+| Riz | **BREAKFAST_CEREAL 10/10** |
+| Quinoa | **BREAKFAST_CEREAL 10/10** |
+| Pâtes | BREAKFAST_CEREAL 8, CHEESE 1, GRAIN 1 |
+| Chips | **BREAKFAST_CEREAL 8**, SNACK_SWEET 2 |
+| Farines | BREAKFAST_CEREAL 8, BEVERAGE_SOFT 1, NUTS_SEEDS 1 |
+| Lentilles / légumineuses | **NUTS_SEEDS 9/10** |
+| Pois chiches | **NUTS_SEEDS 10/10** |
+| Jambons | **FRESH_MEAT 10/10** |
+| Poissons panés | **BREAD 10/10** |
+| Lasagnes | FRESH_MEAT 5, CHEESE 3, FISH 2 |
+| Cafés | **BEVERAGE_SOFT 10/10** |
+| Thés | BEVERAGE_SOFT 9 |
+| Margarines | **BEVERAGE_SOFT 8/10** |
+| Huiles d'olive | OIL_FAT 5, **SNACK_SALTY 3**, BEVERAGE_SOFT 2 |
+| Légumes en conserve | BEVERAGE_SOFT 5, FRESH_PRODUCE 3, NUTS_SEEDS 2 |
+| Légumes surgelés | BEVERAGE_SOFT 6, FRESH_PRODUCE 4 |
+| Fruits secs | NUTS_SEEDS 6, BEVERAGE_SOFT 2, BEVERAGE_WATER 1, SNACK_SALTY 1 |
+| Laits végétaux | NUTS_SEEDS 5, BREAKFAST_CEREAL 4, BEVERAGE_SOFT 1 |
+| Laits | OTHER 9, BEVERAGE_SOFT 1 |
+| Aliments pour bébé | SNACK_SWEET 3, BREAKFAST_CEREAL 2 |
+| Correctes : yaourts, beurres, miels, chocolats noirs, viandes fraîches, thon, saumon fumé, tofu, bières, eaux minérales, flocons d'avoine, œufs (9/10), compotes (9/10) |
+
+**Conséquences concrètes** (seuils de `CategoryThresholds`) :
+- Margarine ou café notés comme une **boisson** : fourchette attendue 0-50 kcal, donc pénalité « hors norme ». Les points de protéines et de fibres
+  sont jugés impossibles à obtenir.
+- Lentilles préparées notées comme des **noix** : protéines attendues ≥ 12/18/25 g et 480-650 kcal, donc 0/7 en protéines et
+  « énergie hors norme ».
+- Jambons en `FRESH_MEAT` : le veto combiné « nitrites + sel + amidon » (réservé à `PROCESSED_MEAT`) ne se déclenche
+  **jamais** sur un jambon, et les seuils de sel sont ceux d'une viande crue.
+- Huile d'olive en `SNACK_SALTY` : -8 pour la densité énergétique (seule `OIL_FAT` en est exemptée) et graisses saturées jugées
+  sur les seuils par défaut.
+
+Les tests existants (`OffCategoryMappingTest`) passent parce qu'ils n'utilisent que des **tags feuilles isolés**
+(`cat("en:cheeses")`), jamais la hiérarchie réelle renvoyée par l'API.
+→ **Correction** : choisir la catégorie à partir du tag **le plus spécifique** (les tags d'Open Food Facts vont du général au
+particulier) avec une table exacte `tag → catégorie` (`en:breads`, `en:rices`, `en:pastas`, `en:legumes`,
+`en:hams`, `en:prepared-meats`, `en:milks`, `en:plant-based-milks`, `en:coffees`, `en:margarines`,
+`en:fresh-vegetables`…) ; ignorer les tags « parapluie » (`plant-based-foods-and-beverages`,
+`cereals-and-potatoes`, `snacks`) ; ajouter les catégories manquantes (légumineuses, lait, fruits secs,
+café/thé, alimentation infantile). Valider avec un jeu de vérité de vrais produits (cf. S15).
+
+### S2. NOVA : « inconnu » devient « ultra-transformé », et le vrai NOVA 4 d'Open Food Facts est écrasé 🔴 📖
+- `OffMapper.kt:147` : `novaClass = NovaClass.fromInt(off.novaGroup ?: 4)`. Faute de NOVA chez Open Food Facts, le
+  produit est **présumé NOVA 4**. Sans liste d'ingrédients et avec un nom hors liste « produit frais », il reste
+  en NOVA 4 : base de 6/20 au lieu de 20, déduction MAJOR et drapeau rouge « classe NOVA 4 » présentés comme un fait.
+- Comme la valeur 4 « par défaut » est indiscernable d'un NOVA 4 **réellement calculé** par Open Food Facts,
+  `scoreProcessing` rétrograde aussi ce dernier dès que sa propre heuristique est moins sévère. Or cette heuristique est bien
+  plus étroite que la définition NOVA (Monteiro) : `COSMETIC_ADDITIVE_CATEGORIES` ne contient que
+  colorants, exhausteurs et édulcorants, **pas** les émulsifiants, épaississants, gélifiants ou agents d'enrobage. Et
+  `UPF_MARKER_PATTERNS` (5 motifs) ignore le sirop de glucose(-fructose), le sucre inverti, les huiles hydrogénées,
+  le lactosérum, la caséine, le lactose et le gluten ajouté. Une brioche avec E471 et sirop de glucose, classée NOVA 4 par Open Food Facts,
+  devient NOVA 3 dans l'app.
+→ Rendre `novaClass` nullable (inconnu ≠ 4). Ne **jamais** rétrograder un NOVA fourni par Open Food Facts. N'inférer que
+  quand il manque, avec la liste de marqueurs NOVA complète, et afficher « NOVA estimé ».
+
+### S3. L'absence de données produit des affirmations positives 🔴 📖
+Un produit **sans liste d'ingrédients** (fréquent : fiches Open Food Facts incomplètes, photo de face seulement) reçoit :
+- `IngredientIntegrityPillar` : **+2 « Aucun sucre caché »**, et 3/3 en « ingrédients reconnaissables »
+  (`recogRatio = 1.0` quand la liste est vide) ;
+- `HealthConditionGiAdjustments` : **+2 « Aucun déclencheur riche en FODMAP détecté — adapté au SII »** ;
+- `checkDiet` : considéré **conforme** au régime (végan, halal, sans gluten…), sans aucun avertissement. Seuls les allergènes
+  ont un bandeau « non vérifié » ;
+- à l'inverse, la transformation est présumée NOVA 4 (S2).
+Le moteur conclut donc dans les deux sens à partir de rien.
+→ Introduire un état « données insuffisantes » propagé à chaque règle (pas de bonus ni de malus fondés sur
+  l'absence de données), et un **indice de confiance** affiché sur la note (lié à la complétude, ancien C6 de la passe 1).
+
+### S4. Messages « sourcés » inexacts 🟠 📖
+| Où | Affiché | Réalité |
+|---|---|---|
+| `AdditivesTier1` E249/E250 | « IARC Group 1 » | Le **CIRC classe la viande transformée en groupe 1**. Le nitrite ingéré dans des conditions de nitrosation endogène est en **groupe 2A** (monographie vol. 94). |
+| `checkVeto` nitrites | « conservateurs nitrités (E249/E250) » | Le veto ne détecte que E249/E250 : un produit traité **aux nitrates** (E251/E252, pourtant en niveau 1 dans la base) échappe au veto. |
+| `PALM_OIL_PATTERN` | « Huile de palme ou dérivé : huile de coprah » | Le **coprah est la noix de coco**, pas le palmier. |
+| `computeGlobalBonuses` | « Contient des éléments fermentés / probiotiques » | Fermenté ≠ probiotique (pain, produits pasteurisés) ; « probiotique » n'est pas une allégation autorisée dans l'UE. |
+| Veto + pilier trans | « graisses trans **industrielles** — aucun seuil sûr » | Déclenché par toute valeur `trans-fat_100g` > 0,1 g, y compris les trans **naturelles** des ruminants (beurre, fromage, agneau). Le règlement UE 2019/649 ne vise que les trans industrielles. ⚠️ Rarement déclarées en France (0/40 beurres), mais présentes sur les étiquettes importées ou lues par OCR. Et **double peine** : -10 dans le pilier, plus un veto plafonnant à 39. |
+| Caféine > 300 mg/100 g | « une portion normale dépasserait les ~200 mg de l'EFSA » | Calcul par 100 g appliqué aux **poudres** : café soluble (4 g/100 g relevé sur un produit réel), thé en feuilles. Une tasse de soluble (environ 2 g) contient environ 80 mg. ⚠️ Rarement déclaré, mais faux quand ça l'est. |
+→ Corriger chaque texte, et faire relire toute phrase qui cite un organisme (EFSA, CIRC, OMS) par rapport à la source exacte (cf. A1).
+
+### S5. Produits secs et sucres intrinsèques jugés comme des aliments transformés 🟠 📖
+- `scoreNegativeNutrients` pénalise la **densité énergétique** de -2 à -8 dès 200 kcal/100 g, sur la valeur
+  **telle que vendue**. Pâtes et riz secs (environ 350 kcal), légumineuses sèches, flocons d'avoine, cacao, lait en
+  poudre et soupes déshydratées sont donc pénalisés pour une énergie qu'ils n'ont pas une fois cuits ou reconstitués (×2,5 à ×3 d'eau).
+  Open Food Facts fournit des valeurs `*_prepared_100g` qui ne sont pas utilisées.
+- Les sucres : sans « sucres ajoutés », ce sont les **sucres totaux** qui sont jugés. Les fruits frais (`FRESH_PRODUCE`,
+  seuils 8/14/20/30) perdent des points pour leurs sucres **intrinsèques** (raisin, banane à 12-16 g), que la définition
+  OMS des sucres libres exclut explicitement. ⚠️ Atténué quand Open Food Facts estime `added-sugars_100g` (présent sur 36 à 40 fiches sur 40 pour les fruits secs testés).
+→ Utiliser les valeurs « préparé » quand elles existent ; à défaut, exempter de la densité énergétique les catégories
+  « à cuire ou reconstituer ». Exempter les sucres intrinsèques des fruits et légumes non transformés et des produits laitiers nature.
+
+### S6. Additifs : sous-indices non reconnus et double comptage 🟠 ✅
+Mesure sur les 300 produits les plus scannés en France : **72,7 % des occurrences d'additifs seulement sont reconnues**
+par numéro E. Sur 84 additifs distincts, 37 sont inconnus. Les plus fréquents parmi les inconnus sont E322i (48 occurrences), E500ii (10), E267, E392, E461,
+E503ii, E336, E14xx, E160ai, E476, E160b, E450i, E472e, E960a. La cause principale : `additiveTagsToIngredients`
+produit `E322I` / `E500I` (regex `\d{3,4}[a-z]?`), alors que la base ne connaît que `E322` / `E500`.
+Effet secondaire : la lécithine est déjà présente dans le texte (« lécithine de soja ») **et** ajoutée une seconde fois
+via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 additifs ») et le **nombre d'ingrédients**
+(pénalité « > 10 ingrédients »).
+→ Normaliser les numéros (retirer les sous-indices romains i/ii/iii et les lettres de variante en repli : E472e → E472),
+  dédoublonner par additif résolu et non par chaîne, et compléter la base (E476, E461, E392, E160b, E336…).
+
+### S7. Classement des additifs incohérent 🟠 📖
+- Niveau 3 « préoccupation mineure » (-1 chacun) pour la **vitamine C (E300)**, la **riboflavine/vitamine B2 (E101)**, la pectine,
+  la lécithine, le bêta-carotène, le carbonate de calcium, les tocophérols (vitamine E) et les acides citrique et lactique. Aucun avis EFSA ne
+  soutient une « préoccupation » pour ces substances.
+- Sulfites (E220-E228) en **niveau 1 « préoccupation sérieuse »** pour tout le monde : c'est un **allergène**, déjà traité
+  par le profil (double traitement), et non une toxicité générale.
+- Le CMC (E466) est en niveau 1 alors que les carraghénanes (E407), sur lesquels pèsent des préoccupations comparables (réévaluation EFSA 2018, données
+  manquantes), sont en niveau 3.
+→ Ajouter un niveau « sans préoccupation » à 0 point ; ne pénaliser les sulfites que via le profil ; documenter les critères de
+  chaque niveau avec l'avis EFSA correspondant.
+
+### S8. Bonus et malus sans fondement sourcé 🟠 📖
+- **Bio +2** dans un score **nutritionnel** : l'EFSA et l'ANSES ne relèvent pas de différence nutritionnelle significative.
+- **Allégations de santé -3** : pénalise aussi les allégations **autorisées** par le règlement 1924/2006.
+- **Origine +2** pour toute origine déclarée, y compris « UE et non UE ».
+- **Huiles nommées +3** : les catégories sans huile perdent structurellement 3 points (le rééchelonnement ne couvre que 7 catégories).
+- **Enrichissement récompensé** : le bonus micronutriments (jusqu'à +8) ne distingue pas l'intrinsèque de l'ajouté. Les céréales
+  sucrées et chocolats en poudre enrichis gagnent donc des points.
+- Seuil de 15 % des VNR appliqué aux **boissons**, alors que l'annexe XIII prévoit **7,5 %** par 100 ml.
+→ Retirer ou sourcer chaque bonus ; ignorer les micronutriments ajoutés (listés dans les ingrédients) ; appliquer 7,5 % aux boissons.
+
+### S9. Profil : formules hors domaine de validité 🟠 📖
+- **Mifflin-St Jeor appliqué aux mineurs** (`clampedAge` de 1 à 110) : formule validée chez l'adulte. L'EFSA utilise des
+  équations spécifiques intégrant la croissance pour les 1-17 ans. Le calcium de 950 mg vaut pour les adultes, alors que l'EFSA recommande 1150 mg chez les 11-17 ans.
+- **Folates de grossesse non relevés** : la cible reste à 330 µg, alors que l'EFSA recommande 600 µg pendant la grossesse (et une supplémentation de 400 µg d'acide
+  folique en période périconceptionnelle).
+- **Sel 3 g/jour en cas d'hypertension** : non sourcé. Les recommandations européennes (ESH 2023) et la HAS visent moins de 5 à 6 g.
+- **Régime carnivore → cible de fibres 0 g** : l'application valide une cible contraire à l'EFSA (25 g).
+- **Crohn/MICI** : les fibres sont pénalisées en permanence, alors que la recommandation citée ne vaut **qu'en poussée**.
+→ Bornes d'âge explicites (pas de calcul adulte avant 18 ans) ; ajouter les folates de grossesse ; sourcer ou aligner le sel ;
+  afficher la cible EFSA de fibres même pour un régime restrictif ; ajouter un état « poussée / rémission » pour les MICI.
+
+### S10. Incohérences internes du calcul 🟡 📖
+- `scoreProcessing` : le bonus « +2 Peu transformé » est **affiché** mais jamais ajouté au score.
+- `scoreNutritionalDensity` : la déduction « Aucun apport… » vaut 0 point mais est classée MAJOR. Elle compte donc dans
+  `severeFlagCount`, déclenche une pénalité globale et apparaît en drapeau rouge.
+- Bonus oméga-3 : `\bnoix\b` détecte la noix de coco, de cajou ou de muscade, qui ne sont pas des sources d'oméga-3.
+- Pénalités en double : trans (pilier + veto), alcool (pilier + veto), caféine (pilier + veto), additifs de niveau 1 (pilier
+  + veto + pénalité globale « signalements majeurs »).
+→ Une règle = un effet ; tests de cohérence « bonus affiché = points comptés ».
+
+### S11. Grades non calibrés 🟡 📖
+Sept grades (A+ à F) à seuils linéaires (85/70/55/40/25/10), sans calibration publiée contre une référence (Nutri-Score,
+panel de diététiciens) ni distribution observée sur un panel réel. Le même produit peut afficher un Nutri-Score A et un
+« C » Scan'eat sans explication.
+→ Calibrer sur le jeu de vérité (S15), publier la méthode, et expliquer les divergences avec le Nutri-Score sur l'écran de résultat.
+
+### S12. Sources non européennes là où un équivalent existe 🟡 📖
+SII : Monash (Australie). MICI : Crohn's & Colitis Foundation (États-Unis) et NHS (Royaume-Uni). Les équivalents européens existent :
+**ECCO** pour les MICI, **SNFGE / HAS** pour le SII. C'est contraire à la règle du README (« sources européennes préférées »).
+
+### S13. Commentaires de parité obsolètes 🟡 📖
+« Mirrors scoreProduct() from scoring-engine.ts exactly », « same as JS Fix #7 », « the server mirrors this
+exact function » : il n'y a **aucun** fichier TypeScript ni serveur dans le dépôt (le README dit « ni serveur »). D'après la règle du projet, toute
+divergence entre un commentaire et le comportement réel compte comme un bug.
+
+### S14. Version du moteur non liée aux scores enregistrés 🟡 📖
+`ENGINE_VERSION = "2.4.0"` est enregistrée dans l'audit, mais rien ne recalcule ni ne signale un ancien score après un changement de
+règles. Après les corrections S1 à S10, l'historique affichera des notes produites par un moteur faux.
+→ Recalculer à la volée (les données produit sont stockées) ou marquer « note calculée avec une version antérieure ».
+
+### S15. Jeu de vérité pour la véracité du score 🔴 (prérequis transverse)
+Il ne s'agit pas d'un test de régression, mais d'un **outil de véracité** : environ 200 vrais produits Open Food Facts (hiérarchie de tags complète,
+nutriments, ingrédients), avec pour chacun la catégorie attendue, le NOVA d'Open Food Facts et un ordre de grandeur de note validé
+par une personne compétente. C'est le seul moyen de savoir si le score dit vrai, et il aurait détecté S1 immédiatement.
+La simulation Python de cette passe (fonctions portées, 39 catégories) en est une première ébauche, réutilisable.
+
+## Ordre de travail recommandé pour le moteur
+
+1. **S15** (jeu de vérité) → 2. **S1** (catégories) → 3. **S2** (NOVA) → 4. **S3** (absence de données) →
+5. **S6** (additifs : normalisation) → 6. **S4** (messages inexacts) → 7. **S5** (secs et sucres intrinsèques) →
+8. **S7, S8** (barème) → 9. **S9** (profil) → 10. **S10** (cohérence) → 11. **S11** (calibration) → 12. **S14**
+(version) → 13. **S12, S13** (sources, commentaires).
+
+S1 à S3 changent la note de la majorité des produits. Ils passent **avant** les corrections d'affichage de la phase 2
+(C1, C2…), qui présenteraient sinon plus clairement une note fausse. C10 (veto allergène) reste prioritaire : il est indépendant
+et vital.
+
+---
+
 # Plan de travail (ordre logique)
 
 Les findings sont rangés dans l'ordre où il est logique de les traiter : les dépendances techniques d'abord, puis la sécurité, puis la valeur. Passe 3 (approfondissement) : ajout de C10, C11, C12, N6, D6 et A8, tous vérifiés dans le code. Passe 4 (étendue) : ajout de C13 à C17 (jeûne, objectif de poids, rétention, relecture OCR, corrélations). Passe 5 (évolutions) : ajout de A9 à A11, D7 à D10 et N7 à N11, puis contre-vérification : A9, D2, D7 et N11 sont partiellement existants (corrigés), A10 est confirmé comme bug. Les identifiants (C = corriger, A = améliorer, D = développer, N = créer) sont conservés. 🔴 = sécurité, 🟠 = bloquant publication, 🟡 = dette.
@@ -493,6 +724,7 @@ avec la date de l'instantané affichée.
 
 ## Récapitulatif de l'ordre
 
+- **Phase 1 bis** (Véracité du score — voir l'audit du moteur) : C10 → S15 → S1 → S2 → S3 → S6 → S4 → S5 → S7 → S8 → S9 → S10 → S11 → S14 → S12 → S13
 - **Phase 1** (Fondations techniques) : C5 → C7 → A5 → C6
 - **Phase 2** (Sécurité de l'utilisateur) : C10 → C1 → N6 → C2 → C3 → D1 → C9 → C11 → C13 → C14 → C16
 - **Phase 3** (Modèle de messages et de sources) : C8 → A1 → N2 → A2 → D9
