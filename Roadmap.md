@@ -27,7 +27,7 @@ que ce document ne contienne aucune information erronée (philosophie du README)
 
 # Plan de travail (ordre logique)
 
-Les findings sont rangés dans l'ordre où il est logique de les traiter : les dépendances techniques d'abord, puis la sécurité, puis la valeur. Passe 3 (approfondissement) : ajout de C10, C11, C12, N6, D6 et A8, tous vérifiés dans le code. Les identifiants (C = corriger, A = améliorer, D = développer, N = créer) sont conservés. 🔴 = sécurité, 🟠 = bloquant publication, 🟡 = dette.
+Les findings sont rangés dans l'ordre où il est logique de les traiter : les dépendances techniques d'abord, puis la sécurité, puis la valeur. Passe 3 (approfondissement) : ajout de C10, C11, C12, N6, D6 et A8, tous vérifiés dans le code. Passe 4 (étendue) : ajout de C13 à C17 (jeûne, objectif de poids, rétention, relecture OCR, corrélations). Les identifiants (C = corriger, A = améliorer, D = développer, N = créer) sont conservés. 🔴 = sécurité, 🟠 = bloquant publication, 🟡 = dette.
 
 ## Phase 1 — Fondations techniques
 
@@ -157,13 +157,49 @@ traitement ». Ajouter une option « masquer le nom du médicament ».
 
 > *Pourquoi ici :* Même code que C9 (notifications de doses) : à traiter dans le même passage.
 
+### 13. C13. Jeûne intermittent sans aucune contre-indication 🔴
+`presentation/fasting/` : `FastingViewModel` ne lit que `activeProfileId` ; aucun champ du
+profil n'est consulté. `StartFastForm` propose 12, 16, 18, 20 et **24 h** et un compteur de
+**série** (streak) quel que soit le profil. Or le profil connaît déjà la grossesse
+(`pregnancyStartDate`), l'âge, l'IMC et les conditions (diabète).
+Le jeûne est déconseillé, voire contre-indiqué, pendant la grossesse et l'allaitement, chez les mineurs, en cas
+d'insuffisance pondérale et pour un diabète traité par insuline ou sulfamides (risque
+d'hypoglycémie). Une série récompensant la restriction est aussi un facteur de risque de troubles du comportement alimentaire.
+→ Avant de démarrer, vérifier le profil : bloquer le jeûne pour une grossesse ou un mineur ; afficher un avertissement
+avec renvoi au médecin pour un diabète traité ou un IMC < 18,5. Pas de série pour ces profils. Sources à
+citer : ANSES / HAS. Mentionner une ressource d'aide sur les troubles du comportement alimentaire (ex. FFAB) dans l'écran.
+
+> *Pourquoi ici :* Même logique que C10 (le profil connaît le risque mais le module l'ignore) ; correction locale à un écran.
+
+### 14. C14. Objectif « Perdre du poids » accepté pour un profil à risque 🟠
+`ProfileSelectors` propose `Goal.LOSE` sans condition. Le plancher de 1200 kcal
+(`DailyTargets.kt`, l. 109-122) existe, mais rien n'empêche de choisir la perte avec un IMC
+< 18,5, pour un mineur ou pendant une grossesse. Les ajustements de score favorisent alors les produits pauvres en énergie,
+ce qui va à l'encontre de `BmiAdjustments` (qui, pour l'IMC bas, favorise les produits denses).
+→ Désactiver LOSE, ou le convertir en MAINTAIN avec explication, pour ces profils. Pour un objectif de poids
+cible sous IMC 18,5, afficher une alerte au lieu d'une date de « réussite » (`DashboardWeightForecast`).
+
+> *Pourquoi ici :* Même famille que C13 ; touche le profil, donc à faire juste après.
+
+### 15. C16. Résultats OCR et photo notés sans relecture par l'utilisateur 🟠
+`ScanRepository.identifyOrScoreFromImages` : le produit lu par ML Kit (`parseLabel`) ou
+reconnu par l'image (`foodIdentifier`) est **noté immédiatement**. Seul un avertissement
+textuel signale l'origine. `LabelTextParser.sameRowNumber` prend « le premier nombre à droite du
+libellé ». Une colonne mal alignée, ou une virgule lue comme un point (« 1,5 » lu « 15 »), produit une
+note fausse présentée avec la même assurance qu'une fiche Open Food Facts.
+→ Écran de relecture éditable (valeurs pour 100 g et ingrédients surlignés sur la photo) avant
+de calculer la note, avec un badge « valeurs lues par OCR, vérifiées par vous ». Même principe pour la reconnaissance
+d'image : proposer les 3 meilleures correspondances au lieu d'en choisir une.
+
+> *Pourquoi ici :* Fiabilité de la note à la source : à faire avant d'exposer les sources (phase 3), sinon on afficherait des sources sur une donnée mal lue.
+
 ---
 
 ## Phase 3 — Modèle de messages et de sources
 
 C8 d'abord : une fois que le domaine renvoie des clés structurées, on y attache la source (A1) au même endroit au lieu de le faire deux fois.
 
-### 13. C8. Internationalisation dans le moteur 🟡
+### 16. C8. Internationalisation dans le moteur 🟡
 233 occurrences de `if (en) "…" else "…"` dans le code (moteur de scoring compris, ex.
 `ScoringEngine.kt:578`). Le domaine produit des textes localisés : impossible d'ajouter une
 3ᵉ langue, et les traductions échappent aux outils.
@@ -172,7 +208,7 @@ et la présentation les résout via `strings.xml`.
 
 > *Pourquoi ici :* Domaine → clés ; présentation → `strings.xml`.
 
-### 14. A1 – Transparence des sources dans l'UI
+### 17. A1 – Transparence des sources dans l'UI
 Les sources existent en commentaires ;
 les remonter en données (`source`, `version`, `verifiedOn` par table ou par entrée) et
 les afficher dans un écran « Sources et versions des données », ainsi qu'en pied de chaque
@@ -181,12 +217,12 @@ alerte (« Source : ANSM, 2024 »). C'est le différenciateur central de la phil
 
 > *Pourquoi ici :* Métadonnées `source`/`version`/`verifiedOn` sur ces mêmes clés.
 
-### 15. N2 – Écran « Sources & méthodologie »
+### 18. N2 – Écran « Sources & méthodologie »
 public (cf. A1), lien depuis chaque note.
 
 > *Pourquoi ici :* Écran « Sources & méthodologie » alimenté par A1.
 
-### 16. A2 – « Pourquoi cette note ? »
+### 19. A2 – « Pourquoi cette note ? »
 `AdjustmentsSection` liste déjà les ajustements
 personnels (points ±). Il manque le lien vers la règle et la source de chaque ajustement,
 ainsi que la décomposition de la note classique (`PillarsSection`) en langage simple.
@@ -199,7 +235,7 @@ ainsi que la décomposition de la note classique (`PillarsSection`) en langage s
 
 S'appuie sur le format sourcé de la phase 3 : chaque nouvelle entrée naît avec sa source.
 
-### 17. A7 – Couverture de la base médicamenteuse
+### 20. A7 – Couverture de la base médicamenteuse
 `FoodDrugInteractionDb` couvre 5 classes
 (AVK, IMAO, statines/inhibiteurs calciques, IEC/sartans, lévothyroxine). Candidats sourcés
 ANSM/EMA : millepertuis (inducteur CYP3A4), réglisse (antihypertenseurs, hypokaliémie),
@@ -208,7 +244,7 @@ fluoroquinolones/tétracyclines, levure de riz rouge et statines.
 
 > *Pourquoi ici :* Nouvelles interactions aliment-médicament (ANSM/EMA).
 
-### 18. D6. Actions « Pris / Reporter » et suivi du stock de médicaments
+### 21. D6. Actions « Pris / Reporter » et suivi du stock de médicaments
 Les notifications n'ont aucune action (pas d'`addAction` dans `NotificationHelper`) :
 pour marquer une prise, il faut ouvrir l'app. Il n'existe pas non plus de suivi du nombre de
 comprimés restants ni de la date de renouvellement de l'ordonnance.
@@ -217,7 +253,18 @@ de traitement » et un rappel de renouvellement d'ordonnance. L'observance entre
 
 > *Pourquoi ici :* Après C9/C11 (même infrastructure de notifications) ; alimente le rapport médecin D5.
 
-### 19. D5 – Rapport médecin
+### 22. C17. Corrélations symptômes ↔ traitements sur 2 occurrences 🟡
+`SymptomCorrelation.kt` : `MIN_SYMPTOM_DAY_OCCURRENCES = 2` et `MIN_DIFFERENCE_PCT = 20`,
+sans test statistique, appliqués aussi aux **médicaments** (« Corrélations possibles avec un
+traitement »). La mention « pas une preuve médicale » existe, mais deux jours suffisent pour
+suggérer un lien entre un symptôme et un traitement, ce qui risque de pousser à un arrêt de traitement non supervisé.
+→ Relever le seuil (au moins 5 occurrences et 14 jours d'observation), ajouter un test simple (exact de Fisher) et un
+indicateur de robustesse. Pour les traitements, ajouter explicitement « N'arrêtez pas un traitement sans avis médical »
+et proposer de l'inclure dans le rapport médecin (D5) plutôt que de conclure.
+
+> *Pourquoi ici :* Contenu santé : se range avec A7/D6 et alimente D5.
+
+### 23. D5 – Rapport médecin
 ajouter interactions détectées, observance des médicaments
 et symptômes sur la période choisie dans `PdfReportRepository`.
 
@@ -229,7 +276,7 @@ et symptômes sur la période choisie dans `PdfReportRepository`.
 
 Honnêteté de l'offre et qualité perçue avant de pousser la diffusion.
 
-### 20. C4. « Premium » sans paiement 🟠
+### 24. C4. « Premium » sans paiement 🟠
 `PremiumSection` propose un bouton qui bascule `isPremium` sur `true`/`false` (`onSetPremium(!isPremium)`).
 Aucune dépendance Billing. Toute personne peut s'activer Premium gratuitement depuis les
 réglages. En l'état, publier avec un écran « Premium verrouillé » serait trompeur.
@@ -239,7 +286,7 @@ que le README affirme « ni serveur ni IA » (cf. C6).
 
 > *Pourquoi ici :* Décision : Billing ou retrait du Premium.
 
-### 21. C12. Risque de perte totale des données au changement de téléphone 🟠
+### 25. C12. Risque de perte totale des données au changement de téléphone 🟠
 `AndroidManifest.xml` : `android:allowBackup="false"`. L'app est 100 % locale et la sauvegarde
 chiffrée (`BackupRepository`) est **uniquement manuelle** : on ne trouve ni sauvegarde
 périodique, ni rappel « dernière sauvegarde il y a X jours ». Un téléphone perdu ou réinitialisé fait perdre
@@ -250,21 +297,32 @@ une sauvegarde Android chiffrée côté client, avec des règles `data_extractio
 
 > *Pourquoi ici :* Bloquant publication au même titre que C4/C5 : la promesse « tout est local » implique d'assumer la sauvegarde.
 
-### 22. N4 – Monétisation réelle
+### 26. C15. Historique de santé supprimé silencieusement 🟠
+Plafonds de rétention par `trim` : humeur et sommeil **730 lignes** (`MoodRepository`,
+`SleepRepository`), non-alimentaire 500, et poids, prises de médicaments, journal et scans 5000.
+Pour un utilisateur assidu (5 entrées par jour), le journal alimentaire perd ses données les plus anciennes au bout d'environ 2,7 ans,
+et l'humeur et le sommeil au bout de 2 ans, **sans avertissement ni proposition d'export**. Ce sont précisément les
+données longues qu'un médecin voudrait voir (D5), et qu'aucune sauvegarde automatique ne protège (C12).
+→ Remplacer la suppression par un archivage (agrégats mensuels conservés, détail exportable), ou relever les plafonds en
+les rendant réglables ; dans tous les cas, prévenir avant la première suppression.
+
+> *Pourquoi ici :* Même sujet que C12 (préservation des données) ; à traiter ensemble avant publication.
+
+### 27. N4 – Monétisation réelle
 (cf. C4) : Play Billing ; Premium centré sur Biolism et les
 rapports, sans rien retirer à la sécurité (allergènes, rappels et interactions restent
 gratuits).
 
 > *Pourquoi ici :* Implémentation de la décision de C4.
 
-### 23. A6 – Accessibilité
+### 28. A6 – Accessibilité
 Environ 40 `contentDescription = null` : vérifier qu'aucune ne
 porte sur une icône de statut ou d'alerte. Valider le contraste AA des couleurs de grade
 en mode sombre.
 
 > *Pourquoi ici :* Accessibilité et contraste.
 
-### 24. A4 – Navigation
+### 29. A4 – Navigation
 34 modules dans `presentation/` (fasting, loyalty, seasonal,
 calendar, sleep, symptom, expenses…). Proposer à l'onboarding de choisir les modules
 suivis, et masquer les autres dans la navigation.
@@ -277,7 +335,7 @@ suivis, et masquer les autres dans la navigation.
 
 Fonctionnalités qui reposent sur des modules existants.
 
-### 25. A8. Recherche Open Food Facts sur l'ancienne API
+### 30. A8. Recherche Open Food Facts sur l'ancienne API
 `OpenFoodFactsApi` utilise `cgi/search.pl`, l'ancien point d'accès de recherche, lent et limité
 à environ 10 requêtes par minute par Open Food Facts. Avec un debounce de 150 ms (`FoodSearchViewModel`), la frappe
 d'un utilisateur peut atteindre cette limite.
@@ -286,26 +344,26 @@ de la recherche en ligne à environ 400 ms, en gardant la recherche locale insta
 
 > *Pourquoi ici :* Prérequis de A3 : les alternatives Open Food Facts reposent sur cette recherche.
 
-### 26. A3 – Alternatives venant d'Open Food Facts
+### 31. A3 – Alternatives venant d'Open Food Facts
 Aujourd'hui limitées à l'historique :
 un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégorie
 (`categories_tags`) et trier par le score local du profil.
 
 > *Pourquoi ici :* Alternatives Open Food Facts (le score local est stabilisé après les phases 2-3).
 
-### 27. D2 – Garde-manger ↔ dates de péremption
+### 32. D2 – Garde-manger ↔ dates de péremption
 notification J-2, liée au plan de repas
 (« cuisiner d'abord ce qui expire »).
 
 > *Pourquoi ici :* Péremption du garde-manger (même infra de worker que D1).
 
-### 28. D3 – Plan de repas → courses → dépenses
+### 33. D3 – Plan de repas → courses → dépenses
 les trois modules existent ; il manque le
 bouclage « budget prévu vs ticket scanné » (`ReceiptParser` déjà présent).
 
 > *Pourquoi ici :* Plan → courses → dépenses.
 
-### 29. D4 – Signaux croisés symptômes ↔ aliments
+### 34. D4 – Signaux croisés symptômes ↔ aliments
 `SymptomCorrelation` existe ; ajouter un
 journal d'élimination guidé (FODMAP, lactose), à présenter clairement comme une
 observation personnelle et non un diagnostic.
@@ -316,20 +374,20 @@ observation personnelle et non un diagnostic.
 
 ## Phase 7 — Nouveaux axes
 
-### 30. N1 – Contribution Open Food Facts
+### 35. N1 – Contribution Open Food Facts
 aucune écriture vers OFF aujourd'hui. Quand un
 produit est absent ou incomplet, proposer d'envoyer photos et champs lus par OCR (API
 d'écriture OFF, compte utilisateur ou anonyme).
 
 > *Pourquoi ici :* Contribution Open Food Facts.
 
-### 31. N3 – Scan de carte de restaurant
+### 36. N3 – Scan de carte de restaurant
 OCR ML Kit, puis détection allergènes/régime par plat,
 en réutilisant `AllergenDetector` et `DietChecker`.
 
 > *Pourquoi ici :* Scan de carte de restaurant (réutilise allergènes/régime durcis en phase 2).
 
-### 32. N5 – Wear OS / tuile
+### 37. N5 – Wear OS / tuile
 prise de médicament, verre d'eau, chrono de jeûne.
 
 > *Pourquoi ici :* Wear OS / tuile (réutilise les alarmes de C9).
@@ -339,9 +397,9 @@ prise de médicament, verre d'eau, chrono de jeûne.
 ## Récapitulatif de l'ordre
 
 - **Phase 1** (Fondations techniques) : C5 → C7 → A5 → C6
-- **Phase 2** (Sécurité de l'utilisateur) : C10 → C1 → N6 → C2 → C3 → D1 → C9 → C11
+- **Phase 2** (Sécurité de l'utilisateur) : C10 → C1 → N6 → C2 → C3 → D1 → C9 → C11 → C13 → C14 → C16
 - **Phase 3** (Modèle de messages et de sources) : C8 → A1 → N2 → A2
-- **Phase 4** (Contenu santé) : A7 → D6 → D5
-- **Phase 5** (Prêt pour publication) : C4 → C12 → N4 → A6 → A4
+- **Phase 4** (Contenu santé) : A7 → D6 → C17 → D5
+- **Phase 5** (Prêt pour publication) : C4 → C12 → C15 → N4 → A6 → A4
 - **Phase 6** (Valeur produit) : A8 → A3 → D2 → D3 → D4
 - **Phase 7** (Nouveaux axes) : N1 → N3 → N5
