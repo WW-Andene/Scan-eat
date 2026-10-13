@@ -71,4 +71,37 @@ class ScoreVeracityTest {
         val nitrite = findAdditive("E250", "nitrite de sodium", null)!!
         assertTrue("2A" in nitrite.concern)
     }
+
+    // ---- S4 / S5 ----------------------------------------------------------
+    @Test fun `coconut oil is not reported as palm oil`() {
+        val a = scoreProduct(p(ings = listOf("huile de coprah", "sucre")), "fr")
+        assertFalse(allReasons(a).any { "palme" in it })
+    }
+
+    @Test fun `natural trans fat in butter triggers no industrial-trans veto`() {
+        val butter = p(name = "Beurre doux", cat = ProductCategory.OIL_FAT, ings = listOf("crème"),
+            nutrition = n(kcal = 740.0, fat = 82.0, sat = 54.0, carbs = 0.5, sugars = 0.5, fiber = 0.0, protein = 0.7, trans = 3.0))
+        val a = scoreProduct(butter, "fr")
+        assertFalse(a.veto.reason.contains("trans", ignoreCase = true))
+    }
+
+    @Test fun `instant coffee caffeine per 100 g of powder is not a serving veto`() {
+        val coffee = p(name = "Café soluble", cat = ProductCategory.COFFEE_TEA, ings = listOf("café soluble"),
+            nutrition = n(kcal = 350.0, caffeine = 4000.0))
+        assertFalse(scoreProduct(coffee, "fr").veto.triggered)
+    }
+
+    @Test fun `nitrate-cured product triggers the nitrite veto`() {
+        val a = scoreProduct(p(cat = ProductCategory.PROCESSED_MEAT, ings = listOf("porc", "sel", "nitrate de potassium")), "fr")
+        assertTrue(a.veto.triggered)
+    }
+
+    @Test fun `grapes intrinsic sugars and dry pasta energy are not penalised`() {
+        val grapes = scoreProduct(p(name = "Raisin", cat = ProductCategory.FRESH_PRODUCE, ings = listOf("raisin"),
+            nutrition = n(kcal = 70.0, sugars = 16.0)), "fr")
+        assertFalse(grapes.pillars.negativeNutrients.deductions.any { it.points < 0 && "ucre" in it.reason })
+        val pasta = scoreProduct(p(name = "Spaghetti", cat = ProductCategory.GRAIN, ings = listOf("semoule de blé dur"),
+            nutrition = n(kcal = 355.0, carbs = 71.0, protein = 12.0)), "fr")
+        assertFalse(pasta.pillars.negativeNutrients.deductions.any { "Densité énergétique" in it.reason })
+    }
 }

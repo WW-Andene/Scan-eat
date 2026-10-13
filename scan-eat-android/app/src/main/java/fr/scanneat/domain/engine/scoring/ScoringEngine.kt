@@ -92,7 +92,7 @@ private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<De
     // which doesn't carry the same gut-health connotation and is already
     // comprehensively penalized/vetoed elsewhere in this engine.
     if (product.fermented && product.category != ProductCategory.ALCOHOLIC_BEVERAGE)
-        bonuses += Deduction("global_bonus", if (en) "Contains fermented / probiotic content" else "Contient des éléments fermentés / probiotiques", 2.0, Severity.INFO)
+        bonuses += Deduction("global_bonus", if (en) "Contains fermented ingredients" else "Contient des ingrédients fermentés", 2.0, Severity.INFO)
     // Omega-3 bonus lives solely in NutritionalDensityPillar.scoreNutritionalDensity()
     // (+3, using the same ingredient regex plus a nutrition-value check) - it was
     // duplicated here too, double-counting the same signal for +5 total on any
@@ -100,7 +100,8 @@ private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<De
     return bonuses
 }
 
-private val PALM_OIL_PATTERN = Regex("""huile de palme|huile de palmiste|graisse de palme|st[eé]arine de palme|ol[eé]ine de palme|palm oil|palm kernel|coprah""", RegexOption.IGNORE_CASE)
+// S4: "coprah" removed - it is dried coconut, not a palm product.
+private val PALM_OIL_PATTERN = Regex("""huile de palme|huile de palmiste|graisse de palme|st[eé]arine de palme|ol[eé]ine de palme|palm oil|palm kernel""", RegexOption.IGNORE_CASE)
 
 private fun computeGlobalPenalties(product: Product, severeFlagCount: Int, lang: String = "en"): List<Deduction> {
     val en = lang == "en"
@@ -200,8 +201,11 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // veto below is assigned from.
     val candidates = mutableListOf<VetoCondition>()
 
-    if ((n.transFatG ?: 0.0) > 0.1)
-        candidates += VetoCondition(true, if (en) "Contains industrial trans fats — no safe level" else "Contient des graisses trans industrielles — aucun seuil sûr", VetoCap.MODERATE)
+    // S4: in dairy, butter and ruminant meat, trans fats are natural (rumen
+    // biohydrogenation) - Reg. (EU) 2019/649 only limits INDUSTRIAL trans
+    // fats; the veto claimed "industrial" for any declared trans fat.
+    if ((n.transFatG ?: 0.0) > 0.1 && !mayContainNaturalTransFat(product))
+        candidates += VetoCondition(true, if (en) "Contains trans fats, likely industrial (Reg. (EU) 2019/649)" else "Contient des graisses trans, probablement industrielles (règl. (UE) 2019/649)", VetoCap.MODERATE)
 
     if (countTier1Additives(product) > 3)
         candidates += VetoCondition(true, (if (en) "${countTier1Additives(product)} Tier-1 additives — cumulative risk too high" else "${countTier1Additives(product)} additifs de niveau 1 — risque cumulé trop élevé"), VetoCap.MODERATE)
@@ -230,7 +234,9 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
 
     val hasNitrites = product.ingredients.any { ing ->
         val eNum = (ing.eNumber ?: "").uppercase().replace("\\s".toRegex(), "")
-        eNum == "E249" || eNum == "E250" || ing.name.lowercase().let { it.contains("nitrite") || it.contains("e249") || it.contains("e250") }
+        // S4: nitrates (E251/E252) convert to nitrite and were already Tier 1, but escaped this veto.
+        eNum in setOf("E249", "E250", "E251", "E252") ||
+            ing.name.lowercase().let { it.contains("nitrite") || it.contains("nitrate de") || it.contains("e249") || it.contains("e250") || it.contains("e251") || it.contains("e252") }
     }
     // Category-relative, not a flat bar: PROCESSED_MEAT's own thresholds (dry-cured
     // meat is structurally ~2.5-6g/100g salt) put "moderate" at 4.0g, not the
@@ -286,7 +292,7 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // comment above); once that signal is present, the stricter MODERATE
     // combo already covers it and doesn't need restating.
     if (hasNitrites && !(highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT))
-        candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate preservatives (E249/E250), linked by IARC to processed-meat consumption at a population level" else "Contient des conservateurs nitrités (E249/E250), associés par le CIRC à la consommation de viande transformée au niveau populationnel", VetoCap.MILD)
+        candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate curing agents (E249-E252): ingested nitrite is IARC Group 2A, processed meat Group 1" else "Contient des sels nitrités/nitratés (E249-E252) : nitrite ingéré classé groupe 2A par le CIRC, viande transformée groupe 1", VetoCap.MILD)
 
     if (isSugarSweetenedBeverage(product.category, n))
         candidates += VetoCondition(true, if (en) "Sugar-sweetened beverage with no nutritional contribution" else "Boisson sucrée sans apport nutritionnel", VetoCap.SEVERE)
@@ -315,7 +321,8 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // spreads).
     if (product.category != ProductCategory.SNACK_SWEET && product.category != ProductCategory.CONDIMENT &&
         product.category != ProductCategory.SPREAD_SWEET && product.category != ProductCategory.BEVERAGE_JUICE &&
-        product.category != ProductCategory.ICE_CREAM && sugars > 30)
+        product.category != ProductCategory.ICE_CREAM && product.category != ProductCategory.DRIED_FRUIT &&
+        !sugarsAreIntrinsicOnly(product) && sugars > 30)
         candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", VetoCap.MODERATE)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
@@ -368,7 +375,10 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // exceed 300mg/100g while a realistic single serving, a teaspoon, stays
     // well under 200mg).
     val caffeine = n.caffeineMg ?: 0.0
-    if (caffeine > 300.0)
+    // S4: COFFEE_TEA values are per 100 g of DRY product (a cup uses ~2 g of
+    // instant coffee, ~80 mg caffeine) - the per-100 g "single serving would
+    // exceed 200 mg" claim was false for them.
+    if (caffeine > 300.0 && product.category != ProductCategory.COFFEE_TEA)
         candidates += VetoCondition(true, if (en) "Caffeine ${caffeine.formatDecimal(1)}mg/100g — concentrated enough that a typical single serving would exceed EFSA's ~200mg single-dose guidance" else "Caféine ${caffeine.formatDecimal(1)}mg/100g — concentration telle qu'une portion normale dépasserait le repère de prudence EFSA d'environ 200mg par prise", VetoCap.MILD)
 
     // Winning (strictest-cap) reason stays first and still drives the cap,
