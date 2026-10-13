@@ -45,7 +45,7 @@ internal fun checkGastrointestinalConditions(
                 category = AdjustmentCategory.CONDITION,
             )
         }
-        if (!fodmapHit && !polyolHit && !highFat) {
+        if (product.ingredients.isNotEmpty() && !fodmapHit && !polyolHit && !highFat) {
             adjustments += PersonalAdjustment(
                 points = 2.0,
                 reason = if (lang == "en") "No common high-FODMAP trigger detected — IBS-friendly"
@@ -132,7 +132,7 @@ internal fun checkGastrointestinalConditions(
                 category = AdjustmentCategory.CONDITION,
             )
         }
-        if (!polyolHit && !highFat && (product.nutrition.caffeineMg ?: 0.0) < 20.0 && !alcoholHit) {
+        if (product.ingredients.isNotEmpty() && !polyolHit && !highFat && (product.nutrition.caffeineMg ?: 0.0) < 20.0 && !alcoholHit) {
             adjustments += PersonalAdjustment(
                 points = 2.0,
                 reason = if (lang == "en") "No common diarrhea trigger detected"

@@ -318,6 +318,11 @@ data class ScoreAudit(
     val nutriscoreGrade: String? = null,
     val engineVersion: String,
     val warnings: List<String>,
+    // Score-engine audit S3: share (0-100) of the score's criteria that the
+    // product's data actually allowed to assess. Below 100, the missing
+    // pillars were left out and the rest rescaled - never filled with a
+    // presumed value in either direction.
+    val evidenceCoverage: Int = 100,
     // Persisted verbatim (via ScanRepository's auditAdapter) to scan_history's
     // auditJson column. New fields must have a default value, or bump
     // schemaVersion and add a migration branch in the parser.

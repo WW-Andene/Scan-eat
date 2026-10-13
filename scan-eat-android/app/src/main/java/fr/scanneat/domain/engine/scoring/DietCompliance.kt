@@ -20,6 +20,16 @@ internal fun checkDietCompliance(product: Product, profile: Profile, lang: Strin
         veto = true
         dietReason = r.reason
         adjustments += PersonalAdjustment(0.0, r.reason ?: "", AdjustmentCategory.DIET, veto = true)
+    } else if (product.ingredients.isEmpty()) {
+        // S3: with no ingredient list only the name was checked - "compliant"
+        // would be a claim the data cannot support.
+        val label = if (lang == "en") profile.diet.labelEn else profile.diet.labelFr
+        adjustments += PersonalAdjustment(
+            points   = 0.0,
+            reason   = if (lang == "en") "$label compliance not verifiable: no ingredient list"
+                       else "Conformité $label non vérifiable : liste d'ingrédients absente",
+            category = AdjustmentCategory.DIET,
+        )
     } else if (r.certified) {
         val label = if (lang == "en") profile.diet.labelEn else profile.diet.labelFr
         adjustments += PersonalAdjustment(

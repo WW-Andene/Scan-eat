@@ -535,11 +535,15 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
         ProductCategory.BEVERAGE_WATER, ProductCategory.BEVERAGE_SOFT, ProductCategory.BEVERAGE_JUICE,
         ProductCategory.EGG, ProductCategory.FRESH_MEAT, ProductCategory.FISH, ProductCategory.FRESH_PRODUCE,
     )
-    val unearnableOilPoints = if (product.category in oilFreeCategories) 3.0 else 0.0
+    val ingredientsKnown = product.ingredients.isNotEmpty()
+    val unearnableOilPoints = if (ingredientsKnown && product.category in oilFreeCategories) 3.0 else 0.0
+    // S3: criteria the data cannot support are excluded, not presumed.
+    val unknownIngredientPoints = if (ingredientsKnown) 0.0 else additiveRisk.max + INGREDIENT_ONLY_INTEGRITY_POINTS
     // S2: an unknown processing level is excluded from the score (same
     // rescaling as the structurally unearnable points) instead of presumed NOVA 4.
     val unknownProcessingPoints = if (effectiveNova(product) == null) processing.max.toDouble() else 0.0
-    val unearnablePoints = unearnableProteinPoints + unearnableFiberPoints + unearnableOilPoints + unknownProcessingPoints
+    val unknownDataPoints = unknownProcessingPoints + unknownIngredientPoints
+    val unearnablePoints = unearnableProteinPoints + unearnableFiberPoints + unearnableOilPoints + unknownDataPoints
     val baseScore = if (unearnablePoints > 0.0) {
         val achievableMax = 100.0 - unearnablePoints
         (rawBaseScore / achievableMax) * 100.0
@@ -581,7 +585,16 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
         listOf(if (en) "Processing level (NOVA) inferred from ingredients with ${novaInference.confidence.name.lowercase()} confidence, not declared" else "Niveau de transformation (NOVA) déduit des ingrédients avec une confiance ${if (novaInference.confidence == NovaConfidence.LOW) "faible" else "moyenne"}, non déclaré")
     else emptyList()
 
-    val warnings = collectWarnings(product, lang) + novaConfidenceWarning +
+    val evidenceCoverage = (100.0 - unknownDataPoints).roundToInt()
+    val coverageWarning = if (evidenceCoverage < 100) listOf(
+        if (en) "Score based on $evidenceCoverage% of the criteria: " + listOfNotNull(
+            "processing level".takeIf { unknownProcessingPoints > 0 }, "ingredients and additives".takeIf { unknownIngredientPoints > 0 },
+        ).joinToString(" and ") + " unknown for this product"
+        else "Note établie sur $evidenceCoverage % des critères : " + listOfNotNull(
+            "niveau de transformation".takeIf { unknownProcessingPoints > 0 }, "ingrédients et additifs".takeIf { unknownIngredientPoints > 0 },
+        ).joinToString(" et ") + " inconnus pour ce produit",
+    ) else emptyList()
+    val warnings = coverageWarning + collectWarnings(product, lang) + novaConfidenceWarning +
         if (product.category != input.category) listOf(if (en) "Category inferred from name as \"${product.category.key}\"" else "Catégorie déduite du nom : \"${product.category.key}\"") else emptyList()
 
     val preAudit = ScoreAudit(
@@ -600,6 +613,7 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
         nutriscoreGrade = product.nutriscoreGrade,
         engineVersion   = ENGINE_VERSION,
         warnings        = warnings,
+        evidenceCoverage = evidenceCoverage,
     )
 
     val (red, green) = buildFlags(preAudit, lang)
