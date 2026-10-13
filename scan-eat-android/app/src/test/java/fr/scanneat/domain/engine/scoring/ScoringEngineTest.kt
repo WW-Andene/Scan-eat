@@ -498,10 +498,11 @@ class ScoringEngineTest {
         assertEquals(AdditiveTier.TWO, result!!.tier)
     }
 
-    @Test fun `E330 citric acid is Tier 3`() {
+    // S7: a food acid with JECFA ADI "not specified" is not a concern.
+    @Test fun `E330 citric acid is recognised but not a concern`() {
         val result = findAdditive(null, "acide citrique", IngredientCategory.ADDITIVE)
         assertNotNull(result)
-        assertEquals(AdditiveTier.THREE, result!!.tier)
+        assertEquals(AdditiveTier.NONE, result!!.tier)
     }
 
     @Test fun `Unknown additive returns null`() {

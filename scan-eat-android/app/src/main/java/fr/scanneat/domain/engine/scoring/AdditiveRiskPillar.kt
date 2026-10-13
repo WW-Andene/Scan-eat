@@ -54,6 +54,7 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
             AdditiveTier.ONE   -> tier1 += hit
             AdditiveTier.TWO   -> tier2 += hit
             AdditiveTier.THREE -> tier3 += hit
+            AdditiveTier.NONE  -> Unit // S7: no safety concern - not a penalty
         }
     }
 

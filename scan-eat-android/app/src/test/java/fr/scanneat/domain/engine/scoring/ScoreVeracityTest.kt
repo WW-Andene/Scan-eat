@@ -46,4 +46,29 @@ class ScoreVeracityTest {
         val a = scoreProduct(p(ings = listOf("tomates", "sel")), "fr")
         assertEquals(100, a.evidenceCoverage)
     }
+
+    // ---- S6: OFF sub-indexed E-numbers ------------------------------------
+    @Test fun `sub-indexed E-numbers resolve to their parent additive`() {
+        assertEquals("E322", findAdditive("E322I", "E322I", null)?.eNumber)
+        assertEquals("E500", findAdditive("E500II", "E500II", null)?.eNumber)
+        assertEquals("E472", findAdditive("E472E", "E472E", null)?.eNumber)
+        assertEquals("E450", findAdditive("E450I", "E450I", null)?.eNumber)
+    }
+
+    @Test fun `an additive named in the text and tagged by OFF is counted once`() {
+        val existing = listOf(Ingredient("lécithine de soja"))
+        val extra = fr.scanneat.domain.engine.nutrition.additiveTagsToIngredients(listOf("en:e322i"), existing)
+        assertTrue(extra.isEmpty())
+    }
+
+    // ---- S7: no penalty for additives without a safety concern ------------
+    @Test fun `vitamin C and pectin cost no point`() {
+        val withVitC = scoreProduct(p(ings = listOf("pommes", "acide ascorbique", "pectine")), "fr")
+        assertEquals(15.0, withVitC.pillars.additiveRisk.score, 0.0)
+    }
+
+    @Test fun `nitrite is described with its real IARC group`() {
+        val nitrite = findAdditive("E250", "nitrite de sodium", null)!!
+        assertTrue("2A" in nitrite.concern)
+    }
 }

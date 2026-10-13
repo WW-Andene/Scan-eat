@@ -22,7 +22,8 @@ val ADDITIVES_DB: List<AdditiveInfo> =
         ADDITIVES_TIER2 +
         ADDITIVES_TIER3_CORE +
         ADDITIVES_TIER3_NATURAL_COLORANTS +
-        ADDITIVES_TIER3_BAKERY_AND_GASES
+        ADDITIVES_TIER3_BAKERY_AND_GASES +
+        ADDITIVES_SUPPLEMENT
 
 // ============================================================================
 // Lookup helpers
@@ -96,8 +97,9 @@ fun findAdditive(eNumber: String?, name: String, category: fr.scanneat.domain.mo
 private fun computeFindAdditive(eNumber: String?, name: String, category: fr.scanneat.domain.model.IngredientCategory?): AdditiveInfo? {
     // Direct E-number match
     if (eNumber != null) {
-        val norm = eNumber.uppercase().replace("\\s".toRegex(), "")
-        ADDITIVES_DB.find { it.eNumber == norm }?.let { return it }
+        for (candidate in eNumberCandidates(eNumber)) {
+            ADDITIVES_DB.find { it.eNumber == candidate }?.let { return it }
+        }
     }
 
     // Name-based match — longest matching synonym wins, not simply the first
@@ -153,4 +155,21 @@ private fun computeFindAdditive(eNumber: String?, name: String, category: fr.sca
         }
     }
     return null
+}
+
+/**
+ * S6: OFF writes E-numbers with sub-indices - roman numerals for the salt or
+ * grade (E322i, E500ii, E450i) and letters for variants (E472e, E160ai,
+ * E960a). The DB keys the parent number, so an exact match missed ~27 % of
+ * additive occurrences on the most-scanned French products. Tried in order:
+ * exact, without the roman sub-index, without the variant letter.
+ */
+internal fun eNumberCandidates(raw: String): List<String> {
+    val norm = raw.uppercase().replace(Regex("\\s|-|\\(|\\)"), "")
+    val m = Regex("^E(\\d{3,4})([A-Z]?)(I{1,3}|IV|V|X{1,2})?$").find(norm) ?: return listOf(norm)
+    val (digits, letter, roman) = m.destructured
+    return listOf(norm, "E$digits$letter", "E$digits").distinct().let { base ->
+        // A bare "I"/"V" right after the digits is a roman sub-index, not a variant letter (E322I, E500V).
+        if (roman.isEmpty() && letter in setOf("I", "V")) base + "E$digits" else base
+    }.distinct().let { if (digits.startsWith("14") && digits.length == 4) it + "E14XX" else it }
 }

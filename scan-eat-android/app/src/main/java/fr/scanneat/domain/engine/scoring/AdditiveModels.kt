@@ -6,7 +6,10 @@ package fr.scanneat.domain.engine.scoring
 // ADDITIVES_DB tier file and by findAdditive()'s lookup logic.
 // ============================================================================
 
-enum class AdditiveTier(val value: Int) { ONE(1), TWO(2), THREE(3) }
+/** S7: NONE = recognised additive with no safety concern in its EFSA
+ *  re-evaluation (vitamins, pectin, lecithin, food acids...): identified for
+ *  transparency and NOVA, but never penalised as a "concern". */
+enum class AdditiveTier(val value: Int) { ONE(1), TWO(2), THREE(3), NONE(0) }
 
 enum class AdditiveCategory(val key: String) {
     PRESERVATIVE("preservative"),

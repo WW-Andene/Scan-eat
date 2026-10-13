@@ -6,12 +6,19 @@ package fr.scanneat.domain.engine.scoring
 // Source citations preserved verbatim from the original TS engine.
 // ============================================================================
 
+// S7 audit: sulfites (E220-E228) moved to Tier 2 - they are a mandatory EU
+// allergen, which the user's allergen profile already handles; their general
+// "concern" is the EFSA 2016/2022 exposure margin for high consumers, not a
+// serious hazard for everyone. E433/E466 moved to Tier 2 as well: the
+// microbiome signal rests on mouse studies and one small human trial, the
+// same evidence level as the Tier 2 emulsifier E475 and carrageenan's
+// classification. Tier 1 now holds banned/carcinogenic-pathway additives.
 internal val ADDITIVES_TIER1: List<AdditiveInfo> = listOf(
     AdditiveInfo("E249", listOf("nitrite de potassium", "potassium nitrite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
-        "Curing agent. IARC Group 1 (processed meat, carcinogenic to humans).",
+        "Curing agent. IARC: ingested nitrite under conditions of endogenous nitrosation is Group 2A (probably carcinogenic); processed meat itself is Group 1.",
         "IARC Monograph Vol 114 (2015); EFSA Re-evaluation 2017."),
     AdditiveInfo("E250", listOf("nitrite de sodium", "sodium nitrite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
-        "Curing agent. IARC Group 1 via N-nitroso compound formation.",
+        "Curing agent. IARC: ingested nitrite under conditions of endogenous nitrosation is Group 2A (probably carcinogenic); processed meat itself is Group 1.",
         "IARC Monograph Vol 114 (2015); IARC Vol 94 (2010); EFSA Re-evaluation 2017."),
     AdditiveInfo("E251", listOf("nitrate de sodium", "sodium nitrate"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
         "Converts to nitrite in the gut. Same N-nitroso pathway.",
@@ -19,10 +26,10 @@ internal val ADDITIVES_TIER1: List<AdditiveInfo> = listOf(
     AdditiveInfo("E252", listOf("nitrate de potassium", "potassium nitrate"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
         "Converts to nitrite in the gut. Same N-nitroso pathway.",
         "IARC Monograph Vol 94 (2010); EFSA Re-evaluation 2017."),
-    AdditiveInfo("E433", listOf("polysorbate 80", "polysorbate-80"), AdditiveTier.ONE, AdditiveCategory.EMULSIFIER,
+    AdditiveInfo("E433", listOf("polysorbate 80", "polysorbate-80"), AdditiveTier.TWO, AdditiveCategory.EMULSIFIER,
         "Detergent-class emulsifier. Microbiome shifts + mucus-layer erosion in mice and limited human data.",
         "Chassaing et al., Nature 2015; Gastroenterology 2022."),
-    AdditiveInfo("E466", listOf("carboxymethylcellulose", "cmc", "cellulose gum"), AdditiveTier.ONE, AdditiveCategory.EMULSIFIER,
+    AdditiveInfo("E466", listOf("carboxymethylcellulose", "cmc", "cellulose gum"), AdditiveTier.TWO, AdditiveCategory.EMULSIFIER,
         "Detergent-class emulsifier. Mouse microbiome disruption replicated in human feeding trial.",
         "Chassaing et al., Nature 2015; Gastroenterology 2022 (FRESH trial, CMC-specific)."),
     AdditiveInfo("E171", listOf("dioxyde de titane", "titanium dioxide"), AdditiveTier.ONE, AdditiveCategory.COLORANT,
@@ -46,35 +53,35 @@ internal val ADDITIVES_TIER1: List<AdditiveInfo> = listOf(
     AdditiveInfo("E217", listOf("propylparabène de sodium", "sodium propylparaben", "e217"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
         "Sodium salt of E216, same endocrine-disruption concerns; banned as a food additive in the EU since 2006.",
         "EFSA Opinion 2004;83; Commission Regulation (EC) No 1004/2006."),
-    AdditiveInfo("E220", listOf("anhydride sulfureux", "dioxyde de soufre", "sulfur dioxide"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+    AdditiveInfo("E220", listOf("anhydride sulfureux", "dioxyde de soufre", "sulfur dioxide"), AdditiveTier.TWO, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen. Triggers asthma and sulfite sensitivity.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016;14(4):4438."),
-    AdditiveInfo("E221", listOf("sulfite de sodium", "sodium sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+    AdditiveInfo("E221", listOf("sulfite de sodium", "sodium sulfite"), AdditiveTier.TWO, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
-    AdditiveInfo("E223", listOf("métabisulfite de sodium", "sodium metabisulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+    AdditiveInfo("E223", listOf("métabisulfite de sodium", "sodium metabisulfite"), AdditiveTier.TWO, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
-    AdditiveInfo("E224", listOf("métabisulfite de potassium", "potassium metabisulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+    AdditiveInfo("E224", listOf("métabisulfite de potassium", "potassium metabisulfite"), AdditiveTier.TWO, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
     // Previously absent from the DB entirely despite being referenced by name
     // in AdditiveRiskPillar.kt's SULFITE_E_NUMBERS set - a wine/cider using
     // any of these five instead of E220/E221/E223/E224 was invisible to
     // findAdditive() and scored as if additive-free.
-    AdditiveInfo("E222", listOf("bisulfite de sodium", "sodium bisulfite", "sodium hydrogen sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+    AdditiveInfo("E222", listOf("bisulfite de sodium", "sodium bisulfite", "sodium hydrogen sulfite"), AdditiveTier.TWO, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
-    AdditiveInfo("E225", listOf("sulfite de potassium", "potassium sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+    AdditiveInfo("E225", listOf("sulfite de potassium", "potassium sulfite"), AdditiveTier.TWO, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
-    AdditiveInfo("E226", listOf("sulfite de calcium", "calcium sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+    AdditiveInfo("E226", listOf("sulfite de calcium", "calcium sulfite"), AdditiveTier.TWO, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
-    AdditiveInfo("E227", listOf("bisulfite de calcium", "calcium bisulfite", "calcium hydrogen sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+    AdditiveInfo("E227", listOf("bisulfite de calcium", "calcium bisulfite", "calcium hydrogen sulfite"), AdditiveTier.TWO, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
-    AdditiveInfo("E228", listOf("bisulfite de potassium", "potassium bisulfite", "potassium hydrogen sulfite"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+    AdditiveInfo("E228", listOf("bisulfite de potassium", "potassium bisulfite", "potassium hydrogen sulfite"), AdditiveTier.TWO, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016."),
     AdditiveInfo("E385", listOf("edta", "calcium disodium edta"), AdditiveTier.ONE, AdditiveCategory.SEQUESTRANT,
