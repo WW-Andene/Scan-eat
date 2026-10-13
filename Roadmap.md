@@ -1,90 +1,169 @@
-# Roadmap — Audit Scan'eat (2026-10-13)
+# Roadmap — Audit approfondi Scan'eat (2026-10-13, passe 2)
 
-Audit rapide (~5 min) de `scan-eat-android/app` : ~630 fichiers Kotlin, ~80 k lignes,
-Room v40, Compose + Hilt, 100 % local (Open Food Facts + ML Kit). Debug, compilation et
-tests ont été volontairement mis de côté ; l'accent porte sur la valeur produit et la
-fiabilité des données (philosophie « confiance absolue » du README).
+Périmètre : `scan-eat-android/app` (~630 fichiers Kotlin, ~80 k lignes, Room v40,
+Compose + Hilt + Glance + WorkManager + Health Connect, versionName 1.1.0, minSdk 26 / target 35).
 
-## Constat général
-
-- **Points forts** : moteur de scoring riche et contextuel (nutrition, non-consommables,
-  interactions aliment-médicament, Biolism), nombreux trackers (poids, hydratation, jeûne,
-  humeur, dépenses, repas, médicaments), design system base-2, widget, Health Connect,
-  sauvegarde, rappels produits (Recall).
-- **Faiblesse structurelle** : l'app est devenue une « super-app » de ~20 écrans. La
-  promesse centrale (scanner → note fiable et personnalisée) se dilue ; la dette porte
-  surtout sur la **traçabilité des sources**, la **découvrabilité** et la **cohérence**
-  entre modules, plus que sur le code lui-même.
+Cette passe **vérifie dans le code** chacune des affirmations de la passe 1 (rédigée à
+partir de la structure du dépôt). Plusieurs étaient fausses : la section 0 les corrige, pour
+que ce document ne contienne aucune information erronée (philosophie du README).
 
 ---
 
-## 1. Ce qui peut être corrigé (priorité haute)
+## 0. Corrections de la passe 1 (ce qui existe déjà)
 
-| # | Sujet | Constat | Action |
-|---|-------|---------|--------|
-| C1 | Sources des bases embarquées | `FoodDb*`, `DrugFactsDb`, `FoodDrugInteractionDb`, `CosingRegulatoryDb`, `OfficialRecipeDb` sont du code Kotlin codé en dur. Pas de métadonnée uniforme (source, version, date de vérification) par entrée. | Ajouter un champ `source`/`verifiedOn` obligatoire à chaque entrée + un test d'invariant qui échoue si une entrée n'en a pas. Afficher la source dans l'UI (cf. D1). |
-| C2 | Fraîcheur des données | Les tables nutritionnelles/médicamenteuses évoluent (CIQUAL, ANSM). Aucun mécanisme de version visible. | Exposer « version des données : CIQUAL 2020 / ANSM jj/mm/aaaa » dans *À propos* ; planifier une revue semestrielle. |
-| C3 | Migrations Room | `fallbackToDestructiveMigration()` en DEBUG uniquement — bien, mais 40 versions de schéma : risque élevé sur les vieux installs. | Vérifier que `exportSchema` + `MigrationTestHelper` couvrent toutes les chaînes 1→40 ; documenter la politique. |
-| C4 | Accessibilité | ~40 `contentDescription = null`, dont certaines sur des icônes porteuses de sens (statut, alerte). | Passer en revue : `null` seulement pour le décoratif ; libellés pour badges de risque, scores, boutons icône. |
-| C5 | Chaînes en dur | ~100 littéraux français dans `presentation/` hors `strings.xml`, alors qu'un `values-en` existe. | Extraire vers `strings.xml` ; l'anglais est actuellement partiel → incohérent pour l'utilisateur anglophone. |
-| C6 | Données OFF incomplètes | Une note calculée sur un produit OFF partiel peut paraître aussi fiable qu'une note complète. | Indicateur de **complétude/confiance** systématique sur chaque résultat (« note basée sur 6/9 champs »). |
-
-## 2. Ce qui peut être amélioré
-
-- **A1 – Hiérarchie de navigation** : regrouper les ~20 modules en 3 piliers (*Scanner*,
-  *Mon suivi*, *Ma santé*) ; masquer les modules non activés par défaut (onboarding « que
-  voulez-vous suivre ? »).
-- **A2 – Écran résultat** : présenter d'abord le verdict personnalisé (« OK pour vous /
-  attention : interaction avec X »), puis le détail. Les alertes médicales doivent toujours
-  être au-dessus de la ligne de flottaison.
-- **A3 – Mode hors-ligne** : un cache OFF existe (`OnlineSearchCacheDao`) ; le rendre
-  explicite (badge « hors-ligne, données du jj/mm ») et pré-cacher les produits favoris.
-- **A4 – Fichiers volumineux** : `ScanViewModel` (719 l.), `AppDatabase` (687 l.),
-  `Theme.kt` (627 l.), `ScoringEngine` (604 l.) → découper par responsabilité
-  (chargement, scoring, état UI) pour faciliter les audits « par sections » prônés par le README.
-- **A5 – Performance perçue** : skeletons pendant le lookup OFF, scan continu sans retour
-  d'écran, retour haptique à la détection.
-- **A6 – Dark mode / contraste** des couleurs de score (Nutri-Score-like) à valider WCAG AA.
-
-## 3. Ce qui peut être développé (fonctionnalités existantes à pousser)
-
-- **D1 – « Pourquoi cette note ? »** : panneau explicatif traçant chaque malus/bonus vers
-  sa règle et sa source (EFSA, ANSES…). C'est la concrétisation directe de la philosophie
-  de confiance et le différenciateur n°1 face à Yuka.
-- **D2 – Alternatives meilleures** : depuis un produit mal noté, proposer des produits OFF
-  de la même catégorie mieux notés *pour ce profil*.
-- **D3 – Interactions médicaments** : étendre aux compléments alimentaires (millepertuis,
-  pamplemousse déjà ?, vitamine K, levure de riz rouge) avec sources ANSM/EMA.
-- **D4 – Health Connect** : bidirectionnel (export nutrition/hydratation, pas seulement import
-  poids/activité).
-- **D5 – Rappels produits (Recall)** : notifier si un produit **déjà scanné/historique** fait
-  l'objet d'un rappel RappelConso — très forte valeur sécurité.
-- **D6 – Planification repas ↔ liste de courses ↔ dépenses** : relier les trois modules
-  existants (plan → liste → ticket scanné → budget réel vs prévu).
-- **D7 – Widget** : passer à Glance avec score du jour, hydratation, bouton scan direct.
-- **D8 – Rapport médecin** (`presentation/report`) : export PDF propre, période choisie,
-  pour consultation diététicien/médecin.
-
-## 4. Ce qui peut être créé (nouveau)
-
-- **N1 – Contribution Open Food Facts** : quand un produit manque ou est incomplet, envoyer
-  photos + OCR ML Kit à OFF (API write). Améliore les données pour tous et la note locale.
-- **N2 – Mode famille / multi-profils** : plusieurs profils santé sur un appareil (enfant
-  allergique, parent sous traitement) ; scan évalué pour chaque membre.
-- **N3 – Scan de menu / restaurant** : OCR d'une carte → plats signalés selon allergies/régime.
-- **N4 – Comparateur** : scanner 2–3 produits en rayon et les comparer côte à côte.
-- **N5 – Journal des sources** : écran public listant toutes les bases, versions et
-  références scientifiques utilisées (transparence, argument Play Store).
-- **N6 – Synchronisation chiffrée optionnelle** (backup E2E vers Drive/fichier) pour changer
-  de téléphone sans perte — l'app est 100 % locale, c'est le principal risque utilisateur.
-- **N7 – Wear OS** : hydratation, jeûne, rappels médicaments au poignet.
+| Affirmation passe 1 | Réalité vérifiée |
+|---|---|
+| « Créer un mode multi-profils » | **Existe** : `prefs.activeProfileId`, `profileId` dans ~980 usages, tous les repos sont filtrés par profil. |
+| « Health Connect : passer en bidirectionnel » | **Existe** : écriture poids, hydratation, exercice, calories, nutrition (`HealthConnect*Ext.kt`, manifeste). |
+| « Widget : passer à Glance » | **Existe** : `ScanWidget` + `TodayWidget` sont des `GlanceAppWidget`. |
+| « Rapport médecin PDF » | **Existe** : `PdfReportRepository`. |
+| « Sauvegarde chiffrée » | **Existe** : `BackupEncryption`, `BackupPassphraseCipher` (+ test). |
+| « Alternatives meilleures » | **Partiel** : `findBetterAlternative` cherche uniquement dans l'**historique de l'utilisateur** (`ScanHistoryQueries`), pas dans Open Food Facts. |
+| « Comparateur de produits » | **Existe** : `CompareScansDialog` (historique) + `ComparisonCard` sur le résultat. |
+| « Rappels produits (Recall) » | **Partiel** : vérification RappelConso au scan et cache dans le garde-manger ; **aucune vérification périodique** (cf. C3). |
+| « Pas de source dans les bases » | **Nuancé** : sources présentes en **commentaires** (ex. en-tête de `FoodDb.kt` : CIQUAL 2020, DOI), mais aucune donnée structurée par entrée, et rien n'est visible pour l'utilisateur. |
 
 ---
 
-## Priorisation proposée
+## 1. À corriger — priorité haute (vérifié)
 
-1. **Confiance** : C1, C6, D1, N5 (traçabilité des sources de bout en bout).
-2. **Sécurité utilisateur** : D5, D3, C4.
-3. **Clarté produit** : A1, A2, C5.
-4. **Croissance** : N1, D2, N2, N4.
-5. **Écosystème** : D4, D7, N6, N7.
+### C1. Alertes de sécurité mal ordonnées sur l'écran résultat 🔴
+`presentation/result/ResultContent.kt` affiche, dans cet ordre : bandeau de rappel, badges,
+anneau de score, verdict, **ComparisonCard, AlternativeCard, PairingsCard**, puis
+seulement ensuite **DietVetoBanner** et **AllergenWarningsCard** (l. ~200-216).
+Un allergène détecté pour l'utilisateur apparaît donc **sous** des suggestions d'accords
+mets/aliments. Pour quelqu'un d'allergique, c'est l'information n°1.
+→ Remonter `AllergenWarningsCard`, `DietVetoBanner` et `AllergenUnverifiedBanner` juste
+sous `RecallBanner`, avant l'anneau de score.
+
+### C2. Interactions aliment-médicament cachées derrière un bouton 🔴
+Les risques médicamenteux du produit scanné (`hints.medicationRisks`, issus de
+`checkFoodDrugInteractions`) ne s'affichent que dans `HintPanel`, une boîte de dialogue
+fermée par défaut (`showHints = false`). Un utilisateur sous AVK qui scanne des épinards ne
+voit rien sans ouvrir le panneau.
+→ Bandeau rouge inline « Interaction possible avec <médicament> » (même niveau que C1)
+lorsque `medicationRisks` n'est pas vide ; le panneau reste pour le détail.
+
+### C3. Rappels produits jamais revérifiés après le scan 🔴
+`RecallRepository` interroge RappelConso **au scan** ; le cache négatif expire en 7 jours
+mais n'est réinterrogé qu'**au prochain scan** du même code-barres. `ReminderWorker` ne
+contient aucune logique de rappel produit. Un produit acheté, scanné puis rappelé la
+semaine suivante ne déclenche **aucune notification**.
+→ `RecallSyncWorker` quotidien : requête RappelConso sur les rappels publiés depuis la
+dernière synchro, croisés avec les codes-barres de l'historique et du garde-manger ;
+notification « Produit rappelé : X — ne pas consommer ». C'est probablement la
+fonctionnalité à plus forte valeur sécurité par ligne de code de toute l'app.
+
+### C4. « Premium » sans paiement 🟠
+`PremiumSection` propose un bouton qui bascule `isPremium` sur `true`/`false` (`onSetPremium(!isPremium)`).
+Aucune dépendance Billing. Toute personne peut s'activer Premium gratuitement depuis les
+réglages. En l'état, publier avec un écran « Premium verrouillé » serait trompeur.
+→ Soit intégrer Google Play Billing (abonnement / achat unique), soit retirer la notion
+de Premium avant publication. `PremiumGate` mentionne aussi « AI photo scanning » alors
+que le README affirme « ni serveur ni IA » (cf. C6).
+
+### C5. Migrations Room non vérifiables 🟠
+`exportSchema = true`, mais `app/schemas/` ne contient que les versions **15-18, 20-24 et 40**.
+Les snapshots **19 et 25 à 39** manquent : `MigrationTestHelper` ne peut pas valider les
+15 dernières migrations (40 `Migration(` déclarées dans `AppDatabase.kt`). Les mises à
+jour depuis la v1.0 publiée sont le chemin de perte de données le plus probable.
+→ Régénérer les schémas manquants en remontant l'historique git (checkout de chaque
+version → build KSP), puis écrire un test de migration 15→40.
+
+### C6. Vestiges « LLM » trompeurs 🟡
+106 mentions de `LLM` dans le code, dont l'énum `ScanSource.LLM` utilisée pour les
+**photos lues sur l'appareil par ML Kit**, des commentaires « OFF-vs-LLM conflict » et le
+commentaire de `FoodDb.kt` (« falling back to the LLM's own rough macro guess »). Le README
+affirme qu'aucune IA n'est utilisée. D'après la philosophie du projet, toute divergence
+entre un commentaire et le comportement réel compte comme un bug.
+→ Renommer `ScanSource.LLM` en `ON_DEVICE_OCR` (en gardant la valeur persistée, avec une
+migration ou un `@SerializedName`) et purger les commentaires obsolètes.
+
+### C7. Séparateur NUL brut dans le code source 🟡
+`data/repository/planning/ManualGroceryRepository.kt` contient 226 octets `0x00`. Le
+fichier est vu comme **binaire** par git/grep, car il utilise un caractère NUL littéral comme séparateur
+(`split('<NUL>')`) dans DataStore. Les revues, diffs et recherches ignorent silencieusement ce fichier.
+→ Écrire `'\u0000'` en échappement, ou mieux, sérialiser en JSON.
+
+### C8. Internationalisation dans le moteur 🟡
+233 occurrences de `if (en) "…" else "…"` dans le code (moteur de scoring compris, ex.
+`ScoringEngine.kt:578`). Le domaine produit des textes localisés : impossible d'ajouter une
+3ᵉ langue, et les traductions échappent aux outils.
+→ Le domaine renvoie des codes ou des clés (`WarningKey.NOVA_INFERRED(confidence)`),
+et la présentation les résout via `strings.xml`.
+
+### C9. Précision des rappels de médicaments 🟡
+Les doses sont rappelées par un `PeriodicWorkRequest` de **15 min** (choix documenté dans
+`ScanEatApp.kt`), sans `AlarmManager`. Retard possible de 15 min, et bien plus en Doze.
+→ Alarmes exactes (`setExactAndAllowWhileIdle`, permission `SCHEDULE_EXACT_ALARM` /
+`USE_EXACT_ALARM`, légitime pour une app de rappel médical) pour les doses ; garder le
+worker pour les rappels de repas et d'hydratation.
+
+---
+
+## 2. À améliorer
+
+- **A1 – Transparence des sources dans l'UI.** Les sources existent en commentaires ;
+  les remonter en données (`source`, `version`, `verifiedOn` par table ou par entrée) et
+  les afficher dans un écran « Sources et versions des données », ainsi qu'en pied de chaque
+  alerte (« Source : ANSM, 2024 »). C'est le différenciateur central de la philosophie
+  « confiance absolue ».
+- **A2 – « Pourquoi cette note ? ».** `AdjustmentsSection` liste déjà les ajustements
+  personnels (points ±). Il manque le lien vers la règle et la source de chaque ajustement,
+  ainsi que la décomposition de la note classique (`PillarsSection`) en langage simple.
+- **A3 – Alternatives venant d'Open Food Facts.** Aujourd'hui limitées à l'historique :
+  un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégorie
+  (`categories_tags`) et trier par le score local du profil.
+- **A4 – Navigation.** 34 modules dans `presentation/` (fasting, loyalty, seasonal,
+  calendar, sleep, symptom, expenses…). Proposer à l'onboarding de choisir les modules
+  suivis, et masquer les autres dans la navigation.
+- **A5 – Taille des fichiers.** `ScanViewModel` (719 l.), `AppDatabase` (687 l. : extraire
+  les 40 migrations dans `Migrations.kt`), `Theme.kt` (627 l.), `ScoringEngine` (604 l.).
+- **A6 – Accessibilité.** Environ 40 `contentDescription = null` : vérifier qu'aucune ne
+  porte sur une icône de statut ou d'alerte. Valider le contraste AA des couleurs de grade
+  en mode sombre.
+- **A7 – Couverture de la base médicamenteuse.** `FoodDrugInteractionDb` couvre 5 classes
+  (AVK, IMAO, statines/inhibiteurs calciques, IEC/sartans, lévothyroxine). Candidats sourcés
+  ANSM/EMA : millepertuis (inducteur CYP3A4), réglisse (antihypertenseurs, hypokaliémie),
+  tyramine sous linézolide, alcool sous métronidazole, calcium/fer avec les
+  fluoroquinolones/tétracyclines, levure de riz rouge et statines.
+
+## 3. À développer
+
+- **D1 – Synchro RappelConso en arrière-plan** (cf. C3), avec écran « Mes produits
+  rappelés ».
+- **D2 – Garde-manger ↔ dates de péremption** : notification J-2, liée au plan de repas
+  (« cuisiner d'abord ce qui expire »).
+- **D3 – Plan de repas → courses → dépenses** : les trois modules existent ; il manque le
+  bouclage « budget prévu vs ticket scanné » (`ReceiptParser` déjà présent).
+- **D4 – Signaux croisés symptômes ↔ aliments** : `SymptomCorrelation` existe ; ajouter un
+  journal d'élimination guidé (FODMAP, lactose), à présenter clairement comme une
+  observation personnelle et non un diagnostic.
+- **D5 – Rapport médecin** : ajouter interactions détectées, observance des médicaments
+  et symptômes sur la période choisie dans `PdfReportRepository`.
+
+## 4. À créer
+
+- **N1 – Contribution Open Food Facts** : aucune écriture vers OFF aujourd'hui. Quand un
+  produit est absent ou incomplet, proposer d'envoyer photos et champs lus par OCR (API
+  d'écriture OFF, compte utilisateur ou anonyme).
+- **N2 – Écran « Sources & méthodologie »** public (cf. A1), lien depuis chaque note.
+- **N3 – Scan de carte de restaurant** : OCR ML Kit, puis détection allergènes/régime par plat,
+  en réutilisant `AllergenDetector` et `DietChecker`.
+- **N4 – Monétisation réelle** (cf. C4) : Play Billing ; Premium centré sur Biolism et les
+  rapports, sans rien retirer à la sécurité (allergènes, rappels et interactions restent
+  gratuits).
+- **N5 – Wear OS / tuile** : prise de médicament, verre d'eau, chrono de jeûne.
+
+---
+
+## Priorisation
+
+| Ordre | Items | Pourquoi |
+|---|---|---|
+| 1 | **C1, C2, C3** | Sécurité directe de l'utilisateur ; modifications localisées (ordre de composables, un bandeau, un worker). |
+| 2 | **C4, C5** | Bloquants avant toute publication ou mise à jour (honnêteté de l'offre, perte de données). |
+| 3 | A1, A2, N2 | Concrétiser la promesse « information sourcée ». |
+| 4 | C6, C7, C8, C9 | Dette qui contredit la doc ou fragilise l'outillage. |
+| 5 | A3, A7, D1-D5 | Valeur produit. |
+| 6 | N1, N3, N4, N5 | Nouveaux axes. |
