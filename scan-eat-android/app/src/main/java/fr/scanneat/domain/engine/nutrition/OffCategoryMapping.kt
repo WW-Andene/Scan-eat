@@ -45,112 +45,152 @@ internal fun resolveCategory(tags: List<String>?, name: String): ProductCategory
     if (offCategory == ProductCategory.OTHER) return inferCategoryFromName(name)
     if (offCategory !in BEVERAGE_CATEGORIES) return offCategory
     val nameCategory = inferCategoryFromName(name)
-    return if (nameCategory != ProductCategory.OTHER && nameCategory !in BEVERAGE_CATEGORIES) nameCategory else offCategory
+    // A fruit named on a drink ("Twist Pêche", "Orange - Carotte") is a flavour,
+    // not evidence that OFF mis-tagged a solid food as a beverage.
+    val overridable = nameCategory != ProductCategory.OTHER && nameCategory !in BEVERAGE_CATEGORIES &&
+        nameCategory != ProductCategory.FRESH_PRODUCE && nameCategory != ProductCategory.DRIED_FRUIT
+    return if (overridable) nameCategory else offCategory
 }
 
+/**
+ * Score-engine audit S1: OFF's `categories_tags` is the FULL hierarchy, from
+ * the most general parent to the most specific leaf (e.g. bread =
+ * "en:plant-based-foods-and-beverages", "en:cereals-and-potatoes", …,
+ * "en:breads"). The previous implementation joined every tag into one string
+ * and searched it for substrings in a fixed order, so generic parents decided
+ * the category: "cereals-and-potatoes" made every bread/rice/pasta/flour/crisp
+ * a BREAKFAST_CEREAL, "plant-based-foods-and-beverages" made olive oils,
+ * margarines and canned vegetables a BEVERAGE_SOFT, "prepared-meats" made every
+ * ham a FRESH_MEAT, "breaded-fish" made fish sticks a BREAD. Measured on the 10
+ * most-scanned French products of 39 OFF categories (see Roadmap.md, S1).
+ *
+ * Now: walk the tags from the most specific to the most general, skip the
+ * umbrella parents that say nothing about the product's nutrition, and return
+ * the first tag that a rule recognizes. Each rule only ever looks at ONE tag,
+ * matched on whole "-"-separated words, never on the concatenation.
+ */
 internal fun mapCategory(tags: List<String>?): ProductCategory {
     if (tags.isNullOrEmpty()) return ProductCategory.OTHER
-    // Scan the whole tag hierarchy, not just tags[0] — OFF often puts a generic
-    // parent tag (e.g. "en:beverages") first, which was mis-bucketing plenty of
-    // products before ever reaching their more specific tag further down the list.
-    val tag = tags.joinToString(" ")
-    // Whole-token view of the tag list ("en:wine-vinegars" -> en, wine, vinegars). Raw substring tests
-    // misfire on compound words: "nut" inside coconut/doughnut/butternut, "seed" inside rapeseed,
-    // "liquor" inside liquorice, "rum" inside crumbles/crumpets, "vin" inside vinegars/vinaigrettes,
-    // "cheese" inside cheesecakes. Only the keywords with such a collision use this; a singular
-    // keyword also matches its plural ("wine" -> "wines").
-    val tagTokens = tag.split(Regex("[^a-z0-9]+")).filter { it.isNotEmpty() }.toSet()
-    fun hasWord(vararg words: String) = words.any { w -> w in tagTokens || w + "s" in tagTokens }
-    // A wine/cider/rum word next to one of these is a vinegar, sauce, dressing, gum or sweet - not a drink.
-    val notADrink = tagTokens.any { t ->
-        t.startsWith("vinegar") || t.startsWith("vinaigr") || t.startsWith("sauce") || t.startsWith("dressing") ||
-            t.startsWith("candy") || t.startsWith("candies") || t.startsWith("confection") || t == "gum" || t == "gums"
+    // Only normalized English or French taxonomy slugs: the tail of the list
+    // often holds free-text or importer tags ("Vegetables - Prepared/Processed
+    // (Shelf Stable)", "en:Pâtes à tartiner") that are neither normalized nor
+    // reliable, and other languages would need their own keyword lists.
+    val slugs = tags.asSequence()
+        .filter { it.startsWith("en:") || it.startsWith("fr:") }
+        .map { it.substring(3) }
+        .filter { TAXONOMY_SLUG.matches(it) }
+        .toList()
+    // A "0.0"/alcohol-free beer or wine is tagged both "beers" and
+    // "non-alcoholic-beers", in no reliable order - the absence of alcohol wins.
+    if (slugs.any { "non-alcoholic-beer" in it || "non-alcoholic-wine" in it || "alcohol-free" in it }) return ProductCategory.BEVERAGE_SOFT
+    // Same for breakfast cereals: their leaf tag is often only the shape or
+    // flavour ("chocolate-wheat-shells") while "breakfast-cereals" is reliable.
+    if ("breakfast-cereals" in slugs) return ProductCategory.BREAKFAST_CEREAL
+    for (slug in slugs.asReversed()) {
+        if (slug in UMBRELLA_CATEGORY_TAGS || ORIGIN_OR_PROPERTY_TAG.containsMatchIn(slug)) continue
+        categoryForTag(slug)?.let { return it }
     }
-    // sandwich/burger checked before cheese: OFF tags a grilled-cheese/
-    // croque-monsieur-type product with BOTH "en:sandwiches" and
-    // "en:cheese-sandwiches" (a real, reachable OFF tag combination), and
-    // since every branch here matches against the whole joined tag string,
-    // whichever branch came first previously won regardless of which tag was
-    // actually the more specific one for that product - a cheese sandwich was
-    // silently bucketed as CHEESE (a raw-ingredient category whose scoring
-    // pillars don't fit a prepared sandwich) instead of SANDWICH.
-    return when {
-        "yogurt" in tag || "yaourt" in tag || "skyr" in tag -> ProductCategory.YOGURT
-        "sandwich" in tag || "burger" in tag -> ProductCategory.SANDWICH
-        // Same substring-match bug as meat/fish-alternatives below, and now
-        // routed to its own PLANT_BASED_ALTERNATIVE category (own thresholds,
-        // see CategoryThresholds.kt) instead of just excluded into OTHER's
-        // generic bands: OFF tags vegan cheese as "en:cheese-substitutes"
-        // (confirmed via live OFF data alongside "en:dairy-substitutes"/
-        // "en:vegan-products", e.g. "Vegan feta cheese"), which contains
-        // "cheese" as a raw substring - scored against real dairy cheese's
-        // protein (15-25g/100g) and sat-fat (12-30g/100g) thresholds, tuned
-        // for actual cheese, not a cashew/coconut-oil-based substitute.
-        "cheese-substitute" in tag -> ProductCategory.PLANT_BASED_ALTERNATIVE
-        ("cheese" in tag && !hasWord("cheesecake")) || "fromage" in tag -> ProductCategory.CHEESE
-        "cereal" in tag || "cereale" in tag || "granola" in tag -> ProductCategory.BREAKFAST_CEREAL
-        "bread" in tag || "pain" in tag -> ProductCategory.BREAD
-        "processed-meat" in tag || "charcuterie" in tag || "saucisson" in tag -> ProductCategory.PROCESSED_MEAT
-        // Same substring-match bug ALCOHOLIC_BEVERAGE's own fix below
-        // addresses for "non-alcoholic-beverage": OFF tags plant-based meat/
-        // fish substitutes as "en:meat-alternatives"/"en:meat-analogues"/
-        // "en:fish-alternatives"/"en:fish-analogues" (confirmed via live OFF
-        // data - e.g. tofu, textured-pea-protein products), all of which
-        // contain "meat"/"fish" as a raw substring - a soy-based product was
-        // silently scored against FRESH_MEAT's protein/kcal norms instead of
-        // routing to its own PLANT_BASED_ALTERNATIVE category.
-        "meat-alternative" in tag || "meat-analogue" in tag || "fish-alternative" in tag || "fish-analogue" in tag -> ProductCategory.PLANT_BASED_ALTERNATIVE
-        "meat" in tag || "viande" in tag -> ProductCategory.FRESH_MEAT
-        "fish" in tag || "seafood" in tag || "poisson" in tag -> ProductCategory.FISH
-        "biscuit" in tag || "cookie" in tag || "chocolate" in tag || "snack" in tag && ("sweet" in tag || "sucre" in tag) -> ProductCategory.SNACK_SWEET
-        // Checked before the generic "snack" catch-all below - OFF tags nuts/
-        // seeds as "en:nuts", "en:seeds", "en:dried-fruits-and-nuts" etc, and
-        // often ALSO under its own "en:salty-snacks" parent tag, so without
-        // this a nut/seed product's real, more specific tag was shadowed by
-        // the generic snack branch and scored against chip-shaped thresholds
-        // (see ProductCategory.NUTS_SEEDS's own doc comment).
-        // Whole tokens, not substrings: "coconut" (waters/milks), "doughnut", "butternut" (soups) contain
-        // "nut" and "rapeseed" (oils) contains "seed", and were scored against nut/seed thresholds.
-        // An oil tag always wins over a seed/nut word ("huiles-de-graines" is an oil).
-        (hasWord("nut", "peanut", "hazelnut", "walnut", "seed", "graine", "amande", "noisette") && !hasWord("oil", "huile")) -> ProductCategory.NUTS_SEEDS
-        "chips" in tag || "crisp" in tag || "snack" in tag -> ProductCategory.SNACK_SALTY
-        // Checked before the generic "beverage" branches below - OFF tags beer/
-        // wine/spirits as "en:beverages" too, so without this an alcoholic
-        // drink fell through to BEVERAGE_SOFT and was scored against
-        // soda-shaped sugar/kcal reference ranges (see ProductCategory.
-        // ALCOHOLIC_BEVERAGE's own doc comment for the bug this fixes).
-        // "non-alcoholic-beverage" (OFF's own tag for e.g. sparkling water) contains
-        // "alcoholic-beverage" as a raw substring, so this branch was firing on
-        // every non-alcoholic product too - a water scanned as an alcoholic drink,
-        // inheriting its 30-280kcal/100g norm range instead of water's 0-5 one.
-        // The drink words are whole tokens (see tagTokens): "vin" matched vinegars/vinaigrettes, "liquor"
-        // matched liquorice, "rum" matched crumbles/crumpets, "wine" matched wine-vinegars/wine-gums -
-        // each then scored as an alcoholic drink (beverage thresholds, pregnancy veto, halal violation).
-        ("alcoholic-beverage" in tag && "non-alcoholic-beverage" !in tag) ||
-            (!notADrink && hasWord(
-                "beer", "biere", "wine", "vin", "cider", "cidre", "spirit", "spiritueux", "liquor",
-                "liqueur", "whisky", "whiskey", "whiskies", "vodka", "rum", "champagne",
-            )) -> ProductCategory.ALCOHOLIC_BEVERAGE
-        "beverage" in tag && "juice" in tag -> ProductCategory.BEVERAGE_JUICE
-        "beverage" in tag && ("water" in tag || "eau" in tag) -> ProductCategory.BEVERAGE_WATER
-        "beverage" in tag || "soda" in tag || "boisson" in tag -> ProductCategory.BEVERAGE_SOFT
-        // Checked before CONDIMENT below — OFF tags honey/jam as "en:honeys"/
-        // "en:jams"/"en:spreads", none of which contain "sauce"/"condiment"/
-        // "dressing", so this branch was entirely absent and every OFF-tagged
-        // jar fell through to OTHER. The name-based inferCategoryFromName
-        // fallback in OffMapper.kt only catches this when the product *name*
-        // itself contains "miel"/"honey"/"confiture" — a private-label jar
-        // named only by brand still landed in OTHER's generic thresholds,
-        // reproducing the exact "honey scores as critical sugar" bug
-        // ProductCategory.SPREAD_SWEET's own doc comment describes.
-        "honey" in tag || "miel" in tag || "jam" in tag || "confiture" in tag || "marmalade" in tag ||
-            "marmelade" in tag -> ProductCategory.SPREAD_SWEET
-        "sauce" in tag || "condiment" in tag || "dressing" in tag || hasWord("vinegar", "vinaigre", "vinaigrette") -> ProductCategory.CONDIMENT
-        "oil" in tag || "fat" in tag || "huile" in tag -> ProductCategory.OIL_FAT
-        "soup" in tag || "soupe" in tag || "broth" in tag || "bouillon" in tag -> ProductCategory.SOUP
-        "ready-meal" in tag || "plat-prepare" in tag || "pizza" in tag || "quiche" in tag -> ProductCategory.READY_MEAL
-        else -> ProductCategory.OTHER
-    }
+    return ProductCategory.OTHER
+}
+
+private val TAXONOMY_SLUG = Regex("[a-z0-9]+(-[a-z0-9]+)*")
+
+/** Origin ("french-fruits", "cheeses-from-england") and nutrition-claim
+ *  ("products-with-reduced-salt", "light-…") tags describe a property, not
+ *  what the product is - they would otherwise outrank the real leaf tag. */
+private val ORIGIN_OR_PROPERTY_TAG = Regex(
+    "^(french|italian|spanish|belgian|swiss|german|english|british|organic|light|products)-|-from-|reduced-|less-salt|with-less-|low-salt|no-added-|without-",
+)
+
+/** Parent or property tags shared by nutritionally unrelated products - never decisive. */
+private val UMBRELLA_CATEGORY_TAGS = setOf(
+    "plant-based-foods-and-beverages", "plant-based-foods", "beverages-and-beverages-preparations",
+    "cereals-and-potatoes", "cereals-and-their-products", "fruits-and-vegetables-based-foods",
+    "vegetable-based-foods-and-beverages", "fruit-based-foods-and-beverages", "snacks", "breakfasts",
+    "fresh-foods", "refrigerated-foods", "frozen-foods", "canned-foods", "dried-products", "fermented-foods",
+    "farming-products", "groceries", "foods", "spreads", "dairies", "animal-products", "meat-based-products",
+    "fish-and-meat-and-eggs", "products-for-specific-diets", "dietary-supplements", "fruits-based-foods",
+    "vegetables-based-foods", "legumes-and-their-products", "nuts-and-their-products", "seafood-products",
+    "sweeteners", "plant-based-spreads", "salted-spreads", "sweetened-beverages", "unsweetened-beverages",
+    "non-alcoholic-beverages", "beverage-preparations", "instant-beverages", "pasteurised-products",
+    "desserts", "frozen-plant-based-foods", "canned-plant-based-foods", "dried-plant-based-foods",
+    "freeze-dried-foods", "plant-based-beverages", "fruit-based-beverages", "carbonated-drinks",
+)
+
+/** True when [this] slug contains one of [words] as a whole "-"-separated word
+ *  (plural "s"/"es" tolerated): word "bread" matches "sliced-breads" but not
+ *  "breaded-fish". Multi-word entries ("ice-cream") are matched as a run. */
+private fun String.hasWord(vararg words: String): Boolean {
+    val padded = "-$this-"
+    return words.any { w -> padded.contains("-$w-") || padded.contains("-${w}s-") || padded.contains("-${w}es-") }
+}
+
+private fun categoryForTag(t: String): ProductCategory? = when {
+    // Substitutes first: they carry the word of the product they imitate.
+    t.hasWord("tofu", "tempeh", "seitan", "cheese-substitute", "vegan-cheese", "meat-alternative", "meat-analogue",
+        "meat-substitute", "fish-alternative", "fish-analogue") -> ProductCategory.PLANT_BASED_ALTERNATIVE
+    // Peanut "butter" is a legume/oilseed purée, not a fat and not a legume dish.
+    t.hasWord("peanut-butter", "nut-butter", "legume-butter", "oilseed-puree", "almond-butter", "nut-spread") -> ProductCategory.NUTS_SEEDS
+    t.hasWord("sauce", "vinegar", "vinaigre", "moutarde", "epice", "dressing", "vinaigrette", "mayonnaise", "ketchup", "mustard", "pesto", "hummus",
+        "tapenade", "condiment", "spice", "herb", "seasoning") &&
+        !t.hasWord("with", "crisps", "chips", "cracker", "fish", "lentil", "bean", "pizza") ||
+        t == "salts" || t == "table-salts" || t == "sea-salts" -> ProductCategory.CONDIMENT
+    t.hasWord("sandwich", "burger", "wrap") && !t.hasWord("biscuit", "cookie", "wafer") -> ProductCategory.SANDWICH
+    t.hasWord("pizza", "quiche", "lasagna", "lasagne", "meal", "dish", "gratin", "paella", "tartiflette", "moussaka",
+        "prepared-salad", "ratatouille", "pie", "ravioli", "tortellini", "stuffed-pasta") && !t.hasWord("lasagna-sheet", "egg-pasta", "pizza-sauce", "apple-pie", "sweet-pie", "sweet-pastries-and-pie", "fruit-pie") -> ProductCategory.READY_MEAL
+    t.hasWord("breakfast-cereal", "muesli", "granola", "porridge", "cereal-flake", "rolled-oat", "oat-flake",
+        "puffed-cereal", "cornflake", "corn-flake", "extruded-cereal", "cereal-cluster") ||
+        t.hasWord("breakfast") && t.hasWord("cereal") -> ProductCategory.BREAKFAST_CEREAL
+    // Compotes "to drink" (gourdes) are still fruit purée, not a soft drink.
+    t.hasWord("compote", "applesauce") -> ProductCategory.FRESH_PRODUCE
+    t.hasWord("iced-tea", "ice-tea", "iced-coffee", "coffee-drink", "tea-based-beverage", "flavoured-water",
+        "flavored-water", "coconut-water") -> ProductCategory.BEVERAGE_SOFT
+    // Coffee/tea before milk: "instant-powder-for-coffee-with-milk" is coffee.
+    t.hasWord("coffee", "tea", "herbal-tea", "cafe", "thes", "the-vert", "the-noir", "chicoree", "infusion", "tisane", "espresso", "chicory", "coffee-substitute") -> ProductCategory.COFFEE_TEA
+    t.hasWord("ice-cream", "sorbet", "frozen-dessert", "frozen-yogurt", "ice-pop") -> ProductCategory.ICE_CREAM
+    t.hasWord("yogurt", "yoghurt", "yaourt", "skyr", "kefir", "fromage-blanc", "fromages-blancs", "petit-suisse", "fermented-milk",
+        "fermented-dairy-dessert", "dairy-dessert", "cream-dessert") -> ProductCategory.YOGURT
+    t.hasWord("plant-based-milk-alternative", "plant-milk", "milk", "lait", "milk-powder", "based-drink", "dairy-drink") &&
+        !t.hasWord("chocolate", "cocoa", "flavoured", "flavored", "fermented-milk", "milk-chocolate", "coconut", "bread", "roll",
+            "wine", "beer", "alcoholic") -> ProductCategory.MILK
+    t.hasWord("cheesecake") -> ProductCategory.SNACK_SWEET
+    t.hasWord("cheese", "fromage") -> ProductCategory.CHEESE
+    t.hasWord("soup", "broth", "bouillon", "gazpacho", "veloute") -> ProductCategory.SOUP
+    t.hasWord("ham", "jambon", "saucisse", "sausage", "saucisson", "salami", "bacon", "chorizo", "charcuterie", "rillette", "terrine", "lardon",
+        "merguez", "pepperoni", "prosciutto", "prepared-meat", "processed-meat", "cured-meat", "cooked-meat", "foie-gras",
+        "dry-sausage", "meat-pate", "liver-pate", "pork-prepared", "prepared-pork-meat", "cooked-ham", "white-ham") || t == "pates" || t.endsWith("-pates") -> ProductCategory.PROCESSED_MEAT
+    t.hasWord("fish", "seafood", "salmon", "tuna", "sardine", "mackerel", "herring", "cod", "shrimp", "prawn", "crustacean",
+        "mollusc", "mussel", "oyster", "surimi", "anchovy", "anchovies", "fish-stick", "fish-finger") -> ProductCategory.FISH
+    t.hasWord("egg") && !t.hasWord("egg-pasta", "egg-noodle", "chocolate", "easter") -> ProductCategory.EGG
+    t.hasWord("meat", "beef", "pork", "veal", "lamb", "chicken", "poultry", "poultries", "turkey", "duck", "rabbit",
+        "steak", "ground-beef", "minced-meat", "meat-patty", "meat-patties") -> ProductCategory.FRESH_MEAT
+    t.hasWord("oil", "huile", "beurre", "margarine", "butter", "lard", "ghee", "vegetable-fat", "animal-fat", "spreadable-fat") &&
+        !t.hasWord("cocoa", "shea", "peanut") ||
+        t.hasWord("fat") && !t.hasWord("with", "low-fat", "fat-free", "fatty", "cocoa") -> ProductCategory.OIL_FAT
+    t.hasWord("honey", "miel", "confiture", "jam", "marmalade", "fruit-preserve", "fruit-spread", "jelly-spread") -> ProductCategory.SPREAD_SWEET
+    t.hasWord("biscuit", "cookie", "chocolate", "cake", "pastry", "pastries", "viennoiserie", "candy", "candies",
+        "confectionery", "confectioneries", "confectionary", "gingerbread", "waffle", "wafer", "crepe", "muffin",
+        "brownie", "cocoa", "sweet-snack", "dessert-cream") -> ProductCategory.SNACK_SWEET
+    t.hasWord("chips", "crisps", "cracker", "popcorn", "pretzel", "olive", "appetizer", "salty-snack") &&
+        !t.hasWord("crispbread") -> ProductCategory.SNACK_SALTY
+    t.hasWord("lentil", "lentille", "pois-chiche", "chickpea", "legume", "pulse", "bean", "split-pea", "legume-seed") &&
+        !t.hasWord("green-bean", "coffee-bean", "cocoa-bean", "jelly-bean", "vanilla-bean") -> ProductCategory.LEGUME
+    t.hasWord("dried-fruit", "raisin", "prune", "dried-prune", "date", "dried-apricot", "dried-fig", "dried-cranberries") -> ProductCategory.DRIED_FRUIT
+    t.hasWord("nut", "almond", "hazelnut", "walnut", "cashew", "cashew-nut", "pistachio", "peanut", "seed", "pecan",
+        "macadamia", "shelled-nut") && !t.hasWord("doughnut", "coconut", "nutmeg") -> ProductCategory.NUTS_SEEDS
+    t.hasWord("alcoholic-beverage", "beer", "biere", "vin", "cidre", "wine", "cider", "spirit", "liquor", "liqueur", "whisky", "whiskey",
+        "whiskies", "vodka", "rum", "champagne", "gin", "vermouth", "ale", "lager") &&
+        !t.hasWord("gum", "candy", "candies", "confectionery", "vinegar") -> ProductCategory.ALCOHOLIC_BEVERAGE
+    t.hasWord("juice", "jus", "nectar", "smoothie") -> ProductCategory.BEVERAGE_JUICE
+    t.hasWord("water", "eau") -> ProductCategory.BEVERAGE_WATER
+    t.hasWord("soda", "cola", "lemonade", "soft-drink", "energy-drink", "syrup", "beverage", "drink") -> ProductCategory.BEVERAGE_SOFT
+    t.hasWord("bread", "pain", "baguette", "brioche", "toast", "rusk", "crispbread", "bun", "pita", "tortilla") -> ProductCategory.BREAD
+    t.hasWord("rice", "riz", "pasta", "pastas", "pates-alimentaire", "farine", "noodle", "spaghetti", "penne", "macaroni", "gnocchi", "quinoa", "couscous",
+        "semolina", "bulgur", "flour", "grain", "polenta", "buckwheat", "millet", "tagliatelle", "fusilli") -> ProductCategory.GRAIN
+    t.hasWord("compote", "applesauce", "fruit", "vegetable", "potato", "apple", "banana", "tomato", "salad", "mushroom",
+        "carrot", "spinach", "spinachs", "berry", "berries", "citrus", "orange", "pear", "grape", "green-bean", "green-pea",
+        "mixed-vegetable") -> ProductCategory.FRESH_PRODUCE
+    else -> null
 }
 
 /**

@@ -38,12 +38,30 @@ private fun isWholeFood(ingredient: Ingredient, category: ProductCategory): Bool
     return WHOLE_FOOD_KEYWORDS.any { containsWord(lower, it) }
 }
 
+/** Points of this pillar that depend on the ingredient list (all but the 2 origin points). */
+internal const val INGREDIENT_ONLY_INTEGRITY_POINTS = 13.0
+
 fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
     val MAX = 15
     val deductions = mutableListOf<Deduction>()
     val bonuses = mutableListOf<Deduction>()
     var score = 0.0
+    // S3: without an ingredient list, none of the composition criteria below
+    // can be assessed - previously the empty list scored 3/3 "recognizable"
+    // and "+2 No hidden sugars". Only the origin criterion remains; the other
+    // 13 points are excluded from the score (INGREDIENT_ONLY_INTEGRITY_POINTS).
+    if (product.ingredients.isEmpty()) {
+        val hasOriginInfo = product.originTransparent || !product.origin.isNullOrBlank()
+        if (hasOriginInfo) {
+            score += 2
+            bonuses += Deduction("ingredient_integrity", (if (en) "Origin declared: " else "Origine déclarée : ") + (product.origin ?: ""), 2.0, Severity.INFO)
+        }
+        deductions += Deduction("ingredient_integrity",
+            if (en) "No ingredient list — composition criteria not assessed (left out of the score)"
+            else "Liste d'ingrédients absente — critères de composition non évalués (exclus du calcul)", 0.0, Severity.INFO)
+        return PillarScore(if (en) "Ingredient Integrity" else "Intégrité des ingrédients", MAX, score, deductions, bonuses)
+    }
 
     // 1. First 3 whole foods (+5) — divide by the actual count taken (up to 3),
     // not a fixed 3: a single-ingredient whole food (e.g. "Pommes") is 100%

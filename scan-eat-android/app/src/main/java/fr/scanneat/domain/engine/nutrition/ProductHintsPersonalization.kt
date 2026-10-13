@@ -141,7 +141,7 @@ internal fun appendPersonalizedHints(
         conditionRisks += if (en) "High sugar (${n.sugarsG} g/100 g) — prospectively associated with depression risk (Knüppel et al., Whitehall II cohort, Sci Rep 2017)"
                  else "Sucres élevés (${n.sugarsG} g/100 g) — associé de façon prospective au risque de dépression (Knüppel et al., cohorte Whitehall II, Sci Rep 2017)"
     }
-    if ("depression" in conditions && product.novaClass == NovaClass.ULTRA_PROCESSED) {
+    if ("depression" in conditions && fr.scanneat.domain.engine.scoring.effectiveNova(product)?.nova == NovaClass.ULTRA_PROCESSED) {
         conditionRisks += if (en) "Ultra-processed (NOVA 4) — prospectively associated with incident depressive symptoms (Adjibade et al., NutriNet-Santé cohort, BMC Medicine 2019)"
                  else "Ultra-transformé (NOVA 4) — associé de façon prospective à l'apparition de symptômes dépressifs (Adjibade et al., cohorte NutriNet-Santé, BMC Medicine 2019)"
     }

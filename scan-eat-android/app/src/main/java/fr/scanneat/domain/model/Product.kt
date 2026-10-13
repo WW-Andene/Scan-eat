@@ -91,6 +91,14 @@ enum class ProductCategory(val key: String) {
     // stay in SNACK_SALTY (low-kcal/high-salt outlier, but at least not
     // sharing a threshold with high-protein nuts anymore).
     NUTS_SEEDS("nuts_seeds"),
+    // Score-engine audit S1: four product families that Open Food Facts tags
+    // precisely but that had no category of their own, so they borrowed the
+    // thresholds of an unrelated one (lentils as nuts, coffee as soda, milk as
+    // OTHER, dates as nuts/soda). See CategoryThresholds.kt for their bands.
+    LEGUME("legume"),
+    MILK("milk"),
+    DRIED_FRUIT("dried_fruit"),
+    COFFEE_TEA("coffee_tea"),
     OTHER("other");
 
     companion object {
@@ -193,6 +201,12 @@ data class Product(
     val ingredients: List<Ingredient>,
     val nutrition: NutritionPer100g,
     // Optional metadata
+    // Score-engine audit S2: false when [novaClass] is NOT a NOVA group given
+    // by a source (OFF had none, label read by OCR) but a placeholder or an
+    // estimate. A declared group is never overridden by the engine's own
+    // narrower heuristic; an undeclared one is re-estimated, or the
+    // processing pillar is left out of the score when nothing supports it.
+    val novaDeclared: Boolean = true,
     val weightG: Double? = null,
     val origin: String? = null,
     val organic: Boolean = false,
@@ -304,6 +318,11 @@ data class ScoreAudit(
     val nutriscoreGrade: String? = null,
     val engineVersion: String,
     val warnings: List<String>,
+    // Score-engine audit S3: share (0-100) of the score's criteria that the
+    // product's data actually allowed to assess. Below 100, the missing
+    // pillars were left out and the rest rescaled - never filled with a
+    // presumed value in either direction.
+    val evidenceCoverage: Int = 100,
     // Persisted verbatim (via ScanRepository's auditAdapter) to scan_history's
     // auditJson column. New fields must have a default value, or bump
     // schemaVersion and add a migration branch in the parser.

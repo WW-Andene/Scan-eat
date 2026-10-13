@@ -63,7 +63,7 @@ internal fun checkMigraineCondition(
             category = AdjustmentCategory.CONDITION,
         )
     }
-    if (!alcoholHit && !tyramineHit && !nitrateHit && !msgHit && !aspartameHit) {
+    if (product.ingredients.isNotEmpty() && !alcoholHit && !tyramineHit && !nitrateHit && !msgHit && !aspartameHit) {
         adjustments += PersonalAdjustment(
             points = 2.0,
             reason = if (lang == "en") "No common migraine trigger detected"

@@ -55,6 +55,10 @@ internal fun ProductCategory.displayLabel(): String = stringResource(
         ProductCategory.FRESH_PRODUCE     -> R.string.category_fresh_produce
         ProductCategory.EGG               -> R.string.category_egg
         ProductCategory.NUTS_SEEDS        -> R.string.category_nuts_seeds
+        ProductCategory.LEGUME            -> R.string.category_legume
+        ProductCategory.MILK              -> R.string.category_milk
+        ProductCategory.DRIED_FRUIT       -> R.string.category_dried_fruit
+        ProductCategory.COFFEE_TEA        -> R.string.category_coffee_tea
         ProductCategory.OTHER             -> R.string.category_other
     },
 )

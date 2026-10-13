@@ -1063,6 +1063,10 @@
     <string name="category_fresh_produce">Fruits et légumes frais</string>
     <string name="category_egg">Œufs</string>
     <string name="category_nuts_seeds">Fruits à coque / graines</string>
+    <string name="category_legume">Légumineuses</string>
+    <string name="category_milk">Laits et boissons lactées</string>
+    <string name="category_dried_fruit">Fruits secs</string>
+    <string name="category_coffee_tea">Café / thé</string>
     <string name="category_other">Autres</string>
     <string name="expenses_no_budget_hint">Définissez un objectif hebdomadaire pour suivre votre budget</string>
     <string name="expenses_no_budget_hint_day">Définissez un objectif journalier pour suivre votre budget</string>
@@ -1901,6 +1905,7 @@
     <string name="result_badge_nutriscore">Nutri-Score</string>
     <string name="result_badge_ecoscore">Éco-Score</string>
     <string name="result_badge_nova">NOVA %1$d</string>
+    <string name="result_badge_nova_estimated">NOVA ≈%1$d</string>
     <string name="result_allergens_title">Allergènes détectés</string>
     <string name="result_allergen_hit">• %1$s (%2$s)</string>
     <string name="result_allergen_trace_hit">• %1$s — peut contenir des traces (%2$s)</string>

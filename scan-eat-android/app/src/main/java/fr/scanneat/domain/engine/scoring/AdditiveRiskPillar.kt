@@ -29,6 +29,14 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
     val tier2 = mutableListOf<Hit>()
     val tier3 = mutableListOf<Hit>()
 
+    // S3: no ingredient list = additives unknown, not "no additives" (15/15).
+    if (product.ingredients.isEmpty()) {
+        return PillarScore(if (en) "Additive Risk" else "Risque additifs", MAX, 0.0,
+            listOf(Deduction("additive_risk",
+                if (en) "No ingredient list — additives not assessed (left out of the score)"
+                else "Liste d'ingrédients absente — additifs non évalués (exclus du calcul)", 0.0, Severity.INFO)),
+            bonuses)
+    }
     val isAlcoholic = product.category == ProductCategory.ALCOHOLIC_BEVERAGE
     for (ing in product.ingredients) {
         val additive = findAdditive(ing.eNumber, ing.name, ing.category) ?: continue
@@ -46,6 +54,7 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
             AdditiveTier.ONE   -> tier1 += hit
             AdditiveTier.TWO   -> tier2 += hit
             AdditiveTier.THREE -> tier3 += hit
+            AdditiveTier.NONE  -> Unit // S7: no safety concern - not a penalty
         }
     }
 

@@ -6,7 +6,10 @@ package fr.scanneat.domain.engine.scoring
 // ADDITIVES_DB tier file and by findAdditive()'s lookup logic.
 // ============================================================================
 
-enum class AdditiveTier(val value: Int) { ONE(1), TWO(2), THREE(3) }
+/** S7: NONE = recognised additive with no safety concern in its EFSA
+ *  re-evaluation (vitamins, pectin, lecithin, food acids...): identified for
+ *  transparency and NOVA, but never penalised as a "concern". */
+enum class AdditiveTier(val value: Int) { ONE(1), TWO(2), THREE(3), NONE(0) }
 
 enum class AdditiveCategory(val key: String) {
     PRESERVATIVE("preservative"),
@@ -44,4 +47,17 @@ val COSMETIC_ADDITIVE_CATEGORIES = setOf(
     AdditiveCategory.COLORANT,
     AdditiveCategory.FLAVOR_ENHANCER,
     AdditiveCategory.SWEETENER,
+)
+
+/**
+ * Additive classes that mark a product as ultra-processed when its NOVA group
+ * has to be ESTIMATED (S2). Monteiro et al.'s NOVA definition (Public Health
+ * Nutr 2019;22(5):936-941) lists "cosmetic" additives as flavours, flavour
+ * enhancers, colours, emulsifiers, emulsifying salts, sweeteners, glazing
+ * agents, among others - the previous inference only knew three of them.
+ */
+val NOVA_MARKER_ADDITIVE_CATEGORIES = COSMETIC_ADDITIVE_CATEGORIES + setOf(
+    AdditiveCategory.EMULSIFIER,
+    AdditiveCategory.GLAZING,
+    AdditiveCategory.GLAZING_AGENT,
 )

@@ -184,6 +184,7 @@ private fun draft(name: String, ingredients: List<Ingredient>, nutrition: Nutrit
     name = name,
     category = resolveCategory(null, name).takeIf { it != ProductCategory.OTHER } ?: ProductCategory.OTHER,
     novaClass = NovaClass.PROCESSED,
+    novaDeclared = false,
     ingredients = ingredients,
     nutrition = nutrition,
 )

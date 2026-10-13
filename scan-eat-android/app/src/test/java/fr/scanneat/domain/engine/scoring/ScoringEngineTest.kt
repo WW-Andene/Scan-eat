@@ -451,14 +451,27 @@ class ScoringEngineTest {
         }
     }
 
-    @Test fun `Unknown branded product with empty ingredients falls back to NOVA 4`() {
+    // Score-engine audit S2: missing data is not evidence of ultra-processing.
+    @Test fun `Unknown branded product with no NOVA and no ingredients has an unknown processing level`() {
         val product = product(
             name = "Mystery Branded Snack Co.",
             category = ProductCategory.OTHER,
-            novaClass = NovaClass.ULTRA_PROCESSED, ingredients = emptyList(),
+            novaClass = NovaClass.PROCESSED, ingredients = emptyList(),
             nutrition = nutrition(500.0, 25.0, 10.0, 50.0, 20.0, 2.0, 8.0, 1.0),
+        ).copy(novaDeclared = false)
+        assertEquals(null, effectiveNova(product))
+        val audit = scoreProduct(product, "fr")
+        assertEquals(0.0, audit.pillars.processing.score, 0.0)
+        assertTrue(audit.redFlags.none { "NOVA" in it })
+    }
+
+    @Test fun `A NOVA group declared by the source is never downgraded by the heuristic`() {
+        val product = product(
+            name = "Brioche", category = ProductCategory.BREAD, novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(Ingredient("farine de blé"), Ingredient("sucre"), Ingredient("oeufs")),
+            nutrition = nutrition(350.0, 10.0, 3.0, 55.0, 12.0, 2.0, 8.0, 1.0),
         )
-        assertEquals(NovaClass.ULTRA_PROCESSED, inferNovaClassWithConfidence(product).nova)
+        assertEquals(NovaClass.ULTRA_PROCESSED, effectiveNova(product)?.nova)
     }
 
     // ============================================================
@@ -485,10 +498,11 @@ class ScoringEngineTest {
         assertEquals(AdditiveTier.TWO, result!!.tier)
     }
 
-    @Test fun `E330 citric acid is Tier 3`() {
+    // S7: a food acid with JECFA ADI "not specified" is not a concern.
+    @Test fun `E330 citric acid is recognised but not a concern`() {
         val result = findAdditive(null, "acide citrique", IngredientCategory.ADDITIVE)
         assertNotNull(result)
-        assertEquals(AdditiveTier.THREE, result!!.tier)
+        assertEquals(AdditiveTier.NONE, result!!.tier)
     }
 
     @Test fun `Unknown additive returns null`() {

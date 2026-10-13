@@ -74,11 +74,16 @@ internal fun parseIngredients(text: String?): List<Ingredient> {
 // overriding what the label actually says.
 internal fun additiveTagsToIngredients(tags: List<String>?, existing: List<Ingredient>): List<Ingredient> {
     if (tags.isNullOrEmpty()) return emptyList()
-    val existingENumbers = existing.mapNotNull { it.eNumber }.toSet()
+    // S6: dedupe on the RESOLVED additive, not the raw string - "lécithine de
+    // soja" in the text and the tag "en:e322i" are the same additive, and
+    // counting it twice inflated the additive count (NOVA estimate) and the
+    // ingredient count (">10 ingredients" penalty).
+    val existingAdditives = existing.mapNotNull { fr.scanneat.domain.engine.scoring.findAdditive(it.eNumber, it.name, it.category)?.eNumber }.toSet()
     return tags.mapNotNull { tag ->
-        val m = Regex("""en:e(\d{3,4}[a-z]?)(?![0-9])""").find(tag) ?: return@mapNotNull null
+        val m = Regex("""en:e(\d{3,4}[a-z]*)""").find(tag) ?: return@mapNotNull null
         val eNum = "E${m.groupValues[1].uppercase()}"
-        if (eNum in existingENumbers) return@mapNotNull null
+        val resolved = fr.scanneat.domain.engine.scoring.findAdditive(eNum, eNum, null)?.eNumber
+        if (resolved != null && resolved in existingAdditives) return@mapNotNull null
         Ingredient(name = eNum, eNumber = eNum)
-    }.distinctBy { it.eNumber }
+    }.distinctBy { fr.scanneat.domain.engine.scoring.findAdditive(it.eNumber, it.name, null)?.eNumber ?: it.eNumber }
 }

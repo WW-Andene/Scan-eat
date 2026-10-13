@@ -16,6 +16,36 @@ internal const val HIGH_ABV_THRESHOLD = 15.0
  *  sodium) don't surface float noise like 1.0250000000000001 in user-visible text. */
 private fun gramsLabel(v: Double): String = (Math.round(v * 100) / 100.0).toString().removeSuffix(".0")
 
+/** S4: categories where trans fats occur naturally (dairy, butter, ruminant meat). */
+internal fun mayContainNaturalTransFat(product: Product): Boolean = product.category in setOf(
+    ProductCategory.CHEESE, ProductCategory.MILK, ProductCategory.YOGURT, ProductCategory.ICE_CREAM,
+    ProductCategory.FRESH_MEAT, ProductCategory.PROCESSED_MEAT,
+) || (product.category == ProductCategory.OIL_FAT && Regex("beurre|butter|ghee|saindoux|suif", RegexOption.IGNORE_CASE).containsMatchIn(product.name))
+
+private val ADDED_SUGAR_INGREDIENT = Regex("""sucre|sirop|dextrose|glucose|fructose|saccharose|miel|honey|sugar|syrup|maltodextrin|concentr[eé] de jus""", RegexOption.IGNORE_CASE)
+
+/**
+ * S5: true when the sugars of a product with no declared added sugars are
+ * intrinsic (fruit, vegetables, milk lactose) - the WHO "free sugars"
+ * definition excludes them - i.e. its category is one where sugars are
+ * naturally present AND no sugar-type ingredient is listed. Needs an
+ * ingredient list, except for single-food categories where none is usual.
+ */
+internal fun sugarsAreIntrinsicOnly(product: Product): Boolean {
+    if (product.nutrition.addedSugarsG != null) return false
+    val intrinsic = product.category in setOf(ProductCategory.FRESH_PRODUCE, ProductCategory.DRIED_FRUIT, ProductCategory.MILK, ProductCategory.YOGURT)
+    if (!intrinsic) return false
+    if (product.ingredients.isEmpty()) return product.category != ProductCategory.YOGURT
+    return product.ingredients.none { ADDED_SUGAR_INGREDIENT.containsMatchIn(it.name) }
+}
+
+/** S5: products sold dry / to rehydrate - their per-100 g energy is not what is eaten. */
+private val DRY_OR_TO_PREPARE = Regex("""en poudre|d[eé]shydrat|lyophilis|instantan[eé]|à reconstituer|a reconstituer|powder|instant""", RegexOption.IGNORE_CASE)
+internal fun soldDryOrToPrepare(product: Product): Boolean =
+    product.category in setOf(ProductCategory.GRAIN, ProductCategory.COFFEE_TEA) ||
+        (product.category == ProductCategory.LEGUME && product.nutrition.energyKcal > 250.0) ||
+        DRY_OR_TO_PREPARE.containsMatchIn(product.name)
+
 fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
     val MAX = 25
@@ -40,7 +70,11 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val sugarLabel = if (n.addedSugarsG != null) (if (en) "Added sugars" else "Sucres ajoutés")
                      else (if (en) "Total sugars (added not declared)" else "Sucres totaux (sucres ajoutés non déclarés)")
     val (sMinor, sMod, sMaj, sCrit) = thresholds.sugarThresholds
-    when {
+    if (sugarsAreIntrinsicOnly(product)) {
+        if (sugars > sMinor) deductions += Deduction("negative_nutrients",
+            if (en) "Sugars ${gramsLabel(sugars)}g/100g, intrinsic (fruit/milk, no added sugar listed) — not penalised (WHO free-sugars definition)"
+            else "Sucres ${gramsLabel(sugars)}g/100g intrinsèques (fruit/lait, aucun sucre ajouté listé) — non pénalisés (définition OMS des sucres libres)", 0.0, Severity.INFO)
+    } else when {
         sugars > sCrit -> { score -= 12; deductions += Deduction("negative_nutrients", "$sugarLabel ${gramsLabel(sugars)}g/100g (>$sCrit " + (if (en) "critical" else "critique") + ")", -12.0, Severity.CRITICAL) }
         sugars > sMaj  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$sugarLabel ${gramsLabel(sugars)}g/100g (>$sMaj " + (if (en) "major" else "majeur") + ")", -9.0, Severity.MAJOR) }
         sugars > sMod  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$sugarLabel ${gramsLabel(sugars)}g/100g (>$sMod " + (if (en) "moderate" else "modéré") + ")", -6.0, Severity.MODERATE) }
@@ -69,9 +103,11 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
 
     // Trans fat
     val trans = n.transFatG ?: 0.0
-    if (trans > 0.1) {
+    if (trans > 0.1 && mayContainNaturalTransFat(product)) {
+        deductions += Deduction("negative_nutrients", if (en) "Trans fat ${gramsLabel(trans)}g/100g, naturally present in dairy/ruminant products — not the industrial kind" else "Graisses trans ${gramsLabel(trans)}g/100g, naturellement présentes dans les produits laitiers/de ruminants — pas d'origine industrielle", 0.0, Severity.INFO)
+    } else if (trans > 0.1) {
         score -= 10
-        deductions += Deduction("negative_nutrients", if (en) "Trans fat present: ${gramsLabel(trans)}g/100g (no safe level)" else "Présence de graisses trans : ${gramsLabel(trans)}g/100g (aucun seuil sûr)", -10.0, Severity.CRITICAL)
+        deductions += Deduction("negative_nutrients", if (en) "Trans fat present, likely industrial: ${gramsLabel(trans)}g/100g (Reg. (EU) 2019/649)" else "Graisses trans probablement industrielles : ${gramsLabel(trans)}g/100g (règl. (UE) 2019/649)", -10.0, Severity.CRITICAL)
     }
 
     // Alcohol — WHO/IARC classify ethanol as a Group 1 carcinogen with no
@@ -137,7 +173,9 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // there's no concrete misscoring case to correct against.
     val caffeine = n.caffeineMg ?: 0.0
     val caffeineLabel = if (en) "Caffeine" else "Caféine"
-    when {
+    if (product.category == ProductCategory.COFFEE_TEA) {
+        if (caffeine > 0.0) deductions += Deduction("negative_nutrients", if (en) "Caffeine ${caffeine.formatDecimal(0)}mg per 100 g of dry product — about 2 g is used per cup" else "Caféine ${caffeine.formatDecimal(0)}mg pour 100 g de produit sec — environ 2 g sont utilisés par tasse", 0.0, Severity.INFO)
+    } else when {
         caffeine > 300.0 -> { score -= 8; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "concentrated enough that a typical single serving would exceed EFSA's ~200mg single-dose guidance" else "concentration telle qu'une portion normale dépasserait le repère de prudence EFSA d'environ 200mg par prise") + ")", -8.0, Severity.CRITICAL) }
         caffeine > 150.0 -> { score -= 5; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "concentrated enough that a generous serving could approach EFSA's ~200mg single-dose guidance" else "concentration telle qu'une portion généreuse pourrait approcher le repère de prudence EFSA d'environ 200mg par prise") + ")", -5.0, Severity.MAJOR) }
         caffeine > 80.0  -> { score -= 3; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "high caffeine content" else "teneur élevée en caféine") + ")", -3.0, Severity.MODERATE) }
@@ -150,7 +188,8 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // Nutri-Score counts energy against every food; this applies the same idea
     // in steps of ~100 kcal/100 g. Oils (fat quality is judged elsewhere) and
     // nuts/seeds (energy-dense whole foods) are exempt.
-    if (product.category != ProductCategory.OIL_FAT && product.category != ProductCategory.NUTS_SEEDS) {
+    // S5: dry/to-prepare products are eaten with 2-3x their weight in water.
+    if (product.category != ProductCategory.OIL_FAT && product.category != ProductCategory.NUTS_SEEDS && !soldDryOrToPrepare(product)) {
         val kcal = n.energyKcal
         val (pts, sev) = when {
             kcal > 500.0 -> 8 to Severity.MAJOR
