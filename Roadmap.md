@@ -27,7 +27,7 @@ que ce document ne contienne aucune information erronée (philosophie du README)
 
 # Plan de travail (ordre logique)
 
-Les findings sont rangés dans l'ordre où il est logique de les traiter : les dépendances techniques d'abord, puis la sécurité, puis la valeur. Passe 3 (approfondissement) : ajout de C10, C11, C12, N6, D6 et A8, tous vérifiés dans le code. Passe 4 (étendue) : ajout de C13 à C17 (jeûne, objectif de poids, rétention, relecture OCR, corrélations). Les identifiants (C = corriger, A = améliorer, D = développer, N = créer) sont conservés. 🔴 = sécurité, 🟠 = bloquant publication, 🟡 = dette.
+Les findings sont rangés dans l'ordre où il est logique de les traiter : les dépendances techniques d'abord, puis la sécurité, puis la valeur. Passe 3 (approfondissement) : ajout de C10, C11, C12, N6, D6 et A8, tous vérifiés dans le code. Passe 4 (étendue) : ajout de C13 à C17 (jeûne, objectif de poids, rétention, relecture OCR, corrélations). Passe 5 (évolutions) : ajout de A9 à A11, D7 à D10 et N7 à N11. Les identifiants (C = corriger, A = améliorer, D = développer, N = créer) sont conservés. 🔴 = sécurité, 🟠 = bloquant publication, 🟡 = dette.
 
 ## Phase 1 — Fondations techniques
 
@@ -229,13 +229,21 @@ ainsi que la décomposition de la note classique (`PillarsSection`) en langage s
 
 > *Pourquoi ici :* « Pourquoi cette note ? » : réutilise les clés de C8 et les sources de A1.
 
+### 20. D9. Page « Ma sécurité » (évolution de `DashboardSafetyCenter`)
+`buildDashboardSafetyWarnings` agrège déjà les alertes dans une carte du tableau de bord. En faire
+une page à part entière : allergènes et sévérités (N6), interactions actives entre les traitements et le journal
+du jour, produits rappelés (D1), contre-indications du profil (C13, C14), chacun avec sa source (A1).
+C'est la vitrine de la promesse de confiance, accessible en un geste depuis la barre de navigation.
+
+> *Pourquoi ici :* Assemble les briques de sécurité (phase 2) et de sources (A1) : à faire dès qu'elles existent.
+
 ---
 
 ## Phase 4 — Contenu santé
 
 S'appuie sur le format sourcé de la phase 3 : chaque nouvelle entrée naît avec sa source.
 
-### 20. A7 – Couverture de la base médicamenteuse
+### 21. A7 – Couverture de la base médicamenteuse
 `FoodDrugInteractionDb` couvre 5 classes
 (AVK, IMAO, statines/inhibiteurs calciques, IEC/sartans, lévothyroxine). Candidats sourcés
 ANSM/EMA : millepertuis (inducteur CYP3A4), réglisse (antihypertenseurs, hypokaliémie),
@@ -244,7 +252,7 @@ fluoroquinolones/tétracyclines, levure de riz rouge et statines.
 
 > *Pourquoi ici :* Nouvelles interactions aliment-médicament (ANSM/EMA).
 
-### 21. D6. Actions « Pris / Reporter » et suivi du stock de médicaments
+### 22. D6. Actions « Pris / Reporter » et suivi du stock de médicaments
 Les notifications n'ont aucune action (pas d'`addAction` dans `NotificationHelper`) :
 pour marquer une prise, il faut ouvrir l'app. Il n'existe pas non plus de suivi du nombre de
 comprimés restants ni de la date de renouvellement de l'ordonnance.
@@ -253,7 +261,7 @@ de traitement » et un rappel de renouvellement d'ordonnance. L'observance entre
 
 > *Pourquoi ici :* Après C9/C11 (même infrastructure de notifications) ; alimente le rapport médecin D5.
 
-### 22. C17. Corrélations symptômes ↔ traitements sur 2 occurrences 🟡
+### 23. C17. Corrélations symptômes ↔ traitements sur 2 occurrences 🟡
 `SymptomCorrelation.kt` : `MIN_SYMPTOM_DAY_OCCURRENCES = 2` et `MIN_DIFFERENCE_PCT = 20`,
 sans test statistique, appliqués aussi aux **médicaments** (« Corrélations possibles avec un
 traitement »). La mention « pas une preuve médicale » existe, mais deux jours suffisent pour
@@ -264,7 +272,15 @@ et proposer de l'inclure dans le rapport médecin (D5) plutôt que de conclure.
 
 > *Pourquoi ici :* Contenu santé : se range avec A7/D6 et alimente D5.
 
-### 23. D5 – Rapport médecin
+### 24. N10. Carnet de réactions allergiques
+Il n'existe aucun endroit pour noter « réaction le 12/10 après X ». Saisie : date, produit (pris dans
+l'historique de scans ou le journal), symptômes, gravité, prise d'adrénaline. Le moteur croise ensuite
+les ingrédients communs aux produits incriminés pour suggérer un **allergène caché à discuter avec un
+allergologue** (sans conclure, cf. C17). Le carnet est exporté dans le rapport médecin (D5).
+
+> *Pourquoi ici :* Contenu santé ; réutilise l'historique de scans et `AllergenDetector`, et alimente D5.
+
+### 25. D5 – Rapport médecin
 ajouter interactions détectées, observance des médicaments
 et symptômes sur la période choisie dans `PdfReportRepository`.
 
@@ -276,7 +292,7 @@ et symptômes sur la période choisie dans `PdfReportRepository`.
 
 Honnêteté de l'offre et qualité perçue avant de pousser la diffusion.
 
-### 24. C4. « Premium » sans paiement 🟠
+### 26. C4. « Premium » sans paiement 🟠
 `PremiumSection` propose un bouton qui bascule `isPremium` sur `true`/`false` (`onSetPremium(!isPremium)`).
 Aucune dépendance Billing. Toute personne peut s'activer Premium gratuitement depuis les
 réglages. En l'état, publier avec un écran « Premium verrouillé » serait trompeur.
@@ -286,7 +302,7 @@ que le README affirme « ni serveur ni IA » (cf. C6).
 
 > *Pourquoi ici :* Décision : Billing ou retrait du Premium.
 
-### 25. C12. Risque de perte totale des données au changement de téléphone 🟠
+### 27. C12. Risque de perte totale des données au changement de téléphone 🟠
 `AndroidManifest.xml` : `android:allowBackup="false"`. L'app est 100 % locale et la sauvegarde
 chiffrée (`BackupRepository`) est **uniquement manuelle** : on ne trouve ni sauvegarde
 périodique, ni rappel « dernière sauvegarde il y a X jours ». Un téléphone perdu ou réinitialisé fait perdre
@@ -297,7 +313,7 @@ une sauvegarde Android chiffrée côté client, avec des règles `data_extractio
 
 > *Pourquoi ici :* Bloquant publication au même titre que C4/C5 : la promesse « tout est local » implique d'assumer la sauvegarde.
 
-### 26. C15. Historique de santé supprimé silencieusement 🟠
+### 28. C15. Historique de santé supprimé silencieusement 🟠
 Plafonds de rétention par `trim` : humeur et sommeil **730 lignes** (`MoodRepository`,
 `SleepRepository`), non-alimentaire 500, et poids, prises de médicaments, journal et scans 5000.
 Pour un utilisateur assidu (5 entrées par jour), le journal alimentaire perd ses données les plus anciennes au bout d'environ 2,7 ans,
@@ -308,26 +324,40 @@ les rendant réglables ; dans tous les cas, prévenir avant la première suppres
 
 > *Pourquoi ici :* Même sujet que C12 (préservation des données) ; à traiter ensemble avant publication.
 
-### 27. N4 – Monétisation réelle
+### 29. N4 – Monétisation réelle
 (cf. C4) : Play Billing ; Premium centré sur Biolism et les
 rapports, sans rien retirer à la sécurité (allergènes, rappels et interactions restent
 gratuits).
 
 > *Pourquoi ici :* Implémentation de la décision de C4.
 
-### 28. A6 – Accessibilité
+### 30. A6 – Accessibilité
 Environ 40 `contentDescription = null` : vérifier qu'aucune ne
 porte sur une icône de statut ou d'alerte. Valider le contraste AA des couleurs de grade
 en mode sombre.
 
 > *Pourquoi ici :* Accessibilité et contraste.
 
-### 29. A4 – Navigation
+### 31. A4 – Navigation
 34 modules dans `presentation/` (fasting, loyalty, seasonal,
 calendar, sleep, symptom, expenses…). Proposer à l'onboarding de choisir les modules
 suivis, et masquer les autres dans la navigation.
 
 > *Pourquoi ici :* Onboarding « modules suivis » et navigation allégée.
+
+### 32. A11. Tableau de bord personnalisable
+`presentation/dashboard/cards/` contient **21 cartes**. Le réordonnancement n'existe que pour les onglets
+du Journal (`UserPreferences`, l. 113). Permettre de masquer et réordonner les cartes, avec des préréglages
+selon les modules choisis à l'onboarding (A4).
+
+> *Pourquoi ici :* Va de pair avec A4 (navigation allégée).
+
+### 33. N11. Lecture vocale du verdict
+Pour les personnes malvoyantes qui scannent en magasin : à la détection, annonce vocale (`TextToSpeech`)
+du verdict personnel et des alertes (« Attention : contient du lait »). Option dans les réglages
+d'accessibilité, cohérente avec A6.
+
+> *Pourquoi ici :* Accessibilité : avec A6.
 
 ---
 
@@ -335,7 +365,7 @@ suivis, et masquer les autres dans la navigation.
 
 Fonctionnalités qui reposent sur des modules existants.
 
-### 30. A8. Recherche Open Food Facts sur l'ancienne API
+### 34. A8. Recherche Open Food Facts sur l'ancienne API
 `OpenFoodFactsApi` utilise `cgi/search.pl`, l'ancien point d'accès de recherche, lent et limité
 à environ 10 requêtes par minute par Open Food Facts. Avec un debounce de 150 ms (`FoodSearchViewModel`), la frappe
 d'un utilisateur peut atteindre cette limite.
@@ -344,53 +374,114 @@ de la recherche en ligne à environ 400 ms, en gardant la recherche locale insta
 
 > *Pourquoi ici :* Prérequis de A3 : les alternatives Open Food Facts reposent sur cette recherche.
 
-### 31. A3 – Alternatives venant d'Open Food Facts
+### 35. A10. Eco-Score → Green-Score (à vérifier)
+L'app lit `ecoscore_grade` / `ecoscore_score` (`OpenFoodFactsApi`, `Product.ecoscoreGrade`). Open Food
+Facts a renommé l'Eco-Score en **Green-Score** et introduit des champs `environmental_score_*`. Il faut
+vérifier si les anciens champs sont encore remplis, migrer le cas échéant et afficher l'information
+environnementale de façon claire (actuellement peu mise en avant).
+
+> *Pourquoi ici :* Même chantier que A8 (API Open Food Facts).
+
+### 36. A3 – Alternatives venant d'Open Food Facts
 Aujourd'hui limitées à l'historique :
 un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégorie
 (`categories_tags`) et trier par le score local du profil.
 
 > *Pourquoi ici :* Alternatives Open Food Facts (le score local est stabilisé après les phases 2-3).
 
-### 32. D2 – Garde-manger ↔ dates de péremption
-notification J-2, liée au plan de repas
-(« cuisiner d'abord ce qui expire »).
+### 37. D2 – Garde-manger ↔ dates de péremption
+**Partiellement existant** : `PantryItem.expiryUrgency` et une notification de péremption dans `ReminderWorker`. Reste à faire : le lien avec le plan de repas (« cuisiner d'abord ce qui expire ») et des recettes suggérées à partir des produits bientôt périmés.
 
 > *Pourquoi ici :* Péremption du garde-manger (même infra de worker que D1).
 
-### 33. D3 – Plan de repas → courses → dépenses
+### 38. D3 – Plan de repas → courses → dépenses
 les trois modules existent ; il manque le
 bouclage « budget prévu vs ticket scanné » (`ReceiptParser` déjà présent).
 
 > *Pourquoi ici :* Plan → courses → dépenses.
 
-### 34. D4 – Signaux croisés symptômes ↔ aliments
+### 39. D4 – Signaux croisés symptômes ↔ aliments
 `SymptomCorrelation` existe ; ajouter un
 journal d'élimination guidé (FODMAP, lactose), à présenter clairement comme une
 observation personnelle et non un diagnostic.
 
 > *Pourquoi ici :* Journal d'élimination symptômes ↔ aliments.
 
+### 40. D10. Évaluer un produit pour toute la famille en un scan
+Le multi-profils existe, mais le résultat n'est calculé que pour le profil **actif**
+(`prefs.activeProfileId`). Ajouter sur le résultat une ligne « Famille » : une pastille par profil
+(✓ / ⚠ / ✕) en relançant `PersonalScoreEngine` pour chacun. C'est le cas d'usage du parent qui fait les
+courses pour un enfant allergique.
+
+> *Pourquoi ici :* S'appuie sur C10/N6 (veto allergène fiable) : sans eux, les pastilles seraient fausses.
+
+### 41. D7. Ticket de caisse → garde-manger + historique de prix
+`ReceiptScanViewModel` analyse le ticket (`ReceiptParser`) pour les dépenses, mais n'alimente **pas** le
+garde-manger (pas d'injection de `PantryRepository`). Proposer « Ajouter ces articles au garde-manger »
+avec dates de péremption estimées par catégorie, et enregistrer les prix unitaires dans `PriceRepository`
+pour suivre l'inflation par produit.
+
+> *Pourquoi ici :* Complète D3 (boucle plan → courses → ticket).
+
+### 42. D8. Générateur de plan de repas
+`MealPlanViewModel` ne propose que des actions manuelles (`setRecipe`, `duplicateDay`, `duplicateWeek`).
+Toutes les briques d'un générateur existent pourtant : cibles journalières (`DailyTargets`),
+recettes et modèles, garde-manger avec urgence de péremption, fruits et légumes de saison (`seasonal/`),
+allergies et régime. Proposer « Générer ma semaine » (contraintes : budget, temps, priorité aux produits
+qui expirent bientôt), puis la liste de courses de la différence avec le garde-manger.
+
+> *Pourquoi ici :* Après D2/D3/D7 : exploite toute la chaîne garde-manger → courses.
+
+### 43. A9. Partager un résultat de scan
+Le partage (`ACTION_SEND`) n'existe que pour les recettes et la page À propos. Ajouter le partage d'un résultat
+sous forme de carte image (note, verdict, principales alertes, source) : c'est un levier de bouche-à-oreille
+et un usage réel (« regarde ce que contient ce produit »).
+
+> *Pourquoi ici :* Croissance ; indépendant, mais à faire après la stabilisation des notes (phases 2-3).
+
 ---
 
 ## Phase 7 — Nouveaux axes
 
-### 35. N1 – Contribution Open Food Facts
+### 44. N1 – Contribution Open Food Facts
 aucune écriture vers OFF aujourd'hui. Quand un
 produit est absent ou incomplet, proposer d'envoyer photos et champs lus par OCR (API
 d'écriture OFF, compte utilisateur ou anonyme).
 
 > *Pourquoi ici :* Contribution Open Food Facts.
 
-### 36. N3 – Scan de carte de restaurant
+### 45. N3 – Scan de carte de restaurant
 OCR ML Kit, puis détection allergènes/régime par plat,
 en réutilisant `AllergenDetector` et `DietChecker`.
 
 > *Pourquoi ici :* Scan de carte de restaurant (réutilise allergènes/régime durcis en phase 2).
 
-### 37. N5 – Wear OS / tuile
+### 46. N5 – Wear OS / tuile
 prise de médicament, verre d'eau, chrono de jeûne.
 
 > *Pourquoi ici :* Wear OS / tuile (réutilise les alarmes de C9).
+
+### 47. N7. Mode « En magasin »
+Combiner la liste de courses (triée par rayon via `GroceryCategories`) et le scan : scanner un produit
+en rayon coche l'article correspondant, vérifie la compatibilité de toute la famille (D10) et compare le
+prix au dernier prix payé (D7). Écran unique, pensé pour une seule main.
+
+> *Pourquoi ici :* Assemble D7, D10 et la liste de courses existante.
+
+### 48. N8. Partage d'un profil avec un aidant
+Permettre à un parent de transmettre le profil d'un enfant allergique (allergènes, sévérités, régime) à un
+autre appareil (grands-parents, nourrice, cantine) via un QR code chiffré, sans compte ni serveur. C'est cohérent
+avec la philosophie « tout est local » ; le profil reçu est en lecture seule, avec une date de mise à jour.
+
+> *Pourquoi ici :* Après N6 (sévérités) et D10 (multi-profils au scan).
+
+### 49. N9. Base de produits hors-ligne
+En magasin, le réseau est souvent mauvais. Proposer le téléchargement d'un instantané Open Food Facts des
+produits les plus scannés en France (export officiel, filtré sur les champs utiles : environ 50 000 produits,
+quelques dizaines de Mo) dans une table Room, mis à jour chaque mois. Le scan fonctionne alors sans réseau,
+avec la date de l'instantané affichée.
+
+> *Pourquoi ici :* Gros chantier de données ; après A8 (API) et C5 (migrations).
 
 ---
 
@@ -398,8 +489,8 @@ prise de médicament, verre d'eau, chrono de jeûne.
 
 - **Phase 1** (Fondations techniques) : C5 → C7 → A5 → C6
 - **Phase 2** (Sécurité de l'utilisateur) : C10 → C1 → N6 → C2 → C3 → D1 → C9 → C11 → C13 → C14 → C16
-- **Phase 3** (Modèle de messages et de sources) : C8 → A1 → N2 → A2
-- **Phase 4** (Contenu santé) : A7 → D6 → C17 → D5
-- **Phase 5** (Prêt pour publication) : C4 → C12 → C15 → N4 → A6 → A4
-- **Phase 6** (Valeur produit) : A8 → A3 → D2 → D3 → D4
-- **Phase 7** (Nouveaux axes) : N1 → N3 → N5
+- **Phase 3** (Modèle de messages et de sources) : C8 → A1 → N2 → A2 → D9
+- **Phase 4** (Contenu santé) : A7 → D6 → C17 → N10 → D5
+- **Phase 5** (Prêt pour publication) : C4 → C12 → C15 → N4 → A6 → A4 → A11 → N11
+- **Phase 6** (Valeur produit) : A8 → A10 → A3 → D2 → D3 → D4 → D10 → D7 → D8 → A9
+- **Phase 7** (Nouveaux axes) : N1 → N3 → N5 → N7 → N8 → N9
