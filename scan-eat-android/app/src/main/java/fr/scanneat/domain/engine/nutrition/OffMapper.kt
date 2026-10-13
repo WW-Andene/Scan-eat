@@ -150,7 +150,11 @@ fun mapOffProduct(off: OffProductResponse): Product? {
     return Product(
         name      = name,
         category  = category,
-        novaClass = NovaClass.fromInt(off.novaGroup ?: 4),
+        // Was `off.novaGroup ?: 4`: a product OFF simply had no NOVA group for
+        // was presumed ultra-processed (S2). Undeclared now = estimated from the
+        // ingredients by the engine, flagged as such.
+        novaClass = off.novaGroup?.takeIf { it in 1..4 }?.let { NovaClass.fromInt(it) } ?: NovaClass.PROCESSED,
+        novaDeclared = off.novaGroup?.takeIf { it in 1..4 } != null,
         ingredients = ingredients,
         nutrition = nutrition,
         weightG            = parseWeightG(off.quantity),

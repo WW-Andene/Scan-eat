@@ -1843,6 +1843,7 @@
     <string name="result_badge_nutriscore">Nutri-Score</string>
     <string name="result_badge_ecoscore">Eco-Score</string>
     <string name="result_badge_nova">NOVA %1$d</string>
+    <string name="result_badge_nova_estimated">NOVA ≈%1$d</string>
     <string name="result_allergens_title">Allergens Detected</string>
     <string name="result_allergen_hit">• %1$s (%2$s)</string>
     <string name="result_allergen_trace_hit">• %1$s — may contain traces (%2$s)</string>

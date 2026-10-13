@@ -89,6 +89,11 @@ internal val UPF_MARKER_PATTERNS = listOf(
     Regex("""\bisolat de |\bprot[eé]ine isol[eé]e|protein isolate""", RegexOption.IGNORE_CASE) to "protein isolate",
     Regex("""\bhydrolysat|prot[eé]ines? hydrolys[eé]es?|hydrolyzed protein""", RegexOption.IGNORE_CASE) to "protein hydrolysate",
     Regex("""\bamidon modifi|modified starch|maltodextrin""", RegexOption.IGNORE_CASE) to "modified starch",
+    // S2: the remaining "substances of no or rare culinary use" that NOVA
+    // (Monteiro et al. 2019) names as ultra-processing markers.
+    Regex("""sirop de glucose|glucose[- ]fructose|fructose[- ]glucose|glucose syrup|corn syrup|sucre inverti|invert sugar|\bdextrose\b""", RegexOption.IGNORE_CASE) to "industrial sugars",
+    Regex("""hydrog[eé]n[eé]e?s?|interest[eé]rifi|hydrogenated|interesterified""", RegexOption.IGNORE_CASE) to "hydrogenated/interesterified fat",
+    Regex("""lactos[eé]rum|petit[- ]lait en poudre|\bwhey\b|cas[eé]inates?|\bcas[eé]ines?\b|prot[eé]ines? de lait|milk proteins?|gluten de bl[eé]|wheat gluten""", RegexOption.IGNORE_CASE) to "isolated dairy/gluten protein",
 )
 
 // Accented and unaccented spellings both matched directly - unlike every

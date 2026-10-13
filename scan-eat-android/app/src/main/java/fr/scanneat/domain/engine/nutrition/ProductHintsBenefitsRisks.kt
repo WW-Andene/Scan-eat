@@ -95,7 +95,7 @@ internal fun appendGeneralRisks(product: Product, lang: String, risks: MutableLi
     // flagged distinctly from total sugars since it isolates the manufacturer-added portion.
     n.addedSugarsG?.let { if (it >= 10.0) risks += if (en) "Contains added sugars (${it} g/100 g) — WHO recommends limiting free sugar intake"
                                                    else "Contient des sucres ajoutés (${it} g/100 g) — l'OMS recommande de limiter les sucres libres" }
-    if (product.novaClass == NovaClass.ULTRA_PROCESSED) {
+    if (fr.scanneat.domain.engine.scoring.effectiveNova(product)?.nova == NovaClass.ULTRA_PROCESSED) {
         risks += if (en) "Ultra-processed (NOVA 4) — associated with higher long-term health risk in observational studies"
                  else "Ultra-transformé (NOVA 4) — associé à un risque accru sur la santé à long terme dans les études observationnelles"
     }

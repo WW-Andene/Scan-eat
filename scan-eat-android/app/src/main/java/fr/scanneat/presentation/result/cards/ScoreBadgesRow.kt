@@ -34,7 +34,7 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 // scans usually carry neither eco-score nor NutriScore).
 
 @Composable
-internal fun ScoreBadgesRow(audit: ScoreAudit, novaClass: NovaClass) {
+internal fun ScoreBadgesRow(audit: ScoreAudit, novaClass: NovaClass?, novaEstimated: Boolean = false) {
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         audit.nutriscoreGrade?.let { grade ->
             LetterGradeChip(label = stringResource(R.string.result_badge_nutriscore), grade = grade)
@@ -42,15 +42,18 @@ internal fun ScoreBadgesRow(audit: ScoreAudit, novaClass: NovaClass) {
         audit.eco?.grade?.let { grade ->
             LetterGradeChip(label = stringResource(R.string.result_badge_ecoscore), grade = grade)
         }
-        // NOVA is always present (defaults to ULTRA_PROCESSED when unknown, not
-        // absent, unlike the two letter grades above) — always shown.
-        NovaChip(novaClass)
+        // S2: NOVA is shown only when known - declared by the source, or
+        // estimated from the ingredients (then labelled "≈"). It used to
+        // default to NOVA 4 when unknown and was always shown.
+        novaClass?.let { NovaChip(it, novaEstimated) }
     }
 }
 
 @Composable
-private fun NovaChip(novaClass: NovaClass) {
-    ScoreChip(label = stringResource(R.string.result_badge_nova, novaClass.value), color = tierColorForNova(novaClass))
+private fun NovaChip(novaClass: NovaClass, estimated: Boolean) {
+    val label = if (estimated) stringResource(R.string.result_badge_nova_estimated, novaClass.value)
+        else stringResource(R.string.result_badge_nova, novaClass.value)
+    ScoreChip(label = label, color = tierColorForNova(novaClass))
 }
 
 @Composable

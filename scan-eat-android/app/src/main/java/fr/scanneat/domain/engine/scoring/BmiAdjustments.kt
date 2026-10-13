@@ -63,7 +63,7 @@ internal fun computeBmiAdjustments(
         // risk factor, not just fat/sugar (Mozaffarian et al., NEJM 2011;
         // McKeown et al., Framingham Offspring Study, Am J Clin Nutr 2004).
         val netCarbs = (product.nutrition.carbsG - product.nutrition.fiberG).coerceAtLeast(0.0)
-        if (product.novaClass == NovaClass.ULTRA_PROCESSED && netCarbs >= 40.0 && product.nutrition.fiberG < 3.0) {
+        if (fr.scanneat.domain.engine.scoring.effectiveNova(product)?.nova == NovaClass.ULTRA_PROCESSED && netCarbs >= 40.0 && product.nutrition.fiberG < 3.0) {
             adjustments += PersonalAdjustment(
                 points   = -3.0,
                 reason   = if (lang == "en")

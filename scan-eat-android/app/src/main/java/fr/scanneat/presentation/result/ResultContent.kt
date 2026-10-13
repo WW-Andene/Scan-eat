@@ -153,7 +153,8 @@ internal fun ResultContent(
 
         // NutriScore / Eco-Score / NOVA — fully computed by the scoring engine
         // for every scan but previously never surfaced anywhere in this screen.
-        ScoreBadgesRow(audit = audit, novaClass = scan.product.novaClass)
+        val nova = fr.scanneat.domain.engine.scoring.effectiveNova(scan.product)
+        ScoreBadgesRow(audit = audit, novaClass = nova?.nova, novaEstimated = !scan.product.novaDeclared)
 
         // Score ring(s)
         if (personalScore != null && personalScore.applicable) {

@@ -121,7 +121,7 @@ internal fun checkCancerDepressionEpilepsyConditions(
     // Adjibade et al., BMC Medicine 2019 (French NutriNet-Santé cohort): higher
     // ultra-processed food consumption prospectively associated with incident
     // depressive symptoms.
-    if ("depression" in conditions && product.novaClass == NovaClass.ULTRA_PROCESSED) {
+    if ("depression" in conditions && fr.scanneat.domain.engine.scoring.effectiveNova(product)?.nova == NovaClass.ULTRA_PROCESSED) {
         adjustments += PersonalAdjustment(
             points = -2.0,
             reason = if (lang == "en") "Ultra-processed (NOVA 4) — prospectively associated with incident depressive symptoms (Adjibade et al., NutriNet-Santé cohort, BMC Medicine 2019)"

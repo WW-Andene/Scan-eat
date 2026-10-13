@@ -80,7 +80,8 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
     return Product(
         name        = prefer(off.name, llm.name, emptyStr),
         category    = if (off.category != ProductCategory.OTHER) off.category else llm.category,
-        novaClass   = if (off.novaClass.value > 0) off.novaClass else llm.novaClass,
+        novaClass   = if (off.novaDeclared || !llm.novaDeclared) off.novaClass else llm.novaClass,
+        novaDeclared = off.novaDeclared || llm.novaDeclared,
         // Threshold matches isOffSparse's own documented rule above: a genuine
         // 1-2 ingredient product (water, salt, single-origin oil) is real,
         // correct OFF data, not a gap to paper over with an LLM guess. This

@@ -201,6 +201,12 @@ data class Product(
     val ingredients: List<Ingredient>,
     val nutrition: NutritionPer100g,
     // Optional metadata
+    // Score-engine audit S2: false when [novaClass] is NOT a NOVA group given
+    // by a source (OFF had none, label read by OCR) but a placeholder or an
+    // estimate. A declared group is never overridden by the engine's own
+    // narrower heuristic; an undeclared one is re-estimated, or the
+    // processing pillar is left out of the score when nothing supports it.
+    val novaDeclared: Boolean = true,
     val weightG: Double? = null,
     val origin: String? = null,
     val organic: Boolean = false,

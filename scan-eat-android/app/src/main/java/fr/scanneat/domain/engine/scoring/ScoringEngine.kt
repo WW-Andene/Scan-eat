@@ -319,7 +319,7 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
         candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", VetoCap.MODERATE)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
-    if (hasMSM && product.novaClass == NovaClass.ULTRA_PROCESSED)
+    if (hasMSM && effectiveNova(product)?.nova == NovaClass.ULTRA_PROCESSED)
         candidates += VetoCondition(true, if (en) "Mechanically separated meat in NOVA 4 product" else "Viande séparée mécaniquement dans un produit NOVA 4", VetoCap.MILD)
 
     // High-proof spirits (~40%+ vol) have low/no sugar and no additive risk, so
@@ -536,7 +536,10 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
         ProductCategory.EGG, ProductCategory.FRESH_MEAT, ProductCategory.FISH, ProductCategory.FRESH_PRODUCE,
     )
     val unearnableOilPoints = if (product.category in oilFreeCategories) 3.0 else 0.0
-    val unearnablePoints = unearnableProteinPoints + unearnableFiberPoints + unearnableOilPoints
+    // S2: an unknown processing level is excluded from the score (same
+    // rescaling as the structurally unearnable points) instead of presumed NOVA 4.
+    val unknownProcessingPoints = if (effectiveNova(product) == null) processing.max.toDouble() else 0.0
+    val unearnablePoints = unearnableProteinPoints + unearnableFiberPoints + unearnableOilPoints + unknownProcessingPoints
     val baseScore = if (unearnablePoints > 0.0) {
         val achievableMax = 100.0 - unearnablePoints
         (rawBaseScore / achievableMax) * 100.0
@@ -574,7 +577,7 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
     // deduction list, several UI layers away from the headline grade a user
     // actually reads.
     val novaInference = inferNovaClassWithConfidence(product)
-    val novaConfidenceWarning = if (product.novaClass == NovaClass.ULTRA_PROCESSED && novaInference.nova.value < 4 && novaInference.confidence != NovaConfidence.HIGH)
+    val novaConfidenceWarning = if (!product.novaDeclared && product.ingredients.isNotEmpty() && novaInference.confidence != NovaConfidence.HIGH)
         listOf(if (en) "Processing level (NOVA) inferred from ingredients with ${novaInference.confidence.name.lowercase()} confidence, not declared" else "Niveau de transformation (NOVA) déduit des ingrédients avec une confiance ${if (novaInference.confidence == NovaConfidence.LOW) "faible" else "moyenne"}, non déclaré")
     else emptyList()
 

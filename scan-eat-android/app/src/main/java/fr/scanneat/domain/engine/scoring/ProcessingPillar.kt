@@ -29,7 +29,9 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
         return if (FRESH_PRODUCE_NAME.containsMatchIn(product.name.trim()))
             NovaInference(NovaClass.UNPROCESSED, NovaConfidence.HIGH)
         else
-            NovaInference(NovaClass.ULTRA_PROCESSED, NovaConfidence.LOW)
+            // S2: no ingredient list is an absence of evidence, not evidence of
+            // ultra-processing. Callers that need to know use [effectiveNova].
+            NovaInference(NovaClass.PROCESSED, NovaConfidence.LOW)
     }
 
     val additives = ings.filter {
@@ -37,7 +39,7 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
     }
     val cosmetics = additives.mapNotNull { ing ->
         findAdditive(ing.eNumber, ing.name, ing.category)
-    }.filter { it.category in COSMETIC_ADDITIVE_CATEGORIES }
+    }.filter { it.category in NOVA_MARKER_ADDITIVE_CATEGORIES }
     val upfMarkers = detectUPFMarkers(ings)
 
     if (ings.size == 1 && additives.isEmpty() && upfMarkers.isEmpty())
@@ -77,29 +79,45 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
 private val CULINARY_INGREDIENT = Regex("""^(sucre|sel|huile|beurre|graisse|miel|vinaigre|eau)""", RegexOption.IGNORE_CASE)
 private val FRIED_PATTERN = Regex("""\bfrit(?:e|es|s)?\b|\bfried\b|friture|deep[-\s]?fried""", RegexOption.IGNORE_CASE)
 
+/**
+ * The NOVA group the processing pillar uses (score-engine audit S2):
+ * a group declared by the source is authoritative and never downgraded by
+ * this engine's narrower heuristic; an undeclared one is estimated from the
+ * ingredients; with neither, the processing level is unknown (null) and the
+ * pillar is excluded from the score rather than presumed NOVA 4.
+ */
+fun effectiveNova(product: Product): NovaInference? {
+    if (product.novaDeclared) return NovaInference(product.novaClass, NovaConfidence.HIGH)
+    if (product.ingredients.isEmpty() && !FRESH_PRODUCE_NAME.containsMatchIn(product.name.trim())) return null
+    return inferNovaClassWithConfidence(product)
+}
+
 fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
     val MAX = 20
     val deductions = mutableListOf<Deduction>()
     val bonuses = mutableListOf<Deduction>()
 
-    val inferredResult = inferNovaClassWithConfidence(product)
-    val effectiveNova = when {
-        product.novaClass == NovaClass.ULTRA_PROCESSED && inferredResult.nova.value < 4 -> inferredResult.nova
-        else -> product.novaClass
-    }
-
-    if (effectiveNova != product.novaClass) {
-        deductions += Deduction("processing", if (en) "NOVA auto-adjusted ${product.novaClass.value}→${effectiveNova.value} based on ingredients" else "NOVA ajusté automatiquement ${product.novaClass.value}→${effectiveNova.value} d'après les ingrédients", 0.0, Severity.INFO)
-    }
-
-    val novaWasInferred = effectiveNova != product.novaClass
-    if (novaWasInferred && inferredResult.confidence != NovaConfidence.HIGH) {
-        val note = if (inferredResult.confidence == NovaConfidence.LOW)
-            (if (en) "NOVA heuristic confidence: LOW — ingredient list missing or too short" else "Confiance heuristique NOVA : FAIBLE — liste d'ingrédients manquante ou trop courte")
-        else
-            (if (en) "NOVA heuristic confidence: MEDIUM — inferred from absence of known additives" else "Confiance heuristique NOVA : MOYENNE — déduite de l'absence d'additifs connus")
-        deductions += Deduction("processing", note, 0.0, Severity.INFO)
+    val novaResult = effectiveNova(product)
+        ?: return PillarScore(
+            if (en) "Processing Level" else "Niveau de transformation", MAX, 0.0,
+            listOf(Deduction("processing",
+                if (en) "Processing level unknown (no NOVA group from the source, no ingredient list) — pillar left out of the score"
+                else "Niveau de transformation inconnu (aucun groupe NOVA fourni, aucune liste d'ingrédients) — pilier exclu du calcul",
+                0.0, Severity.INFO)),
+            emptyList(),
+        )
+    val effectiveNova = novaResult.nova
+    if (!product.novaDeclared) {
+        val level = when (novaResult.confidence) {
+            NovaConfidence.HIGH -> if (en) "high" else "élevée"
+            NovaConfidence.MEDIUM -> if (en) "medium" else "moyenne"
+            NovaConfidence.LOW -> if (en) "low" else "faible"
+        }
+        deductions += Deduction("processing",
+            if (en) "NOVA ${effectiveNova.value} estimated from the ingredients ($level confidence) — not provided by the source"
+            else "NOVA ${effectiveNova.value} estimé d'après les ingrédients (confiance $level) — non fourni par la source",
+            0.0, Severity.INFO)
     }
 
     val base = when (effectiveNova) {
@@ -176,7 +194,12 @@ fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
     // exists so buildFlags' >=2-point bar surfaces this as a green flag the
     // same way the other pillars' clean outcomes already are.
     if (score >= base && (effectiveNova == NovaClass.UNPROCESSED || effectiveNova == NovaClass.CULINARY)) {
-        bonuses += Deduction("processing", if (en) "Minimally processed, no processing markers" else "Peu transformé, aucun marqueur de transformation", 2.0, Severity.INFO)
+        // S10: was listed as a +2 bonus but never added to the score.
+        val gained = minOf(2.0, MAX - score)
+        if (gained > 0.0) {
+            score += gained
+            bonuses += Deduction("processing", if (en) "Minimally processed, no processing markers" else "Peu transformé, aucun marqueur de transformation", gained, Severity.INFO)
+        }
     }
 
     return PillarScore(if (en) "Processing Level" else "Niveau de transformation", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
