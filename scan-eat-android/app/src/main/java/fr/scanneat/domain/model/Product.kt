@@ -91,6 +91,14 @@ enum class ProductCategory(val key: String) {
     // stay in SNACK_SALTY (low-kcal/high-salt outlier, but at least not
     // sharing a threshold with high-protein nuts anymore).
     NUTS_SEEDS("nuts_seeds"),
+    // Score-engine audit S1: four product families that Open Food Facts tags
+    // precisely but that had no category of their own, so they borrowed the
+    // thresholds of an unrelated one (lentils as nuts, coffee as soda, milk as
+    // OTHER, dates as nuts/soda). See CategoryThresholds.kt for their bands.
+    LEGUME("legume"),
+    MILK("milk"),
+    DRIED_FRUIT("dried_fruit"),
+    COFFEE_TEA("coffee_tea"),
     OTHER("other");
 
     companion object {

@@ -243,6 +243,25 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     // supermarket product) previously tripped an "energy too low for this
     // category" anomaly purely for having none of the yolk's fat.
     ProductCategory.EGG to CategoryThresholds(Triple(8.0,11.0,15.0), Triple(0.0,0.0,0.0), Pair(45.0,180.0), true),
+    // Score-engine audit S1 - new categories. Bands span the as-sold forms
+    // OFF actually lists (dry AND cooked/canned for legumes), calibrated on
+    // CIQUAL 2020 (ANSES): lentilles vertes cuites ~116 kcal / 9 g protein /
+    // 8 g fibre, sèches ~330 kcal / 24 g / 11 g; pois chiches cuits ~150 kcal.
+    ProductCategory.LEGUME to CategoryThresholds(Triple(5.0,8.0,12.0), Triple(3.0,5.0,8.0), Pair(70.0,380.0), true),
+    // Cow milk 34-65 kcal / 3.2-3.4 g protein; soy drink ~3.3 g; oat/almond
+    // drinks 0.5-1 g. Sat-fat bands follow the UK FSA front-of-pack drink
+    // thresholds (high > 2.5 g/100 ml), so whole milk (~2.3 g) is not "high".
+    ProductCategory.MILK to CategoryThresholds(Triple(1.0,2.5,3.2), Triple(0.0,0.0,0.0), Pair(25.0,80.0), true,
+        satFatThresholds = Triple(2.5,5.0,8.0), sugarThresholds = Quadruple(5.0,7.5,10.0,12.5)),
+    // Dates 63-66 g sugars, raisins 59-65 g, dried apricots 38-53 g (CIQUAL):
+    // intrinsic fruit sugar, so the bands sit above that natural range and
+    // only flag sugared/candied fruit.
+    ProductCategory.DRIED_FRUIT to CategoryThresholds(Triple(0.0,0.0,0.0), Triple(3.0,6.0,9.0), Pair(200.0,360.0), true,
+        sugarThresholds = Quadruple(50.0,60.0,70.0,80.0)),
+    // Ground/instant coffee and tea leaves are listed per 100 g of DRY
+    // product but consumed as an infusion (~2 kcal per cup); see the
+    // COFFEE_TEA exemptions in NegativeNutrientsPillar / checkVeto.
+    ProductCategory.COFFEE_TEA to CategoryThresholds(Triple(0.0,0.0,0.0), Triple(0.0,0.0,0.0), Pair(0.0,450.0), false),
     ProductCategory.OTHER            to DEFAULT_THRESHOLDS,
 )
 
@@ -281,6 +300,9 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // "énergisante(s)" added - the French phrasing ("Boisson énergisante")
     // wasn't covered, only the English "energy drink" and specific brands.
     Regex("""\bsoda\b|\bcola\b|boisson gaz[eé]use|soft drink|\btonic\b|limonade|ice[-\s]?tea|th[eé] glac[eé]|energy drink|red bull|monster|[eé]nergisantes?\b""", RegexOption.IGNORE_CASE) to ProductCategory.BEVERAGE_SOFT,
+    Regex("""\bcaf[eé]s?\b(?!\s*(au lait|latte|glac[eé]))|\bcoffee\b|\bespresso\b|\bth[eé]s?\s+(vert|noir|blanc|earl|darjeeling|en)\b|\btisanes?\b|\binfusions?\b|\bchicor[eé]e\b""", RegexOption.IGNORE_CASE) to ProductCategory.COFFEE_TEA,
+    Regex("""\blentilles?\b|pois chiches?|\bhoumous\b(?!x)|haricots? (rouges?|blancs?|secs?|noirs?|coco|lingots?)|\bf[eè]ves\b|\bflageolets?\b|pois cass[eé]s|\blentils?\b|chickpeas?""", RegexOption.IGNORE_CASE) to ProductCategory.LEGUME,
+    Regex("""\bdattes?\b|raisins? secs?|pruneaux?|abricots? secs?|figues? s[eè]ches?|fruits? secs?|cranberries s[eé]ch[eé]es""", RegexOption.IGNORE_CASE) to ProductCategory.DRIED_FRUIT,
     Regex("""\byaourts?\b|yoghurt|yogurt|\bskyr\b|fromage[-\s]?blanc|faisselle|\bquark\b|petit[-\s]suisse|cr[eè]me dessert|\bflans?\b|li[eé]geois|panna cotta|riz au lait|entremets?\b""", RegexOption.IGNORE_CASE) to ProductCategory.YOGURT,
     // Standalone regional cheese names that don't necessarily contain the word
     // "fromage" itself in the product name (e.g. a plain "Cantal AOP" or
@@ -465,6 +487,7 @@ private val NAME_CATEGORY_PATTERNS: List<Pair<Regex, ProductCategory>> = listOf(
     // more specific category above (soup, snack, juice, jam, ready meal,
     // bread...) gets first claim - a raw "pomme"/"tomate"/"salade" only
     // falls through to here once nothing more specific already matched it.
+    Regex("""\blaits?\b(?!\s*(de\s*coco|d['’]amande))|\bboisson\s+(au |à l['’]|a l['’])?(soja|avoine|amande|riz|coco)\b|\bmilk\b""", RegexOption.IGNORE_CASE) to ProductCategory.MILK,
     Regex("""\bfruits?\b|\bl[eé]gumes?\b|\bpommes?\b|\bpoires?\b|\bbananes?\b|\boranges?\b|\bfraises?\b|\bframboises?\b|\braisins?\b|\bp[eê]ches?\b|\babricots?\b|\bkiwis?\b|\bmangues?\b|\bananas\b|\bcitrons?\b|\bpast[eè]ques?\b|\bmelons?\b|\bavocats?\b|\btomates?\b|\bcarottes?\b|\bcourgettes?\b|\baubergines?\b|\bpoivrons?\b|\boignons?\b|\bail\b|\bsalade\b|\blaitue\b|\b[eé]pinards?\b|\bbrocolis?\b|\bchoux?\b(?!\s*[aà]\s*la\s*cr[eè]me)|\bharicots? verts?\b|\bpetits? pois\b|\bpoireaux?\b|\bconcombres?\b|\bradis\b|\bc[eé]leri\b|\bchampignons?\b|pommes? de terre|\bpatates?\b""", RegexOption.IGNORE_CASE) to ProductCategory.FRESH_PRODUCE,
 )
 

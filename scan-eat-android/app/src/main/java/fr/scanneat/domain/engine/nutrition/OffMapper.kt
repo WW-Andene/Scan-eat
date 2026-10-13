@@ -88,7 +88,13 @@ fun mapOffProduct(off: OffProductResponse): Product? {
     val labelTags = off.labelsTags ?: emptyList()
     val organic   = labelTags.any { ORGANIC_LABEL_TAG.containsMatchIn(it) }
 
-    val category = resolveCategory(off.categoriesTags, name)
+    // An alcohol-free wine/beer is often still filed under "wines"/"beers" on
+    // OFF: a declared alcohol content of at most 0.5 % vol (the EU/French
+    // threshold below which a drink is "sans alcool") overrides the tag.
+    val declaredAbv = numOrNull(nm["alcohol_100g"])
+    val category = resolveCategory(off.categoriesTags, name).let {
+        if (it == ProductCategory.ALCOHOLIC_BEVERAGE && declaredAbv != null && declaredAbv <= 0.5) ProductCategory.BEVERAGE_SOFT else it
+    }
 
     val nutrition = NutritionPer100g(
         // energy-kj_100g too: newer OFF records often carry only the kJ field, which
