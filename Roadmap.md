@@ -27,7 +27,7 @@ que ce document ne contienne aucune information erronée (philosophie du README)
 
 # Plan de travail (ordre logique)
 
-Les findings sont rangés dans l'ordre où il est logique de les traiter : les dépendances techniques d'abord, puis la sécurité, puis la valeur. Passe 3 (approfondissement) : ajout de C10, C11, C12, N6, D6 et A8, tous vérifiés dans le code. Passe 4 (étendue) : ajout de C13 à C17 (jeûne, objectif de poids, rétention, relecture OCR, corrélations). Passe 5 (évolutions) : ajout de A9 à A11, D7 à D10 et N7 à N11. Les identifiants (C = corriger, A = améliorer, D = développer, N = créer) sont conservés. 🔴 = sécurité, 🟠 = bloquant publication, 🟡 = dette.
+Les findings sont rangés dans l'ordre où il est logique de les traiter : les dépendances techniques d'abord, puis la sécurité, puis la valeur. Passe 3 (approfondissement) : ajout de C10, C11, C12, N6, D6 et A8, tous vérifiés dans le code. Passe 4 (étendue) : ajout de C13 à C17 (jeûne, objectif de poids, rétention, relecture OCR, corrélations). Passe 5 (évolutions) : ajout de A9 à A11, D7 à D10 et N7 à N11, puis contre-vérification : A9, D2, D7 et N11 sont partiellement existants (corrigés), A10 est confirmé comme bug. Les identifiants (C = corriger, A = améliorer, D = développer, N = créer) sont conservés. 🔴 = sécurité, 🟠 = bloquant publication, 🟡 = dette.
 
 ## Phase 1 — Fondations techniques
 
@@ -352,10 +352,11 @@ selon les modules choisis à l'onboarding (A4).
 
 > *Pourquoi ici :* Va de pair avec A4 (navigation allégée).
 
-### 33. N11. Lecture vocale du verdict
-Pour les personnes malvoyantes qui scannent en magasin : à la détection, annonce vocale (`TextToSpeech`)
-du verdict personnel et des alertes (« Attention : contient du lait »). Option dans les réglages
-d'accessibilité, cohérente avec A6.
+### 33. N11. Lecture vocale des alertes, pas seulement de la note
+**Partiellement existant (corrigé après vérification)** : `util/ScoreSpeechAnnouncer` lit déjà la
+note et le grade à voix haute après un scan (option désactivée par défaut). À faire : annoncer aussi les
+**alertes** (allergène, interaction, rappel, veto), qui sont l'information vitale pour une personne
+malvoyante, et proposer l'option dans l'onboarding accessibilité.
 
 > *Pourquoi ici :* Accessibilité : avec A6.
 
@@ -374,11 +375,14 @@ de la recherche en ligne à environ 400 ms, en gardant la recherche locale insta
 
 > *Pourquoi ici :* Prérequis de A3 : les alternatives Open Food Facts reposent sur cette recherche.
 
-### 35. A10. Eco-Score → Green-Score (à vérifier)
-L'app lit `ecoscore_grade` / `ecoscore_score` (`OpenFoodFactsApi`, `Product.ecoscoreGrade`). Open Food
-Facts a renommé l'Eco-Score en **Green-Score** et introduit des champs `environmental_score_*`. Il faut
-vérifier si les anciens champs sont encore remplis, migrer le cas échéant et afficher l'information
-environnementale de façon claire (actuellement peu mise en avant).
+### 35. A10. Green-Score : les notes A+ et F sont jetées 🟡
+**Vérifié.** `OffMapper.kt:153` : `ecoscoreGrade … takeIf { it.matches(Regex("[a-e]")) }`. Fin 2024,
+Open Food Facts a renommé l'Eco-Score en **Green-Score** et ajouté deux notes : **A+** et **F**. Les produits les
+meilleurs et les pires sur le plan environnemental perdent donc silencieusement leur information environnementale dans
+l'app : exactement ceux où elle est la plus parlante.
+→ Accepter `a-plus` et `f` (vérifier la valeur exacte renvoyée par l'API), renommer l'affichage en
+« Green-Score », et envisager les champs `environmental_score_*` de l'API v3 (documentés à côté de
+`ecoscore_*`, qui reste présent dans le schéma produit).
 
 > *Pourquoi ici :* Même chantier que A8 (API Open Food Facts).
 
@@ -390,7 +394,9 @@ un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégor
 > *Pourquoi ici :* Alternatives Open Food Facts (le score local est stabilisé après les phases 2-3).
 
 ### 37. D2 – Garde-manger ↔ dates de péremption
-**Partiellement existant** : `PantryItem.expiryUrgency` et une notification de péremption dans `ReminderWorker`. Reste à faire : le lien avec le plan de repas (« cuisiner d'abord ce qui expire ») et des recettes suggérées à partir des produits bientôt périmés.
+**Partiellement existant** : `PantryItem.expiryUrgency`, une notification de péremption dans `ReminderWorker`,
+et des suggestions de recettes à partir du garde-manger (`SuggestRecipesDialog`, mode PANTRY). Reste à faire : prioriser
+dans ces suggestions les produits **bientôt périmés** et les placer dans le plan de repas (lien avec D8).
 
 > *Pourquoi ici :* Péremption du garde-manger (même infra de worker que D1).
 
@@ -415,11 +421,11 @@ courses pour un enfant allergique.
 
 > *Pourquoi ici :* S'appuie sur C10/N6 (veto allergène fiable) : sans eux, les pastilles seraient fausses.
 
-### 41. D7. Ticket de caisse → garde-manger + historique de prix
-`ReceiptScanViewModel` analyse le ticket (`ReceiptParser`) pour les dépenses, mais n'alimente **pas** le
-garde-manger (pas d'injection de `PantryRepository`). Proposer « Ajouter ces articles au garde-manger »
-avec dates de péremption estimées par catégorie, et enregistrer les prix unitaires dans `PriceRepository`
-pour suivre l'inflation par produit.
+### 41. D7. Ticket de caisse → garde-manger
+**Partiellement existant (corrigé après vérification)** : `ReceiptScanViewModel` enregistre déjà
+les prix (`priceRepo.log`) et interagit avec la liste de courses (`ManualGroceryRepository`,
+`GroceryCheckedRepository`). Il n'injecte en revanche **pas** `PantryRepository`. À faire : « Ajouter ces
+articles au garde-manger », avec des dates de péremption estimées par catégorie.
 
 > *Pourquoi ici :* Complète D3 (boucle plan → courses → ticket).
 
@@ -432,10 +438,10 @@ qui expirent bientôt), puis la liste de courses de la différence avec le garde
 
 > *Pourquoi ici :* Après D2/D3/D7 : exploite toute la chaîne garde-manger → courses.
 
-### 43. A9. Partager un résultat de scan
-Le partage (`ACTION_SEND`) n'existe que pour les recettes et la page À propos. Ajouter le partage d'un résultat
-sous forme de carte image (note, verdict, principales alertes, source) : c'est un levier de bouche-à-oreille
-et un usage réel (« regarde ce que contient ce produit »).
+### 43. A9. Partager un résultat sous forme d'image
+**Partiellement existant (corrigé après vérification)** : `ResultScreen.kt:138` partage déjà un **texte**
+(nom, note, grade). À faire : une carte image (note, verdict personnel, principales alertes, source),
+plus parlante dans une messagerie et plus virale.
 
 > *Pourquoi ici :* Croissance ; indépendant, mais à faire après la stabilisation des notes (phases 2-3).
 
