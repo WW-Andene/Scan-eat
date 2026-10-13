@@ -27,7 +27,7 @@ que ce document ne contienne aucune information erronée (philosophie du README)
 
 # Plan de travail (ordre logique)
 
-Les findings sont rangés dans l'ordre où il est logique de les traiter : les dépendances techniques d'abord, puis la sécurité, puis la valeur. Les identifiants (C = corriger, A = améliorer, D = développer, N = créer) sont conservés. 🔴 = sécurité, 🟠 = bloquant publication, 🟡 = dette.
+Les findings sont rangés dans l'ordre où il est logique de les traiter : les dépendances techniques d'abord, puis la sécurité, puis la valeur. Passe 3 (approfondissement) : ajout de C10, C11, C12, N6, D6 et A8, tous vérifiés dans le code. Les identifiants (C = corriger, A = améliorer, D = développer, N = créer) sont conservés. 🔴 = sécurité, 🟠 = bloquant publication, 🟡 = dette.
 
 ## Phase 1 — Fondations techniques
 
@@ -74,7 +74,20 @@ migration ou un `@SerializedName`) et purger les commentaires obsolètes.
 
 Le cœur de la promesse ; changements localisés et à fort impact.
 
-### 5. C1. Alertes de sécurité mal ordonnées sur l'écran résultat 🔴
+### 5. C10. Un allergène confirmé n'a aucun effet sur la note personnelle 🔴
+`domain/engine/scoring/PersonalScoreEngine.kt` (l. 63-66) calcule `allergenHits`, mais ce
+résultat ne participe **ni au `veto` ni aux `adjustments`** : seuls `dietResult` et
+`conditionsResult` peuvent mettre la note à 0. Un produit contenant de l'arachide, scanné par un profil
+allergique à l'arachide, garde donc sa note personnelle (par ex. **A, anneau vert**
+dans `DualScoreRing`), et seule une carte placée plus bas le signale (cf. C1). Le même
+score « sain » sert ensuite au tri de l'historique, aux alternatives et aux widgets.
+→ Un allergène **confirmé** (`!isTraceOnly`) déclenche `veto = true` avec la raison
+« Contient : arachide », affichée dans le bandeau de veto. Les traces sont traitées
+selon N6.
+
+> *Pourquoi ici :* Le défaut de sécurité le plus grave de l'audit : à corriger avant tout le reste, y compris avant C1, puisque C1 ne fait que déplacer la carte.
+
+### 6. C1. Alertes de sécurité mal ordonnées sur l'écran résultat 🔴
 `presentation/result/ResultContent.kt` affiche, dans cet ordre : bandeau de rappel, badges,
 anneau de score, verdict, **ComparisonCard, AlternativeCard, PairingsCard**, puis
 seulement ensuite **DietVetoBanner** et **AllergenWarningsCard** (l. ~200-216).
@@ -85,7 +98,16 @@ sous `RecallBanner`, avant l'anneau de score.
 
 > *Pourquoi ici :* Réordonnancement des composables du résultat.
 
-### 6. C2. Interactions aliment-médicament cachées derrière un bouton 🔴
+### 7. N6. Sévérité par allergène (allergie sévère / allergie / intolérance) 🔴
+`Profile.allergens` est un simple `Set<String>`. Les mentions « peut contenir des traces » sont
+détectées (`isTraceOnly`), mais elles sont traitées de la même façon pour tout le monde. Or, pour une
+allergie anaphylactique, une trace est un motif de refus, alors que pour une intolérance au lactose elle est sans importance.
+→ `Map<String, AllergenSeverity>` dans le profil (migration de base de données). Avec SÉVÈRE, une trace entraîne un
+veto ; avec ALLERGIE, un malus et un bandeau ; avec INTOLÉRANCE, une simple information.
+
+> *Pourquoi ici :* Prolonge directement C10, dans le même moteur ; dépend de C5 pour la migration du profil.
+
+### 8. C2. Interactions aliment-médicament cachées derrière un bouton 🔴
 Les risques médicamenteux du produit scanné (`hints.medicationRisks`, issus de
 `checkFoodDrugInteractions`) ne s'affichent que dans `HintPanel`, une boîte de dialogue
 fermée par défaut (`showHints = false`). Un utilisateur sous AVK qui scanne des épinards ne
@@ -95,7 +117,7 @@ lorsque `medicationRisks` n'est pas vide ; le panneau reste pour le détail.
 
 > *Pourquoi ici :* Même écran que C1 : à faire dans la foulée.
 
-### 7. C3. Rappels produits jamais revérifiés après le scan 🔴
+### 9. C3. Rappels produits jamais revérifiés après le scan 🔴
 `RecallRepository` interroge RappelConso **au scan** ; le cache négatif expire en 7 jours
 mais n'est réinterrogé qu'**au prochain scan** du même code-barres. `ReminderWorker` ne
 contient aucune logique de rappel produit. Un produit acheté, scanné puis rappelé la
@@ -107,13 +129,13 @@ fonctionnalité à plus forte valeur sécurité par ligne de code de toute l'app
 
 > *Pourquoi ici :* Diagnostic ; s'implémente avec D1.
 
-### 8. D1 – Synchro RappelConso en arrière-plan
+### 10. D1 – Synchro RappelConso en arrière-plan
 (cf. C3), avec écran « Mes produits
 rappelés ».
 
 > *Pourquoi ici :* Worker RappelConso + écran : la correction de C3.
 
-### 9. C9. Précision des rappels de médicaments 🟡
+### 11. C9. Précision des rappels de médicaments 🟡
 Les doses sont rappelées par un `PeriodicWorkRequest` de **15 min** (choix documenté dans
 `ScanEatApp.kt`), sans `AlarmManager`. Retard possible de 15 min, et bien plus en Doze.
 → Alarmes exactes (`setExactAndAllowWhileIdle`, permission `SCHEDULE_EXACT_ALARM` /
@@ -124,13 +146,24 @@ worker pour les rappels de repas et d'hydratation.
 
 > *Pourquoi ici :* Fiabilise les rappels de doses ; indépendant mais même famille (WorkManager/alarmes).
 
+### 12. C11. Noms de médicaments visibles sur l'écran verrouillé 🟠
+`ReminderWorker` (l. 141-168) place `med.name` dans le corps de la notification, et
+`NotificationHelper.show` ne définit ni `setVisibility(VISIBILITY_PRIVATE)` ni
+`setPublicVersion(...)`. Sur un téléphone réglé pour afficher le contenu des notifications (c'est le réglage par défaut),
+« Prendre : Lévothyrox 75 µg » s'affiche donc sur l'écran verrouillé. C'est une donnée de santé
+(catégorie particulière au sens du RGPD, art. 9).
+→ Canal MEDICATION en `VISIBILITY_PRIVATE`, avec une version publique générique « Rappel de
+traitement ». Ajouter une option « masquer le nom du médicament ».
+
+> *Pourquoi ici :* Même code que C9 (notifications de doses) : à traiter dans le même passage.
+
 ---
 
 ## Phase 3 — Modèle de messages et de sources
 
 C8 d'abord : une fois que le domaine renvoie des clés structurées, on y attache la source (A1) au même endroit au lieu de le faire deux fois.
 
-### 10. C8. Internationalisation dans le moteur 🟡
+### 13. C8. Internationalisation dans le moteur 🟡
 233 occurrences de `if (en) "…" else "…"` dans le code (moteur de scoring compris, ex.
 `ScoringEngine.kt:578`). Le domaine produit des textes localisés : impossible d'ajouter une
 3ᵉ langue, et les traductions échappent aux outils.
@@ -139,7 +172,7 @@ et la présentation les résout via `strings.xml`.
 
 > *Pourquoi ici :* Domaine → clés ; présentation → `strings.xml`.
 
-### 11. A1 – Transparence des sources dans l'UI
+### 14. A1 – Transparence des sources dans l'UI
 Les sources existent en commentaires ;
 les remonter en données (`source`, `version`, `verifiedOn` par table ou par entrée) et
 les afficher dans un écran « Sources et versions des données », ainsi qu'en pied de chaque
@@ -148,12 +181,12 @@ alerte (« Source : ANSM, 2024 »). C'est le différenciateur central de la phil
 
 > *Pourquoi ici :* Métadonnées `source`/`version`/`verifiedOn` sur ces mêmes clés.
 
-### 12. N2 – Écran « Sources & méthodologie »
+### 15. N2 – Écran « Sources & méthodologie »
 public (cf. A1), lien depuis chaque note.
 
 > *Pourquoi ici :* Écran « Sources & méthodologie » alimenté par A1.
 
-### 13. A2 – « Pourquoi cette note ? »
+### 16. A2 – « Pourquoi cette note ? »
 `AdjustmentsSection` liste déjà les ajustements
 personnels (points ±). Il manque le lien vers la règle et la source de chaque ajustement,
 ainsi que la décomposition de la note classique (`PillarsSection`) en langage simple.
@@ -166,7 +199,7 @@ ainsi que la décomposition de la note classique (`PillarsSection`) en langage s
 
 S'appuie sur le format sourcé de la phase 3 : chaque nouvelle entrée naît avec sa source.
 
-### 14. A7 – Couverture de la base médicamenteuse
+### 17. A7 – Couverture de la base médicamenteuse
 `FoodDrugInteractionDb` couvre 5 classes
 (AVK, IMAO, statines/inhibiteurs calciques, IEC/sartans, lévothyroxine). Candidats sourcés
 ANSM/EMA : millepertuis (inducteur CYP3A4), réglisse (antihypertenseurs, hypokaliémie),
@@ -175,7 +208,16 @@ fluoroquinolones/tétracyclines, levure de riz rouge et statines.
 
 > *Pourquoi ici :* Nouvelles interactions aliment-médicament (ANSM/EMA).
 
-### 15. D5 – Rapport médecin
+### 18. D6. Actions « Pris / Reporter » et suivi du stock de médicaments
+Les notifications n'ont aucune action (pas d'`addAction` dans `NotificationHelper`) :
+pour marquer une prise, il faut ouvrir l'app. Il n'existe pas non plus de suivi du nombre de
+comprimés restants ni de la date de renouvellement de l'ordonnance.
+→ Ajouter des boutons d'action (`BroadcastReceiver` qui écrit la prise datée), une alerte « plus que 5 jours
+de traitement » et un rappel de renouvellement d'ordonnance. L'observance entre ensuite dans D5.
+
+> *Pourquoi ici :* Après C9/C11 (même infrastructure de notifications) ; alimente le rapport médecin D5.
+
+### 19. D5 – Rapport médecin
 ajouter interactions détectées, observance des médicaments
 et symptômes sur la période choisie dans `PdfReportRepository`.
 
@@ -187,7 +229,7 @@ et symptômes sur la période choisie dans `PdfReportRepository`.
 
 Honnêteté de l'offre et qualité perçue avant de pousser la diffusion.
 
-### 16. C4. « Premium » sans paiement 🟠
+### 20. C4. « Premium » sans paiement 🟠
 `PremiumSection` propose un bouton qui bascule `isPremium` sur `true`/`false` (`onSetPremium(!isPremium)`).
 Aucune dépendance Billing. Toute personne peut s'activer Premium gratuitement depuis les
 réglages. En l'état, publier avec un écran « Premium verrouillé » serait trompeur.
@@ -197,21 +239,32 @@ que le README affirme « ni serveur ni IA » (cf. C6).
 
 > *Pourquoi ici :* Décision : Billing ou retrait du Premium.
 
-### 17. N4 – Monétisation réelle
+### 21. C12. Risque de perte totale des données au changement de téléphone 🟠
+`AndroidManifest.xml` : `android:allowBackup="false"`. L'app est 100 % locale et la sauvegarde
+chiffrée (`BackupRepository`) est **uniquement manuelle** : on ne trouve ni sauvegarde
+périodique, ni rappel « dernière sauvegarde il y a X jours ». Un téléphone perdu ou réinitialisé fait perdre
+des mois d'historique, de traitements, de pesées, etc.
+→ Sauvegarde automatique chiffrée hebdomadaire vers un dossier choisi par l'utilisateur
+(SAF, `OpenDocumentTree`, persistable URI) via WorkManager, plus un rappel dans les réglages. Autre option :
+une sauvegarde Android chiffrée côté client, avec des règles `data_extraction_rules` qui excluent les clés du Keystore.
+
+> *Pourquoi ici :* Bloquant publication au même titre que C4/C5 : la promesse « tout est local » implique d'assumer la sauvegarde.
+
+### 22. N4 – Monétisation réelle
 (cf. C4) : Play Billing ; Premium centré sur Biolism et les
 rapports, sans rien retirer à la sécurité (allergènes, rappels et interactions restent
 gratuits).
 
 > *Pourquoi ici :* Implémentation de la décision de C4.
 
-### 18. A6 – Accessibilité
+### 23. A6 – Accessibilité
 Environ 40 `contentDescription = null` : vérifier qu'aucune ne
 porte sur une icône de statut ou d'alerte. Valider le contraste AA des couleurs de grade
 en mode sombre.
 
 > *Pourquoi ici :* Accessibilité et contraste.
 
-### 19. A4 – Navigation
+### 24. A4 – Navigation
 34 modules dans `presentation/` (fasting, loyalty, seasonal,
 calendar, sleep, symptom, expenses…). Proposer à l'onboarding de choisir les modules
 suivis, et masquer les autres dans la navigation.
@@ -224,26 +277,35 @@ suivis, et masquer les autres dans la navigation.
 
 Fonctionnalités qui reposent sur des modules existants.
 
-### 20. A3 – Alternatives venant d'Open Food Facts
+### 25. A8. Recherche Open Food Facts sur l'ancienne API
+`OpenFoodFactsApi` utilise `cgi/search.pl`, l'ancien point d'accès de recherche, lent et limité
+à environ 10 requêtes par minute par Open Food Facts. Avec un debounce de 150 ms (`FoodSearchViewModel`), la frappe
+d'un utilisateur peut atteindre cette limite.
+→ Migrer vers l'API Search-a-licious d'Open Food Facts, ou passer à l'API v2 avec filtres, et porter le debounce
+de la recherche en ligne à environ 400 ms, en gardant la recherche locale instantanée.
+
+> *Pourquoi ici :* Prérequis de A3 : les alternatives Open Food Facts reposent sur cette recherche.
+
+### 26. A3 – Alternatives venant d'Open Food Facts
 Aujourd'hui limitées à l'historique :
 un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégorie
 (`categories_tags`) et trier par le score local du profil.
 
 > *Pourquoi ici :* Alternatives Open Food Facts (le score local est stabilisé après les phases 2-3).
 
-### 21. D2 – Garde-manger ↔ dates de péremption
+### 27. D2 – Garde-manger ↔ dates de péremption
 notification J-2, liée au plan de repas
 (« cuisiner d'abord ce qui expire »).
 
 > *Pourquoi ici :* Péremption du garde-manger (même infra de worker que D1).
 
-### 22. D3 – Plan de repas → courses → dépenses
+### 28. D3 – Plan de repas → courses → dépenses
 les trois modules existent ; il manque le
 bouclage « budget prévu vs ticket scanné » (`ReceiptParser` déjà présent).
 
 > *Pourquoi ici :* Plan → courses → dépenses.
 
-### 23. D4 – Signaux croisés symptômes ↔ aliments
+### 29. D4 – Signaux croisés symptômes ↔ aliments
 `SymptomCorrelation` existe ; ajouter un
 journal d'élimination guidé (FODMAP, lactose), à présenter clairement comme une
 observation personnelle et non un diagnostic.
@@ -254,20 +316,20 @@ observation personnelle et non un diagnostic.
 
 ## Phase 7 — Nouveaux axes
 
-### 24. N1 – Contribution Open Food Facts
+### 30. N1 – Contribution Open Food Facts
 aucune écriture vers OFF aujourd'hui. Quand un
 produit est absent ou incomplet, proposer d'envoyer photos et champs lus par OCR (API
 d'écriture OFF, compte utilisateur ou anonyme).
 
 > *Pourquoi ici :* Contribution Open Food Facts.
 
-### 25. N3 – Scan de carte de restaurant
+### 31. N3 – Scan de carte de restaurant
 OCR ML Kit, puis détection allergènes/régime par plat,
 en réutilisant `AllergenDetector` et `DietChecker`.
 
 > *Pourquoi ici :* Scan de carte de restaurant (réutilise allergènes/régime durcis en phase 2).
 
-### 26. N5 – Wear OS / tuile
+### 32. N5 – Wear OS / tuile
 prise de médicament, verre d'eau, chrono de jeûne.
 
 > *Pourquoi ici :* Wear OS / tuile (réutilise les alarmes de C9).
@@ -277,9 +339,9 @@ prise de médicament, verre d'eau, chrono de jeûne.
 ## Récapitulatif de l'ordre
 
 - **Phase 1** (Fondations techniques) : C5 → C7 → A5 → C6
-- **Phase 2** (Sécurité de l'utilisateur) : C1 → C2 → C3 → D1 → C9
+- **Phase 2** (Sécurité de l'utilisateur) : C10 → C1 → N6 → C2 → C3 → D1 → C9 → C11
 - **Phase 3** (Modèle de messages et de sources) : C8 → A1 → N2 → A2
-- **Phase 4** (Contenu santé) : A7 → D5
-- **Phase 5** (Prêt pour publication) : C4 → N4 → A6 → A4
-- **Phase 6** (Valeur produit) : A3 → D2 → D3 → D4
+- **Phase 4** (Contenu santé) : A7 → D6 → D5
+- **Phase 5** (Prêt pour publication) : C4 → C12 → N4 → A6 → A4
+- **Phase 6** (Valeur produit) : A8 → A3 → D2 → D3 → D4
 - **Phase 7** (Nouveaux axes) : N1 → N3 → N5
