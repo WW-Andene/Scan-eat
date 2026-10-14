@@ -47,6 +47,7 @@ fun SettingsScreen(
     isTabRoot: Boolean = false,
     onOpenProfile: () -> Unit = {},
     onOpenReminders: () -> Unit = {},
+    onOpenSources: () -> Unit = {},
 ) {
     val language  = viewModel.language.collectAsStateWithLifecycle()
     val theme     = viewModel.theme.collectAsStateWithLifecycle()
@@ -131,6 +132,9 @@ fun SettingsScreen(
             // weigh-ins, activity, and fasting targets app-wide. ----
             item { RemindersSection(onOpenReminders) }
 
+            // Roadmap A1/N2: data sources and methodology.
+            item { fr.scanneat.presentation.settings.components.SourcesSection(onOpenSources) }
+
             // ---- Premium — everything else is free; this gates Biolism (metabolism)
             // and photo scanning. ----
             item { PremiumSection(isPremium.value, onSetPremium = viewModel::setIsPremium) }
@@ -179,6 +183,9 @@ fun SettingsScreen(
                     voiceScoreAnnounce = voiceScoreAnnounce.value, onVoiceScoreAnnounceChange = viewModel::setVoiceScoreAnnounce,
                 )
             }
+
+            // Roadmap C12: automatic weekly encrypted backup.
+            item { fr.scanneat.presentation.settings.components.AutoBackupSection() }
 
             // Backup — local export/import, no cloud account required
             item {

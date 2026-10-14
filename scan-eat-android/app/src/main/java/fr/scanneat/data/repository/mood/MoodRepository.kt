@@ -24,7 +24,7 @@ class MoodRepository @Inject constructor(
 ) {
     /** Same cap every other log table in this app already trims to. */
     private companion object {
-        const val MAX_HISTORY_ROWS = 730 // ~2 years of daily entries
+        const val MAX_HISTORY_ROWS = 3650 // ~10 years of daily entries (Roadmap C15: was 730 = 2 years)
     }
 
     fun observeAll(profileId: String = "default"): Flow<List<MoodEntry>> =

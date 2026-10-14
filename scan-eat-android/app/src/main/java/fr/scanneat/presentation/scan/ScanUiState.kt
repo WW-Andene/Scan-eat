@@ -8,6 +8,8 @@ sealed class ScanUiState {
     data object Idle     : ScanUiState()
     data object Scanning : ScanUiState()
     data class  Success(val result: ScanResult, val persistedId: Long) : ScanUiState()
+    /** Roadmap C16: label read by OCR - the user checks/corrects the values before the result is shown. */
+    data class  ReviewOcr(val result: ScanResult, val persistedId: Long) : ScanUiState()
     data class  Error(val message: String, val needsPhoto: Boolean = false) : ScanUiState()
     /** Barcode matched the medication lookup DB instead of a food product - offer to save it to Traitement rather than running it through food scoring. */
     data class  MedicationFound(val entry: MedicationDbEntry) : ScanUiState()

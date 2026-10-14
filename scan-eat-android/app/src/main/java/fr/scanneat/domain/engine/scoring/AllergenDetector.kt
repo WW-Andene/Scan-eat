@@ -3,7 +3,7 @@ package fr.scanneat.domain.engine.scoring
 import fr.scanneat.domain.model.Product
 
 // ============================================================================
-// ALLERGEN DETECTOR — port of public/core/allergens.js
+// ALLERGEN DETECTOR — originally ported from the former web prototype's public/core/allergens.js
 //
 // AUTHORITATIVE:
 //   EU Regulation No 1169/2011, Annex II — 14 mandatory allergens.
@@ -66,6 +66,10 @@ private val GLUTEN_FREE_OATS_QUALIFIER = Regex("(avoine|oats?)[^,;.]*(sans glute
 
 /** Any OTHER gluten cereal term (no gluten-free variant exists for these) - if present, don't suppress. */
 private val GLUTEN_CEREAL_EXCL_OATS = a("gluten|bl[eé]|froment|seigle|orge|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge|wheat|barley|rye|spelt|semolina|durum|seitan")
+
+/** Display label of an Annex II allergen key ("peanuts" → "Arachides"), the key itself if unknown. */
+fun allergenDisplayLabel(key: String, lang: String): String =
+    RULES.firstOrNull { it.key == key }?.let { if (lang == "en") it.labelEn else it.labelFr } ?: key
 
 private val RULES: List<AllergenRule> = listOf(
     AllergenRule("gluten", "Gluten", "Gluten",
@@ -148,7 +152,7 @@ internal val OFF_ALLERGEN_TAG_MAP: Map<String, String> = mapOf(
 
 /**
  * Reverse of [OFF_ALLERGEN_TAG_MAP] — ANNEX_II short key → OFF-style tag.
- * Lets a non-OFF source (the vision LLM's own label reading — see OcrParser.
+ * Lets a non-OFF source (the on-device OCR's own label reading — see OcrParser.
  * buildLabelPrompt's allergen_declarations field) populate
  * Product.declaredAllergenTags in the same "en:xxx" vocabulary OFF itself
  * uses, so [detectAllergens] needs no separate code path per source.
@@ -162,7 +166,7 @@ val ANNEX_II_KEY_TO_OFF_TAG: Map<String, String> = OFF_ALLERGEN_TAG_MAP.entries.
  * Also appends trace-only hits (isTraceOnly=true) from OFF's traces_tags for
  * any allergen not already confirmed present some other way.
  *
- * Port of detectAllergens() from allergens.js.
+ * Originally ported from detectAllergens() in the former web prototype\'s allergens.js.
  */
 fun detectAllergens(product: Product, lang: String = "fr"): List<AllergenHit> {
     // key → triggers set

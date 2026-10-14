@@ -23,7 +23,7 @@ import kotlin.math.roundToInt
 
 // ============================================================================
 // LOG SHEET — portion selector popup
-// Port of public/features/portion-panel.js
+// Originally ported from the former web prototype's public/features/portion-panel.js
 //
 // Lets the user specify:
 //   - Portion size in grams (defaults to product weight_g or 100 g)

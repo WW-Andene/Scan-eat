@@ -68,6 +68,7 @@ internal fun SuggestRecipesDialog(
     errorMessage: String?,
     historyItems: List<String>,
     pantryItemNames: List<String>,
+    pantryExpiringSoon: Set<String> = emptySet(),
     onDismiss: () -> Unit,
     onSuggest: (String) -> Unit,
     onSuggestFromPantry: (List<String>) -> Unit,
@@ -77,7 +78,7 @@ internal fun SuggestRecipesDialog(
     var pantryText by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver()) { mutableStateOf(SuggestMode.INGREDIENT) }
     var selectedHistory by remember { mutableStateOf(setOf<String>()) }
-    var selectedPantry by remember { mutableStateOf(setOf<String>()) }
+    var selectedPantry by remember(pantryExpiringSoon) { mutableStateOf(pantryExpiringSoon) }
     val pantryItems = (selectedPantry + pantryText.split(',', '\n').map { it.trim() }.filter { it.isNotBlank() }).toList()
 
     AlertDialog(
@@ -131,7 +132,7 @@ internal fun SuggestRecipesDialog(
                                         onClick = {
                                             selectedPantry = if (selected) selectedPantry - name else selectedPantry + name
                                         },
-                                        label = { Text(name) },
+                                        label = { Text(if (name in pantryExpiringSoon) name + " · " + stringResource(R.string.recipes_suggest_expiring_soon) else name) },
                                         enabled = !isLoading,
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,

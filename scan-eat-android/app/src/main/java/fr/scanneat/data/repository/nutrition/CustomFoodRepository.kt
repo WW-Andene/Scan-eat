@@ -15,10 +15,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// CUSTOM FOOD REPOSITORY — port of public/data/custom-food-db.js
+// CUSTOM FOOD REPOSITORY — originally ported from the former web prototype's public/data/custom-food-db.js
 //
 // User-persisted foods that extend FOOD_DB for Quick Add autocomplete
-// and LLM-identify reconciliation.
+// and photo-identify reconciliation.
 // Schema per entry: name, kcal, protein_g, carbs_g, fat_g per 100 g.
 // Custom foods win ties in searchFoodDB (score -0.5 vs 0 for built-ins).
 // ============================================================================
@@ -56,7 +56,7 @@ class CustomFoodRepository @Inject constructor(
      * Looks up a custom food by its real, unambiguous barcode identity — the
      * same one CustomFoodDao.upsertFood already prefers on save. Used by
      * ScanRepository.scoreBarcode() as a last-resort fallback when neither OFF
-     * nor the vision LLM can identify a barcode: a user who already manually
+     * nor the on-device OCR can identify a barcode: a user who already manually
      * taught the app an obscure/local/homemade product (see save()'s barcode
      * param) previously hit the exact same "product not found" wall on every
      * single rescan, with no way for the app to recall what it already knows.
@@ -248,7 +248,7 @@ class CustomFoodRepository @Inject constructor(
 
     /**
      * Convert a custom food to a scorable Product.
-     * Port of buildCustomFoodProductInput() from custom-food-db.js.
+     * Originally ported from buildCustomFoodProductInput() in the former web prototype\'s custom-food-db.js.
      */
     fun toProduct(entry: FoodEntry): Product = Product(
         name        = entry.name,

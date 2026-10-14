@@ -7,7 +7,7 @@ import kotlin.math.roundToInt
 
 // ============================================================================
 // weightForecast — linear extrapolation to goal weight
-// Port of weightForecast() from presenters.js
+// Originally ported from weightForecast() in the former web prototype\'s presenters.js
 //
 // Split out of DashboardAggregator.kt (pure structural move, no behavior
 // change).
@@ -18,6 +18,8 @@ sealed class WeightForecast {
     data object Flat              : WeightForecast()
     data object WrongDirection    : WeightForecast()
     data object AlreadyReached    : WeightForecast()
+    /** Roadmap C14: the goal weight is below BMI 18.5 - no "success date" is shown for it. */
+    data object UnderweightGoal   : WeightForecast()
     data class  Ok(
         val weeks: Double,
         val days: Int,
@@ -32,9 +34,12 @@ sealed class WeightForecast {
 // multi-decade "forecast" instead of being recognized as no real trend.
 private const val FLAT_SLOPE_THRESHOLD_KG_PER_WEEK = 0.02
 private const val MAX_FORECAST_WEEKS = 104.0
+private const val UNDERWEIGHT_BMI = 18.5 // WHO
 
-fun weightForecast(currentKg: Double, goalKg: Double, weeklySlopeKg: Double): WeightForecast {
+fun weightForecast(currentKg: Double, goalKg: Double, weeklySlopeKg: Double, heightCm: Double? = null): WeightForecast {
     if (currentKg <= 0 || goalKg <= 0) return WeightForecast.InsufficientData
+    if (heightCm != null && heightCm > 0 && goalKg < currentKg &&
+        goalKg / ((heightCm / 100) * (heightCm / 100)) < UNDERWEIGHT_BMI) return WeightForecast.UnderweightGoal
     val delta = goalKg - currentKg
     if (abs(delta) < 0.05) return WeightForecast.AlreadyReached
     if (abs(weeklySlopeKg) < FLAT_SLOPE_THRESHOLD_KG_PER_WEEK) return WeightForecast.Flat

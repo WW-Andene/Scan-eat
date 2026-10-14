@@ -198,6 +198,8 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
 → Retirer ou sourcer chaque bonus ; ignorer les micronutriments ajoutés (listés dans les ingrédients) ; appliquer 7,5 % aux boissons.
 
 ### S9. Profil : formules hors domaine de validité 🟠 📖
+✅ **Partiellement fait** : folates de grossesse sourcés EFSA 2014 (600 µg), sel en cas d'hypertension aligné sur ESH 2023 (< 5 g), cible de fibres EFSA (25 g) pour tous les régimes. Restent : équations pédiatriques, état poussée/rémission MICI.
+
 - **Mifflin-St Jeor appliqué aux mineurs** (`clampedAge` de 1 à 110) : formule validée chez l'adulte. L'EFSA utilise des
   équations spécifiques intégrant la croissance pour les 1-17 ans. Le calcium de 950 mg vaut pour les adultes, alors que l'EFSA recommande 1150 mg chez les 11-17 ans.
 - **Folates de grossesse non relevés** : la cible reste à 330 µg, alors que l'EFSA recommande 600 µg pendant la grossesse (et une supplémentation de 400 µg d'acide
@@ -209,6 +211,8 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
   afficher la cible EFSA de fibres même pour un régime restrictif ; ajouter un état « poussée / rémission » pour les MICI.
 
 ### S10. Incohérences internes du calcul 🟡 📖
+✅ **Partiellement fait** : bonus « Peu transformé » compté ; bonus oméga-3 limité à la noix (plus coco, cajou, muscade, pécan, macadamia, Brésil). Restent : pénalités en double (pilier + veto).
+
 - `scoreProcessing` : le bonus « +2 Peu transformé » est **affiché** mais jamais ajouté au score.
 - `scoreNutritionalDensity` : la déduction « Aucun apport… » vaut 0 point mais est classée MAJOR. Elle compte donc dans
   `severeFlagCount`, déclenche une pénalité globale et apparaît en drapeau rouge.
@@ -228,11 +232,15 @@ SII : Monash (Australie). MICI : Crohn's & Colitis Foundation (États-Unis) et N
 **ECCO** pour les MICI, **SNFGE / HAS** pour le SII. C'est contraire à la règle du README (« sources européennes préférées »).
 
 ### S13. Commentaires de parité obsolètes 🟡 📖
+✅ **Fait** : « Mirrors … exactly », « JS Fix #7 », « the server's … route » et les en-têtes « port of » corrigés (prototype web absent du dépôt ; import de recettes fait sur l'appareil). Vérification ligne à ligne des « mirrors » restants : 2 vraies divergences score ↔ panneau d'aide corrigées (détection d'alcool, sodas sucrés en cas de dépression), verrouillées par `HintScoreParityTest`.
+
 « Mirrors scoreProduct() from scoring-engine.ts exactly », « same as JS Fix #7 », « the server mirrors this
 exact function » : il n'y a **aucun** fichier TypeScript ni serveur dans le dépôt (le README dit « ni serveur »). D'après la règle du projet, toute
 divergence entre un commentaire et le comportement réel compte comme un bug.
 
 ### S14. Version du moteur non liée aux scores enregistrés 🟡 📖
+✅ **Fait** : le recalcul par version existait mais `ENGINE_VERSION` était resté à 2.4.0 malgré S1-S10 : passé à 2.5.0, et un recalcul unique en arrière-plan de toutes les notes enregistrées (`EngineRescoreWorker`, une fois par version) met aussi à jour les colonnes utilisées par le tri de l'historique, les alternatives et les widgets.
+
 `ENGINE_VERSION = "2.4.0"` est enregistrée dans l'audit, mais rien ne recalcule ni ne signale un ancien score après un changement de
 règles. Après les corrections S1 à S10, l'historique affichera des notes produites par un moteur faux.
 → Recalculer à la volée (les données produit sont stockées) ou marquer « note calculée avec une version antérieure ».
@@ -265,6 +273,8 @@ Les findings sont rangés dans l'ordre où il est logique de les traiter : les d
 Débloquent tout le reste : sécuriser les migrations **avant** de toucher au schéma ou aux valeurs persistées, et rendre le code lisible avant les chantiers d'UI.
 
 ### 1. C5. Migrations Room non vérifiables 🟠
+✅ **Vérifié (passe 7)** : `tools/check-migrations.py` rejoue les 25 migrations 15→40 dans SQLite et compare au schéma exporté : 0 différence structurelle.
+
 `exportSchema = true`, mais `app/schemas/` ne contient que les versions **15-18, 20-24 et 40**.
 Les snapshots **19 et 25 à 39** manquent : `MigrationTestHelper` ne peut pas valider les
 15 dernières migrations (40 `Migration(` déclarées dans `AppDatabase.kt`). Les mises à
@@ -275,6 +285,8 @@ version → build KSP), puis écrire un test de migration 15→40.
 > *Pourquoi ici :* Prérequis de C6 et de toute évolution de schéma (A1, D1, D2).
 
 ### 2. C7. Séparateur NUL brut dans le code source 🟡
+✅ **Fait (passe 7)** : les 5 caractères NUL littéraux de `ManualGroceryRepository.kt` sont écrits `\u0000` (même valeur à l'exécution, données compatibles) ; le fichier n'est plus vu comme binaire.
+
 `data/repository/planning/ManualGroceryRepository.kt` contient 226 octets `0x00`. Le
 fichier est vu comme **binaire** par git/grep, car il utilise un caractère NUL littéral comme séparateur
 (`split('<NUL>')`) dans DataStore. Les revues, diffs et recherches ignorent silencieusement ce fichier.
@@ -289,6 +301,8 @@ les 40 migrations dans `Migrations.kt`), `Theme.kt` (627 l.), `ScoringEngine` (6
 > *Pourquoi ici :* Extraire les migrations d'`AppDatabase` (aide C5) et découper `ScanViewModel`/écran résultat avant C1-C2.
 
 ### 4. C6. Vestiges « LLM » trompeurs 🟡
+✅ **Fait** : `ScanSource.LLM` → `ON_DEVICE_OCR` (l'ancienne valeur stockée « LLM » est relue par `ScanSource.fromStored`), `mergeOffWithLlm` → `mergeOffWithPhoto`, commentaires corrigés (test `ScanSourceTest`).
+
 106 mentions de `LLM` dans le code, dont l'énum `ScanSource.LLM` utilisée pour les
 **photos lues sur l'appareil par ML Kit**, des commentaires « OFF-vs-LLM conflict » et le
 commentaire de `FoodDb.kt` (« falling back to the LLM's own rough macro guess »). Le README
@@ -306,6 +320,8 @@ migration ou un `@SerializedName`) et purger les commentaires obsolètes.
 Le cœur de la promesse ; changements localisés et à fort impact.
 
 ### 5. C10. Un allergène confirmé n'a aucun effet sur la note personnelle 🔴
+✅ **Fait** : un allergène confirmé déclenche le veto (« Contient : … »), les traces restent informatives (test `PersonalAllergenVetoTest`).
+
 `domain/engine/scoring/PersonalScoreEngine.kt` (l. 63-66) calcule `allergenHits`, mais ce
 résultat ne participe **ni au `veto` ni aux `adjustments`** : seuls `dietResult` et
 `conditionsResult` peuvent mettre la note à 0. Un produit contenant de l'arachide, scanné par un profil
@@ -319,6 +335,8 @@ selon N6.
 > *Pourquoi ici :* Le défaut de sécurité le plus grave de l'audit : à corriger avant tout le reste, y compris avant C1, puisque C1 ne fait que déplacer la carte.
 
 ### 6. C1. Alertes de sécurité mal ordonnées sur l'écran résultat 🔴
+✅ **Fait** : veto, allergènes, ingrédients non vérifiables et interactions médicamenteuses sont affichés juste sous le bandeau de rappel.
+
 `presentation/result/ResultContent.kt` affiche, dans cet ordre : bandeau de rappel, badges,
 anneau de score, verdict, **ComparisonCard, AlternativeCard, PairingsCard**, puis
 seulement ensuite **DietVetoBanner** et **AllergenWarningsCard** (l. ~200-216).
@@ -330,6 +348,8 @@ sous `RecallBanner`, avant l'anneau de score.
 > *Pourquoi ici :* Réordonnancement des composables du résultat.
 
 ### 7. N6. Sévérité par allergène (allergie sévère / allergie / intolérance) 🔴
+✅ **Fait** : `Profile.allergenSeverities` (DataStore chiffré, sauvegarde incluse, aucune migration Room nécessaire). SÉVÈRE : traces = veto ; ALLERGIE (défaut) : ingrédient = veto, traces = prudence ; INTOLÉRANCE : −15 points, traces sans effet. Choix par allergène dans le profil ; la carte Famille suit les mêmes règles.
+
 `Profile.allergens` est un simple `Set<String>`. Les mentions « peut contenir des traces » sont
 détectées (`isTraceOnly`), mais elles sont traitées de la même façon pour tout le monde. Or, pour une
 allergie anaphylactique, une trace est un motif de refus, alors que pour une intolérance au lactose elle est sans importance.
@@ -339,6 +359,8 @@ veto ; avec ALLERGIE, un malus et un bandeau ; avec INTOLÉRANCE, une simple inf
 > *Pourquoi ici :* Prolonge directement C10, dans le même moteur ; dépend de C5 pour la migration du profil.
 
 ### 8. C2. Interactions aliment-médicament cachées derrière un bouton 🔴
+✅ **Fait** : `MedicationRiskBanner` affiché directement dans l'écran résultat.
+
 Les risques médicamenteux du produit scanné (`hints.medicationRisks`, issus de
 `checkFoodDrugInteractions`) ne s'affichent que dans `HintPanel`, une boîte de dialogue
 fermée par défaut (`showHints = false`). Un utilisateur sous AVK qui scanne des épinards ne
@@ -349,6 +371,8 @@ lorsque `medicationRisks` n'est pas vide ; le panneau reste pour le détail.
 > *Pourquoi ici :* Même écran que C1 : à faire dans la foulée.
 
 ### 9. C3. Rappels produits jamais revérifiés après le scan 🔴
+✅ **Fait** : `RecallSyncWorker` quotidien (réseau requis) : rappels publiés depuis la dernière synchro × codes-barres de l'historique (180 j) et du garde-manger ; cache positif (bandeau résultat, garde-manger) et notification « Produit rappelé » une seule fois par produit, canal dédié prioritaire (test `RecallSyncMatchTest`). Toucher la notification ouvre la fiche du produit.
+
 `RecallRepository` interroge RappelConso **au scan** ; le cache négatif expire en 7 jours
 mais n'est réinterrogé qu'**au prochain scan** du même code-barres. `ReminderWorker` ne
 contient aucune logique de rappel produit. Un produit acheté, scanné puis rappelé la
@@ -361,12 +385,16 @@ fonctionnalité à plus forte valeur sécurité par ligne de code de toute l'app
 > *Pourquoi ici :* Diagnostic ; s'implémente avec D1.
 
 ### 10. D1 – Synchro RappelConso en arrière-plan
+✅ **Fait** : synchro quotidienne (C3) et écran « Produits rappelés » (bouton dans l'historique) : motif, risques, conduite à tenir, lien vers la fiche officielle, ouverture du produit.
+
 (cf. C3), avec écran « Mes produits
 rappelés ».
 
 > *Pourquoi ici :* Worker RappelConso + écran : la correction de C3.
 
 ### 11. C9. Précision des rappels de médicaments 🟡
+✅ **Fait** : alarme exacte (`setExactAndAllowWhileIdle`, repli inexact sans permission) sur la prochaine prise ; elle lance `ReminderWorker` aussitôt (expédié), qui réarme la suivante ; réarmement au démarrage et au redémarrage du téléphone. Le worker de 15 min reste en filet de sécurité (test `MedicationAlarmsTest`).
+
 Les doses sont rappelées par un `PeriodicWorkRequest` de **15 min** (choix documenté dans
 `ScanEatApp.kt`), sans `AlarmManager`. Retard possible de 15 min, et bien plus en Doze.
 → Alarmes exactes (`setExactAndAllowWhileIdle`, permission `SCHEDULE_EXACT_ALARM` /
@@ -378,6 +406,8 @@ worker pour les rappels de repas et d'hydratation.
 > *Pourquoi ici :* Fiabilise les rappels de doses ; indépendant mais même famille (WorkManager/alarmes).
 
 ### 12. C11. Noms de médicaments visibles sur l'écran verrouillé 🟠
+✅ **Fait** : notifications du canal MEDICATION en `VISIBILITY_PRIVATE` avec une version publique « Rappel de traitement » (et canal en visibilité privée pour les nouvelles installations). Reste : l'option « masquer le nom » même téléphone déverrouillé.
+
 `ReminderWorker` (l. 141-168) place `med.name` dans le corps de la notification, et
 `NotificationHelper.show` ne définit ni `setVisibility(VISIBILITY_PRIVATE)` ni
 `setPublicVersion(...)`. Sur un téléphone réglé pour afficher le contenu des notifications (c'est le réglage par défaut),
@@ -389,6 +419,8 @@ traitement ». Ajouter une option « masquer le nom du médicament ».
 > *Pourquoi ici :* Même code que C9 (notifications de doses) : à traiter dans le même passage.
 
 ### 13. C13. Jeûne intermittent sans aucune contre-indication 🔴
+✅ **Fait** : `fastingSafety(profile)` bloque le démarrage (grossesse, mineur), avertit (diabète, IMC < 18,5), masque la série pour ces profils et cite la FFAB (test `FastingSafetyTest`).
+
 `presentation/fasting/` : `FastingViewModel` ne lit que `activeProfileId` ; aucun champ du
 profil n'est consulté. `StartFastForm` propose 12, 16, 18, 20 et **24 h** et un compteur de
 **série** (streak) quel que soit le profil. Or le profil connaît déjà la grossesse
@@ -403,6 +435,8 @@ citer : ANSES / HAS. Mentionner une ressource d'aide sur les troubles du comport
 > *Pourquoi ici :* Même logique que C10 (le profil connaît le risque mais le module l'ignore) ; correction locale à un écran.
 
 ### 14. C14. Objectif « Perdre du poids » accepté pour un profil à risque 🟠
+✅ **Fait** : `Profile.safeGoal` remplace LOSE par MAINTAIN (grossesse, < 18 ans, IMC < 18,5) dans tous les calculs (cibles, protéines, ajustements de score), avec explication dans le profil ; un poids cible sous IMC 18,5 affiche une alerte au lieu d'une date (test `SafeGoalTest`).
+
 `ProfileSelectors` propose `Goal.LOSE` sans condition. Le plancher de 1200 kcal
 (`DailyTargets.kt`, l. 109-122) existe, mais rien n'empêche de choisir la perte avec un IMC
 < 18,5, pour un mineur ou pendant une grossesse. Les ajustements de score favorisent alors les produits pauvres en énergie,
@@ -413,6 +447,8 @@ cible sous IMC 18,5, afficher une alerte au lieu d'une date de « réussite » (
 > *Pourquoi ici :* Même famille que C13 ; touche le profil, donc à faire juste après.
 
 ### 15. C16. Résultats OCR et photo notés sans relecture par l'utilisateur 🟠
+✅ **Partiellement fait** : une étiquette lue par OCR ouvre un écran de relecture (nom, 8 valeurs pour 100 g, ingrédients, virgule acceptée) avant la note ; le résultat porte « Valeurs lues sur la photo (OCR), vérifiées par vous » ; « Annuler » supprime le scan (test `OcrReviewTest`). Restent : surlignage sur la photo et 3 meilleures correspondances pour la reconnaissance d'image.
+
 `ScanRepository.identifyOrScoreFromImages` : le produit lu par ML Kit (`parseLabel`) ou
 reconnu par l'image (`foodIdentifier`) est **noté immédiatement**. Seul un avertissement
 textuel signale l'origine. `LabelTextParser.sameRowNumber` prend « le premier nombre à droite du
@@ -431,6 +467,8 @@ d'image : proposer les 3 meilleures correspondances au lieu d'en choisir une.
 C8 d'abord : une fois que le domaine renvoie des clés structurées, on y attache la source (A1) au même endroit au lieu de le faire deux fois.
 
 ### 16. C8. Internationalisation dans le moteur 🟡
+⏸️ **Reporté (passe 7)** : refonte de ~230 textes du moteur en clés, à faire dans une passe dédiée (risque de régression élevé) ; les nouveaux textes de cette passe sont dans `strings.xml`.
+
 233 occurrences de `if (en) "…" else "…"` dans le code (moteur de scoring compris, ex.
 `ScoringEngine.kt:578`). Le domaine produit des textes localisés : impossible d'ajouter une
 3ᵉ langue, et les traductions échappent aux outils.
@@ -440,6 +478,8 @@ et la présentation les résout via `strings.xml`.
 > *Pourquoi ici :* Domaine → clés ; présentation → `strings.xml`.
 
 ### 17. A1 – Transparence des sources dans l'UI
+✅ **Fait (niveau table)** : catalogue `DATA_SOURCES` (nom, usage, version/date, lien), chaque entrée vérifiée contre un commentaire de provenance du code. Reste : la source en pied de chaque alerte (dépend de C8).
+
 Les sources existent en commentaires ;
 les remonter en données (`source`, `version`, `verifiedOn` par table ou par entrée) et
 les afficher dans un écran « Sources et versions des données », ainsi qu'en pied de chaque
@@ -449,11 +489,15 @@ alerte (« Source : ANSM, 2024 »). C'est le différenciateur central de la phil
 > *Pourquoi ici :* Métadonnées `source`/`version`/`verifiedOn` sur ces mêmes clés.
 
 ### 18. N2 – Écran « Sources & méthodologie »
+✅ **Fait** : écran « Sources et méthodologie » (calcul de la note, note personnelle, traitement sur l'appareil, version du moteur, 8 sources) ouvert depuis les réglages et depuis chaque note (« Comment est calculée cette note ? »).
+
 public (cf. A1), lien depuis chaque note.
 
 > *Pourquoi ici :* Écran « Sources & méthodologie » alimenté par A1.
 
 ### 19. A2 – « Pourquoi cette note ? »
+⏸️ **Partiel (existant)** : la décomposition par pilier et les ajustements personnels sont déjà affichés ; le lien règle → source par ajustement dépend de C8.
+
 `AdjustmentsSection` liste déjà les ajustements
 personnels (points ±). Il manque le lien vers la règle et la source de chaque ajustement,
 ainsi que la décomposition de la note classique (`PillarsSection`) en langage simple.
@@ -461,6 +505,8 @@ ainsi que la décomposition de la note classique (`PillarsSection`) en langage s
 > *Pourquoi ici :* « Pourquoi cette note ? » : réutilise les clés de C8 et les sources de A1.
 
 ### 20. D9. Page « Ma sécurité » (évolution de `DashboardSafetyCenter`)
+✅ **Fait** : page « Ma sécurité » (icône bouclier du tableau de bord) : allergènes et sévérités, conditions et contre-indications (jeûne, perte de poids), traitements actifs et interactions, produits rappelés, lien vers les sources.
+
 `buildDashboardSafetyWarnings` agrège déjà les alertes dans une carte du tableau de bord. En faire
 une page à part entière : allergènes et sévérités (N6), interactions actives entre les traitements et le journal
 du jour, produits rappelés (D1), contre-indications du profil (C13, C14), chacun avec sa source (A1).
@@ -475,6 +521,8 @@ C'est la vitrine de la promesse de confiance, accessible en un geste depuis la b
 S'appuie sur le format sourcé de la phase 3 : chaque nouvelle entrée naît avec sa source.
 
 ### 21. A7 – Couverture de la base médicamenteuse
+✅ **Partiellement fait** : + levure de riz rouge × statines (ANSES 2014, EFSA 2018), calcium/fer × fluoroquinolones/cyclines (RCP), alcool × métronidazole (RCP Flagyl, hors vinaigres), tyramine × linézolide (RCP Zyvoxid) (test `FoodDrugA7Test`). Restent : millepertuis et réglisse (concernent surtout des compléments ou une condition, pas une classe de médicaments).
+
 `FoodDrugInteractionDb` couvre 5 classes
 (AVK, IMAO, statines/inhibiteurs calciques, IEC/sartans, lévothyroxine). Candidats sourcés
 ANSM/EMA : millepertuis (inducteur CYP3A4), réglisse (antihypertenseurs, hypokaliémie),
@@ -484,6 +532,8 @@ fluoroquinolones/tétracyclines, levure de riz rouge et statines.
 > *Pourquoi ici :* Nouvelles interactions aliment-médicament (ANSM/EMA).
 
 ### 22. D6. Actions « Pris / Reporter » et suivi du stock de médicaments
+✅ **Partiellement fait** : boutons « Pris » (enregistre la prise datée, comme dans l'app) et « Reporter 15 min » sur chaque rappel de dose. Restent : stock de comprimés et rappel de renouvellement d'ordonnance (migration Room).
+
 Les notifications n'ont aucune action (pas d'`addAction` dans `NotificationHelper`) :
 pour marquer une prise, il faut ouvrir l'app. Il n'existe pas non plus de suivi du nombre de
 comprimés restants ni de la date de renouvellement de l'ordonnance.
@@ -493,6 +543,8 @@ de traitement » et un rappel de renouvellement d'ordonnance. L'observance entre
 > *Pourquoi ici :* Après C9/C11 (même infrastructure de notifications) ; alimente le rapport médecin D5.
 
 ### 23. C17. Corrélations symptômes ↔ traitements sur 2 occurrences 🟡
+✅ **Fait** : ≥ 5 co-occurrences, ≥ 14 jours observés, test exact de Fisher unilatéral (p < 0,05), indicateur « lien net / modéré » et mention rouge « N'arrêtez jamais un traitement sans avis médical » (test `SymptomCorrelationTest`). Reste : export vers le rapport médecin (D5).
+
 `SymptomCorrelation.kt` : `MIN_SYMPTOM_DAY_OCCURRENCES = 2` et `MIN_DIFFERENCE_PCT = 20`,
 sans test statistique, appliqués aussi aux **médicaments** (« Corrélations possibles avec un
 traitement »). La mention « pas une preuve médicale » existe, mais deux jours suffisent pour
@@ -504,6 +556,8 @@ et proposer de l'inclure dans le rapport médecin (D5) plutôt que de conclure.
 > *Pourquoi ici :* Contenu santé : se range avec A7/D6 et alimente D5.
 
 ### 24. N10. Carnet de réactions allergiques
+✅ **Fait** : table `allergic_reactions` (migration 40→41, schéma 41 exporté, rejeu des migrations sans différence), écran « Carnet de réactions » depuis « Ma sécurité » (produit choisi parmi les scans récents, ingrédients figés, symptômes, gravité, adrénaline), points communs à discuter avec un allergologue (allergènes de l'annexe II puis ingrédients présents dans ≥ 2 réactions), rappel d'urgence (15/112), sauvegarde et rapport médecin (test `ReactionAnalysisTest`).
+
 Il n'existe aucun endroit pour noter « réaction le 12/10 après X ». Saisie : date, produit (pris dans
 l'historique de scans ou le journal), symptômes, gravité, prise d'adrénaline. Le moteur croise ensuite
 les ingrédients communs aux produits incriminés pour suggérer un **allergène caché à discuter avec un
@@ -512,6 +566,8 @@ allergologue** (sans conclure, cf. C17). Le carnet est exporté dans le rapport 
 > *Pourquoi ici :* Contenu santé ; réutilise l'historique de scans et `AllergenDetector`, et alimente D5.
 
 ### 25. D5 – Rapport médecin
+✅ **Fait** : page « Santé et traitements (30j) » du PDF : allergies et sévérités, conditions, traitements actifs avec observance (prises notées / prévues), nombre d'interactions entre traitements, symptômes par type avec sévérité moyenne, corrélations traitement ↔ symptôme retenues par le test de C17 (test `MedicationAdherenceTest`).
+
 ajouter interactions détectées, observance des médicaments
 et symptômes sur la période choisie dans `PdfReportRepository`.
 
@@ -534,6 +590,8 @@ que le README affirme « ni serveur ni IA » (cf. C6).
 > *Pourquoi ici :* Décision : Billing ou retrait du Premium.
 
 ### 27. C12. Risque de perte totale des données au changement de téléphone 🟠
+✅ **Fait** : sauvegarde automatique hebdomadaire chiffrée (même format que l'export, restaurable) dans un dossier choisi par l'utilisateur (SAF, permission persistante), 4 dernières conservées, mot de passe gardé chiffré par le Keystore, date de la dernière sauvegarde et échec affichés dans les réglages (test `AutoBackupPruneTest`).
+
 `AndroidManifest.xml` : `android:allowBackup="false"`. L'app est 100 % locale et la sauvegarde
 chiffrée (`BackupRepository`) est **uniquement manuelle** : on ne trouve ni sauvegarde
 périodique, ni rappel « dernière sauvegarde il y a X jours ». Un téléphone perdu ou réinitialisé fait perdre
@@ -545,6 +603,8 @@ une sauvegarde Android chiffrée côté client, avec des règles `data_extractio
 > *Pourquoi ici :* Bloquant publication au même titre que C4/C5 : la promesse « tout est local » implique d'assumer la sauvegarde.
 
 ### 28. C15. Historique de santé supprimé silencieusement 🟠
+✅ **Partiellement fait** : plafonds relevés pour couvrir ~10 ans d'usage assidu (humeur et sommeil 730 → 3650, journal et prises de médicaments 5000 → 20 000, activité 5000 → 10 000). Reste : archivage par agrégats et avertissement avant la première suppression.
+
 Plafonds de rétention par `trim` : humeur et sommeil **730 lignes** (`MoodRepository`,
 `SleepRepository`), non-alimentaire 500, et poids, prises de médicaments, journal et scans 5000.
 Pour un utilisateur assidu (5 entrées par jour), le journal alimentaire perd ses données les plus anciennes au bout d'environ 2,7 ans,
@@ -563,6 +623,8 @@ gratuits).
 > *Pourquoi ici :* Implémentation de la décision de C4.
 
 ### 30. A6 – Accessibilité
+✅ **Fait** : les icônes d'alerte sans description sont toutes accompagnées d'un texte équivalent (vérifié) ; palettes de notes en thème sombre corrigées (daltonisme : E/F à 1,65-2,9:1, désormais ≥ 4,5:1 sur les 6 fonds sombres ; A+ et F standard relevés), verrouillé par `GradeColorContrastTest`.
+
 Environ 40 `contentDescription = null` : vérifier qu'aucune ne
 porte sur une icône de statut ou d'alerte. Valider le contraste AA des couleurs de grade
 en mode sombre.
@@ -584,6 +646,8 @@ selon les modules choisis à l'onboarding (A4).
 > *Pourquoi ici :* Va de pair avec A4 (navigation allégée).
 
 ### 33. N11. Lecture vocale des alertes, pas seulement de la note
+✅ **Fait** : la lecture vocale annonce d'abord les alertes (rappel officiel, veto personnel avec son motif, traces d'allergènes, interaction médicamenteuse), puis la note ; libellé du réglage mis à jour. Reste : proposer l'option dans l'onboarding.
+
 **Partiellement existant (corrigé après vérification)** : `util/ScoreSpeechAnnouncer` lit déjà la
 note et le grade à voix haute après un scan (option désactivée par défaut). À faire : annoncer aussi les
 **alertes** (allergène, interaction, rappel, veto), qui sont l'information vitale pour une personne
@@ -598,6 +662,8 @@ malvoyante, et proposer l'option dans l'onboarding accessibilité.
 Fonctionnalités qui reposent sur des modules existants.
 
 ### 34. A8. Recherche Open Food Facts sur l'ancienne API
+⚠️ **Vérifié (passe 7)** : la recherche en ligne a déjà un debounce de 700 ms, un minimum de 2 caractères et un cache ; reste la migration vers Search-a-licious.
+
 `OpenFoodFactsApi` utilise `cgi/search.pl`, l'ancien point d'accès de recherche, lent et limité
 à environ 10 requêtes par minute par Open Food Facts. Avec un debounce de 150 ms (`FoodSearchViewModel`), la frappe
 d'un utilisateur peut atteindre cette limite.
@@ -607,6 +673,8 @@ de la recherche en ligne à environ 400 ms, en gardant la recherche locale insta
 > *Pourquoi ici :* Prérequis de A3 : les alternatives Open Food Facts reposent sur cette recherche.
 
 ### 35. A10. Green-Score : les notes A+ et F sont jetées 🟡
+✅ **Fait** : `environmental_score_*` demandés en priorité (repli sur `ecoscore_*`), A+ et F conservés, badge renommé « Green-Score » (test `GreenScoreGradeTest`).
+
 **Vérifié.** `OffMapper.kt:153` : `ecoscoreGrade … takeIf { it.matches(Regex("[a-e]")) }`. Fin 2024,
 Open Food Facts a renommé l'Eco-Score en **Green-Score** et ajouté deux notes : **A+** et **F**. Les produits les
 meilleurs et les pires sur le plan environnemental perdent donc silencieusement leur information environnementale dans
@@ -618,6 +686,8 @@ l'app : exactement ceux où elle est la plus parlante.
 > *Pourquoi ici :* Même chantier que A8 (API Open Food Facts).
 
 ### 36. A3 – Alternatives venant d'Open Food Facts
+✅ **Fait (à vérifier en ligne)** : si l'historique ne propose rien, recherche Open Food Facts sur la catégorie la plus précise du produit (produits les plus scannés), notation locale, mêmes filtres allergènes/régime/conditions, au moins +10 points ; chargée à part pour ne jamais retarder le résultat. Requête non vérifiée en direct pendant cette passe (OFF indisponible depuis l'environnement de travail) ; en cas d'échec, rien n'est affiché.
+
 Aujourd'hui limitées à l'historique :
 un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégorie
 (`categories_tags`) et trier par le score local du profil.
@@ -625,6 +695,8 @@ un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégor
 > *Pourquoi ici :* Alternatives Open Food Facts (le score local est stabilisé après les phases 2-3).
 
 ### 37. D2 – Garde-manger ↔ dates de péremption
+✅ **Partiellement fait** : dans « Suggérer des recettes › Garde-manger », les produits bientôt périmés sont en tête, présélectionnés et marqués « bientôt périmé » ; les produits déjà périmés sont en dernier et jamais présélectionnés (test `PantrySuggestOrderTest`). Reste : les placer dans le plan de repas (D8).
+
 **Partiellement existant** : `PantryItem.expiryUrgency`, une notification de péremption dans `ReminderWorker`,
 et des suggestions de recettes à partir du garde-manger (`SuggestRecipesDialog`, mode PANTRY). Reste à faire : prioriser
 dans ces suggestions les produits **bientôt périmés** et les placer dans le plan de repas (lien avec D8).
@@ -645,6 +717,8 @@ observation personnelle et non un diagnostic.
 > *Pourquoi ici :* Journal d'élimination symptômes ↔ aliments.
 
 ### 40. D10. Évaluer un produit pour toute la famille en un scan
+✅ **Fait** : carte « Famille » sur le résultat (dès 2 profils) : ✕ veto, ⚠ traces, ? ingrédients illisibles, ✓ rien détecté, via `familyVerdicts` (test `FamilyCheckTest`).
+
 Le multi-profils existe, mais le résultat n'est calculé que pour le profil **actif**
 (`prefs.activeProfileId`). Ajouter sur le résultat une ligne « Famille » : une pastille par profil
 (✓ / ⚠ / ✕) en relançant `PersonalScoreEngine` pour chacun. C'est le cas d'usage du parent qui fait les
@@ -653,6 +727,8 @@ courses pour un enfant allergique.
 > *Pourquoi ici :* S'appuie sur C10/N6 (veto allergène fiable) : sans eux, les pastilles seraient fausses.
 
 ### 41. D7. Ticket de caisse → garde-manger
+✅ **Fait** : case « Ajouter aussi ces articles au garde-manger » à la validation du ticket (1 unité, fusion avec un article du même nom). Aucune date de péremption n'est inventée : l'utilisateur la saisit dans le garde-manger (une estimation par catégorie serait une affirmation non sourcée).
+
 **Partiellement existant (corrigé après vérification)** : `ReceiptScanViewModel` enregistre déjà
 les prix (`priceRepo.log`) et interagit avec la liste de courses (`ManualGroceryRepository`,
 `GroceryCheckedRepository`). Il n'injecte en revanche **pas** `PantryRepository`. À faire : « Ajouter ces
@@ -670,6 +746,8 @@ qui expirent bientôt), puis la liste de courses de la différence avec le garde
 > *Pourquoi ici :* Après D2/D3/D7 : exploite toute la chaîne garde-manger → courses.
 
 ### 43. A9. Partager un résultat sous forme d'image
+✅ **Fait** : le bouton Partager envoie une carte image 1080×1080 (produit, note et grade, verdict personnel ou motif de blocage, source des données, « calculé sur le téléphone ») avec le texte, via un `FileProvider` limité au dossier des cartes ; repli sur le texte seul en cas d'échec (test `ShareCardTest`).
+
 **Partiellement existant (corrigé après vérification)** : `ResultScreen.kt:138` partage déjà un **texte**
 (nom, note, grade). À faire : une carte image (note, verdict personnel, principales alertes, source),
 plus parlante dans une messagerie et plus virale.
@@ -688,6 +766,8 @@ d'écriture OFF, compte utilisateur ou anonyme).
 > *Pourquoi ici :* Contribution Open Food Facts.
 
 ### 45. N3 – Scan de carte de restaurant
+✅ **Fait** : « Scanner une carte de restaurant » (depuis « Ma sécurité ») : OCR sur l'appareil, une ligne = un plat, mêmes détecteurs d'allergènes et de régime que les produits (seuls les ingrédients interdits nommés comptent), plats signalés en tête ; avertissement explicite « un plat sans alerte n'est pas garanti » et rappel de l'obligation d'information du restaurant (INCO art. 44) (test `MenuAnalysisTest`).
+
 OCR ML Kit, puis détection allergènes/régime par plat,
 en réutilisant `AllergenDetector` et `DietChecker`.
 
@@ -706,6 +786,8 @@ prix au dernier prix payé (D7). Écran unique, pensé pour une seule main.
 > *Pourquoi ici :* Assemble D7, D10 et la liste de courses existante.
 
 ### 48. N8. Partage d'un profil avec un aidant
+✅ **Fait** : « Partager mes allergies » affiche un QR chiffré (PBKDF2 + AES-GCM, même chiffrement que les sauvegardes) et un code de 8 caractères ; « Importer un profil partagé » scanne le QR, demande le code et crée un nouveau profil « … (partagé le date) » sans changer le profil actif. Seuls allergènes, sévérités et régime sont partagés (test `ProfileShareCodecTest`). Reste : verrouiller le profil reçu en lecture seule.
+
 Permettre à un parent de transmettre le profil d'un enfant allergique (allergènes, sévérités, régime) à un
 autre appareil (grands-parents, nourrice, cantine) via un QR code chiffré, sans compte ni serveur. C'est cohérent
 avec la philosophie « tout est local » ; le profil reçu est en lecture seule, avec une date de mise à jour.

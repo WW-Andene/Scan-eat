@@ -10,7 +10,7 @@ import java.text.Normalizer
 import kotlin.math.roundToInt
 
 // ============================================================================
-// GROCERY LIST — port of public/features/grocery-list.js
+// GROCERY LIST — originally ported from the former web prototype's public/features/grocery-list.js
 //
 // Pure functions — no I/O, no dependencies.
 // Aggregates recipe components into a deduplicated shopping list.
@@ -83,7 +83,7 @@ fun canonicalGroceryKey(name: String, existingKeys: Set<String>): String {
 
 /**
  * Aggregate recipes into a deduplicated, alphabetically-sorted grocery list.
- * Port of aggregateGroceryList() from grocery-list.js.
+ * Originally ported from aggregateGroceryList() in the former web prototype\'s grocery-list.js.
  */
 fun aggregateGroceryList(recipes: List<GroceryRecipeInput>): List<GroceryItem> {
     val acc = mutableMapOf<String, GroceryAcc>()
@@ -136,7 +136,7 @@ private fun mergePluralVariants(acc: MutableMap<String, GroceryAcc>) {
 /**
  * Format grocery list as plain text for clipboard / share.
  * markdown=true → GitHub-style task-list checkboxes.
- * Port of formatGroceryList() from grocery-list.js.
+ * Originally ported from formatGroceryList() in the former web prototype\'s grocery-list.js.
  */
 fun formatGroceryList(items: List<GroceryItem>, markdown: Boolean = false): String {
     val prefix = if (markdown) "- [ ] " else "- "

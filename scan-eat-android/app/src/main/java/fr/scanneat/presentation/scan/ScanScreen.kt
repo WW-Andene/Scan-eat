@@ -438,6 +438,8 @@ fun ScanScreen(
                 viewModel.reportMisclassification(barcode, name, brand, current, corrected, note)
             },
             medicationInteractionWarnings = medicationInteractionWarnings.value,
+            onConfirmOcrReview = { viewModel.confirmOcrReview(it) },
+            onCancelOcrReview = { viewModel.cancelOcrReview() },
         )
     }
 }

@@ -17,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// FASTING REPOSITORY — port of public/features/fasting.js
+// FASTING REPOSITORY — originally ported from the former web prototype's public/features/fasting.js
 //
 // Manages intermittent-fasting timer state.
 // Active fast: startMs + targetHours stored in DataStore.

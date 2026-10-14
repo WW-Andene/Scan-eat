@@ -69,9 +69,7 @@ internal fun checkHealthConditions(
     // signal. Without this, the pregnancy veto and cancer/depression/
     // epilepsy/migraine/GI cautions below could all silently pass a real
     // alcoholic beverage for a pregnancy profile.
-    val alcoholHit = product.ingredients.any { ing -> ALCOHOL_INGREDIENT_PATTERN.containsMatchIn(normalizeForMatching(ing.name)) } ||
-        product.category == ProductCategory.ALCOHOLIC_BEVERAGE ||
-        (product.nutrition.alcoholPercentVol ?: 0.0) > 0.0
+    val alcoholHit = productContainsAlcohol(product)
 
     checkPregnancyCondition(product, conditions, lang, alcoholHit, adjustments)?.let { (v, reason) ->
         veto = v
@@ -84,3 +82,10 @@ internal fun checkHealthConditions(
 
     return ConditionalAdjustments(adjustments, veto, dietReason)
 }
+
+/** Single alcohol test shared by the score adjustments and the hint panel
+ *  (ProductHintsPersonalization) so the two can never disagree (Roadmap S13). */
+internal fun productContainsAlcohol(product: Product): Boolean =
+    product.ingredients.any { ing -> ALCOHOL_INGREDIENT_PATTERN.containsMatchIn(normalizeForMatching(ing.name)) } ||
+        product.category == ProductCategory.ALCOHOLIC_BEVERAGE ||
+        (product.nutrition.alcoholPercentVol ?: 0.0) > 0.0

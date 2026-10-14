@@ -69,7 +69,7 @@ internal val ADDITIVES_TIER3_CORE: List<AdditiveInfo> = listOf(
     // "curcumin" (English spelling) added as a direct synonym - it previously
     // only matched via AdditivesDb.findAdditive's separate naturalColorants
     // fallback map, which is gated behind IngredientCategory.ADDITIVE. An
-    // English-labeled product listing plain "Curcumin" that the OCR/LLM
+    // English-labeled product listing plain "Curcumin" that the OCR/on-device OCR
     // pipeline tagged as "food" rather than "additive" (a real, common
     // mis-tag - see OcrMapper.kt/ServerScanMapper.kt) never reached that
     // fallback and silently dropped the colorant match entirely. As a direct

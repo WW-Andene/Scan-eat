@@ -123,6 +123,8 @@ data class ProfileBackup(
     // backup/restore like every other profile field above it, ISO
     // yyyy-MM-dd or null.
     val pregnancyStartDate: String? = null,
+    // Roadmap N6: allergen key -> AllergenSeverity name; absent in older backups.
+    val allergenSeverities: Map<String, String> = emptyMap(),
 )
 
 // apiMode/serverUrl were dropped with the AI/server features; Moshi skips them
@@ -193,6 +195,8 @@ data class BackupBundle(
     val nonFoodScans: List<NonFoodScanEntity> = emptyList(),
     val misclassificationReports: List<MisclassificationReportEntity> = emptyList(),
     val savedSearchFilters: List<SavedSearchFilter> = emptyList(),
+    // Roadmap N10: allergic-reaction log; absent in older backups.
+    val allergicReactions: List<fr.scanneat.data.local.db.reaction.AllergicReactionEntity> = emptyList(),
 )
 
 data class BackupSummary(
@@ -214,8 +218,9 @@ data class BackupSummary(
     val nonFoodScans: Int = 0,
     val misclassificationReports: Int = 0,
     val savedSearchFilters: Int = 0,
+    val allergicReactions: Int = 0,
 ) {
-    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms + sleep + mood + nonFoodScans + misclassificationReports + savedSearchFilters
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog + pantryItems + symptoms + sleep + mood + nonFoodScans + misclassificationReports + savedSearchFilters + allergicReactions
 
     companion object {
         fun from(bundle: BackupBundle) = BackupSummary(
@@ -237,6 +242,7 @@ data class BackupSummary(
             nonFoodScans  = bundle.nonFoodScans.size,
             misclassificationReports = bundle.misclassificationReports.size,
             savedSearchFilters = bundle.savedSearchFilters.size,
+            allergicReactions = bundle.allergicReactions.size,
         )
     }
 }

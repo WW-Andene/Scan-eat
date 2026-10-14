@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes
 
+import fr.scanneat.presentation.pantry.expiryUrgency
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -74,9 +75,15 @@ class RecipesViewModel @Inject constructor(
     // now that Pantry is a real persisted inventory (not just scan history),
     // this replaces that mode's free-text-only input with a pickable chip
     // list of what's actually on hand, same shape as [historyItems] above.
-    val pantryItemNames: StateFlow<List<String>> = activeProfileId.flatMapLatest { id -> pantryRepo.observeAll(id) }
-        .map { list -> list.map { it.name }.distinct() }
+    // Roadmap D2: items expiring soon first (and pre-selected in the dialog),
+    // already-expired ones last - never pushed as "cook this".
+    private val pantryForSuggest = activeProfileId.flatMapLatest { id -> pantryRepo.observeAll(id) }
+    val pantryItemNames: StateFlow<List<String>> = pantryForSuggest
+        .map { list -> orderPantryForSuggestions(list.map { it.name to it.expiryUrgency() }) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val pantryExpiringSoon: StateFlow<Set<String>> = pantryForSuggest
+        .map { list -> list.filter { it.expiryUrgency() == fr.scanneat.presentation.pantry.PantryExpiryUrgency.SOON }.map { it.name }.toSet() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     private val _goalFilter = MutableStateFlow(GoalFilter.ALL)
     val goalFilter: StateFlow<GoalFilter> = _goalFilter.asStateFlow()
@@ -261,9 +268,9 @@ class RecipesViewModel @Inject constructor(
     // functions on RecipesViewModel, same cohesive "recipe CRUD + logging" concern
     // ScanRepository's own split pulled ScanOffLookup out for.
 
-    // ── Import from URL — wires up the server's fetch-recipe route (SSRF-guarded
-    // HTML fetch + schema.org Recipe JSON-LD extraction), which existed with no
-    // Android caller at all: every recipe previously had to be typed in by hand.
+    // ── Import from URL — on-device fetch + schema.org Recipe JSON-LD extraction
+    // (RecipeRepository.fetchRecipeFromUrl); previously every recipe had to be
+    // typed in by hand.
     // ────────────────────────────────────────────────────────────────────────
     sealed class ImportUiState {
         data object Idle : ImportUiState()
@@ -285,4 +292,14 @@ class RecipesViewModel @Inject constructor(
     // now live in RecipesImportExt.kt (see that file) - extracted verbatim as extension
     // functions on RecipesViewModel, same cohesive "URL/photo import + suggest" concern
     // ScanRepository's own split pulled ScanOffLookup out for.
+}
+
+/** Roadmap D2: SOON first, then no date / OK, then EXPIRED; names de-duplicated, order otherwise kept. */
+internal fun orderPantryForSuggestions(items: List<Pair<String, fr.scanneat.presentation.pantry.PantryExpiryUrgency>>): List<String> {
+    fun rank(u: fr.scanneat.presentation.pantry.PantryExpiryUrgency) = when (u) {
+        fr.scanneat.presentation.pantry.PantryExpiryUrgency.SOON -> 0
+        fr.scanneat.presentation.pantry.PantryExpiryUrgency.EXPIRED -> 2
+        else -> 1
+    }
+    return items.sortedBy { rank(it.second) }.map { it.first }.distinct()
 }

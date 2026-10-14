@@ -100,6 +100,7 @@ fun ProfileScreen(
     var goal       by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.goal) }
     var diet       by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.diet) }
     var allergens  by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.allergens) }
+    var allergenSeverities by remember(profile.value) { mutableStateOf(profile.value.allergenSeverities) }
     var conditions by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.healthConditions) }
     var isMenstruating by rememberSaveable(profile.value) { mutableStateOf(profile.value.isMenstruating) }
     var fatLevel    by rememberSaveable(profile.value, stateSaver = enumSaverNullable()) { mutableStateOf(profile.value.fatLevel) }
@@ -148,6 +149,7 @@ fun ProfileScreen(
                         goal          = goal,
                         diet          = diet,
                         allergens     = allergens,
+                        allergenSeverities = allergenSeverities.filterKeys { it in allergens },
                         healthConditions = conditions,
                         isMenstruating = isMenstruating,
                         pregnancyStartDate = if ("pregnancy" in conditions) pregnancyStartDate else null,
@@ -263,13 +265,28 @@ fun ProfileScreen(
                 ProfileSection(stringResource(R.string.profile_section_activity)) {
                     ActivitySelector(activity) { activity = it }
                     GoalSelector(goal) { goal = it }
+                    // Roadmap C14: explain why "lose" will not be applied.
+                    val draftForGoal = fr.scanneat.domain.model.Profile(
+                        ageYears = age.toIntOrNull(),
+                        heightCm = heightCm.replace(',', '.').toDoubleOrNull(),
+                        weightKg = weightKg.replace(',', '.').toDoubleOrNull(),
+                        healthConditions = conditions,
+                        goal = goal,
+                    )
+                    if (goal == Goal.LOSE && draftForGoal.weightLossUnsafe) {
+                        Text(stringResource(R.string.profile_goal_lose_unsafe), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+                    }
                 }
             }
 
             // ---- Allergens ----
             item {
                 ProfileSection(stringResource(R.string.profile_section_allergens)) {
-                    AllergenSelector(allergens) { allergens = it }
+                    AllergenSelector(
+                        current = allergens, onSelect = { allergens = it },
+                        severities = allergenSeverities,
+                        onSeverityChange = { key, sev -> allergenSeverities = allergenSeverities + (key to sev) },
+                    )
                 }
             }
 

@@ -61,12 +61,13 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         RecallEntity::class,
         PantryEntity::class,
         SymptomEntity::class,
+        fr.scanneat.data.local.db.reaction.AllergicReactionEntity::class,
         NonFoodScanEntity::class,
         SleepEntity::class,
         MoodEntity::class,
         MisclassificationReportEntity::class,
     ],
-    version = 40,
+    version = 41,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -85,6 +86,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recallDao(): RecallDao
     abstract fun pantryDao(): PantryDao
     abstract fun symptomDao(): SymptomDao
+    abstract fun allergicReactionDao(): fr.scanneat.data.local.db.reaction.AllergicReactionDao
     abstract fun nonFoodScanDao(): NonFoodScanDao
     abstract fun sleepDao(): SleepDao
     abstract fun moodDao(): MoodDao
@@ -298,7 +300,7 @@ val MIGRATION_16_17 = object : Migration(16, 17) {
         // ResultViewModel's scoreDelta/scoreHistory feature to compare against. That
         // feature was therefore structurally dead for every barcoded scan (the vast
         // majority of real scans) and only ever worked for the rarer no-barcode/
-        // LLM-identified path. This table is an append-only log written alongside
+        // photo-identified path. This table is an append-only log written alongside
         // (not instead of) scan_history, purely to give that feature real data.
         db.execSQL(
             "CREATE TABLE IF NOT EXISTS `scan_score_history` (" +
@@ -327,7 +329,7 @@ val MIGRATION_18_19 = object : Migration(18, 19) {
     override fun migrate(db: SupportSQLiteDatabase) {
         // v18 → v19: scan_history gains warningsJson - OcrParser.buildWarnings()/
         // detectSourceConflicts() produce real per-scan warning messages
-        // (unreadable nutrition values, barcode-vs-label mismatches, OFF/LLM
+        // (unreadable nutrition values, barcode-vs-label mismatches, OFF/on-device OCR
         // conflicts) that ResultContent's WarningsSection was already built to
         // render, but scan_history had nowhere to store them - every persisted
         // scan silently lost this half of ScanResult.warnings, so the section
@@ -683,5 +685,19 @@ val MIGRATION_39_40 = object : Migration(39, 40) {
                 "PRIMARY KEY(`id`))"
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_misclassification_reports_profileId_reportedAt` ON `misclassification_reports` (`profileId`, `reportedAt`)")
+    }
+}
+val MIGRATION_40_41 = object : Migration(40, 41) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v40 → v41: new `allergic_reactions` table (Roadmap N10) - see
+        // AllergicReactionEntity's own doc comment.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `allergic_reactions` (" +
+                "`id` TEXT NOT NULL, `date` TEXT NOT NULL, `productName` TEXT NOT NULL, `barcode` TEXT, " +
+                "`ingredientsText` TEXT NOT NULL, `symptoms` TEXT NOT NULL, `severity` INTEGER NOT NULL, " +
+                "`epinephrineUsed` INTEGER NOT NULL, `notes` TEXT NOT NULL, `loggedAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, PRIMARY KEY(`id`))"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_allergic_reactions_profileId_date` ON `allergic_reactions` (`profileId`, `date`)")
     }
 }

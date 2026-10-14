@@ -7,6 +7,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Roadmap C9: exact alarms for medication doses (falls back to inexact when not granted). -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Expedited ReminderWorker runs as a foreground service before Android 12. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.health.READ_WEIGHT" />
     <uses-permission android:name="android.permission.health.WRITE_WEIGHT" />
     <uses-permission android:name="android.permission.health.WRITE_HYDRATION" />
@@ -89,6 +94,20 @@
         </activity-alias>
 
         <receiver
+            android:name=".notifications.MedicationAlarmReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".notifications.MedicationActionReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".notifications.MedicationBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".presentation.widget.TodayWidgetReceiver"
             android:exported="false"
             android:label="@string/widget_today_kcal_label">
@@ -115,6 +134,17 @@
         <!-- ScanEatApp implements Configuration.Provider (Hilt-injected WorkManagerFactory,
              see onCreate()'s enqueueUniquePeriodicWork call) - the default androidx.startup
              auto-initializer must be removed or it races the app's own on-demand init. -->
+        <!-- Roadmap A9: share a result as an image card. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.shareprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/share_paths" />
+        </provider>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

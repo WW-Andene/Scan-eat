@@ -44,8 +44,15 @@ private val LIST_DETAIL_ROUTES = setOf(AppRoutes.SCAN_HISTORY)
 fun MainShell(
     startOnboarding: Boolean = false,
     startRoute: String? = null,
+    /** Opened on top of the start destination (recall notification tap). */
+    openScanId: Long? = null,
 ) {
     val navController   = rememberNavController()
+    if (openScanId != null && !startOnboarding) {
+        androidx.compose.runtime.LaunchedEffect(openScanId) {
+            navController.navigate(AppRoutes.result(openScanId)) { launchSingleTop = true }
+        }
+    }
     val backStack       = navController.currentBackStackEntryAsState()
     val currentRoute    = backStack.value?.destination?.route
 

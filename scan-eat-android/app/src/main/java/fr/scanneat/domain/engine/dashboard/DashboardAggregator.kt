@@ -5,7 +5,7 @@ import fr.scanneat.domain.model.roundTo1Decimal
 import java.time.LocalDate
 
 // ============================================================================
-// DASHBOARD AGGREGATOR — port of public/core/presenters.js
+// DASHBOARD AGGREGATOR — originally ported from the former web prototype's public/core/presenters.js
 //
 // Pure functions — no I/O, no side effects.
 // Ported: weeklyRollup, monthlyRollup, logStreakDays, closeTheGap,
@@ -64,7 +64,7 @@ data class RollupResult(
 
 // ============================================================================
 // weeklyRollup — 7-day window ending at [end]
-// Port of weeklyRollup() from presenters.js
+// Originally ported from weeklyRollup() in the former web prototype\'s presenters.js
 // ============================================================================
 
 fun weeklyRollup(entries: List<DiaryEntry>, end: LocalDate = LocalDate.now()): RollupResult =
@@ -72,7 +72,7 @@ fun weeklyRollup(entries: List<DiaryEntry>, end: LocalDate = LocalDate.now()): R
 
 // ============================================================================
 // monthlyRollup — 30-day trailing window ending at [end]
-// Port of monthlyRollup() from presenters.js
+// Originally ported from monthlyRollup() in the former web prototype\'s presenters.js
 // ============================================================================
 
 fun monthlyRollup(entries: List<DiaryEntry>, end: LocalDate = LocalDate.now()): RollupResult =
@@ -164,7 +164,7 @@ internal fun rollup(entries: List<DiaryEntry>, end: LocalDate, windowDays: Int):
 
 // ============================================================================
 // weekOverWeekDelta — compare this week to the prior week
-// Port of weekOverWeekDelta() from presenters.js
+// Originally ported from weekOverWeekDelta() in the former web prototype\'s presenters.js
 // ============================================================================
 
 data class WeekOverWeekDelta(

@@ -76,7 +76,7 @@ internal fun PairingsCard(pairings: List<String>) {
 // better yourself." §X R&D pass: Yuka's most-cited feature was a same-category
 // better-score suggestion, which Scan'eat had no equivalent of at all.
 @Composable
-internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = null) {
+internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = null, fromOpenFoodFacts: Boolean = false) {
     // findBetterAlternative only ever returns an already-persisted scan_history
     // row (see ScanRepository.findBetterAlternative), so dbId is always valid
     // here - but the card is reused defensively with onOpen omitted rather than
@@ -86,7 +86,7 @@ internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = nu
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
         contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
-        Text(stringResource(R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
+        Text(stringResource(if (fromOpenFoodFacts) R.string.result_alternative_off_title else R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
         Text(stringResource(R.string.result_alternative_item, alternative.product.name, alternative.audit.score, alternative.audit.grade.label),
             style = MaterialTheme.typography.bodyMedium, color = OnBackground)
@@ -247,6 +247,30 @@ internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String
             val stringRes = if (hit.isTraceOnly) R.string.result_allergen_trace_hit else R.string.result_allergen_hit
             Text(stringResource(stringRes, label, hit.triggers.joinToString()),
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.85f))
+        }
+    }
+}
+
+// Roadmap C2: food-drug interactions for the scanned product (from
+// checkFoodDrugInteractions, active medications of the active profile) were
+// only visible inside the closed-by-default hint dialog. Same red level as the
+// allergen warnings; the hint panel keeps the full detail.
+@Composable
+internal fun MedicationRiskBanner(risks: List<String>) {
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(alpha = 0.15f),
+        contentPadding = PaddingValues(Spacing.L),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Inline))
+                Text(stringResource(R.string.hint_section_medication_risks), style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold, color = OnBackground, modifier = Modifier.weight(1f))
+            }
+            risks.forEach { risk ->
+                Text("• $risk", style = MaterialTheme.typography.bodySmall, color = OnBackground)
+            }
         }
     }
 }

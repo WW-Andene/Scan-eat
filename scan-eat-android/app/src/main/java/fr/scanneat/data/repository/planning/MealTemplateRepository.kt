@@ -16,7 +16,7 @@ import javax.inject.Singleton
 import kotlin.math.roundToInt
 
 // ============================================================================
-// MEAL TEMPLATE REPOSITORY — port of public/data/meal-templates.js
+// MEAL TEMPLATE REPOSITORY — originally ported from the former web prototype's public/data/meal-templates.js
 //
 // Templates are named snapshots of consumption items that can be re-applied
 // to any date/meal with one tap. MFP calls these "Saved Meals".
@@ -177,7 +177,7 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
 
     /**
      * Expand a template into concrete DiaryEntries for a given date.
-     * Port of expandTemplate() from meal-templates.js.
+     * Originally ported from expandTemplate() in the former web prototype\'s meal-templates.js.
      */
     fun expand(
         template: MealTemplate,
@@ -213,7 +213,7 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
                     proteinG      = if (item.grams > 0) item.proteinG * 100 / item.grams else 0.0,
                     saltG         = if (item.grams > 0) item.saltG * 100 / item.grams else 0.0,
                 ),
-                source = ScanSource.LLM,  // quick-add origin
+                source = ScanSource.ON_DEVICE_OCR,  // quick-add origin
                 // Previously omitted, defaulting to emptyList() - DiaryViewModel.diaryWarnings
                 // runs entry.toCheckProduct() against this list to surface allergen/diet
                 // warnings, so a template item logged this way never got a warning even

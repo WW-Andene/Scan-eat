@@ -103,7 +103,8 @@ class ConsumptionRepository @Inject constructor(
     companion object {
         /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS - unbounded until
          *  this audit fix, unlike scan_history/scan_score_history which already trim. */
-        const val MAX_HISTORY_ROWS = 5000
+        // Roadmap C15: was 5000 (~2.7 years at 5 entries/day); ~11 years now.
+        const val MAX_HISTORY_ROWS = 20_000
     }
 
     // TodayWidget's kcal/streak/macro figures previously only refreshed on the platform's
@@ -196,7 +197,7 @@ class ConsumptionRepository @Inject constructor(
             // code-audit §D5/D6: was bare !! - already caught/logged by the
             // .onFailure below, but error() names the corrupt field explicitly.
             nutrition   = nutritionAdapter.fromJson(nutritionJson) ?: error("nutritionJson corrupt for id=$id"),
-            source      = ScanSource.valueOf(source),
+            source      = ScanSource.fromStored(source),
             profileId   = profileId,
             ingredients = ingredientsAdapter.fromJson(ingredientsJson) ?: emptyList(),
             category    = category?.let { runCatching { ProductCategory.valueOf(it) }.getOrNull() } ?: ProductCategory.OTHER,

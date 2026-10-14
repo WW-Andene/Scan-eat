@@ -79,7 +79,7 @@ internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: D
         // through to the generic search icon unnoticed.
         when (scanState) {
             is ScanUiState.Scanning -> ScanEatLoadingIndicator(size = 24.dp, color = Color.Black)
-            is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,
+            is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.ReviewOcr, is ScanUiState.Error,
             is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound ->
                 Icon(TablerIcons.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
         }

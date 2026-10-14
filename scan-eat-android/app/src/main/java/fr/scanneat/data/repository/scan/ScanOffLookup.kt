@@ -1,5 +1,6 @@
 package fr.scanneat.data.repository.scan
 
+import fr.scanneat.domain.engine.nutrition.pickGreenScoreGrade
 import fr.scanneat.data.remote.api.OffResponse
 import fr.scanneat.data.remote.api.OffSearchResponse
 import fr.scanneat.data.remote.api.OpenFoodFactsApi
@@ -9,7 +10,7 @@ import fr.scanneat.domain.engine.nutrition.detectSourceConflicts
 import fr.scanneat.domain.engine.nutrition.hasOffNutritionData
 import fr.scanneat.domain.engine.nutrition.isOffSparse
 import fr.scanneat.domain.engine.nutrition.mapOffProduct
-import fr.scanneat.domain.engine.nutrition.mergeOffWithLlm
+import fr.scanneat.domain.engine.nutrition.mergeOffWithPhoto
 import fr.scanneat.domain.engine.nutrition.withEstimatedMicronutrients
 import fr.scanneat.domain.engine.scoring.scoreProduct
 import fr.scanneat.data.remote.api.ImagePayload
@@ -130,7 +131,7 @@ internal class ScanOffLookup(
     private val resultCacheTtlMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(30)
 
     // Same size-cap-plus-clear safety valve as AdditivesDb.kt's additiveLookupCache
-    // (and the server's own OffService.kt result cache) - the TTL above bounds how
+    // - the TTL above bounds how
     // long an entry survives, but nothing previously bounded how many distinct
     // barcodes could accumulate within one 30-minute window. A long scanning session
     // (a whole pantry, a large shopping trip) scanning many distinct barcodes back to
@@ -213,8 +214,8 @@ internal class ScanOffLookup(
                 origins           = dto.origins,
                 countriesTags     = dto.countriesTags,
                 quantity          = dto.quantity,
-                ecoscoreGrade     = dto.ecoscoreGrade,
-                ecoscoreScore     = dto.ecoscoreScore,
+                ecoscoreGrade     = pickGreenScoreGrade(dto.environmentalScoreGrade, dto.ecoscoreGrade),
+                ecoscoreScore     = dto.environmentalScoreScore ?: dto.ecoscoreScore,
                 nutritionGrades   = dto.nutritionGrades,
                 allergensTags     = dto.allergensTags,
                 tracesTags        = dto.tracesTags,
@@ -225,19 +226,19 @@ internal class ScanOffLookup(
         val (finalProduct, source, warnings) = when {
             offProduct != null && isOffSparse(offProduct) && images.isNotEmpty() -> {
                 val parsed    = labelReader.parseLabel(images, lang)
-                val merged    = mergeOffWithLlm(offProduct, parsed.product)
+                val merged    = mergeOffWithPhoto(offProduct, parsed.product)
                 val conflicts = detectSourceConflicts(offProduct, parsed.product)
                 Triple(merged, ScanSource.MERGED,
                     parsed.warnings + conflicts.map { conflictMessage(lang, it.field, it.offValue, it.llmValue) })
             }
             // User-reported (2nd round): the previous fix here guessed macros from
-            // the LLM's training-data knowledge of the product name/brand - that's
+            // the photo reading's training-data knowledge of the product name/brand - that's
             // an approximation, not the real values actually printed on the
             // package the user is holding. Reworked to instead ask for exactly
             // that: reuses the same "product found, needs a photo" retry flow
             // ScanViewModel already has (needsPhoto=true, see ProductNotFoundException
             // handling there) so the user's next scan attempt includes a photo of
-            // the nutrition panel, which the existing OFF+LLM merge branch above
+            // the nutrition panel, which the existing OFF+on-device OCR merge branch above
             // then reads for real - never a guess.
             //
             // User-reported (3rd round): this used the full isOffSparse() check,
@@ -259,13 +260,13 @@ internal class ScanOffLookup(
             offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
             images.isNotEmpty() -> {
                 val parsed = labelReader.parseLabel(images, lang)
-                Triple(parsed.product, ScanSource.LLM, parsed.warnings)
+                Triple(parsed.product, ScanSource.ON_DEVICE_OCR, parsed.warnings)
             }
             else -> throw ProductNotFoundException(productNotFoundMessage(lang))
         }
 
         // Fills iron/calcium/magnesium/potassium/zinc/vitC/vitD/B12 with a
-        // category-representative estimate wherever OFF/LLM declared none at all -
+        // category-representative estimate wherever OFF/on-device OCR declared none at all -
         // see MicronutrientEstimator.kt for why: most barcode products simply never
         // list these, which previously meant a real, common food (e.g. beef,
         // fresh_meat) logged with zero iron impact on the day's totals, every time.
@@ -273,8 +274,9 @@ internal class ScanOffLookup(
             nutrition = finalProduct.nutrition.withEstimatedMicronutrients(finalProduct.category),
         )
         val audit = scoreProduct(estimatedProduct, lang)
-        val result = ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
-        // Cache only the plain OFF-only path - a photo-augmented result (MERGED/LLM
+        val result = ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode,
+            needsOcrReview = source == ScanSource.ON_DEVICE_OCR)
+        // Cache only the plain OFF-only path - a photo-augmented result (MERGED/on-device OCR
         // source) reflects photos this specific user just took, not a stable
         // barcode-keyed answer safe to hand back for someone else's rescan.
         if (images.isEmpty() && source == ScanSource.OPEN_FOOD_FACTS) {
@@ -297,6 +299,22 @@ internal class ScanOffLookup(
      * results missing a barcode or usable name are silently dropped rather than
      * surfaced as broken rows.
      */
+    /**
+     * Roadmap A3: popular Open Food Facts products of the scanned product's most
+     * specific category, scored locally. Best-effort: any failure returns empty.
+     */
+    suspend fun categoryCandidates(barcode: String, lang: String): List<ScanResult> = try {
+        kotlinx.coroutines.withTimeoutOrNull(6000L) {
+            val tags = offApi.getProduct(barcode, fields = "categories_tags").product?.categoriesTags.orEmpty()
+            val tag = tags.lastOrNull { it.startsWith("en:") } ?: return@withTimeoutOrNull emptyList()
+            offApi.searchByCategory(tag, lang = lang).products.orEmpty().mapNotNull { dto -> mapSearchResult(dto, lang) }
+        } ?: emptyList()
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        emptyList()
+    }
+
     suspend fun searchOffProducts(query: String, lang: String, limit: Int = 24): List<ScanResult> {
         if (query.isBlank()) return emptyList()
         val response = fetchOffSearch(query, lang, limit) ?: return emptyList()
@@ -341,8 +359,8 @@ internal class ScanOffLookup(
             origins           = dto.origins,
             countriesTags     = dto.countriesTags,
             quantity          = dto.quantity,
-            ecoscoreGrade     = dto.ecoscoreGrade,
-            ecoscoreScore     = dto.ecoscoreScore,
+            ecoscoreGrade     = pickGreenScoreGrade(dto.environmentalScoreGrade, dto.ecoscoreGrade),
+            ecoscoreScore     = dto.environmentalScoreScore ?: dto.ecoscoreScore,
             nutritionGrades   = dto.nutritionGrades,
             allergensTags     = dto.allergensTags,
             additivesTags     = dto.additivesTags,

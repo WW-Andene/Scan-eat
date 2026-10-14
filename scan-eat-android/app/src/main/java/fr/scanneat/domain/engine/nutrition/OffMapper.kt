@@ -76,7 +76,7 @@ fun mapOffProduct(off: OffProductResponse): Product? {
     // plenty of real, well-known OFF entries (this is what broke plain sodas
     // like Coca-Cola) only have name/brand filled in. Treat it as zero rather
     // than aborting the whole lookup; isOffSparse() below will flag it for the
-    // photo/LLM fallback instead of forcing a false "product not found".
+    // photo/on-device OCR fallback instead of forcing a false "product not found".
     val nm = off.nutriments ?: emptyMap()
     val name = (off.productNameFr ?: off.productName ?: off.genericNameFr ?: "").trim()
         .takeIf { it.isNotEmpty() } ?: return null
@@ -160,12 +160,12 @@ fun mapOffProduct(off: OffProductResponse): Product? {
         weightG            = parseWeightG(off.quantity),
         origin             = off.origins?.takeIf { it.isNotBlank() },
         organic            = organic,
-        ecoscoreGrade      = off.ecoscoreGrade?.lowercase()?.takeIf { it.matches(Regex("[a-e]")) },
+        ecoscoreGrade      = normalizeGreenScoreGrade(off.ecoscoreGrade),
         ecoscoreValue      = off.ecoscoreScore?.toDouble(),
         nutriscoreGrade    = off.nutritionGrades?.lowercase()?.firstOrNull()?.toString()?.takeIf { it.matches(Regex("[a-e]")) },
         declaredAllergenTags = off.allergensTags.orEmpty(),
         declaredTracesTags = off.tracesTags.orEmpty(),
-        // Previously never populated by any real mapper (only mergeOffWithLlm()
+        // Previously never populated by any real mapper (only mergeOffWithPhoto()
         // forwarded it, from two already-empty lists) - the SEX/iron personal-
         // score bonus and ProductHints' "Declared micronutrients" line were both
         // structurally dead for every real scan. A non-null value here means OFF's
@@ -175,7 +175,7 @@ fun mapOffProduct(off: OffProductResponse): Product? {
     )
 }
 
-/** Which of [n]'s micronutrient fields OFF/LLM actually declared a value for. */
+/** Which of [n]'s micronutrient fields OFF/on-device OCR actually declared a value for. */
 internal fun declaredMicronutrientsOf(n: NutritionPer100g): List<String> = buildList {
     if (n.ironMg != null) add("iron")
     if (n.calciumMg != null) add("calcium")
@@ -203,4 +203,27 @@ internal fun declaredMicronutrientsOf(n: NutritionPer100g): List<String> = build
 }
 
 // isOffSparse() moved to OffSparsityCheck.kt
-// mergeOffWithLlm(), SourceConflict, detectSourceConflicts() moved to OffMerge.kt
+// mergeOffWithPhoto(), SourceConflict, detectSourceConflicts() moved to OffMerge.kt
+
+/**
+ * Roadmap A10: OFF renamed the Eco-Score to Green-Score in 2025 and added two
+ * grades, A+ (returned as "a-plus") and F. The old `[a-e]` filter silently
+ * dropped exactly the best and worst products. Returns "a-plus", "a".."f", or
+ * null for "unknown" / "not-applicable" / anything unrecognised.
+ */
+fun normalizeGreenScoreGrade(raw: String?): String? {
+    val g = raw?.trim()?.lowercase() ?: return null
+    return when {
+        g == "a-plus" || g == "a+" || g == "aplus" -> "a-plus"
+        g.matches(Regex("[a-f]")) -> g
+        else -> null
+    }
+}
+
+/** First valid grade among OFF's `environmental_score_grade` and the legacy `ecoscore_grade`. */
+fun pickGreenScoreGrade(environmental: String?, legacy: String?): String? =
+    normalizeGreenScoreGrade(environmental)?.let { environmental } ?: legacy
+
+/** "a-plus" → "A+", "b" → "B". */
+fun greenScoreDisplay(grade: String): String =
+    if (normalizeGreenScoreGrade(grade) == "a-plus") "A+" else grade.uppercase()

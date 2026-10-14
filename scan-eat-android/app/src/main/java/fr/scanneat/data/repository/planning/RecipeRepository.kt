@@ -22,7 +22,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// RECIPE REPOSITORY — port of public/data/recipes.js
+// RECIPE REPOSITORY — originally ported from the former web prototype's public/data/recipes.js
 //
 // Recipes differ from meal templates:
 //   templates → each component becomes a separate diary entry

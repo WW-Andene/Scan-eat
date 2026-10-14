@@ -84,6 +84,28 @@ internal class ScanHistoryQueries(
      * stall this read path) and rescore against the corrected category when
      * it returns one.
      */
+    /**
+     * Roadmap S14: after an ENGINE_VERSION bump, recompute every stored score
+     * once (math only, from the stored product - no network), so history
+     * sorting, alternatives and widgets, which read the plain score/grade
+     * columns, stop showing grades from the old rules. Returns how many rows
+     * were rescored.
+     */
+    suspend fun rescoreAllStale(lang: String): Int {
+        var n = 0
+        dao.getAllRows().forEach { entity ->
+            val cached = toDomain(entity) ?: return@forEach
+            if (cached.audit.engineVersion == ENGINE_VERSION) return@forEach
+            val audit = scoreProduct(cached.product, lang)
+            runCatching {
+                dao.updateRescored(entity.id, audit.score, audit.grade.label, cached.product.category.key,
+                    serializeProduct(cached.product), serializeAudit(audit))
+                n++
+            }
+        }
+        return n
+    }
+
     suspend fun getById(id: Long, lang: String = "en"): ScanResult? =
         dao.findById(id)?.let { toDomain(it) }?.let { cached ->
             if (cached.audit.engineVersion != ENGINE_VERSION) rescoreStale(cached, lang) else cached
@@ -262,6 +284,29 @@ internal class ScanHistoryQueries(
      * this can walk past any candidate that fails either check instead of
      * being stuck with the single row the old query returned.
      */
+    /**
+     * Roadmap A3: when the user's own history has nothing better, look at
+     * Open Food Facts - same category, at least [MIN_GAIN] points better, and
+     * the same allergen/diet/condition checks as the history alternative.
+     */
+    suspend fun findOffAlternative(
+        scan: ScanResult,
+        allergens: Set<String>,
+        dietKey: DietKey,
+        healthConditions: Set<String>,
+        lang: String,
+    ): ScanResult? {
+        val barcode = scan.barcode ?: return null
+        return offLookup.categoryCandidates(barcode, lang)
+            .filter { it.barcode != barcode && it.product.category == scan.product.category && it.audit.score >= scan.audit.score + MIN_GAIN }
+            .filter { c ->
+                (allergens.isEmpty() || checkUserAllergens(c.product, allergens, lang).isEmpty()) &&
+                    checkDiet(c.product, dietKey, lang).compliant &&
+                    healthConditionCautions(c.product, healthConditions, lang).isEmpty()
+            }
+            .maxByOrNull { it.audit.score }
+    }
+
     suspend fun findBetterAlternative(
         scan: ScanResult,
         allergens: Set<String> = emptySet(),
@@ -301,4 +346,9 @@ internal class ScanHistoryQueries(
     /** Top-N most-frequently-scanned products, counted from the append-only score log - see ScanHistoryDao.observeTopScanned's own doc comment. */
     fun observeTopScanned(profileId: String = "default", limit: Int = 3): Flow<List<TopScannedRow>> =
         dao.observeTopScanned(profileId, limit)
+
+    private companion object {
+        /** Points of improvement below which an OFF suggestion is not worth showing. */
+        const val MIN_GAIN = 10
+    }
 }

@@ -18,7 +18,7 @@ import fr.scanneat.domain.model.Product
  * medication-name lookup in this app already has - see MedicationViewModel's
  * own detectInteractions doc comment) actually match the relevant drug class.
  *
- * Deliberately narrow (3 interactions, not an exhaustive pharmacology
+ * Deliberately narrow (8 interactions, not an exhaustive pharmacology
  * database this app has no legitimate data source for) - each one is a
  * textbook-level, broadly-cited interaction, not a judgment call. Every
  * caution ends by pointing to a pharmacist/doctor, same line
@@ -45,7 +45,9 @@ import fr.scanneat.domain.model.Product
 // empty-stomach-timing caution) but, like the pre-fix VKA/statin cases
 // above, were never actually checked against a scanned product - same gap,
 // same fix pattern.
-private enum class FoodInteractionDrugClass { ANTICOAGULANT_VKA, MAOI, STATIN_OR_CCB, ACE_INHIBITOR_SARTAN, LEVOTHYROXINE }
+// STATIN, QUINOLONE_TETRACYCLINE, METRONIDAZOLE - Roadmap A7 additions, each
+// with its European source next to its caution below.
+private enum class FoodInteractionDrugClass { ANTICOAGULANT_VKA, MAOI, STATIN_OR_CCB, ACE_INHIBITOR_SARTAN, LEVOTHYROXINE, STATIN, QUINOLONE_TETRACYCLINE, METRONIDAZOLE }
 
 private data class DrugKeywordGroup(val drugClass: FoodInteractionDrugClass, val keywords: List<String>)
 
@@ -58,7 +60,10 @@ private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
     ),
     DrugKeywordGroup(
         FoodInteractionDrugClass.MAOI,
-        listOf("phenelzine", "tranylcypromine", "moclobemide", "selegiline", "moclamine", "deprenyl"),
+        // linezolide (Zyvoxid): a reversible non-selective MAO inhibitor - its
+        // SmPC (EMA/ANSM) tells patients to avoid large amounts of
+        // tyramine-rich food (Roadmap A7).
+        listOf("phenelzine", "tranylcypromine", "moclobemide", "selegiline", "moclamine", "deprenyl", "linezolide", "linezolid", "zyvoxid"),
     ),
     DrugKeywordGroup(
         FoodInteractionDrugClass.STATIN_OR_CCB,
@@ -92,6 +97,30 @@ private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
         ),
     ),
     DrugKeywordGroup(
+        // Every statin (rosuvastatine included): the red-yeast-rice risk is
+        // pharmacological (same molecule), not CYP3A4-specific like grapefruit.
+        FoodInteractionDrugClass.STATIN,
+        listOf(
+            "atorvastatine", "simvastatine", "rosuvastatine", "pravastatine", "fluvastatine", "pitavastatine",
+            "atorvastatin", "simvastatin", "rosuvastatin", "pravastatin", "fluvastatin",
+            "tahor", "zocor", "crestor", "elisor", "vasten", "lescol", "fractal", "inegy", "caduet",
+        ),
+    ),
+    DrugKeywordGroup(
+        FoodInteractionDrugClass.QUINOLONE_TETRACYCLINE,
+        listOf(
+            "ciprofloxacine", "ofloxacine", "levofloxacine", "norfloxacine", "moxifloxacine",
+            "ciprofloxacin", "ofloxacin", "levofloxacin", "moxifloxacin",
+            "ciflox", "oflocet", "tavanic", "izilox",
+            "doxycycline", "minocycline", "tetracycline", "lymecycline",
+            "vibramycine", "doxy", "tolexine", "granudoxy", "mynocine", "tetralysal",
+        ),
+    ),
+    DrugKeywordGroup(
+        FoodInteractionDrugClass.METRONIDAZOLE,
+        listOf("metronidazole", "flagyl", "rodogyl", "birodogyl"),
+    ),
+    DrugKeywordGroup(
         FoodInteractionDrugClass.LEVOTHYROXINE,
         listOf("levothyroxine", "levothyrox", "euthyrox", "l-thyroxine", "l-thyroxin", "tcaps", "thyrofix"),
     ),
@@ -102,6 +131,8 @@ private data class FoodCaution(
     val foodKeywords: List<String>,
     val cautionFr: String,
     val cautionEn: String,
+    /** Phrases removed from the product text before matching (e.g. "vinaigre de vin" is not wine). */
+    val excludePhrases: List<String> = emptyList(),
 )
 
 private val FOOD_CAUTIONS: List<FoodCaution> = listOf(
@@ -156,7 +187,36 @@ private val FOOD_CAUTIONS: List<FoodCaution> = listOf(
         "Le calcium, le fer et le café réduisent l'absorption de la lévothyroxine s'ils sont pris au même moment — respectez un intervalle d'au moins 4 heures (calcium/fer) ou 30-60 minutes (café) avec votre prise de lévothyroxine à jeun, et demandez conseil à votre médecin/pharmacien.",
         "Calcium, iron and coffee reduce levothyroxine absorption if taken at the same time — keep at least a 4-hour gap (calcium/iron) or 30-60 minutes (coffee) from your empty-stomach levothyroxine dose, and ask your doctor/pharmacist for advice.",
     ),
-).map { it.copy(foodKeywords = it.foodKeywords.map(::normalizeForMatching)) }
+    // ANSES opinion 2014 (saisine 2012-SA-0228) and EFSA opinion 2018 on
+    // monacolins from red yeast rice: monacolin K is lovastatin; combined with
+    // a statin it adds the same effect and its muscle/liver risks.
+    FoodCaution(
+        FoodInteractionDrugClass.STATIN,
+        listOf("levure de riz rouge", "riz rouge fermente", "monacoline", "red yeast rice"),
+        "La levure de riz rouge contient de la monacoline K, la même molécule qu'une statine (lovastatine) : l'associer à votre statine cumule les effets et les risques musculaires et hépatiques (ANSES 2014, EFSA 2018) — à éviter sans avis médical.",
+        "Red yeast rice contains monacolin K, the same molecule as a statin (lovastatin): combining it with your statin adds up the effects and the muscle and liver risks (ANSES 2014, EFSA 2018) — avoid without medical advice.",
+    ),
+    // SmPC of ciprofloxacin / doxycycline (ANSM): divalent cations (calcium,
+    // magnesium, iron) chelate these antibiotics and cut their absorption;
+    // dairy products and mineral-fortified drinks taken on their own at the
+    // time of the dose should be avoided.
+    FoodCaution(
+        FoodInteractionDrugClass.QUINOLONE_TETRACYCLINE,
+        listOf("lait", "yaourt", "fromage blanc", "carbonate de calcium", "citrate de calcium", "sulfate ferreux", "sulfate de fer", "fumarate ferreux", "gluconate de fer"),
+        "Le calcium (produits laitiers, compléments) et le fer réduisent l'absorption de votre antibiotique (fluoroquinolone ou cycline) s'ils sont pris en même temps — respectez l'intervalle indiqué dans la notice (souvent 2 heures avant ou 4 à 6 heures après) et demandez conseil à votre pharmacien.",
+        "Calcium (dairy, supplements) and iron reduce the absorption of your antibiotic (fluoroquinolone or tetracycline) when taken at the same time — keep the gap stated in the leaflet (often 2 hours before or 4 to 6 hours after) and ask your pharmacist.",
+        excludePhrases = listOf("lait de coco"),
+    ),
+    // SmPC Flagyl (ANSM): disulfiram-like (antabuse) reaction - flushing,
+    // vomiting, tachycardia - with alcohol during the treatment and after it.
+    FoodCaution(
+        FoodInteractionDrugClass.METRONIDAZOLE,
+        listOf("alcool", "vin", "biere", "cidre", "rhum", "vodka", "whisky", "liqueur", "champagne", "pastis", "porto"),
+        "Contient de l'alcool : avec le métronidazole, risque d'effet antabuse (bouffées de chaleur, vomissements, palpitations) — évitez l'alcool pendant le traitement et après, selon la durée indiquée dans la notice.",
+        "Contains alcohol: with metronidazole, risk of a disulfiram-like reaction (flushing, vomiting, palpitations) — avoid alcohol during the treatment and afterwards, for the time stated in the leaflet.",
+        excludePhrases = listOf("vinaigre de vin", "vinaigre de cidre", "vinaigre", "sans alcool"),
+    ),
+).map { it.copy(foodKeywords = it.foodKeywords.map(::normalizeForMatching), excludePhrases = it.excludePhrases.map(::normalizeForMatching)) }
 
 /**
  * Name+ingredients rather than a full [Product] - lets a call site that only
@@ -180,8 +240,10 @@ fun checkFoodDrugInteractions(name: String, ingredients: List<Ingredient>, activ
     if (activeDrugClasses.isEmpty()) return emptyList()
     val haystack = normalizeForMatching(name + " " + ingredients.joinToString(" ") { it.name })
     return FOOD_CAUTIONS
-        .filter { it.drugClass in activeDrugClasses && // Plural label forms ("épinards", "pamplemousses", "choux") too - the keywords are singular.
-            it.foodKeywords.any { kw -> wordBoundaryMatch(haystack, kw) || wordBoundaryMatch(haystack, kw + "s") || wordBoundaryMatch(haystack, kw + "x") } }
+        .filter { c ->
+            val text = c.excludePhrases.fold(haystack) { acc, ph -> acc.replace(ph, " ") }
+            c.drugClass in activeDrugClasses && // Plural label forms ("épinards", "pamplemousses", "choux") too - the keywords are singular.
+                c.foodKeywords.any { kw -> wordBoundaryMatch(text, kw) || wordBoundaryMatch(text, kw + "s") || wordBoundaryMatch(text, kw + "x") } }
         .map { if (lang == "en") it.cautionEn else it.cautionFr }
 }
 

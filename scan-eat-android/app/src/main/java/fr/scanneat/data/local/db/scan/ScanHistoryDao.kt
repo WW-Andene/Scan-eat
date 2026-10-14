@@ -57,6 +57,10 @@ interface ScanHistoryDao {
     @Query("UPDATE scan_history SET score = :score, grade = :grade, category = :category, productJson = :productJson, auditJson = :auditJson WHERE id = :id")
     suspend fun updateRescored(id: Long, score: Int, grade: String, category: String, productJson: String, auditJson: String)
 
+    /** Roadmap C16: the user reviewed/corrected the values read from a label photo. */
+    @Query("UPDATE scan_history SET productName = :productName, score = :score, grade = :grade, category = :category, productJson = :productJson, auditJson = :auditJson, warningsJson = :warningsJson WHERE id = :id")
+    suspend fun updateReviewed(id: Long, productName: String, score: Int, grade: String, category: String, productJson: String, auditJson: String, warningsJson: String)
+
     // Previously unbounded (no LIMIT) unlike observeRecent above — a heavy user
     // who favorites hundreds of products over years re-ran a full, unpaginated
     // query on every single insert/favorite toggle, holding the whole result set
@@ -129,6 +133,10 @@ interface ScanHistoryDao {
     }
 
     /** Full unfiltered read/write pair for backup export/import. */
+    /** Roadmap S14: every row, all profiles, for the one-off rescore after an engine bump. */
+    @Query("SELECT * FROM scan_history")
+    suspend fun getAllRows(): List<ScanHistoryEntity>
+
     @Query("SELECT * FROM scan_history WHERE profileId = :profileId")
     suspend fun getAllForBackup(profileId: String = "default"): List<ScanHistoryEntity>
 
@@ -145,6 +153,15 @@ interface ScanHistoryDao {
      * at all, so it's removed outright rather than kept around for
      * findBetterInCategory/observeTopScanned to keep surfacing.
      */
+    /** Roadmap C3: every barcode scanned since [since] (all profiles - a recall
+     *  concerns the device's owner whoever scanned it). */
+    @Query("SELECT DISTINCT barcode FROM scan_history WHERE barcode IS NOT NULL AND scannedAt >= :since")
+    suspend fun barcodesScannedSince(since: Long): List<String>
+
+    /** Latest scan of [barcode] whatever the profile (recall notification tap target). */
+    @Query("SELECT id FROM scan_history WHERE barcode = :barcode ORDER BY scannedAt DESC LIMIT 1")
+    suspend fun latestIdForBarcode(barcode: String): Long?
+
     @Query("DELETE FROM scan_history WHERE barcode = :barcode AND profileId = :profileId")
     suspend fun deleteByBarcode(barcode: String, profileId: String = "default")
 

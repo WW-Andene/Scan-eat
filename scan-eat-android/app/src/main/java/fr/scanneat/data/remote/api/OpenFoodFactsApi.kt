@@ -32,13 +32,29 @@ interface OpenFoodFactsApi {
         @Query("lc") lang: String = "fr",
         @Query("json") json: Int = 1,
     ): OffSearchResponse
+
+    /** Roadmap A3: most popular products of one category tag (e.g. "en:plain-yogurts"). */
+    @GET("cgi/search.pl")
+    suspend fun searchByCategory(
+        @Query("tag_0") categoryTag: String,
+        @Query("tagtype_0") tagType: String = "categories",
+        @Query("tag_contains_0") contains: String = "contains",
+        @Query("sort_by") sortBy: String = "unique_scans_n",
+        @Query("page_size") pageSize: Int = 24,
+        @Query("fields") fields: String = OFF_SEARCH_FIELDS,
+        @Query("lc") lang: String = "fr",
+        @Query("action") action: String = "process",
+        @Query("json") json: Int = 1,
+    ): OffSearchResponse
 }
 
 val OFF_FIELDS = listOf(
     "product_name", "product_name_fr", "generic_name_fr", "brands",
     "categories_tags", "ingredients_text_fr", "ingredients_text",
     "nova_group", "nutriments", "labels_tags", "origins", "countries_tags",
-    "quantity", "ecoscore_grade", "ecoscore_score", "nutrition_grades",
+    "quantity", "ecoscore_grade", "ecoscore_score",
+    // Green-Score (Eco-Score renamed by OFF in 2025, with new A+ and F grades).
+    "environmental_score_grade", "environmental_score_score", "nutrition_grades",
     "allergens_tags", "traces_tags", "additives_tags",
 ).joinToString(",")
 
@@ -80,6 +96,8 @@ data class OffProductDto(
     val quantity: String?,
     @Json(name = "ecoscore_grade") val ecoscoreGrade: String?,
     @Json(name = "ecoscore_score") val ecoscoreScore: Int?,
+    @Json(name = "environmental_score_grade") val environmentalScoreGrade: String? = null,
+    @Json(name = "environmental_score_score") val environmentalScoreScore: Int? = null,
     @Json(name = "nutrition_grades") val nutritionGrades: String?,
     @Json(name = "allergens_tags") val allergensTags: List<String>?,
     // Distinct from allergens_tags - manufacturer precautionary "may contain

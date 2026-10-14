@@ -45,6 +45,7 @@ internal fun ResultContent(
     comparisonResult: fr.scanneat.data.repository.scan.ComparisonResult? = null,
     pairings: List<String> = emptyList(),
     betterAlternative: ScanResult? = null,
+    offAlternative: ScanResult? = null,
     language: String = "fr",
     scoreDelta: Int? = null,
     scoreHistory: List<Int> = emptyList(),
@@ -54,10 +55,14 @@ internal fun ResultContent(
     priceEntries: List<fr.scanneat.data.repository.expense.PriceEntry> = emptyList(),
     currencySymbol: String = "€",
     improvementTips: List<ImprovementTip> = emptyList(),
+    medicationRisks: List<String> = emptyList(),
+    familyVerdicts: List<fr.scanneat.domain.engine.scoring.FamilyMemberVerdict> = emptyList(),
+    activeProfileId: String = "default",
     onSavePrice: (Double, Double?) -> Unit = { _, _ -> },
     onDeletePrice: (String) -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
     onOpenProfile: () -> Unit = {},
+    onOpenSources: () -> Unit = {},
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -103,7 +108,7 @@ internal fun ResultContent(
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
             Text("•", color = TextMuted)
             // Was scan.source.name.lowercase().replace('_', ' ') - the internal
-            // ScanSource enum's own identifier (e.g. "open food facts", "llm")
+            // ScanSource enum's own identifier (e.g. "open food facts", "photo")
             // shown verbatim as user-facing copy, same class of leak as the
             // FOOD_DB placeholder fixed earlier this round.
             Text(stringResource(scan.source.labelRes()),
@@ -138,6 +143,40 @@ internal fun ResultContent(
         // confirmed government safety recall outranks every other signal
         // on this page.
         recall?.let { RecallBanner(it) }
+
+        // Roadmap C1: personal safety signals (confirmed allergen veto, allergen
+        // warnings, unverifiable ingredients, food-drug interactions) sit right
+        // under the recall banner, BEFORE the score ring and the pairing /
+        // alternative suggestions - for an allergic user they are information n°1.
+        if (personalScore?.veto == true) {
+            DietVetoBanner(personalScore.dietReason)
+        }
+
+        val allergens = personalScore?.allergenHits.orEmpty()
+        if (allergens.isNotEmpty()) {
+            AllergenWarningsCard(allergens, language)
+        }
+
+        // Personalization active but this particular scan's ingredient panel
+        // couldn't be OCR'd - allergenHits/veto are both silently empty in that
+        // case (nothing to match against), which otherwise looks identical to a
+        // genuine "no allergens found" result for a user with real allergens set.
+        // Checked structurally (empty ingredient list) rather than by matching
+        // scan.warnings' text, since that text is localized and this condition
+        // must hold regardless of the app's display language.
+        if (personalScore != null && personalScore.applicable && allergens.isEmpty() && personalScore.veto != true &&
+            scan.product.ingredients.isEmpty()
+        ) {
+            AllergenUnverifiedBanner()
+        }
+
+        if (medicationRisks.isNotEmpty()) {
+            MedicationRiskBanner(medicationRisks)
+        }
+
+        if (familyVerdicts.isNotEmpty()) {
+            FamilyCheckCard(familyVerdicts, activeProfileId)
+        }
 
         // User-requested: mapCategory() fell back to OTHER's generic,
         // unverified thresholds for this product - see UncertainCategoryBanner's
@@ -191,35 +230,18 @@ internal fun ResultContent(
         } else audit.verdict
         Text(verdictText, style = MaterialTheme.typography.bodyLarge, color = OnBackground,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+        // Roadmap N2: every score links to the methodology and data sources.
+        androidx.compose.material3.TextButton(onClick = onOpenSources, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Text(stringResource(R.string.result_how_scored), style = MaterialTheme.typography.labelMedium)
+        }
 
         comparisonResult?.let { ComparisonCard(it) }
 
         betterAlternative?.let { AlternativeCard(it, onOpen = { onOpenResult(it.dbId) }) }
+            ?: offAlternative?.let { AlternativeCard(it, onOpen = null, fromOpenFoodFacts = true) }
 
         if (pairings.isNotEmpty()) {
             PairingsCard(pairings)
-        }
-
-        if (personalScore?.veto == true) {
-            DietVetoBanner(personalScore.dietReason)
-        }
-
-        val allergens = personalScore?.allergenHits.orEmpty()
-        if (allergens.isNotEmpty()) {
-            AllergenWarningsCard(allergens, language)
-        }
-
-        // Personalization active but this particular scan's ingredient panel
-        // couldn't be OCR'd - allergenHits/veto are both silently empty in that
-        // case (nothing to match against), which otherwise looks identical to a
-        // genuine "no allergens found" result for a user with real allergens set.
-        // Checked structurally (empty ingredient list) rather than by matching
-        // scan.warnings' text, since that text is localized and this condition
-        // must hold regardless of the app's display language.
-        if (personalScore != null && personalScore.applicable && allergens.isEmpty() && personalScore.veto != true &&
-            scan.product.ingredients.isEmpty()
-        ) {
-            AllergenUnverifiedBanner()
         }
 
         // Personal score adjustments
@@ -257,8 +279,8 @@ internal fun ResultContent(
         // whether 12g of fat is a lot or a little relative to their day.
         MacroContributionCard(nutrition = scan.product.nutrition)
 
-        // Warnings — ScanResult.warnings (OCR-parse issues, and OFF-vs-LLM source-
-        // conflict warnings like "Conflict: energy_kcal OFF=120 LLM=340") was
+        // Warnings — ScanResult.warnings (OCR-parse issues, and OFF-vs-on-device OCR source-
+        // conflict warnings like "Conflict: energy_kcal OFF=120 on-device OCR=340") was
         // populated by ScanRepository but never read anywhere in the UI, so the
         // single most actionable warning class — "the label doesn't match Open
         // Food Facts" — was silently swallowed. Merged with audit.warnings here
@@ -276,9 +298,9 @@ internal fun ResultContent(
 
 /** Localized, user-meaningful label for where a scan's data came from - see
  *  the call site's own comment on the raw-enum-name leak this replaces. */
-private fun ScanSource.labelRes(): Int = when (this) {
+internal fun ScanSource.labelRes(): Int = when (this) {
     ScanSource.OPEN_FOOD_FACTS -> R.string.result_source_off
-    ScanSource.LLM             -> R.string.result_source_photo
+    ScanSource.ON_DEVICE_OCR             -> R.string.result_source_photo
     ScanSource.MERGED          -> R.string.result_source_merged
     ScanSource.MANUAL          -> R.string.result_source_manual
 }

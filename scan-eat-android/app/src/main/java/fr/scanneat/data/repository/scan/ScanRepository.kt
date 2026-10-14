@@ -146,7 +146,7 @@ class ScanRepository @Inject constructor(
                     product  = productAdapter.fromJson(entity.productJson) ?: return@runCatching null,
                     audit    = auditAdapter.fromJson(entity.auditJson) ?: return@runCatching null,
                     warnings = warningsAdapter.fromJson(entity.warningsJson) ?: emptyList(),
-                    source   = ScanSource.valueOf(entity.sourceJson),
+                    source   = ScanSource.fromStored(entity.sourceJson),
                     barcode  = entity.barcode,
                 )
             }.getOrNull()
@@ -181,6 +181,30 @@ class ScanRepository @Inject constructor(
         historyQueries.observeTodayScanCount(profileId)
 
     suspend fun delete(id: Long) = historyQueries.delete(id)
+
+    /** Roadmap A3 - see ScanHistoryQueries.findOffAlternative. */
+    suspend fun findOffAlternative(scan: ScanResult, allergens: Set<String>, dietKey: fr.scanneat.domain.engine.scoring.DietKey, healthConditions: Set<String>, lang: String): ScanResult? =
+        historyQueries.findOffAlternative(scan, allergens, dietKey, healthConditions, lang)
+
+    /** Roadmap S14 - see ScanHistoryQueries.rescoreAllStale. */
+    suspend fun rescoreAllStale(lang: String): Int = historyQueries.rescoreAllStale(lang)
+
+    /**
+     * Roadmap C16: values read by OCR from a label photo are confirmed or
+     * corrected by the user before the result is shown. Re-scores the reviewed
+     * product, marks it "read by OCR, checked by you" and rewrites the saved row.
+     */
+    suspend fun applyReviewedProduct(id: Long, original: ScanResult, reviewed: fr.scanneat.domain.model.Product, lang: String): ScanResult {
+        val audit = scoreProduct(reviewed, lang)
+        val reviewedNote = if (lang == "en") "Values read from the photo (OCR), checked by you" else "Valeurs lues sur la photo (OCR), vérifiées par vous"
+        val result = original.copy(product = reviewed, audit = audit, warnings = listOf(reviewedNote) + original.warnings, dbId = id)
+        dao.updateReviewed(
+            id = id, productName = reviewed.name, score = audit.score, grade = audit.grade.label,
+            category = reviewed.category.key, productJson = productAdapter.toJson(reviewed),
+            auditJson = auditAdapter.toJson(audit), warningsJson = warningsAdapter.toJson(result.warnings),
+        )
+        return result
+    }
 
     suspend fun findBetterAlternative(
         scan: ScanResult,
@@ -289,7 +313,7 @@ class ScanRepository @Inject constructor(
         // detected first can be augmented with follow-up photos when OFF's
         // entry for it is sparse"). Falling through to the normal lookup below
         // when images are present lets scoreDirectBarcode/scoreViaServer's
-        // existing OFF+LLM merge logic run instead, and persist() still upserts
+        // existing OFF+on-device OCR merge logic run instead, and persist() still upserts
         // the same barcode's existing row rather than creating a duplicate.
         if (images.isEmpty()) {
             dao.findByBarcode(barcode)?.let { entity ->
@@ -396,7 +420,7 @@ class ScanRepository @Inject constructor(
                 return@ioCatching ScanResult(
                     product = product, audit = scoreProduct(product, lang),
                     warnings = listOf(if (lang == "en") "Recognised on this device from the photo — values from the built-in food table" else "Reconnu sur l'appareil depuis la photo — valeurs de la table d'aliments intégrée"),
-                    source = ScanSource.LLM, barcode = null,
+                    source = ScanSource.ON_DEVICE_OCR, barcode = null,
                 )
             }
             // No recognisable food: the photo may still show a label, try reading it.
@@ -405,15 +429,16 @@ class ScanRepository @Inject constructor(
                     if (lang == "en") "This food wasn't recognised — search it by name instead"
                     else "Aliment non reconnu — recherchez-le plutôt par son nom",
                 )
-            return@ioCatching ScanResult(parsed.product, scoreProduct(parsed.product, lang), parsed.warnings, ScanSource.LLM, parsed.barcode)
+            return@ioCatching ScanResult(parsed.product, scoreProduct(parsed.product, lang), parsed.warnings, ScanSource.ON_DEVICE_OCR, parsed.barcode, needsOcrReview = true)
         }
         val parsed = labelReader.parseLabel(images, lang)
         ScanResult(
             product  = parsed.product,
             audit    = scoreProduct(parsed.product, lang),
             warnings = parsed.warnings,
-            source   = ScanSource.LLM,
+            source   = ScanSource.ON_DEVICE_OCR,
             barcode  = parsed.barcode,
+            needsOcrReview = true,
         )
     }
 
@@ -421,7 +446,7 @@ class ScanRepository @Inject constructor(
     //
     // fetchOffProduct/scoreDirectBarcode now live in ScanOffLookup (see
     // offLookup above) - extracted verbatim, same OFF candidate-encoding
-    // retry loop, same OFF/LLM merge logic.
+    // retry loop, same OFF/on-device OCR merge logic.
 
     // ---- Entity → domain ----
     // mapScanHistoryEntity() now lives in ScanRepositoryMapping.kt.

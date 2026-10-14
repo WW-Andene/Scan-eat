@@ -79,7 +79,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
     }
 
     // Picking a scan-history result logs its real product directly (full
-    // OFF/LLM-sourced nutrition, barcode, source) instead of going through the
+    // OFF/on-device OCR-sourced nutrition, barcode, source) instead of going through the
     // lossy FoodEntry-shaped reconstruction above.
     val pickedScan = selectedScan
     if (pickedScan != null) {
@@ -136,7 +136,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                                 modifier = Modifier.padding(vertical = Spacing.M))
                         }
                     }
-                    // Scan-history hits first - a barcoded product with real OFF/LLM-
+                    // Scan-history hits first - a barcoded product with real OFF/on-device OCR-
                     // sourced nutrition is a more precise match than a FOOD_DB
                     // approximation of the same food.
                     items(scanResults.value, key = { "scan-${it.dbId}" }) { scan ->

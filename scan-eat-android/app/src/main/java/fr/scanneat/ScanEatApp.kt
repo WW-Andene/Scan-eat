@@ -3,10 +3,13 @@ package fr.scanneat
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import androidx.work.Constraints
+import androidx.work.NetworkType
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
+import fr.scanneat.notifications.RecallSyncWorker
 import fr.scanneat.notifications.ReminderWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -42,5 +45,20 @@ class ScanEatApp : Application(), Configuration.Provider {
         // duplicate that runs alongside the old one forever.
         WorkManager.getInstance(this)
             .enqueueUniquePeriodicWork("biolism_reminders", ExistingPeriodicWorkPolicy.KEEP, request)
+
+        // Roadmap C9: run the reminder check once now - it arms the exact alarm
+        // of the next medication dose (alarms do not survive an app update).
+        fr.scanneat.notifications.MedicationAlarms.runReminderWorkerNow(this)
+
+        // Roadmap S14: recompute stored scores once after a scoring-engine change.
+        fr.scanneat.data.repository.scan.EngineRescoreWorker.enqueue(this)
+
+        // Roadmap C3: daily re-check of scanned/stocked products against
+        // RappelConso - see RecallSyncWorker's own doc comment.
+        val recallSync = PeriodicWorkRequestBuilder<RecallSyncWorker>(1, TimeUnit.DAYS)
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .build()
+        WorkManager.getInstance(this)
+            .enqueueUniquePeriodicWork(RecallSyncWorker.UNIQUE_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, recallSync)
     }
 }

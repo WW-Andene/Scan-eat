@@ -59,10 +59,13 @@ fun ResultScreen(
     onLog: () -> Unit,
     onOpenResult: (Long) -> Unit = {},
     onOpenProfile: () -> Unit = {},
+    onOpenSources: () -> Unit = {},
 ) {
     val state       = viewModel.state.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
+    val profileList = viewModel.profileList.collectAsStateWithLifecycle()
+    val offAlternative = viewModel.offAlternative.collectAsStateWithLifecycle()
     val activeMedicationNames = viewModel.activeMedicationNames.collectAsStateWithLifecycle()
     val todaysLoggedFoodNames = viewModel.todaysLoggedFoodNames.collectAsStateWithLifecycle()
     val priceEntries = viewModel.priceEntries.collectAsStateWithLifecycle()
@@ -80,6 +83,10 @@ fun ResultScreen(
     var showReportDialog by rememberSaveable { mutableStateOf(false) }
     val context      = LocalContext.current
     val shareTemplate = stringResource(R.string.result_share_text)
+    val sharePersonal = stringResource(R.string.share_card_personal)
+    val shareBlocked = stringResource(R.string.share_card_blocked)
+    val shareSourcePrefix = stringResource(R.string.share_card_source)
+    val shareFooter = stringResource(R.string.share_card_footer)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -135,11 +142,26 @@ fun ResultScreen(
                     // device set to a locale with non-Latin digits (Arabic-Indic, Persian)
                     // would render the score using those digits in the shared text alone.
                     val text = String.format(Locale.US, shareTemplate, scan.product.name, scan.audit.score, scan.audit.grade.label)
-                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, text)
+                    // Roadmap A9: an image card (score, personal verdict, source) instead of text only.
+                    val personal = state.value.personalScore?.takeIf { it.applicable }
+                    val card = ShareCardData(
+                        productName = scan.product.name,
+                        score = scan.audit.score,
+                        grade = scan.audit.grade,
+                        personalLine = personal?.let { ps ->
+                            if (ps.veto) ps.dietReason ?: shareBlocked
+                            else String.format(Locale.US, sharePersonal, ps.personalScore, fr.scanneat.domain.engine.scoring.personalGrade(ps.personalScore).label)
+                        },
+                        personalBlocked = personal?.veto == true,
+                        sourceLine = shareSourcePrefix + " " + context.getString(scan.source.labelRes()),
+                        footer = shareFooter,
+                    )
+                    runCatching { shareResultCard(context, card, text) }.onFailure {
+                        context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, text)
+                        }, null))
                     }
-                    context.startActivity(Intent.createChooser(sendIntent, null))
                 }) {
                     Icon(TablerIcons.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
                 }
@@ -198,12 +220,14 @@ fun ResultScreen(
                 ScanEatLoadingIndicator(size = 196.dp, strokeWidth = 12.dp, trackColor = SurfaceVariant)
             }
         } else {
+            val contentHints = generateProductHints(s.scanResult.product, profile.value, language.value, activeMedicationNames.value, todaysLoggedFoodNames.value)
             ResultContent(
                 scan              = s.scanResult,
                 personalScore     = s.personalScore,
                 comparisonResult  = s.comparisonResult,
                 pairings          = s.pairings,
                 betterAlternative = s.betterAlternative,
+                offAlternative    = offAlternative.value,
                 language          = language.value,
                 scoreDelta        = s.scoreDelta,
                 scoreHistory      = s.scoreHistory,
@@ -221,11 +245,20 @@ fun ResultScreen(
                 // generateProductHints call already used for HintIconButton
                 // above; pure/cheap, safe to compute again here rather than
                 // threading it across the TopBar/content composable boundary.
-                improvementTips   = generateProductHints(s.scanResult.product, profile.value, language.value, activeMedicationNames.value, todaysLoggedFoodNames.value).improvementTips,
+                improvementTips   = contentHints.improvementTips,
+                // Roadmap C2: food-drug interactions were only reachable by
+                // opening the hint dialog; shown inline in the safety block now.
+                medicationRisks   = contentHints.medicationRisks,
+                // Roadmap D10: only meaningful with at least two profiles.
+                familyVerdicts    = profileList.value.takeIf { it.size >= 2 }
+                    ?.let { fr.scanneat.domain.engine.scoring.familyVerdicts(s.scanResult.audit, s.scanResult.product, it, language.value) }
+                    .orEmpty(),
+                activeProfileId   = profile.value.id,
                 onSavePrice       = { price, weight -> viewModel.savePrice(price, weight) },
                 onDeletePrice     = { id -> viewModel.deletePrice(id) },
                 onOpenResult      = onOpenResult,
                 onOpenProfile     = onOpenProfile,
+                onOpenSources     = onOpenSources,
                 contentPadding    = padding,
             )
         }

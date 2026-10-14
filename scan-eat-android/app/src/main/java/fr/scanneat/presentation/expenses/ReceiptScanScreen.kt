@@ -222,8 +222,14 @@ private fun ReceiptReviewList(lines: List<ReceiptReviewLine>, onBack: () -> Unit
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
+        // Roadmap D7: receipt -> pantry.
+        var addToPantry by remember { mutableStateOf(false) }
+        Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.L), verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = addToPantry, onCheckedChange = { addToPantry = it })
+            Text(stringResource(R.string.receipt_scan_add_to_pantry), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+        }
         Button(
-            onClick = { viewModel.confirmAll() },
+            onClick = { viewModel.confirmAll(addToPantry) },
             enabled = lines.any { it.included },
             colors = ButtonDefaults.buttonColors(containerColor = AccentCoral),
             modifier = Modifier.fillMaxWidth().padding(Spacing.L),

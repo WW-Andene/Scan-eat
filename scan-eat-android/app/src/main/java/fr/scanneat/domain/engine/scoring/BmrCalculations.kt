@@ -4,7 +4,7 @@ import fr.scanneat.domain.model.*
 import kotlin.math.roundToInt
 
 // ============================================================================
-// PERSONAL SCORE ENGINE — port of public/core/personal-score.js
+// PERSONAL SCORE ENGINE — originally ported from the former web prototype's public/core/personal-score.js
 //                       + public/data/profile.js helper functions
 //
 // AUTHORITATIVE anchors (preserved from original):
@@ -28,7 +28,7 @@ import kotlin.math.roundToInt
 // ============================================================================
 
 // ============================================================================
-// Profile helper functions (port of profile.js)
+// Profile helper functions (originally ported from the former web prototype\'s profile.js)
 // ============================================================================
 
 private val ACTIVITY_PAL = mapOf(
@@ -173,7 +173,7 @@ fun proteinTargetG(p: Profile): Double? {
     var perKg = pri / w
     if (p.activityLevel != ActivityLevel.SEDENTARY) perKg = maxOf(perKg, 1.2)
     if (p.activityLevel == ActivityLevel.VERY_ACTIVE || p.activityLevel == ActivityLevel.EXTRA_ACTIVE) perKg = maxOf(perKg, 1.6)
-    if (p.goal == Goal.LOSE) perKg = maxOf(perKg, 1.6)
+    if (p.safeGoal == Goal.LOSE) perKg = maxOf(perKg, 1.6)
     // User-requested body-composition estimate (Profile.muscleLevel) feeds
     // this same "protect lean mass" floor the activity/goal checks above
     // already apply, per the same IOC/ISSN 1.2-2.0 g/kg range cited at the

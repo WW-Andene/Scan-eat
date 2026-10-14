@@ -19,7 +19,7 @@ import kotlin.coroutines.resumeWithException
  * the device: ML Kit's bundled image-labelling model names what it sees
  * ("Banana", "Bread"...) and the most confident label that matches an entry
  * of the built-in food database wins. No network, no API key. Replaces the
- * former vision-LLM "identify".
+ * former cloud vision-model "identify".
  */
 @javax.inject.Singleton
 class OnDeviceFoodIdentifier @javax.inject.Inject constructor() {

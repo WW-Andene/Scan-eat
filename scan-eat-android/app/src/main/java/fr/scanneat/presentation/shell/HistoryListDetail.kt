@@ -48,19 +48,21 @@ internal fun HistoryListDetail(
     onOpenResult: (Long) -> Unit,
     onBack: () -> Unit,
     onOpenNonFoodHistory: () -> Unit,
+    onOpenRecalls: () -> Unit = {},
+    onOpenSources: () -> Unit = {},
     onOpenProfile: () -> Unit,
     onLog: () -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         if (maxWidth < ListDetailMinWidth) {
-            ScanHistoryScreen(onOpenResult = onOpenResult, onBack = onBack, onOpenNonFoodHistory = onOpenNonFoodHistory)
+            ScanHistoryScreen(onOpenResult = onOpenResult, onBack = onBack, onOpenNonFoodHistory = onOpenNonFoodHistory, onOpenRecalls = onOpenRecalls)
             return@BoxWithConstraints
         }
         var selectedId by rememberSaveable { mutableStateOf<Long?>(null) }
         Row(Modifier.fillMaxSize()) {
             // List pane at a fixed readable width (384 + 64 = 448dp); the detail takes the rest.
             Box(Modifier.width(384.dp + 64.dp).fillMaxHeight()) {
-                ScanHistoryScreen(onOpenResult = { selectedId = it }, onBack = onBack, onOpenNonFoodHistory = onOpenNonFoodHistory)
+                ScanHistoryScreen(onOpenResult = { selectedId = it }, onBack = onBack, onOpenNonFoodHistory = onOpenNonFoodHistory, onOpenRecalls = onOpenRecalls)
             }
             Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
                 val id = selectedId
@@ -78,6 +80,7 @@ internal fun HistoryListDetail(
                         onBack = { selectedId = null },
                         onOpenResult = { selectedId = it },
                         onOpenProfile = onOpenProfile,
+                        onOpenSources = onOpenSources,
                         onLog = onLog,
                     )
                 }

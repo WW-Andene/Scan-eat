@@ -279,6 +279,7 @@ class UserPreferences @Inject constructor(
                 goal           = Goal.values().firstOrNull { it.name == p[profileKey(id, "goal")] } ?: Goal.MAINTAIN,
                 isMenstruating = p[profileBoolKey(id, "menstruating")] ?: false,
                 allergens      = decryptCsvSet(p[profileKey(id, "allergens")]),
+                allergenSeverities = decryptSeverities(p[profileKey(id, "allergen_severity")]),
                 healthConditions = decryptCsvSet(p[profileKey(id, "conditions")]),
                 pregnancyStartDate = p[profileKey(id, "pregnancy_start")]?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() },
                 fatLevel       = BodyCompositionLevel.entries.firstOrNull { it.name == p[profileKey(id, "fat_level")] },
@@ -360,7 +361,7 @@ class UserPreferences @Inject constructor(
         if (id == "default") return
         store.edit { p ->
             p[KEY_PROFILE_IDS] = storedProfileIds(p).filter { it != id }.joinToString(",")
-            listOf("name", "sex", "diet", "activity", "goal", "allergens", "conditions", "fat_level", "muscle_level").forEach { p.remove(profileKey(id, it)) }
+            listOf("name", "sex", "diet", "activity", "goal", "allergens", "allergen_severity", "conditions", "fat_level", "muscle_level").forEach { p.remove(profileKey(id, it)) }
             p.remove(profileIntKey(id, "age"))
             p.remove(profileFloatKey(id, "weight"))
             p.remove(profileFloatKey(id, "height"))
@@ -384,6 +385,13 @@ class UserPreferences @Inject constructor(
     // repair/re-encrypt happens on the next saveProfile, same as any other
     // profile edit — there's no dedicated migration path since, unlike the API
     // key flows, this one has no long-lived read-only collector to repair in place).
+    /** Roadmap N6: "peanuts=SEVERE,lactose=INTOLERANCE", encrypted like the allergen set. */
+    private fun decryptSeverities(stored: String?): Map<String, AllergenSeverity> =
+        decryptCsvSet(stored).mapNotNull { pair ->
+            val (k, v) = pair.split('=', limit = 2).takeIf { it.size == 2 } ?: return@mapNotNull null
+            AllergenSeverity.entries.firstOrNull { it.name == v }?.let { k to it }
+        }.toMap()
+
     private fun decryptCsvSet(stored: String?): Set<String> {
         val plaintext = stored?.let { SecureFieldCipher.decryptOrNull(it) ?: it } ?: return emptySet()
         return plaintext.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
@@ -407,6 +415,10 @@ class UserPreferences @Inject constructor(
         p[profileKey(id, "goal")]         = profile.goal.name
         p[profileBoolKey(id, "menstruating")] = profile.isMenstruating
         p[profileKey(id, "allergens")]    = SecureFieldCipher.encrypt(profile.allergens.joinToString(","))
+        // Only non-default severities of currently declared allergens are kept.
+        p[profileKey(id, "allergen_severity")] = SecureFieldCipher.encrypt(
+            profile.allergenSeverities.filter { (k, v) -> k in profile.allergens && v != AllergenSeverity.ALLERGY }
+                .entries.joinToString(",") { "${it.key}=${it.value.name}" })
         p[profileKey(id, "conditions")]   = SecureFieldCipher.encrypt(profile.healthConditions.joinToString(","))
         profile.pregnancyStartDate?.let { p[profileKey(id, "pregnancy_start")] = it.toString() } ?: p.remove(profileKey(id, "pregnancy_start"))
         profile.fatLevel?.let    { p[profileKey(id, "fat_level")]    = it.name } ?: p.remove(profileKey(id, "fat_level"))

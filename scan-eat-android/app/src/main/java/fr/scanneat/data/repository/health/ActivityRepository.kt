@@ -14,7 +14,7 @@ import javax.inject.Singleton
 import kotlin.math.roundToInt
 
 // ============================================================================
-// ACTIVITY REPOSITORY — port of public/data/activity.js
+// ACTIVITY REPOSITORY — originally ported from the former web prototype's public/data/activity.js
 //
 // Burned kcal estimated with the MET equation:
 //   kcal = MET × weight_kg × hours
@@ -324,6 +324,7 @@ class ActivityRepository @Inject constructor(
 
     companion object {
         /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS. */
-        const val MAX_HISTORY_ROWS = 5000
+        // Roadmap C15: was 5000.
+        const val MAX_HISTORY_ROWS = 10_000
     }
 }

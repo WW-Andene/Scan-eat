@@ -4,7 +4,7 @@ import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ProductCategory
 
 /**
- * Most barcode products on Open Food Facts (and plenty of vision-LLM label
+ * Most barcode products on Open Food Facts (and plenty of on-device OCR label
  * reads) simply never declare iron/calcium/magnesium/potassium/zinc/vitC/vitD/
  * B12 at all — OFF's own nutriment coverage for these fields sits well under
  * 50% even for well-populated categories. Before this, a null field collapsed
@@ -129,7 +129,7 @@ private val CATEGORY_DEFAULTS: Map<ProductCategory, MicronutrientDefaults> = map
     // (potassium, iron) from its floral source; jam/marmalade contributes a
     // little vitamin C from the underlying fruit. Missing from this map
     // entirely until now, the same "map missing one enum key with no
-    // fallback" gap already fixed elsewhere for this category (LLM prompt
+    // fallback" gap already fixed elsewhere for this category (on-device OCR prompt
     // schema, OFF tag mapper, ExpensesSummaryCard, ValueScoreEstimator).
     ProductCategory.SPREAD_SWEET to MicronutrientDefaults(
         ironMg = 0.3, calciumMg = 15.0, magnesiumMg = 4.0, potassiumMg = 60.0,

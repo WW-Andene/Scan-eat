@@ -8,7 +8,8 @@ import kotlin.math.roundToInt
 // FOOD SCORING ENGINE — see ENGINE_VERSION below for current version
 //
 // Authoritative vs Editorial boundary preserved from original.
-// See scoring-engine.ts header for full provenance notes.
+// Provenance notes live with each rule below (the former web prototype's
+// scoring-engine.ts is not in this repository).
 //
 // Main entry: scoreProduct(product: Product): ScoreAudit
 // Pure function — no I/O, no side effects.
@@ -20,7 +21,10 @@ import kotlin.math.roundToInt
 // previously a single 724-line file with all of the above inline.
 // ============================================================================
 
-const val ENGINE_VERSION = "2.4.0"
+// 2.5.0 (Roadmap S14): S1-S10, C10/N6 allergen severity and C14 safe goal
+// changed the rules; bumping this is what makes every stored score be
+// recomputed (ScanHistoryQueries.rescoreAllStale / rescoreStale).
+const val ENGINE_VERSION = "2.5.0"
 
 // ============================================================================
 // SECTION 10: GLOBAL MODIFIERS, VETOES & ORCHESTRATOR
@@ -82,7 +86,7 @@ private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<De
     val bonuses = mutableListOf<Deduction>()
     if (product.organic) bonuses += Deduction("global_bonus", if (en) "Organic certification" else "Certification biologique", 2.0, Severity.INFO)
     if (product.wholeGrainPrimary) bonuses += Deduction("global_bonus", if (en) "Whole grain as primary grain" else "Céréale complète en ingrédient principal", 3.0, Severity.INFO)
-    // ALCOHOLIC_BEVERAGE excluded - "fermented" is judged from OFF data/LLM
+    // ALCOHOLIC_BEVERAGE excluded - "fermented" is judged from OFF data/on-device OCR
     // inference with no exclusion of the literal alcoholic-fermentation
     // process (OcrPrompts.kt's own instruction just says "judge from what's
     // visible," no alcohol carve-out), so beer/wine/cider previously earned
@@ -462,11 +466,12 @@ private fun collectWarnings(product: Product, lang: String = "en"): List<String>
 
 /**
  * Score a product. Pure synchronous function.
- * Mirrors scoreProduct() from scoring-engine.ts exactly.
+ * Originally ported from scoreProduct() of the former web prototype's scoring-engine.ts
+ * (not in this repository); it has diverged since - this Kotlin file is the reference.
  */
 fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
     val en = lang == "en"
-    // Final fallback: if both OFF and LLM landed on 'other', infer from name
+    // Final fallback: if both OFF and on-device OCR landed on 'other', infer from name
     val product = if (input.category == ProductCategory.OTHER) {
         val inferred = inferCategoryFromName(input.name)
         if (inferred != ProductCategory.OTHER) input.copy(category = inferred) else input

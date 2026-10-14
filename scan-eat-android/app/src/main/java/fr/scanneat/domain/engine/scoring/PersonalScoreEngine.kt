@@ -9,7 +9,7 @@ import kotlin.math.roundToInt
 
 /**
  * Compute the personal score overlay on top of the classic ScoreAudit.
- * Port of computePersonalScore() from personal-score.js.
+ * Originally ported from computePersonalScore() in the former web prototype\'s personal-score.js.
  *
  * @param audit       Output of scoreProduct()
  * @param product     The same product that was scored
@@ -64,6 +64,28 @@ fun computePersonalScore(
     val allergenHits = if (profile.allergens.isNotEmpty())
         checkUserAllergens(product, profile.allergens, lang)
     else emptyList()
+    // C10 + N6: a CONFIRMED allergen (ingredient list or OFF allergens_tags)
+    // is a hard stop for an ALLERGY or SEVERE profile: the personal score must
+    // never stay green (it also feeds history sorting, alternatives and
+    // widgets). "May contain" traces block only a SEVERE allergy. An
+    // INTOLERANCE lowers the score instead of blocking it.
+    fun label(h: AllergenHit) = if (lang == "fr") h.labelFr else h.labelEn
+    val confirmedBlocking = allergenHits.filter { !it.isTraceOnly && profile.severityOf(it.key) != AllergenSeverity.INTOLERANCE }
+    val severeTraces = allergenHits.filter { it.isTraceOnly && profile.severityOf(it.key) == AllergenSeverity.SEVERE }
+    val allergenReason = listOfNotNull(
+        confirmedBlocking.takeIf { it.isNotEmpty() }?.joinToString(", ") { label(it) }
+            ?.let { if (lang == "fr") "Contient : $it" else "Contains: $it" },
+        severeTraces.takeIf { it.isNotEmpty() }?.joinToString(", ") { label(it) }
+            ?.let { if (lang == "fr") "Traces possibles : $it (allergie sévère)" else "May contain: $it (severe allergy)" },
+    ).takeIf { it.isNotEmpty() }?.joinToString(" · ")
+    veto = veto || allergenReason != null
+    allergenHits.filter { !it.isTraceOnly && profile.severityOf(it.key) == AllergenSeverity.INTOLERANCE }.forEach { h ->
+        adjustments += PersonalAdjustment(
+            points = -INTOLERANCE_PENALTY,
+            reason = if (lang == "fr") "Contient : ${label(h)} (intolérance déclarée)" else "Contains: ${label(h)} (declared intolerance)",
+            category = AdjustmentCategory.DIET,
+        )
+    }
 
     val conditionsResult = checkHealthConditions(product, profile, lang, catThresholds, isSugarSweetenedBeverage)
     adjustments += conditionsResult.adjustments
@@ -75,7 +97,8 @@ fun computePersonalScore(
     // whichever fired first and silently dropped the other, so DietVetoBanner (the
     // one UI surface explaining why the score was zeroed) could hide a genuinely
     // safety-relevant health-condition reason behind an unrelated diet reason.
-    val dietReason = listOfNotNull(dietResult.dietReason, conditionsResult.dietReason)
+    // The allergen reason goes first: it is the most safety-critical one.
+    val dietReason = listOfNotNull(allergenReason, dietResult.dietReason, conditionsResult.dietReason)
         .takeIf { it.isNotEmpty() }
         ?.joinToString(" · ")
 
@@ -92,7 +115,8 @@ fun computePersonalScore(
     var personalScore = if (veto) 0.0
         else (audit.score + delta).coerceIn(0.0, 100.0)
 
-    // Re-apply engine veto cap after personal delta (same as JS Fix #7)
+    // Re-apply the engine's veto cap after the personal delta - a personal bonus
+    // must never lift a product above the cap its own veto set.
     if (!veto && audit.veto.triggered && personalScore > audit.veto.cap) {
         personalScore = audit.veto.cap.toDouble()
     }
@@ -107,6 +131,11 @@ fun computePersonalScore(
         allergenHits  = allergenHits,
     )
 }
+
+/** Points removed per confirmed allergen the profile declares as an
+ *  intolerance (N6) - a profile preference, not a clinical measure: enough to
+ *  drop about one grade, never a veto. */
+private const val INTOLERANCE_PENALTY = 15.0
 
 /** Map 0-100 personal score to grade. Was a hand-copied duplicate of
  *  scoreToGrade()'s breakpoints - the exact anti-pattern scoreToGrade's own

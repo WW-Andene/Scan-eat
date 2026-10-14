@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
                     MainShell(
                         startOnboarding = splashViewModel.needsOnboarding,
                         startRoute      = if (isPrivacyRationaleIntent) TopTab.Settings.route else shortcutStartRoute,
+                        openScanId      = intent?.getLongExtra(fr.scanneat.notifications.NotificationHelper.EXTRA_OPEN_SCAN_ID, -1L)?.takeIf { it > 0 },
                     )
                 }
             }

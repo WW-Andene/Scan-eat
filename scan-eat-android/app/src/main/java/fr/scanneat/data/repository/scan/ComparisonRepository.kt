@@ -18,7 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// COMPARISON REPOSITORY — port of public/features/comparison.js
+// COMPARISON REPOSITORY — originally ported from the former web prototype's public/features/comparison.js
 //
 // A/B diff between two consecutive scans:
 //   1. User scans Product A → arms comparison (24 h TTL)

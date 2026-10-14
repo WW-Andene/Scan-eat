@@ -68,6 +68,19 @@ class ReminderWorker @AssistedInject constructor(
     private fun medicationNotificationId(medId: String, time: String): Int =
         MEDICATION_NOTIF_ID_BASE + ("$medId|$time".hashCode() and 0x7FFFFFFF) % MEDICATION_NOTIF_ID_RANGE
 
+    // Roadmap C9: MedicationAlarms runs this worker expedited when a dose
+    // alarm rings. Before Android 12 an expedited job runs as a foreground
+    // service and needs this notification (generic text: no health data).
+    override suspend fun getForegroundInfo(): androidx.work.ForegroundInfo {
+        NotificationHelper.ensureChannels(applicationContext)
+        val n = androidx.core.app.NotificationCompat.Builder(applicationContext, NotifChannel.MEDICATION.id)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(applicationContext.getString(R.string.notif_medication_public_title))
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+            .build()
+        return androidx.work.ForegroundInfo(FOREGROUND_NOTIF_ID, n)
+    }
+
     override suspend fun doWork(): Result {
         val s = remindersRepo.settings.first()
         val lang = prefs.language.first()
@@ -150,7 +163,8 @@ class ReminderWorker @AssistedInject constructor(
                 med.reminderTimes.forEach { time ->
                     val slotTaken = (dosesTakenToday[med.id] ?: 0) > slotOrder.indexOf(time)
                     val slotId = medicationNotificationId(med.id, time)
-                    val justFired = checkMeal(true, time, remindersRepo.medicationLastFiredKey(med.id, time), now, slotId, title, body, NotifChannel.MEDICATION)
+                    val justFired = checkMeal(true, time, remindersRepo.medicationLastFiredKey(med.id, time), now, slotId, title, body, NotifChannel.MEDICATION,
+                        doseAction = DoseAction(med.id, profileId))
 
                     // Dose reminders used to fire once at the scheduled time and go silent
                     // regardless of whether the dose was ever logged. MedicationLogEntry
@@ -165,10 +179,13 @@ class ReminderWorker @AssistedInject constructor(
                         // naggy rather than a helpful nudge, with no acknowledgment this is
                         // a repeat.
                         val repeatBody = String.format(localizedString(lang, R.string.reminders_notif_medication_body_repeat), med.name)
-                        NotificationHelper.show(applicationContext, slotId, title, repeatBody, NotifChannel.MEDICATION)
+                        NotificationHelper.show(applicationContext, slotId, title, repeatBody, NotifChannel.MEDICATION, doseAction = DoseAction(med.id, profileId))
                     }
                 }
             }
+
+        // Roadmap C9: arm the exact alarm for the next dose slot.
+        runCatching { MedicationAlarms.schedule(applicationContext, medicationRepo.observeAll(profileId).first()) }
 
         fastingRepo.state(profileId).first()?.let { fast ->
             if (fast.elapsedHours >= fast.targetHours && !remindersRepo.fastingTargetAlreadyNotified(fast.startMs)) {
@@ -250,6 +267,7 @@ class ReminderWorker @AssistedInject constructor(
     private suspend fun checkMeal(
         on: Boolean, timeStr: String, lastFiredKey: androidx.datastore.preferences.core.Preferences.Key<String>,
         now: LocalTime, notifId: Int, title: String, text: String, channel: NotifChannel? = null,
+        doseAction: DoseAction? = null,
     ): Boolean {
         if (!on) return false
         val target = runCatching { LocalTime.parse(timeStr) }.getOrNull() ?: return false
@@ -265,7 +283,7 @@ class ReminderWorker @AssistedInject constructor(
             // otherwise a day with permission denied permanently lost this reminder
             // with no way to recover, since wasFiredToday would then suppress every
             // later check on the same day even once permission is granted.
-            if (NotificationHelper.show(applicationContext, notifId, title, text, channel)) {
+            if (NotificationHelper.show(applicationContext, notifId, title, text, channel, doseAction = doseAction)) {
                 remindersRepo.markFiredToday(lastFiredKey)
             }
         }
@@ -279,6 +297,7 @@ class ReminderWorker @AssistedInject constructor(
         // fixed 101-111 ids above and the custom-reminder range (910+, see
         // RemindersRepository.K_CUSTOM_NEXT_ID), so a medication's derived id can
         // never collide with a non-medication reminder's notification/PendingIntent.
+        private const val FOREGROUND_NOTIF_ID = 7_000_002
         private const val MEDICATION_NOTIF_ID_BASE = 2_000_000
         private const val MEDICATION_NOTIF_ID_RANGE = 500_000
     }

@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.result.cards
 
+import fr.scanneat.domain.engine.nutrition.greenScoreDisplay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -30,7 +31,7 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 // these exact metrics from Open Food Facts and computes them locally, yet a
 // user comparing Scan'eat's own result against the label's printed NutriScore
 // letter, or OFF's own listing, had no way to see them side by side. Each
-// badge omits itself when the underlying value is absent (LLM/photo-sourced
+// badge omits itself when the underlying value is absent (on-device OCR/photo-sourced
 // scans usually carry neither eco-score nor NutriScore).
 
 @Composable
@@ -40,7 +41,10 @@ internal fun ScoreBadgesRow(audit: ScoreAudit, novaClass: NovaClass?, novaEstima
             LetterGradeChip(label = stringResource(R.string.result_badge_nutriscore), grade = grade)
         }
         audit.eco?.grade?.let { grade ->
-            LetterGradeChip(label = stringResource(R.string.result_badge_ecoscore), grade = grade)
+            ScoreChip(
+                label = "${stringResource(R.string.result_badge_ecoscore)} ${greenScoreDisplay(grade)}",
+                color = tierColorForLetter(grade),
+            )
         }
         // S2: NOVA is shown only when known - declared by the source, or
         // estimated from the ingredients (then labelled "≈"). It used to
@@ -74,7 +78,7 @@ private fun ScoreChip(label: String, color: Color) {
     }
 }
 
-/** NutriScore/Eco-Score both use the same OFF a-e letter convention — a/b good, c mid, d/e poor. */
+/** NutriScore (a-e) and Green-Score (a-plus, a-f) share OFF's letter convention — a+/a/b good, c mid, d/e/f poor. */
 @Composable
 private fun tierColorForLetter(grade: String) = when (grade.lowercase().firstOrNull()) {
     'a', 'b' -> semanticGreen()

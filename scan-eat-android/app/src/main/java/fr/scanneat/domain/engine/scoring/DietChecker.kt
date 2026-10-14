@@ -4,7 +4,7 @@ import fr.scanneat.domain.model.*
 import fr.scanneat.util.formatDecimal
 
 // ============================================================================
-// DIET CHECKER — port of public/core/diets.js
+// DIET CHECKER — originally ported from the former web prototype's public/core/diets.js
 //
 // AUTHORITATIVE sources (preserved from original):
 //   Vegan/Vegetarian: Vegan Society UK / Vegetarian Society UK definitions
@@ -51,7 +51,7 @@ data class DietResult(
 
 /**
  * Check a product against a diet definition.
- * Port of checkDiet() from diets.js.
+ * Originally ported from checkDiet() in the former web prototype\'s diets.js.
  */
 /** The diet's own description/adequacy note, e.g. for display next to a diet picker. */
 fun dietNote(dietKey: DietKey, lang: String = "fr"): String? =

@@ -29,6 +29,11 @@ enum class NotifChannel(val id: String, val nameRes: Int) {
     SUMMARY    ("daily_summary",        R.string.notif_channel_summary),
     CUSTOM     ("reminders_custom",     R.string.notif_channel_custom),
     PANTRY     ("reminders_pantry",     R.string.notif_channel_pantry),
+    RECALLS    ("product_recalls",      R.string.notif_channel_recalls),
+    ;
+
+    /** Content hidden on the lock screen behind a generic public version (C11). */
+    val isSensitive: Boolean get() = this == MEDICATION
 }
 
 object NotificationHelper {
@@ -40,7 +45,15 @@ object NotificationHelper {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         NotifChannel.entries.forEach { ch ->
             manager.createNotificationChannel(
-                NotificationChannel(ch.id, context.getString(ch.nameRes), NotificationManager.IMPORTANCE_DEFAULT)
+                NotificationChannel(
+                    ch.id, context.getString(ch.nameRes),
+                    // A government safety recall must be seen (heads-up), not only listed.
+                    if (ch == NotifChannel.RECALLS) NotificationManager.IMPORTANCE_HIGH else NotificationManager.IMPORTANCE_DEFAULT,
+                ).apply {
+                    // Roadmap C11: medication names are health data (GDPR art. 9) -
+                    // never shown in full on the lock screen.
+                    if (ch.isSensitive) lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
+                }
             )
         }
         // Keep the legacy catch-all channel for any notification still using CHANNEL_ID
@@ -50,6 +63,9 @@ object NotificationHelper {
         manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
     }
 
+    /** Intent extra: scan id whose result screen the tap should open (recall notifications). */
+    const val EXTRA_OPEN_SCAN_ID = "fr.scanneat.extra.OPEN_SCAN_ID"
+
     /**
      * @return true if the notification was actually posted, false if it was
      * silently skipped (POST_NOTIFICATIONS denied on API 33+). Callers that also
@@ -58,7 +74,10 @@ object NotificationHelper {
      * whether the user ever saw a notification, so a day with permission denied
      * silently lost every reminder with no way to recover until the next day.
      */
-    fun show(context: Context, id: Int, title: String, text: String, channel: NotifChannel? = null): Boolean {
+    fun show(
+        context: Context, id: Int, title: String, text: String, channel: NotifChannel? = null, openScanId: Long? = null,
+        doseAction: DoseAction? = null,
+    ): Boolean {
         ensureChannels(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -70,18 +89,43 @@ object NotificationHelper {
         // auto-cancelled with no navigation back into the app at all.
         val contentIntent = PendingIntent.getActivity(
             context, id,
-            Intent(context, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            Intent(context, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                .apply { openScanId?.let { putExtra(EXTRA_OPEN_SCAN_ID, it) } },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(contentIntent)
+            .apply {
+                // Roadmap D6: "Pris" / "Reporter" straight from a dose reminder.
+                doseAction?.let { a ->
+                    addAction(0, context.getString(R.string.notif_action_taken),
+                        MedicationActionReceiver.pendingIntent(context, MedicationActionReceiver.ACTION_TAKEN, id, title, text, a))
+                    addAction(0, context.getString(R.string.notif_action_snooze),
+                        MedicationActionReceiver.pendingIntent(context, MedicationActionReceiver.ACTION_SNOOZE, id, title, text, a))
+                }
+                if (channel?.isSensitive == true) {
+                    setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                    setPublicVersion(
+                        NotificationCompat.Builder(context, channelId)
+                            .setSmallIcon(R.drawable.ic_notification)
+                            .setContentTitle(context.getString(R.string.notif_medication_public_title))
+                            .setContentIntent(contentIntent)
+                            .setAutoCancel(true)
+                            .build()
+                    )
+                }
+            }
             .build()
         NotificationManagerCompat.from(context).notify(id, notification)
         return true
     }
 }
+
+/** Identifies the dose a medication notification is about (Roadmap D6). */
+data class DoseAction(val medicationId: String, val profileId: String)

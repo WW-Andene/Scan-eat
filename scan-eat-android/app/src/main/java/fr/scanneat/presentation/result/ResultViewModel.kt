@@ -118,6 +118,10 @@ class ResultViewModel @Inject constructor(
     val profile: StateFlow<Profile> = prefs.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
 
+    // Roadmap D10: every household profile, for the "Famille" row.
+    val profileList: StateFlow<List<Profile>> = prefs.profileList
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // User-requested: interactive walkthrough shown once, over a real scan
     // result, instead of a static onboarding page - see
     // ScanResultTutorialDialog.kt's own header.
@@ -184,6 +188,20 @@ class ResultViewModel @Inject constructor(
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ResultUiState())
+
+    // Roadmap A3: Open Food Facts alternative, only when the history has none
+    // and the grade is eligible. Separate from the main load so the network
+    // never delays the result screen.
+    val offAlternative: StateFlow<ScanResult?> = state
+        .map { s -> s.scanResult?.takeIf { s.betterAlternative == null && it.barcode != null && it.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES } }
+        .distinctUntilChanged { a, b -> a?.dbId == b?.dbId && a?.audit?.score == b?.audit?.score }
+        .mapLatest { scan ->
+            if (scan == null) null else {
+                val profile = prefs.profile.first()
+                runCatching { scanRepo.findOffAlternative(scan, profile.allergens, profile.diet, profile.healthConditions, prefs.language.first()) }.getOrNull()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // User-requested "connect everything": scanning a product already in the
     // pantry showed no indication of that anywhere on the Result screen - the
@@ -253,7 +271,7 @@ class ResultViewModel @Inject constructor(
     fun clearLogState() { _logState.value = LogState.Idle }
 
     // Price history for this exact product — matched by barcode when the scan has
-    // one, else falls back to matching by name (LLM-identified/no-barcode scans
+    // one, else falls back to matching by name (photo-identified/no-barcode scans
     // still worth tracking a price against). Empty until a scan is loaded.
     val priceEntries: StateFlow<List<PriceEntry>> = combine(state, profile.map { it.id }.flatMapLatest { id -> priceRepo.observeAll(id) }) { s, all ->
         val scan = s.scanResult ?: return@combine emptyList()

@@ -32,6 +32,11 @@ class FastingViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val streak: StateFlow<Int> = activeProfileId.flatMapLatest { id -> repo.streak(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    // Roadmap C13: the profile knows pregnancy, age, BMI and diabetes - checked
+    // before any fast instead of offering 24 h fasts and a streak to everyone.
+    val safety: StateFlow<fr.scanneat.domain.engine.health.FastingSafety> = prefs.profile
+        .map { fr.scanneat.domain.engine.health.fastingSafety(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), fr.scanneat.domain.engine.health.FastingSafety(false, emptyList()))
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     /** Longest achieved fast in hours — used to surface a personal-record alert. */
@@ -75,7 +80,9 @@ class FastingViewModel @Inject constructor(
     // unguarded - unlike every sibling tracker (Weight/Activity/Dashboard/MealPlan/
     // Templates all wrap theirs in runCatching), so a write failure here wasn't
     // just silent, it was an uncaught exception that would crash the app.
-    fun start(hours: Int) = guardedLaunch { repo.start(hours, activeProfileId.value) }
+    fun start(hours: Int) = guardedLaunch {
+        if (!safety.value.blocked) repo.start(hours, activeProfileId.value)
+    }
     fun stop()            = guardedLaunch { repo.stop(activeProfileId.value) }
     fun cancel()           = guardedLaunch { repo.cancel(activeProfileId.value) }
 

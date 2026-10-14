@@ -8,7 +8,7 @@ import fr.scanneat.domain.model.Ingredient
 // name synonyms) -> one verifiable trivia line, matched by substring
 // against the product's actual ingredient list.
 //
-// Deliberately NOT LLM-generated: a per-scan model call for one trivia line
+// Deliberately NOT on-device OCR-generated: a per-scan model call for one trivia line
 // doesn't scale (rate limits, latency, cost) and reintroduces the exact
 // hallucination risk this file's neighbour (ProductHints) was written to
 // avoid.
@@ -18,7 +18,7 @@ import fr.scanneat.domain.model.Ingredient
 // memory — every fact below is that article's own opening sentence,
 // trimmed, not a paraphrase, so it's directly re-verifiable against the
 // live article. This is real reference-work sourcing (same category as
-// citing an encyclopedia), distinct from the runtime LLM approach that
+// citing an encyclopedia), distinct from the runtime on-device OCR approach that
 // was rejected. Still deliberately NOT exhaustive: covers ~90 of the most
 // commonly scanned ingredients/spices/oils/ferments, since a wrong "fun
 // fact" is worse than a missing one, and any addition should go through

@@ -1,7 +1,7 @@
 package fr.scanneat.domain.model
 
 // ============================================================================
-// DOMAIN MODELS — port of scoring-engine.ts §SECTION 1: TYPES
+// DOMAIN MODELS — originally ported from the former web prototype's scoring-engine.ts §SECTION 1: TYPES
 // All nullability mirrors the original TypeScript optional fields.
 // ============================================================================
 
@@ -163,7 +163,7 @@ data class NutritionPer100g(
     val alcoholPercentVol: Double? = null,
     // True when one or more of the mineral/vitamin fields above were filled in by
     // MicronutrientEstimator.kt (category-based typical values) rather than
-    // actually declared by the source (OFF/LLM) - most barcode products simply
+    // actually declared by the source (OFF/on-device OCR) - most barcode products simply
     // never list iron/calcium/zinc/etc, which previously meant a user who scanned
     // and logged real food (e.g. beef) saw their iron intake silently stay at 0g
     // for the day. Surfaced in MicronutrientCard so an estimate is never presented
@@ -223,7 +223,7 @@ data class Product(
     // OFF's own curated allergen tags (e.g. "en:gluten", "en:milk") - verified
     // against the manufacturer's declaration, more reliable than regexing the
     // free-text ingredient list. Empty when OFF has none declared or the
-    // product came from the LLM/photo fallback path instead.
+    // product came from the on-device OCR/photo fallback path instead.
     val declaredAllergenTags: List<String> = emptyList(),
     // OFF's own curated traces_tags (e.g. "en:nuts") - manufacturer's
     // precautionary "may contain traces of X" cross-contamination labeling,
@@ -351,12 +351,29 @@ data class ScanResult(
     val scannedAt: Long = 0,   // epoch millis from scan_history; 0 when not yet persisted
     // User-requested: transient signal set only by ScanRepositoryHistory's
     // stale-scan rescore (never persisted - not part of productJson/auditJson,
-    // not mirrored on the server since it's Android-only UI feedback) so
+    // Android-only UI feedback) so
     // ResultContent can show "this score just changed from X to Y" instead of
     // silently swapping the number with no explanation. Null on every other
     // read path (a fresh scan, an already-current row) and whenever a rescore
     // happened to land on the exact same score.
     val rescoredFrom: Int? = null,
+    // Roadmap C16: transient, set only when the product was read from a label
+    // photo by OCR on this scan - the scan screen then asks the user to check
+    // the values before showing the score. Never persisted.
+    val needsOcrReview: Boolean = false,
 )
 
-enum class ScanSource { OPEN_FOOD_FACTS, LLM, MERGED, MANUAL }
+/**
+ * Where a scan's data came from. ON_DEVICE_OCR = label/photo read on the
+ * device by ML Kit (no AI service is used - see README); it was named `LLM`
+ * until Roadmap C6, and rows stored before that keep the string "LLM", which
+ * [fromStored] maps back.
+ */
+enum class ScanSource {
+    OPEN_FOOD_FACTS, ON_DEVICE_OCR, MERGED, MANUAL;
+
+    companion object {
+        fun fromStored(name: String): ScanSource =
+            if (name == "LLM") ON_DEVICE_OCR else valueOf(name)
+    }
+}

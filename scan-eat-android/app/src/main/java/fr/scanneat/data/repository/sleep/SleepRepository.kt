@@ -35,7 +35,7 @@ class SleepRepository @Inject constructor(
 ) {
     /** Same cap every other log table in this app already trims to. */
     private companion object {
-        const val MAX_HISTORY_ROWS = 730 // ~2 years of nightly entries
+        const val MAX_HISTORY_ROWS = 3650 // ~10 years of nightly entries (Roadmap C15: was 730 = 2 years)
     }
 
     fun observeAll(profileId: String = "default"): Flow<List<SleepEntry>> =

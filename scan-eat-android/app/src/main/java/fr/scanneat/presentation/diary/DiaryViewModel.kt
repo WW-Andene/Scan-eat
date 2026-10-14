@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.diary
 
+import fr.scanneat.domain.model.safeGoal
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -137,7 +138,7 @@ class DiaryViewModel @Inject constructor(
         // computed from the old profile-only kcal - the shown macros no longer
         // summed to the kcal figure right next to them. withKcalOverride rescales
         // every kcal-derived field together so the whole row stays consistent.
-        base?.let { if (bioTdee != null) it.withKcalOverride(bioTdee, profile.goal, currentPregnancyTrimester(profile)) else it }
+        base?.let { if (bioTdee != null) it.withKcalOverride(bioTdee, profile.safeGoal, currentPregnancyTrimester(profile)) else it }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // "What would my macros be at my goal weight" - previously the Journal only
@@ -150,7 +151,7 @@ class DiaryViewModel @Inject constructor(
         if (!hasMinimalProfile(profile) || goalWeight == null || goalWeight == profile.weightKg) return@combine null
         val base = dailyTargets(profile, weightKgOverride = goalWeight) ?: return@combine null
         val bioTdee = if (isPremium && bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile.copy(weightKg = goalWeight))?.tdeeDay else null
-        if (bioTdee != null) base.withKcalOverride(bioTdee, profile.goal, currentPregnancyTrimester(profile)) else base
+        if (bioTdee != null) base.withKcalOverride(bioTdee, profile.safeGoal, currentPregnancyTrimester(profile)) else base
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /** For the goal-targets row's label ("Objectif : NN kg") - null hides the row. */
@@ -319,7 +320,7 @@ class DiaryViewModel @Inject constructor(
     // Previously the FOOD_DB/custom-food search above was the only source Quick
     // Add could ever find - ScanHistoryDao.searchByName already exists, already
     // indexed, and already powers ScanHistoryScreen, but a barcoded product
-    // scanned last week (with real OFF/LLM-sourced nutrition, not a FOOD_DB
+    // scanned last week (with real OFF/on-device OCR-sourced nutrition, not a FOOD_DB
     // approximation) was completely unreachable from this "+" flow: the user
     // had to leave Diary, go to History, and there was no logging affordance
     // there either.

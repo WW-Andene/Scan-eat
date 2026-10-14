@@ -1,7 +1,7 @@
 package fr.scanneat.domain.model
 
 // ============================================================================
-// USER PROFILE — port of public/data/profile.js
+// USER PROFILE — originally ported from the former web prototype's public/data/profile.js
 // ============================================================================
 
 enum class Sex { MALE, FEMALE, NOT_SPECIFIED }
@@ -47,6 +47,9 @@ data class Profile(
     // DietKey lives in domain/engine/scoring/DietChecker.kt
     val diet: fr.scanneat.domain.engine.scoring.DietKey = fr.scanneat.domain.engine.scoring.DietKey.NONE,
     val allergens: Set<String> = emptySet(),
+    // Roadmap N6: per-allergen severity; an allergen absent from this map is
+    // ALLERGY (the behaviour before severities existed). See [severityOf].
+    val allergenSeverities: Map<String, AllergenSeverity> = emptyMap(),
     // Free-form keys ("diabetes", "hypertension", "pregnancy", "kidney_disease",
     // "ibs", "crohn_ibd", "chronic_diarrhea", "cancer", "depression",
     // "chronic_migraine", "epilepsy") - same pattern as allergens, consumed by
@@ -71,3 +74,28 @@ data class Profile(
 )
 // NOTE: DailyTargets is defined in domain/engine/scoring/PersonalScoreEngine.kt (canonical location).
 // Do NOT add a second DailyTargets here.
+
+/**
+ * Roadmap N6. SEVERE (anaphylaxis risk): "may contain" traces also block the
+ * product. ALLERGY: a confirmed allergen blocks it, traces are a caution.
+ * INTOLERANCE (e.g. lactose): a confirmed allergen lowers the personal score
+ * without blocking it, traces are information only.
+ */
+enum class AllergenSeverity { SEVERE, ALLERGY, INTOLERANCE }
+
+fun Profile.severityOf(allergenKey: String): AllergenSeverity =
+    allergenSeverities[allergenKey] ?: AllergenSeverity.ALLERGY
+
+/**
+ * Roadmap C14: a weight-loss goal is not applied to a pregnant profile, a
+ * minor, or a profile whose BMI is already below 18.5 (WHO underweight) -
+ * the energy deficit and "lighter is better" score adjustments would work
+ * against the BMI adjustments that favour energy-dense foods for them.
+ * Every calculation uses this instead of [Profile.goal].
+ */
+val Profile.weightLossUnsafe: Boolean get() {
+    val bmi = if (heightCm != null && weightKg != null && heightCm > 0 && weightKg > 0) weightKg / ((heightCm / 100) * (heightCm / 100)) else null
+    return "pregnancy" in healthConditions || (ageYears != null && ageYears < 18) || (bmi != null && bmi < 18.5)
+}
+
+val Profile.safeGoal: Goal get() = if (goal == Goal.LOSE && weightLossUnsafe) Goal.MAINTAIN else goal

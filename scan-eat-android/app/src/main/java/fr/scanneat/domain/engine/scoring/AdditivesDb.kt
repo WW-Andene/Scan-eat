@@ -4,7 +4,7 @@ import java.text.Normalizer
 import java.util.concurrent.ConcurrentHashMap
 
 // ============================================================================
-// ADDITIVES DATABASE — port of scoring-engine.ts SECTION 2
+// ADDITIVES DATABASE — originally ported from the former web prototype's scoring-engine.ts SECTION 2
 // Source citations preserved verbatim from the original TS engine.
 //
 // Data split across sibling files in this package (models + per-tier
@@ -134,7 +134,7 @@ private fun computeFindAdditive(eNumber: String?, name: String, category: fr.sca
     // curry, paprika in a spice blend) rather than a colorant additive - the
     // primary synonym scan above only matches the qualified forms ("curcuma
     // (colorant)", "extrait de paprika"), so this fallback intentionally
-    // requires the OCR/LLM's own additive classification to corroborate the
+    // requires the OCR/on-device OCR's own additive classification to corroborate the
     // bare word before treating it as the colorant. "curcumin" removed from
     // here - it's now a direct, category-unguarded synonym on E100's
     // AdditiveInfo entry in AdditivesTier3Core.kt (see comment there), since

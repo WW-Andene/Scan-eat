@@ -29,6 +29,44 @@ interface RappelConsoApi {
         @Query("where") whereClause: String,
         @Query("limit") limit: Int = 5,
     ): RappelConsoResponse
+
+    /** Roadmap C3: every recall published since a date, newest first, for the
+     *  daily background sync (RecallSyncWorker). Opendatasoft caps `limit` at 100. */
+    @GET("api/explore/v2.1/catalog/datasets/rappelconso-v2-gtin-trie/records")
+    suspend fun findPublishedSince(
+        @Query("where") whereClause: String,
+        @Query("limit") limit: Int = 100,
+        @Query("offset") offset: Int = 0,
+        @Query("order_by") orderBy: String = "date_publication desc",
+    ): RappelConsoResponse
+}
+
+/** ODSQL clause for recalls published on/after [isoDate] (yyyy-MM-dd). */
+fun rappelConsoPublishedSinceClause(isoDate: String): String = "date_publication>=\"$isoDate\""
+
+/** Leading zeros are not significant in a GTIN, and RappelConso's `gtin`
+ *  column is a JSON number (a UPC printed as 0208028000000 comes back as
+ *  208028000000) - compare codes on this key. */
+fun gtinMatchKey(code: String): String = code.trim().trimStart('0')
+
+/**
+ * Pure matcher for the background sync: which of the user's [ownedBarcodes]
+ * (scan history + pantry) appear in [records]. Every encoding of each owned
+ * code (UPC-E expansion, GTIN-14 case code...) is tried. Returns owned barcode
+ * → first matching record.
+ */
+fun matchRecallsToOwnedBarcodes(
+    records: List<RappelConsoRecordDto>,
+    ownedBarcodes: Collection<String>,
+): Map<String, RappelConsoRecordDto> {
+    val byKey = HashMap<String, RappelConsoRecordDto>()
+    records.forEach { r -> r.gtin?.let { g -> byKey.putIfAbsent(gtinMatchKey(g), r) } }
+    if (byKey.isEmpty()) return emptyMap()
+    val result = LinkedHashMap<String, RappelConsoRecordDto>()
+    ownedBarcodes.filter { b -> b.isNotBlank() && b.all { it.isDigit() } }.forEach { owned ->
+        barcodeCandidates(owned).firstNotNullOfOrNull { byKey[gtinMatchKey(it)] }?.let { result[owned] = it }
+    }
+    return result
 }
 
 /** Builds the `where` clause matching the scanned barcode in every plausible

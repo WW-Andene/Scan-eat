@@ -345,7 +345,12 @@ internal fun ConditionsSelector(current: Set<String>, onSelect: (Set<String>) ->
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun AllergenSelector(current: Set<String>, onSelect: (Set<String>) -> Unit) {
+internal fun AllergenSelector(
+    current: Set<String>,
+    onSelect: (Set<String>) -> Unit,
+    severities: Map<String, fr.scanneat.domain.model.AllergenSeverity> = emptyMap(),
+    onSeverityChange: (String, fr.scanneat.domain.model.AllergenSeverity) -> Unit = { _, _ -> },
+) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Text(stringResource(R.string.profile_allergen_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -361,6 +366,36 @@ internal fun AllergenSelector(current: Set<String>, onSelect: (Set<String>) -> U
                         labelColor = OnBackground.copy(0.7f),
                     ),
                 )
+            }
+        }
+        // Roadmap N6: severity per declared allergen (default ALLERGY).
+        val labels = allergenLabels()
+        if (current.isNotEmpty()) {
+            Text(stringResource(R.string.profile_allergen_severity_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+        }
+        labels.filterKeys { it in current }.forEach { (key, label) ->
+            val selected = severities[key] ?: fr.scanneat.domain.model.AllergenSeverity.ALLERGY
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                Text(label, style = MaterialTheme.typography.labelMedium, color = OnBackground)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    fr.scanneat.domain.model.AllergenSeverity.entries.forEach { sev ->
+                        FilterChip(
+                            selected = sev == selected,
+                            onClick = { onSeverityChange(key, sev) },
+                            label = {
+                                Text(stringResource(when (sev) {
+                                    fr.scanneat.domain.model.AllergenSeverity.SEVERE      -> R.string.allergen_severity_severe
+                                    fr.scanneat.domain.model.AllergenSeverity.ALLERGY     -> R.string.allergen_severity_allergy
+                                    fr.scanneat.domain.model.AllergenSeverity.INTOLERANCE -> R.string.allergen_severity_intolerance
+                                }), style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = semanticAmber().copy(0.2f), selectedLabelColor = semanticAmber(),
+                                labelColor = OnBackground.copy(0.7f),
+                            ),
+                        )
+                    }
+                }
             }
         }
     }

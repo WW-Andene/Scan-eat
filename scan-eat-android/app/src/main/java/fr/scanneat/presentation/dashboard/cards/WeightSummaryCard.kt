@@ -39,6 +39,9 @@ internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummar
                 val trend = summary.trendKgPerWeek
                 val trendSign = if (trend >= 0) "+" else "-"
                 Text(stringResource(R.string.weight_trend_kg_week, "$trendSign${dispWeight(kotlin.math.abs(trend), useImperial)}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                if (forecast is WeightForecast.UnderweightGoal) {
+                    Text(stringResource(R.string.weight_goal_underweight), style = MaterialTheme.typography.labelSmall, color = semanticAmber())
+                }
                 if (forecast is WeightForecast.Ok) {
                     Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                 }

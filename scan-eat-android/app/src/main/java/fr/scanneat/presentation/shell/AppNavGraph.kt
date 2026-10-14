@@ -155,6 +155,7 @@ fun AppNavGraph(
                 onBack          = {},
                 isTabRoot       = true,
                 onOpenHistory   = { navController.navigate(AppRoutes.SCAN_HISTORY) },
+                onOpenMySafety  = { navController.navigate(AppRoutes.MY_SAFETY) },
                 onOpenRecipes   = { navController.navigate(AppRoutes.RECIPES) },
                 onOpenTemplates = { navController.navigate(AppRoutes.TEMPLATES) },
                 onOpenMealPlan  = { navController.navigate(AppRoutes.MEAL_PLAN) },
@@ -226,6 +227,41 @@ fun AppNavGraph(
         // User-requested: non-food products (shampoo/gel douche/cosmétiques...)
         // scored and given a history/favorites view too, not just food - see
         // NonFoodHistoryScreen/CosmeticTransparencyScore's own doc comments.
+        composable(AppRoutes.MY_SAFETY) {
+            fr.scanneat.presentation.safety.MySafetyScreen(
+                onBack = { navController.popBackStack() },
+                onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
+                onOpenRecalls = { navController.navigate(AppRoutes.RECALLS) },
+                onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
+                onOpenReactions = { navController.navigate(AppRoutes.REACTIONS) },
+                onOpenMenuScan = { navController.navigate(AppRoutes.MENU_SCAN) },
+                onOpenProfileShare = { navController.navigate(AppRoutes.PROFILE_SHARE) },
+                onOpenProfileImport = { navController.navigate(AppRoutes.PROFILE_IMPORT) },
+            )
+        }
+
+        composable(AppRoutes.PROFILE_SHARE) { fr.scanneat.presentation.profileshare.ProfileShareScreen(onBack = { navController.popBackStack() }) }
+        composable(AppRoutes.PROFILE_IMPORT) { fr.scanneat.presentation.profileshare.ProfileImportScreen(onBack = { navController.popBackStack() }) }
+
+        composable(AppRoutes.MENU_SCAN) {
+            fr.scanneat.presentation.menu.MenuScanScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(AppRoutes.REACTIONS) {
+            fr.scanneat.presentation.reaction.ReactionsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(AppRoutes.SOURCES) {
+            fr.scanneat.presentation.sources.SourcesScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(AppRoutes.RECALLS) {
+            fr.scanneat.presentation.recalls.RecallsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
+            )
+        }
+
         composable(AppRoutes.NONFOOD_HISTORY) {
             fr.scanneat.presentation.nonfood.NonFoodHistoryScreen(onBack = { navController.popBackStack() })
         }
@@ -236,6 +272,7 @@ fun AppNavGraph(
                 isTabRoot = true,
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onOpenReminders = { navController.navigate(AppRoutes.REMINDERS) },
+                onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
             )
         }
 
@@ -254,6 +291,7 @@ fun AppNavGraph(
                 // ScanHistoryScreen/DashboardScreen already use below.
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
+                onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
                 // collapseFirst = true: Result is reachable more than one level deep
                 // (Dashboard → History/Favorites/Recherche → Result) - without collapsing
                 // first, the popUpTo(startDestination){saveState=true} inside switchToTab
@@ -333,6 +371,8 @@ fun AppNavGraph(
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
                 onBack       = { navController.popBackStack() },
                 onOpenNonFoodHistory = { navController.navigate(AppRoutes.NONFOOD_HISTORY) },
+                onOpenRecalls = { navController.navigate(AppRoutes.RECALLS) },
+                onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onLog        = { navController.switchToTab(TopTab.Diary.route, collapseFirst = true) },
             )

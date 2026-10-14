@@ -111,8 +111,23 @@ class ScanViewModel @Inject constructor(
         viewModelScope.launch {
             if (!prefs.voiceScoreAnnounce.first()) return@launch
             val lang = prefs.language.first()
-            val text = localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_announce_format, scanResult.audit.score, scanResult.audit.grade.label)
-            speechAnnouncer.speak(text, lang)
+            val scoreText = localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_announce_format, scanResult.audit.score, scanResult.audit.grade.label)
+            // Roadmap N11: the vital information for a low-vision user is the
+            // alerts, not the score - spoken first.
+            val alerts = buildList {
+                scanResult.barcode?.let { b -> runCatching { recallRepo.checkBarcode(b) }.getOrNull() }
+                    ?.let { add(localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_alert_recall)) }
+                val profile = prefs.profile.first()
+                val personal = fr.scanneat.domain.engine.scoring.computePersonalScore(scanResult.audit, scanResult.product, profile, lang)
+                if (personal.veto) personal.dietReason?.let { add(localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_alert_veto, it)) }
+                val traces = personal.allergenHits.filter { it.isTraceOnly }
+                if (!personal.veto && traces.isNotEmpty()) add(localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_alert_traces,
+                    traces.joinToString(", ") { if (lang == "en") it.labelEn else it.labelFr }))
+                val meds = runCatching { medicationRepo.observeAll(activeProfileId.value).first().filter { it.active }.map { it.name }.toSet() }.getOrDefault(emptySet())
+                if (fr.scanneat.domain.engine.medication.checkFoodDrugInteractions(scanResult.product, meds, lang).isNotEmpty())
+                    add(localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_alert_medication))
+            }
+            speechAnnouncer.speak((alerts + scoreText).joinToString(" "), lang)
         }
     }
 
@@ -480,8 +495,11 @@ class ScanViewModel @Inject constructor(
                 }
                 result.fold(
                     onSuccess = { (scanResult, id) ->
-                        _state.value = ScanUiState.Success(scanResult, id)
-                        announceScoreIfEnabled(scanResult)
+                        if (scanResult.needsOcrReview) _state.value = ScanUiState.ReviewOcr(scanResult, id)
+                        else {
+                            _state.value = ScanUiState.Success(scanResult, id)
+                            announceScoreIfEnabled(scanResult)
+                        }
                         if (barcode != null) {
                             _recentBarcodes.value = (_recentBarcodes.value - barcode + barcode)
                                 .distinct().takeLast(5)
@@ -577,6 +595,29 @@ class ScanViewModel @Inject constructor(
     }
 
     fun dismissError() { _state.value = ScanUiState.Idle }
+
+    /** Roadmap C16: user confirmed (possibly corrected) the OCR-read values. */
+    fun confirmOcrReview(reviewed: fr.scanneat.domain.model.Product) {
+        val s = _state.value as? ScanUiState.ReviewOcr ?: return
+        viewModelScope.launch {
+            val lang = prefs.language.first()
+            runCatching { scanRepo.applyReviewedProduct(s.persistedId, s.result, reviewed, lang) }
+                .onSuccess { r -> _state.value = ScanUiState.Success(r, s.persistedId); announceScoreIfEnabled(r) }
+                .onFailure { e ->
+                    if (e is CancellationException) throw e
+                    _state.value = ScanUiState.Error(genericErrorMessage(lang))
+                }
+        }
+    }
+
+    /** Roadmap C16: the reading is wrong - drop the saved row, back to the camera. */
+    fun cancelOcrReview() {
+        val s = _state.value as? ScanUiState.ReviewOcr ?: return
+        viewModelScope.launch {
+            runCatching { scanRepo.delete(s.persistedId) }
+            _state.value = ScanUiState.Idle
+        }
+    }
 
     /**
      * Reports a camera-capture failure (bind failure, buffer/driver fault, storage
@@ -711,7 +752,7 @@ class ScanViewModel @Inject constructor(
     }
 
     internal companion object {
-        /** Mirrors the server's RouteHelpers.MAX_IMAGES - see addPhoto()'s doc comment (ScanViewModelPhotoQueue.kt). */
+        /** Cap on queued photos per scan - see addPhoto()'s doc comment (ScanViewModelPhotoQueue.kt). */
         const val MAX_QUEUED_PHOTOS = 8
         /** See onBarcodeDetected()'s own doc comment. */
         const val BARCODE_STABILITY_FRAMES = 3
