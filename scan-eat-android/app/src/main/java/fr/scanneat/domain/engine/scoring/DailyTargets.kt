@@ -203,7 +203,9 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
         carbsGDailyMax    = carbsMax,
         carbsGTarget      = carbsMax ?: generalCarbsTarget,
         ironMgTarget      = ironTarget,
-        calciumMgTarget   = 950.0,
+        // S9: EFSA calcium DRVs (2015) by age: 450 mg 1-3 y, 800 mg 4-10 y,
+        // 1150 mg 11-17 y, 1000 mg 18-24 y, 950 mg from 25 y.
+        calciumMgTarget   = when (p.ageYears) { null -> 950.0; in 0..3 -> 450.0; in 4..10 -> 800.0; in 11..17 -> 1150.0; in 18..24 -> 1000.0; else -> 950.0 },
         vitDUgTarget      = vitDTarget,
         b12UgTarget       = 4.0,
         magnesiumMgTarget = if (p.sex == Sex.FEMALE) 300.0 else 350.0,

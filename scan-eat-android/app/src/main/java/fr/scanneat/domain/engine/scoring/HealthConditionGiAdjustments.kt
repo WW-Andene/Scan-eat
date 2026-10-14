@@ -58,7 +58,11 @@ internal fun checkGastrointestinalConditions(
     // ≥6g/100g) reused here, not invented - Crohn's & Colitis Foundation/NHS
     // both recommend a low-residue (low-fiber) diet during a flare, since
     // insoluble fiber is mechanically harder to pass through an inflamed gut.
-    if ("crohn_ibd" in conditions) {
+    // S9: every rule below is flare-specific in its own source ("lors d'une
+    // poussée"), yet it used to apply permanently - a person in remission was
+    // penalised for fibre they are usually encouraged to eat. Now only when
+    // the profile also declares an ongoing flare ("ibd_flare").
+    if ("crohn_ibd" in conditions && "ibd_flare" in conditions) {
         val highFiber = product.nutrition.fiberG >= 6.0
         if (highFiber) {
             adjustments += PersonalAdjustment(

@@ -198,7 +198,7 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
 → Retirer ou sourcer chaque bonus ; ignorer les micronutriments ajoutés (listés dans les ingrédients) ; appliquer 7,5 % aux boissons.
 
 ### S9. Profil : formules hors domaine de validité 🟠 📖
-✅ **Partiellement fait** : folates de grossesse sourcés EFSA 2014 (600 µg), sel en cas d'hypertension aligné sur ESH 2023 (< 5 g), cible de fibres EFSA (25 g) pour tous les régimes. Restent : équations pédiatriques, état poussée/rémission MICI.
+✅ **Partiellement fait** : folates de grossesse sourcés EFSA 2014 (600 µg), sel en cas d'hypertension aligné sur ESH 2023 (< 5 g), cible de fibres EFSA (25 g) pour tous les régimes. Fait ensuite : équations de Henry (Oxford 2005, utilisées par l'EFSA 2013) sous 18 ans, calcium EFSA par âge (450/800/1150/1000/950 mg), condition « MICI : poussée en cours » - les règles et conseils « en poussée » ne s'appliquent plus en rémission (test `S9PediatricIbdTest`).
 
 - **Mifflin-St Jeor appliqué aux mineurs** (`clampedAge` de 1 à 110) : formule validée chez l'adulte. L'EFSA utilise des
   équations spécifiques intégrant la croissance pour les 1-17 ans. Le calcium de 950 mg vaut pour les adultes, alors que l'EFSA recommande 1150 mg chez les 11-17 ans.

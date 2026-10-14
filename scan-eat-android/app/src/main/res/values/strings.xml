@@ -2265,4 +2265,5 @@
     <string name="tile_fasting_running">En cours — toucher pour arrêter</string>
     <string name="tile_fasting_start">Toucher pour démarrer (16 h)</string>
     <string name="tile_fasting_blocked">Déconseillé pour ce profil</string>
+    <string name="condition_ibd_flare">MICI : poussée en cours</string>
 </resources>
