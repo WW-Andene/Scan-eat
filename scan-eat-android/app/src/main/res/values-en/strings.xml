@@ -2244,4 +2244,6 @@
     <string name="mealplan_generate">Generate my week</string>
     <string name="mealplan_generate_done">%1$d meals added from your recipes that suit your profile</string>
     <string name="mealplan_generate_none">No saved recipe suits your allergens and diet</string>
+    <string name="off_contribute_add">Add this product to Open Food Facts</string>
+    <string name="off_contribute_complete">Complete this product on Open Food Facts (collaborative database)</string>
 </resources>

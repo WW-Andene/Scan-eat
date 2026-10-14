@@ -2248,4 +2248,6 @@
     <string name="mealplan_generate">Générer ma semaine</string>
     <string name="mealplan_generate_done">%1$d repas ajoutés depuis vos recettes compatibles avec votre profil</string>
     <string name="mealplan_generate_none">Aucune recette enregistrée compatible avec vos allergènes et votre régime</string>
+    <string name="off_contribute_add">Ajouter ce produit sur Open Food Facts</string>
+    <string name="off_contribute_complete">Compléter cette fiche sur Open Food Facts (base collaborative)</string>
 </resources>

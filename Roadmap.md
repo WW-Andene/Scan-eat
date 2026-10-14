@@ -769,6 +769,8 @@ plus parlante dans une messagerie et plus virale.
 ## Phase 7 — Nouveaux axes
 
 ### 44. N1 – Contribution Open Food Facts
+✅ **Fait (voie officielle)** : bouton « Ajouter ce produit sur Open Food Facts » quand un code-barres est introuvable, et « Compléter cette fiche » sur un résultat lu depuis des photos ; il ouvre la page produit OFF, où l'utilisateur ajoute ou corrige sous son propre compte. L'app ne manipule pas d'identifiants OFF et n'écrit pas dans la base partagée (une écriture directe par l'API resterait à faire, avec le compte de l'utilisateur et des tests sur le serveur de test d'OFF).
+
 aucune écriture vers OFF aujourd'hui. Quand un
 produit est absent ou incomplet, proposer d'envoyer photos et champs lus par OCR (API
 d'écriture OFF, compte utilisateur ou anonyme).
