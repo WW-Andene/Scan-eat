@@ -35,6 +35,8 @@ internal fun CaffeineBudgetCard(c: CaffeineBudget) {
             color = if (c.over) AccentCoral else MaterialTheme.colorScheme.primary)
         if (c.highSingleDoses.isNotEmpty()) Text(stringResource(R.string.diary_caffeine_single_dose, c.highSingleDoses.joinToString(", ")),
             style = MaterialTheme.typography.bodySmall, color = AccentCoral)
+        if (c.estimatedMg > 0) Text(stringResource(R.string.diary_caffeine_estimated, c.estimatedMg.roundToInt()),
+            style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
         Text(stringResource(R.string.diary_caffeine_source), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
     }
 }

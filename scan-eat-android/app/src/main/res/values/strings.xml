@@ -2287,5 +2287,6 @@
     <string name="diary_caffeine_title">Caféine du jour</string>
     <string name="diary_caffeine_total">%1$d mg sur %2$d mg conseillés au maximum</string>
     <string name="diary_caffeine_single_dose">Plus de 200 mg en une prise : %1$s</string>
-    <string name="diary_caffeine_source">Repères EFSA 2015 (grossesse 200 mg, moins de 18 ans 3 mg/kg). Compte seulement la caféine indiquée dans les données produit.</string>
+    <string name="diary_caffeine_source">Repères EFSA 2015 (grossesse 200 mg, moins de 18 ans 3 mg/kg). Sans donnée produit, la caféine est estimée.</string>
+    <string name="diary_caffeine_estimated">dont environ %1$d mg estimés (teneurs habituelles EFSA : café, thé, cola…)</string>
 </resources>

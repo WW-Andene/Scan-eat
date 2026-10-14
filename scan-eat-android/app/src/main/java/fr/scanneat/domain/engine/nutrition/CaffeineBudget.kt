@@ -16,6 +16,8 @@ data class CaffeineBudget(
     val limitMg: Double,
     /** Logged items above EFSA's 200 mg single-dose level. */
     val highSingleDoses: List<String>,
+    /** Part of [totalMg] estimated from EFSA typical contents, not from product data. */
+    val estimatedMg: Double = 0.0,
 ) {
     val over: Boolean get() = totalMg > limitMg
 }
@@ -33,10 +35,41 @@ fun caffeineDailyLimitMg(profile: Profile): Double? = when {
     else -> CAFFEINE_ADULT_DAILY_MG
 }
 
+/**
+ * Typical caffeine per 100 g/mL when the product data has none - EFSA
+ * "Caffeine" consumer infographic accompanying the 2015 opinion: espresso
+ * 80 mg / 60 mL, filter coffee 90 mg / 200 mL, tea 50 mg / 220 mL, cola
+ * 40 mg / 355 mL, energy drink 80 mg / 250 mL, dark chocolate 25 mg / 50 g.
+ * Order matters: the more specific names first.
+ */
+private val TYPICAL_CAFFEINE_PER_100: List<Pair<Regex, Double>> = listOf(
+    Regex("(?U)\\bespresso|\\bexpresso|\\bristretto") to 80.0 / 60 * 100,
+    Regex("(?U)energy drink|boisson [eé]nergisante|red bull|monster") to 80.0 / 250 * 100,
+    Regex("(?U)\\bcaf[eé]s?\\b|\\bcoffee") to 90.0 / 200 * 100,
+    Regex("(?U)\\bth[eé]s?\\b|\\btea\\b|matcha") to 50.0 / 220 * 100,
+    Regex("(?U)\\bcola\\b|coca") to 40.0 / 355 * 100,
+    Regex("(?U)chocolat noir|dark chocolate") to 25.0 / 50 * 100,
+)
+private val NO_CAFFEINE = Regex("d[eé]ca|sans caf[eé]ine|caffeine[- ]free|zero caf|infusion|tisane|rooibos|glace au caf[eé]|ice cream")
+
+/** Caffeine for one entry: product data, else a typical-content estimate (flag true), else 0. */
+internal fun entryCaffeineMg(e: DiaryEntry): Pair<Double, Boolean> {
+    e.nutrition.caffeineMg?.takeIf { it > 0 }?.let { return it * e.portionG / 100.0 to false }
+    val name = e.productName.lowercase()
+    if (NO_CAFFEINE.containsMatchIn(name)) return 0.0 to false
+    val per100 = TYPICAL_CAFFEINE_PER_100.firstOrNull { it.first.containsMatchIn(name) }?.second ?: return 0.0 to false
+    return per100 * e.portionG / 100.0 to true
+}
+
 /** Null when nothing logged today carries caffeine, or no limit applies. */
 fun caffeineBudget(profile: Profile, entries: List<DiaryEntry>): CaffeineBudget? {
-    val total = entries.sumOf { it.consumed.caffeineMg }
+    val perEntry = entries.map { it to entryCaffeineMg(it) }
+    val total = perEntry.sumOf { it.second.first }
     if (total <= 0.0) return null
     val limit = caffeineDailyLimitMg(profile) ?: return null
-    return CaffeineBudget(total, limit, entries.filter { it.consumed.caffeineMg > CAFFEINE_SINGLE_DOSE_MG }.map { it.productName })
+    return CaffeineBudget(
+        totalMg = total, limitMg = limit,
+        highSingleDoses = perEntry.filter { it.second.first > CAFFEINE_SINGLE_DOSE_MG }.map { it.first.productName },
+        estimatedMg = perEntry.filter { it.second.second }.sumOf { it.second.first },
+    )
 }

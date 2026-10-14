@@ -2283,5 +2283,6 @@
     <string name="diary_caffeine_title">Caffeine today</string>
     <string name="diary_caffeine_total">%1$d mg of a %2$d mg maximum</string>
     <string name="diary_caffeine_single_dose">Over 200 mg in one go: %1$s</string>
-    <string name="diary_caffeine_source">EFSA 2015 levels (pregnancy 200 mg, under 18 3 mg/kg). Only counts caffeine listed in the product data.</string>
+    <string name="diary_caffeine_source">EFSA 2015 levels (pregnancy 200 mg, under 18 3 mg/kg). Without product data, caffeine is estimated.</string>
+    <string name="diary_caffeine_estimated">including about %1$d mg estimated (EFSA typical contents: coffee, tea, cola…)</string>
 </resources>

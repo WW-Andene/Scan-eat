@@ -6,8 +6,8 @@ import org.junit.Test
 import java.time.LocalDate
 
 class CaffeineBudgetTest {
-    private fun coffee(mgPer100g: Double, g: Double = 100.0) = DiaryEntry(
-        date = LocalDate.of(2026, 1, 1), mealSlot = MealSlot.BREAKFAST, productName = "Café", portionG = g,
+    private fun coffee(mgPer100g: Double?, g: Double = 100.0, name: String = "Boisson") = DiaryEntry(
+        date = LocalDate.of(2026, 1, 1), mealSlot = MealSlot.BREAKFAST, productName = name, portionG = g,
         nutrition = NutritionPer100g(energyKcal = 0.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 0.0, sugarsG = 0.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.0, caffeineMg = mgPer100g),
         source = ScanSource.MANUAL)
 
@@ -24,5 +24,14 @@ class CaffeineBudgetTest {
         assertFalse(b.over)
         assertEquals(1, b.highSingleDoses.size)
         assertNull(caffeineBudget(Profile(ageYears = 30), listOf(coffee(0.0))))
+    }
+
+    @Test fun `estimates typical coffee and tea, not decaf`() {
+        val b = caffeineBudget(Profile(ageYears = 30), listOf(coffee(null, 200.0, "Café filtre"), coffee(null, 220.0, "Thé vert")))!!
+        assertEquals(140.0, b.totalMg, 0.5)
+        assertEquals(140.0, b.estimatedMg, 0.5)
+        assertNull(caffeineBudget(Profile(ageYears = 30), listOf(coffee(null, 200.0, "Café décaféiné"), coffee(null, 200.0, "Tisane"))))
+        // Product data wins over the estimate.
+        assertEquals(30.0, caffeineBudget(Profile(ageYears = 30), listOf(coffee(15.0, 200.0, "Café")))!!.totalMg, 0.01)
     }
 }
