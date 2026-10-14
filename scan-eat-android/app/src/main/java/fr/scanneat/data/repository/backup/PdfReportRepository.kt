@@ -48,6 +48,7 @@ class PdfReportRepository @Inject constructor(
     private val prefs: UserPreferences,
     private val medicationRepo: fr.scanneat.data.repository.health.MedicationRepository,
     private val symptomRepo: fr.scanneat.data.repository.symptom.SymptomRepository,
+    private val reactionRepo: fr.scanneat.data.repository.reaction.AllergicReactionRepository,
 ) {
     private companion object {
         const val PAGE_W = 595   // A4 @ 72dpi
@@ -85,6 +86,8 @@ class PdfReportRepository @Inject constructor(
         val medCorrelations = fr.scanneat.domain.engine.symptom.symptomMedicationCorrelations(
             symptoms.mapTo(mutableSetOf()) { it.date }, medLogs.map { it.date to it.medicationName })
 
+        val reactions = reactionRepo.observeAll(profileId).first()
+
         val doc = PdfDocument()
         val body = ReportPageBuilder(doc, isFr, dateFmt, currencySymbol)
 
@@ -92,7 +95,7 @@ class PdfReportRepository @Inject constructor(
         body.weightPage(weights, profile)
         body.nutritionPage(weekRollup, monthRollup, targets)
         body.wellnessPage(hydration, fasts, priceEntries)
-        body.healthPage(profile, adherence, interactions.size, symptoms, medCorrelations)
+        body.healthPage(profile, adherence, interactions.size, symptoms, medCorrelations, reactions, language)
 
         return doc
     }
@@ -296,6 +299,8 @@ private class ReportPageBuilder(
         interactionCount: Int,
         symptoms: List<fr.scanneat.data.repository.symptom.SymptomEntry>,
         medCorrelations: List<fr.scanneat.domain.engine.symptom.MedicationCorrelation>,
+        reactions: List<fr.scanneat.data.repository.reaction.AllergicReaction> = emptyList(),
+        language: String = "fr",
     ) {
         val (page, canvas) = newPage()
         var y = 60f
@@ -339,6 +344,19 @@ private class ReportPageBuilder(
             header(if (isFr) "Observations à discuter (pas une preuve médicale)" else "Observations to discuss (not medical proof)")
             medCorrelations.take(5).forEach { c ->
                 line("${c.medicationName} : ${c.symptomDaysWithMedication}/${c.totalSymptomDays} " + (if (isFr) "jours avec symptôme" else "symptom days") + " (p = %.3f)".format(Locale.US, c.pValue))
+            }
+        }
+
+        // Roadmap N10: allergic-reaction log, all entries (an allergist wants the full history).
+        if (reactions.isNotEmpty()) {
+            y += 8f
+            header(if (isFr) "Réactions allergiques notées" else "Logged allergic reactions")
+            reactions.take(8).forEach { r ->
+                val sev = when (r.severity) { 3 -> if (isFr) "sévère" else "severe"; 2 -> if (isFr) "modérée" else "moderate"; else -> if (isFr) "légère" else "mild" }
+                line("${r.date} — ${r.productName} ($sev" + (if (r.epinephrineUsed) (if (isFr) ", adrénaline" else ", adrenaline") else "") + ")")
+            }
+            fr.scanneat.domain.engine.reaction.sharedReactionSuspects(reactions.map { it.ingredients }, language).take(5).forEach { s ->
+                line((if (isFr) "Commun à plusieurs réactions : " else "Shared by several reactions: ") + "${s.label} (${s.reactionCount}/${s.totalReactions})")
             }
         }
 

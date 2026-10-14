@@ -2136,4 +2136,24 @@
     <string name="symptom_robustness_moderate">moderate statistical link</string>
     <string name="notif_action_taken">Taken</string>
     <string name="notif_action_snooze">Snooze 15 min</string>
+    <string name="reactions_title">Reaction log</string>
+    <string name="reactions_add">Log a reaction</string>
+    <string name="reactions_emergency">Emergency (breathing difficulty, swelling, feeling faint): use your adrenaline pen if you have one and call 112.</string>
+    <string name="reactions_suspects_title">Common points to discuss with an allergist</string>
+    <string name="reactions_suspects_disclaimer">Ingredients found in several products linked to your reactions. This is not a diagnosis: only an allergy assessment can confirm it.</string>
+    <string name="reactions_empty">No reaction logged.</string>
+    <string name="reactions_epinephrine">adrenaline used</string>
+    <string name="reactions_severity_mild">Mild</string>
+    <string name="reactions_severity_moderate">Moderate</string>
+    <string name="reactions_severity_severe">Severe</string>
+    <string name="reactions_today">Today</string>
+    <string name="reactions_yesterday">Yesterday</string>
+    <string name="reactions_two_days_ago">2 days ago</string>
+    <string name="reactions_pick_product">Product eaten (recent scans)</string>
+    <string name="reactions_other_product">Or another product\'s name</string>
+    <string name="reactions_symptoms">Symptoms</string>
+    <string name="reactions_epinephrine_question">Adrenaline used?</string>
+    <string name="reactions_notes">Notes</string>
+    <string name="reactions_save">Save</string>
+    <string name="my_safety_reactions">Allergic reaction log</string>
 </resources>

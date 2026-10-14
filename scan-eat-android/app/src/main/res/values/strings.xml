@@ -2140,4 +2140,24 @@
     <string name="symptom_robustness_moderate">lien statistique modéré</string>
     <string name="notif_action_taken">Pris</string>
     <string name="notif_action_snooze">Reporter 15 min</string>
+    <string name="reactions_title">Carnet de réactions</string>
+    <string name="reactions_add">Noter une réaction</string>
+    <string name="reactions_emergency">Urgence (gêne respiratoire, gonflement, malaise) : utilisez votre stylo d\'adrénaline si vous en avez un et appelez le 15 ou le 112.</string>
+    <string name="reactions_suspects_title">Points communs à discuter avec un allergologue</string>
+    <string name="reactions_suspects_disclaimer">Ingrédients présents dans plusieurs produits liés à vos réactions. Ce n\'est pas un diagnostic : seul un bilan allergologique peut le confirmer.</string>
+    <string name="reactions_empty">Aucune réaction notée.</string>
+    <string name="reactions_epinephrine">adrénaline utilisée</string>
+    <string name="reactions_severity_mild">Légère</string>
+    <string name="reactions_severity_moderate">Modérée</string>
+    <string name="reactions_severity_severe">Sévère</string>
+    <string name="reactions_today">Aujourd\'hui</string>
+    <string name="reactions_yesterday">Hier</string>
+    <string name="reactions_two_days_ago">Avant-hier</string>
+    <string name="reactions_pick_product">Produit consommé (scans récents)</string>
+    <string name="reactions_other_product">Ou nom d\'un autre produit</string>
+    <string name="reactions_symptoms">Symptômes</string>
+    <string name="reactions_epinephrine_question">Adrénaline utilisée ?</string>
+    <string name="reactions_notes">Notes</string>
+    <string name="reactions_save">Enregistrer</string>
+    <string name="my_safety_reactions">Carnet de réactions allergiques</string>
 </resources>

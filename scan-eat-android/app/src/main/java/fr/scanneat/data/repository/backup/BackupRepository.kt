@@ -86,6 +86,7 @@ class BackupRepository @Inject constructor(
     internal val biolismRepo: BiolismRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val symptomRepo: fr.scanneat.data.repository.symptom.SymptomRepository,
+    private val reactionDao: fr.scanneat.data.local.db.reaction.AllergicReactionDao,
     // Added 13/08/2026 - app-wide §XI review found Sleep/Mood (and non-food
     // scan history) had real exportAll/importAll functions with zero callers
     // anywhere in the app, the same "real data, silently lost on backup/
@@ -173,6 +174,7 @@ class BackupRepository @Inject constructor(
             nonFoodScans = nonFoodScanRepo.exportAll(),
             misclassificationReports = misclassificationReportRepo.exportAll(),
             savedSearchFilters = savedSearchFilterRepo.exportAll(),
+            allergicReactions = reactionDao.getAllForBackup(),
         )
         val plainJson = bundleAdapter.indent("  ").toJson(bundle)
         // Opt-in - see BackupPassphraseCipher's own doc comment for the file
@@ -393,6 +395,7 @@ class BackupRepository @Inject constructor(
         // every DataStore-backed restore call below.
         pantryRepo.importAll(bundle.pantryItems)
         symptomRepo.importAll(bundle.symptoms)
+        reactionDao.insertAll(bundle.allergicReactions)
         sleepRepo.importAll(bundle.sleep)
         moodRepo.importAll(bundle.mood)
         nonFoodScanRepo.importAll(bundle.nonFoodScans)

@@ -37,6 +37,7 @@ fun MySafetyScreen(
     onOpenProfile: () -> Unit,
     onOpenRecalls: () -> Unit,
     onOpenSources: () -> Unit,
+    onOpenReactions: () -> Unit = {},
 ) {
     val s = viewModel.state.collectAsStateWithLifecycle().value
     val allergenNames = allergenLabels()
@@ -65,6 +66,7 @@ fun MySafetyScreen(
                         Line("${allergenNames[key] ?: key} · $sev")
                     }
                     TextButton(onClick = onOpenProfile) { Text(stringResource(R.string.my_safety_edit_profile)) }
+                    TextButton(onClick = onOpenReactions) { Text(stringResource(R.string.my_safety_reactions)) }
                 }
             }
 

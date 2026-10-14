@@ -233,7 +233,12 @@ fun AppNavGraph(
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onOpenRecalls = { navController.navigate(AppRoutes.RECALLS) },
                 onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
+                onOpenReactions = { navController.navigate(AppRoutes.REACTIONS) },
             )
+        }
+
+        composable(AppRoutes.REACTIONS) {
+            fr.scanneat.presentation.reaction.ReactionsScreen(onBack = { navController.popBackStack() })
         }
 
         composable(AppRoutes.SOURCES) {

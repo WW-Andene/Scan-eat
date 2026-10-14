@@ -552,6 +552,8 @@ et proposer de l'inclure dans le rapport médecin (D5) plutôt que de conclure.
 > *Pourquoi ici :* Contenu santé : se range avec A7/D6 et alimente D5.
 
 ### 24. N10. Carnet de réactions allergiques
+✅ **Fait** : table `allergic_reactions` (migration 40→41, schéma 41 exporté, rejeu des migrations sans différence), écran « Carnet de réactions » depuis « Ma sécurité » (produit choisi parmi les scans récents, ingrédients figés, symptômes, gravité, adrénaline), points communs à discuter avec un allergologue (allergènes de l'annexe II puis ingrédients présents dans ≥ 2 réactions), rappel d'urgence (15/112), sauvegarde et rapport médecin (test `ReactionAnalysisTest`).
+
 Il n'existe aucun endroit pour noter « réaction le 12/10 après X ». Saisie : date, produit (pris dans
 l'historique de scans ou le journal), symptômes, gravité, prise d'adrénaline. Le moteur croise ensuite
 les ingrédients communs aux produits incriminés pour suggérer un **allergène caché à discuter avec un
