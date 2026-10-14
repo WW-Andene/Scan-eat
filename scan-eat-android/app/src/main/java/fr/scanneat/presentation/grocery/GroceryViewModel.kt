@@ -266,6 +266,17 @@ class GroceryViewModel @Inject constructor(
      * previously ignored [_sortAlpha] entirely, so toggling "Sort A-Z" changed the
      * icon's tint but never actually reordered the on-screen checklist.
      */
+    // Roadmap D3: planned cost of the unchecked items vs the weekly budget.
+    val costEstimate: StateFlow<fr.scanneat.domain.engine.expense.GroceryCostEstimate?> by lazy {
+        combine(checkableItems, activeProfileId.flatMapLatest { id -> priceRepo.observeAll(id) }) { items, prices ->
+            val todo = items.filter { !it.checked }.map { it.item.name }
+            if (todo.isEmpty()) null
+            else fr.scanneat.domain.engine.expense.estimateGroceryCost(todo, prices.map { Triple(it.productName, it.date, it.priceEuros) })
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }
+    val budgetWeeklyEuros: StateFlow<Double?> = prefs.budgetWeeklyEuros
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     val checkableItems: StateFlow<List<CheckableGroceryItem>> = combine(groceryItems, activeProfileId.flatMapLatest { id -> checkedRepo.checkedKeys(id) }) { items, checked ->
         items.map { CheckableGroceryItem(it, checked = it.key in checked) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

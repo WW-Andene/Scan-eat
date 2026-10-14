@@ -2226,4 +2226,6 @@
     <string name="dash_card_gaps">Close today\'s gaps</string>
     <string name="dash_card_chronic_gaps">Recurring gaps</string>
     <string name="dash_card_never_logged">Scanned but not logged</string>
+    <string name="grocery_cost_estimate">Estimated cost: %1$s %2$s (known prices for %3$d / %4$d items, from your last purchases)</string>
+    <string name="grocery_cost_budget">weekly budget: %1$s %2$s</string>
 </resources>

@@ -708,6 +708,8 @@ dans ces suggestions les produits **bientôt périmés** et les placer dans le p
 > *Pourquoi ici :* Péremption du garde-manger (même infra de worker que D1).
 
 ### 38. D3 – Plan de repas → courses → dépenses
+✅ **Fait** : la liste de courses affiche son coût estimé (dernier prix payé par article, articles sans prix comptés à part) comparé au budget hebdomadaire existant, en orange s'il le dépasse ; le ticket scanné alimente déjà les dépenses (test `GroceryCostEstimateTest`). Le rapprochement par nom reste une estimation.
+
 les trois modules existent ; il manque le
 bouclage « budget prévu vs ticket scanné » (`ReceiptParser` déjà présent).
 

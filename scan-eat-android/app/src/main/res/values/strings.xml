@@ -2230,4 +2230,6 @@
     <string name="dash_card_gaps">Combler les manques du jour</string>
     <string name="dash_card_chronic_gaps">Manques récurrents</string>
     <string name="dash_card_never_logged">Scannés mais non notés</string>
+    <string name="grocery_cost_estimate">Coût estimé : %1$s %2$s (prix connus pour %3$d / %4$d articles, d\'après vos derniers achats)</string>
+    <string name="grocery_cost_budget">budget de la semaine : %1$s %2$s</string>
 </resources>
