@@ -723,6 +723,8 @@ courses pour un enfant allergique.
 > *Pourquoi ici :* S'appuie sur C10/N6 (veto allergène fiable) : sans eux, les pastilles seraient fausses.
 
 ### 41. D7. Ticket de caisse → garde-manger
+✅ **Fait** : case « Ajouter aussi ces articles au garde-manger » à la validation du ticket (1 unité, fusion avec un article du même nom). Aucune date de péremption n'est inventée : l'utilisateur la saisit dans le garde-manger (une estimation par catégorie serait une affirmation non sourcée).
+
 **Partiellement existant (corrigé après vérification)** : `ReceiptScanViewModel` enregistre déjà
 les prix (`priceRepo.log`) et interagit avec la liste de courses (`ManualGroceryRepository`,
 `GroceryCheckedRepository`). Il n'injecte en revanche **pas** `PantryRepository`. À faire : « Ajouter ces

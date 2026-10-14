@@ -94,6 +94,7 @@ class ReceiptScanViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val manualGroceryRepo: ManualGroceryRepository,
     private val checkedRepo: GroceryCheckedRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
 ) : ViewModel() {
     private val activeProfileId: StateFlow<String> = prefs.activeProfileId
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
@@ -174,7 +175,13 @@ class ReceiptScanViewModel @Inject constructor(
      * actually finishes the "buy this" loop instead of only recording the
      * price with the shopping list left untouched.
      */
-    fun confirmAll() {
+    /**
+     * Roadmap D7: also adds each confirmed line to the pantry (one unit,
+     * merged with an existing row of the same name). No expiry date is
+     * guessed - an estimated date would be an unsourced claim; the user sets
+     * the real one in the pantry.
+     */
+    fun confirmAll(addToPantry: Boolean = false) {
         val current = _state.value as? ReceiptScanState.Review ?: return
         val toLog = current.lines.filter { it.included && it.name.isNotBlank() && it.priceEuros > 0.0 }
         viewModelScope.launch {
@@ -188,6 +195,13 @@ class ReceiptScanViewModel @Inject constructor(
                         priceEuros = line.priceEuros,
                         weightG = null,
                         profileId = activeProfileId.value,
+                    )
+                }
+                if (addToPantry) toLog.forEach { line ->
+                    pantryRepo.addOrUpdate(
+                        name = line.name.trim(), barcode = null, category = ProductCategory.OTHER,
+                        quantity = 1.0, unit = fr.scanneat.data.repository.pantry.PantryUnit.UNITS,
+                        expiryDate = null, profileId = activeProfileId.value,
                     )
                 }
                 val ocrKeys = toLog.map { normalizeKey(it.name) }

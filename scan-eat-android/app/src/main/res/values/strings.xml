@@ -2181,4 +2181,5 @@
     <string name="share_card_blocked">Déconseillé pour mon profil</string>
     <string name="share_card_source">Données :</string>
     <string name="share_card_footer">Noté par Scan\'eat — calculé sur le téléphone</string>
+    <string name="receipt_scan_add_to_pantry">Ajouter aussi ces articles au garde-manger</string>
 </resources>
