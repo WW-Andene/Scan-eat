@@ -296,7 +296,7 @@ internal fun ResultContent(
 
 /** Localized, user-meaningful label for where a scan's data came from - see
  *  the call site's own comment on the raw-enum-name leak this replaces. */
-private fun ScanSource.labelRes(): Int = when (this) {
+internal fun ScanSource.labelRes(): Int = when (this) {
     ScanSource.OPEN_FOOD_FACTS -> R.string.result_source_off
     ScanSource.ON_DEVICE_OCR             -> R.string.result_source_photo
     ScanSource.MERGED          -> R.string.result_source_merged

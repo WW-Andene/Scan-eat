@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Roadmap A9: only the shared result cards are exposed, nothing else from the cache. -->
+<paths>
+    <cache-path name="shared_cards" path="shared_cards/" />
+</paths>

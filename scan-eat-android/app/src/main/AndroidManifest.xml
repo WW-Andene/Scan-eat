@@ -134,6 +134,17 @@
         <!-- ScanEatApp implements Configuration.Provider (Hilt-injected WorkManagerFactory,
              see onCreate()'s enqueueUniquePeriodicWork call) - the default androidx.startup
              auto-initializer must be removed or it races the app's own on-demand init. -->
+        <!-- Roadmap A9: share a result as an image card. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.shareprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/share_paths" />
+        </provider>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

@@ -2177,4 +2177,8 @@
     <string name="auto_backup_passphrase">Mot de passe</string>
     <string name="auto_backup_passphrase_confirm">Confirmer le mot de passe</string>
     <string name="auto_backup_choose_folder">Choisir le dossier</string>
+    <string name="share_card_personal">Pour mon profil : %1$d/100 (%2$s)</string>
+    <string name="share_card_blocked">Déconseillé pour mon profil</string>
+    <string name="share_card_source">Données :</string>
+    <string name="share_card_footer">Noté par Scan\'eat — calculé sur le téléphone</string>
 </resources>

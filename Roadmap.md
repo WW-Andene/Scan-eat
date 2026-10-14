@@ -740,6 +740,8 @@ qui expirent bientôt), puis la liste de courses de la différence avec le garde
 > *Pourquoi ici :* Après D2/D3/D7 : exploite toute la chaîne garde-manger → courses.
 
 ### 43. A9. Partager un résultat sous forme d'image
+✅ **Fait** : le bouton Partager envoie une carte image 1080×1080 (produit, note et grade, verdict personnel ou motif de blocage, source des données, « calculé sur le téléphone ») avec le texte, via un `FileProvider` limité au dossier des cartes ; repli sur le texte seul en cas d'échec (test `ShareCardTest`).
+
 **Partiellement existant (corrigé après vérification)** : `ResultScreen.kt:138` partage déjà un **texte**
 (nom, note, grade). À faire : une carte image (note, verdict personnel, principales alertes, source),
 plus parlante dans une messagerie et plus virale.
