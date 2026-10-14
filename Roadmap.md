@@ -211,7 +211,7 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
   afficher la cible EFSA de fibres même pour un régime restrictif ; ajouter un état « poussée / rémission » pour les MICI.
 
 ### S10. Incohérences internes du calcul 🟡 📖
-✅ **Partiellement fait** : bonus « Peu transformé » compté ; bonus oméga-3 limité à la noix (plus coco, cajou, muscade, pécan, macadamia, Brésil). Restent : pénalités en double (pilier + veto).
+✅ **Partiellement fait** : bonus « Peu transformé » compté ; bonus oméga-3 limité à la noix (plus coco, cajou, muscade, pécan, macadamia, Brésil). Fait ensuite : une déduction à 0 point ne compte plus dans la pénalité globale, et la pénalité « risque cumulé » n'est plus ajoutée quand un veto plafonne déjà la note pour les mêmes faits (une règle = un effet) ; moteur 2.6.0.
 
 - `scoreProcessing` : le bonus « +2 Peu transformé » est **affiché** mais jamais ajouté au score.
 - `scoreNutritionalDensity` : la déduction « Aucun apport… » vaut 0 point mais est classée MAJOR. Elle compte donc dans
