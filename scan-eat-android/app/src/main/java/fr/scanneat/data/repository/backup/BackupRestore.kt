@@ -52,6 +52,9 @@ internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle)
             allergenSeverities = p.allergenSeverities.mapNotNull { (k, v) ->
                 fr.scanneat.domain.model.AllergenSeverity.entries.firstOrNull { it.name == v }?.let { k to it }
             }.toMap(),
+            fatLevel = p.fatLevel?.let { v -> fr.scanneat.domain.model.BodyCompositionLevel.entries.firstOrNull { it.name == v } },
+            muscleLevel = p.muscleLevel?.let { v -> fr.scanneat.domain.model.BodyCompositionLevel.entries.firstOrNull { it.name == v } },
+            sharedReadOnly = p.sharedReadOnly,
         ))
     }
     bundle.settings?.let { s ->
@@ -66,6 +69,9 @@ internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle)
         prefs.setActivityBestStreak(s.activityBestStreak)
         prefs.setBudgetWeeklyEuros(s.budgetWeeklyEuros)
         prefs.setBudgetPerMealEuros(s.budgetPerMealEuros)
+        prefs.setVoiceScoreAnnounce(s.voiceScoreAnnounce)
+        prefs.setHideMedicationNames(s.hideMedicationNames)
+        prefs.setHiddenModules(s.hiddenModules)
     }
     // restoreAll writes every ReminderSettings field in one transaction — the
     // previous piecemeal setBreakfast/setLunch/setDinner/setHydration/setWeight
