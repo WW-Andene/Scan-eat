@@ -88,6 +88,9 @@ internal fun WeightSummaryCard(
             Column(horizontalAlignment = Alignment.End) {
                 val tSign = if (s.trendKgPerWeek >= 0) "+" else "-"
                 Text(stringResource(R.string.weight_trend_kg_week, "$tSign${dispWeight(kotlin.math.abs(s.trendKgPerWeek))}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                if (forecast is WeightForecast.UnderweightGoal) {
+                    Text(stringResource(R.string.weight_goal_underweight), style = MaterialTheme.typography.labelSmall, color = semanticAmber())
+                }
                 if (forecast is WeightForecast.Ok) {
                     Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                 }

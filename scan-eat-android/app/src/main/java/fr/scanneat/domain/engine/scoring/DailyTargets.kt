@@ -124,7 +124,7 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     // branch was patched for (BMR floored at 500, PAL 1.40 -> TDEE ~700),
     // and previously showed that figure as a legitimate maintenance target
     // with every downstream budget scaled to it.
-    val goalAdjustedKcalBase = when (p.goal) {
+    val goalAdjustedKcalBase = when (p.safeGoal) {
         Goal.LOSE     -> (tdee - GOAL_KCAL_ADJUSTMENT).coerceAtLeast(1200.0)
         Goal.GAIN     -> tdee + GOAL_KCAL_ADJUSTMENT
         Goal.MAINTAIN -> tdee.coerceAtLeast(1200.0)

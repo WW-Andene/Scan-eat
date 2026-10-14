@@ -431,6 +431,8 @@ citer : ANSES / HAS. Mentionner une ressource d'aide sur les troubles du comport
 > *Pourquoi ici :* Même logique que C10 (le profil connaît le risque mais le module l'ignore) ; correction locale à un écran.
 
 ### 14. C14. Objectif « Perdre du poids » accepté pour un profil à risque 🟠
+✅ **Fait** : `Profile.safeGoal` remplace LOSE par MAINTAIN (grossesse, < 18 ans, IMC < 18,5) dans tous les calculs (cibles, protéines, ajustements de score), avec explication dans le profil ; un poids cible sous IMC 18,5 affiche une alerte au lieu d'une date (test `SafeGoalTest`).
+
 `ProfileSelectors` propose `Goal.LOSE` sans condition. Le plancher de 1200 kcal
 (`DailyTargets.kt`, l. 109-122) existe, mais rien n'empêche de choisir la perte avec un IMC
 < 18,5, pour un mineur ou pendant une grossesse. Les ajustements de score favorisent alors les produits pauvres en énergie,

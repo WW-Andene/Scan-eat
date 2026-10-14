@@ -85,3 +85,17 @@ enum class AllergenSeverity { SEVERE, ALLERGY, INTOLERANCE }
 
 fun Profile.severityOf(allergenKey: String): AllergenSeverity =
     allergenSeverities[allergenKey] ?: AllergenSeverity.ALLERGY
+
+/**
+ * Roadmap C14: a weight-loss goal is not applied to a pregnant profile, a
+ * minor, or a profile whose BMI is already below 18.5 (WHO underweight) -
+ * the energy deficit and "lighter is better" score adjustments would work
+ * against the BMI adjustments that favour energy-dense foods for them.
+ * Every calculation uses this instead of [Profile.goal].
+ */
+val Profile.weightLossUnsafe: Boolean get() {
+    val bmi = if (heightCm != null && weightKg != null && heightCm > 0 && weightKg > 0) weightKg / ((heightCm / 100) * (heightCm / 100)) else null
+    return "pregnancy" in healthConditions || (ageYears != null && ageYears < 18) || (bmi != null && bmi < 18.5)
+}
+
+val Profile.safeGoal: Goal get() = if (goal == Goal.LOSE && weightLossUnsafe) Goal.MAINTAIN else goal

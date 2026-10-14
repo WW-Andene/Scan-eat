@@ -2081,4 +2081,6 @@
     <string name="allergen_severity_allergy">Allergie</string>
     <string name="allergen_severity_intolerance">Intolérance</string>
     <string name="notif_medication_public_title">Rappel de traitement</string>
+    <string name="profile_goal_lose_unsafe">Objectif de perte de poids non appliqué : grossesse, moins de 18 ans ou IMC inférieur à 18,5. Les calculs utilisent « Maintenir ». Parlez-en à un professionnel de santé.</string>
+    <string name="weight_goal_underweight">Poids cible sous l\'IMC 18,5 (insuffisance pondérale) : parlez-en à un professionnel de santé</string>
 </resources>

@@ -171,7 +171,7 @@ internal fun computeGoalAdjustments(
     lang: String,
 ): List<PersonalAdjustment> {
     val adjustments = mutableListOf<PersonalAdjustment>()
-    when (profile.goal) {
+    when (profile.safeGoal) {
         Goal.LOSE -> {
             // maxOf against the original flat 10g - same category-relative fix
             // as the BMI section's own sat-fat check (which already uses

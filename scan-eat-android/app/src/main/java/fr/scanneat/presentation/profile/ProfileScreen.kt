@@ -265,6 +265,17 @@ fun ProfileScreen(
                 ProfileSection(stringResource(R.string.profile_section_activity)) {
                     ActivitySelector(activity) { activity = it }
                     GoalSelector(goal) { goal = it }
+                    // Roadmap C14: explain why "lose" will not be applied.
+                    val draftForGoal = fr.scanneat.domain.model.Profile(
+                        ageYears = age.toIntOrNull(),
+                        heightCm = heightCm.replace(',', '.').toDoubleOrNull(),
+                        weightKg = weightKg.replace(',', '.').toDoubleOrNull(),
+                        healthConditions = conditions,
+                        goal = goal,
+                    )
+                    if (goal == Goal.LOSE && draftForGoal.weightLossUnsafe) {
+                        Text(stringResource(R.string.profile_goal_lose_unsafe), style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+                    }
                 }
             }
 

@@ -61,7 +61,7 @@ class WeightViewModel @Inject constructor(
 
     val forecast: StateFlow<WeightForecast> = combine(summary, prefs.profile) { s, p ->
         if (s != null && p.goalWeightKg != null)
-            weightForecast(s.latestKg, p.goalWeightKg, s.trendKgPerWeek)
+            weightForecast(s.latestKg, p.goalWeightKg, s.trendKgPerWeek, p.heightCm)
         else WeightForecast.InsufficientData
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WeightForecast.InsufficientData)
 

@@ -2077,4 +2077,6 @@
     <string name="allergen_severity_allergy">Allergy</string>
     <string name="allergen_severity_intolerance">Intolerance</string>
     <string name="notif_medication_public_title">Treatment reminder</string>
+    <string name="profile_goal_lose_unsafe">Weight-loss goal not applied: pregnancy, under 18 or BMI below 18.5. Calculations use “Maintain”. Talk to a health professional.</string>
+    <string name="weight_goal_underweight">Goal weight below BMI 18.5 (underweight): talk to a health professional</string>
 </resources>

@@ -61,7 +61,7 @@ internal suspend fun buildHeavyDashboardState(
     // a plain kcal swap left TodayMacroCard's macro rings computed from the
     // stale profile-only kcal, so they no longer summed to the balance above.
     val targets = (if (hasMinimalProfile(profile)) dailyTargets(profile) else null)
-        ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.goal, currentPregnancyTrimester(profile)) else it }
+        ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.safeGoal, currentPregnancyTrimester(profile)) else it }
     val thisWeek  = weeklyRollup(allEntries, date)
     val priorWeek = weeklyRollup(allEntries, date.minusDays(7))
     val thisMonth = monthlyRollup(allEntries, date)
@@ -84,7 +84,7 @@ internal suspend fun buildHeavyDashboardState(
     }
     val monthDelta = monthOverMonthDelta(thisMonth, monthlyRollup(priorMonthEntries, priorMonthEnd))
     val forecast  = if (wSummary != null && profile.goalWeightKg != null)
-        weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
+        weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek, profile.heightCm)
     else WeightForecast.InsufficientData
     // User-requested: an outdoor activity is a real (if rough) vitamin D source
     // via sun exposure - see VITD_OUTDOOR_UG's own doc comment. [todayActivity]
