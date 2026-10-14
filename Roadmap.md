@@ -693,6 +693,8 @@ un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégor
 > *Pourquoi ici :* Alternatives Open Food Facts (le score local est stabilisé après les phases 2-3).
 
 ### 37. D2 – Garde-manger ↔ dates de péremption
+✅ **Partiellement fait** : dans « Suggérer des recettes › Garde-manger », les produits bientôt périmés sont en tête, présélectionnés et marqués « bientôt périmé » ; les produits déjà périmés sont en dernier et jamais présélectionnés (test `PantrySuggestOrderTest`). Reste : les placer dans le plan de repas (D8).
+
 **Partiellement existant** : `PantryItem.expiryUrgency`, une notification de péremption dans `ReminderWorker`,
 et des suggestions de recettes à partir du garde-manger (`SuggestRecipesDialog`, mode PANTRY). Reste à faire : prioriser
 dans ces suggestions les produits **bientôt périmés** et les placer dans le plan de repas (lien avec D8).
