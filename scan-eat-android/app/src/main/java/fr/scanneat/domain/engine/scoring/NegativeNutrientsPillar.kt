@@ -88,7 +88,7 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // and prosciutto regardless of whether it was unusually salty even for
     // its own category. See CategoryThresholds.kt's saltThresholds doc comment.
     // Defensive fallback lives here too, not just in OffMapper.kt's OFF-specific
-    // conversion — any other entry path (LLM extraction, manual entry, a future
+    // conversion — any other entry path (on-device OCR extraction, manual entry, a future
     // parser) that populates sodiumMg without saltG would otherwise silently
     // score as salt-free. Shares SODIUM_TO_SALT_FACTOR with OffMapper.kt's own
     // fallback so the two independent guard sites can't drift apart.

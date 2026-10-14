@@ -26,7 +26,7 @@ internal fun mapScanHistoryEntity(
         product  = productAdapter.fromJson(entity.productJson) ?: error("productJson corrupt for id=${entity.id}"),
         audit    = auditAdapter.fromJson(entity.auditJson) ?: error("auditJson corrupt for id=${entity.id}"),
         warnings = warningsAdapter.fromJson(entity.warningsJson) ?: emptyList(),
-        source   = ScanSource.valueOf(entity.sourceJson),
+        source   = ScanSource.fromStored(entity.sourceJson),
         barcode   = entity.barcode,
         dbId      = entity.id,
         favorite  = entity.favorite,

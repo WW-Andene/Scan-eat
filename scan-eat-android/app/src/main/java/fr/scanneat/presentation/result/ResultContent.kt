@@ -106,7 +106,7 @@ internal fun ResultContent(
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
             Text("•", color = TextMuted)
             // Was scan.source.name.lowercase().replace('_', ' ') - the internal
-            // ScanSource enum's own identifier (e.g. "open food facts", "llm")
+            // ScanSource enum's own identifier (e.g. "open food facts", "photo")
             // shown verbatim as user-facing copy, same class of leak as the
             // FOOD_DB placeholder fixed earlier this round.
             Text(stringResource(scan.source.labelRes()),
@@ -272,8 +272,8 @@ internal fun ResultContent(
         // whether 12g of fat is a lot or a little relative to their day.
         MacroContributionCard(nutrition = scan.product.nutrition)
 
-        // Warnings — ScanResult.warnings (OCR-parse issues, and OFF-vs-LLM source-
-        // conflict warnings like "Conflict: energy_kcal OFF=120 LLM=340") was
+        // Warnings — ScanResult.warnings (OCR-parse issues, and OFF-vs-on-device OCR source-
+        // conflict warnings like "Conflict: energy_kcal OFF=120 on-device OCR=340") was
         // populated by ScanRepository but never read anywhere in the UI, so the
         // single most actionable warning class — "the label doesn't match Open
         // Food Facts" — was silently swallowed. Merged with audit.warnings here
@@ -293,7 +293,7 @@ internal fun ResultContent(
  *  the call site's own comment on the raw-enum-name leak this replaces. */
 private fun ScanSource.labelRes(): Int = when (this) {
     ScanSource.OPEN_FOOD_FACTS -> R.string.result_source_off
-    ScanSource.LLM             -> R.string.result_source_photo
+    ScanSource.ON_DEVICE_OCR             -> R.string.result_source_photo
     ScanSource.MERGED          -> R.string.result_source_merged
     ScanSource.MANUAL          -> R.string.result_source_manual
 }

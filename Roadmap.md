@@ -269,6 +269,8 @@ Les findings sont rangés dans l'ordre où il est logique de les traiter : les d
 Débloquent tout le reste : sécuriser les migrations **avant** de toucher au schéma ou aux valeurs persistées, et rendre le code lisible avant les chantiers d'UI.
 
 ### 1. C5. Migrations Room non vérifiables 🟠
+✅ **Vérifié (passe 7)** : `tools/check-migrations.py` rejoue les 25 migrations 15→40 dans SQLite et compare au schéma exporté : 0 différence structurelle.
+
 `exportSchema = true`, mais `app/schemas/` ne contient que les versions **15-18, 20-24 et 40**.
 Les snapshots **19 et 25 à 39** manquent : `MigrationTestHelper` ne peut pas valider les
 15 dernières migrations (40 `Migration(` déclarées dans `AppDatabase.kt`). Les mises à
@@ -279,6 +281,8 @@ version → build KSP), puis écrire un test de migration 15→40.
 > *Pourquoi ici :* Prérequis de C6 et de toute évolution de schéma (A1, D1, D2).
 
 ### 2. C7. Séparateur NUL brut dans le code source 🟡
+✅ **Déjà corrigé** : plus aucun octet NUL dans le code source.
+
 `data/repository/planning/ManualGroceryRepository.kt` contient 226 octets `0x00`. Le
 fichier est vu comme **binaire** par git/grep, car il utilise un caractère NUL littéral comme séparateur
 (`split('<NUL>')`) dans DataStore. Les revues, diffs et recherches ignorent silencieusement ce fichier.
@@ -293,6 +297,8 @@ les 40 migrations dans `Migrations.kt`), `Theme.kt` (627 l.), `ScoringEngine` (6
 > *Pourquoi ici :* Extraire les migrations d'`AppDatabase` (aide C5) et découper `ScanViewModel`/écran résultat avant C1-C2.
 
 ### 4. C6. Vestiges « LLM » trompeurs 🟡
+✅ **Fait** : `ScanSource.LLM` → `ON_DEVICE_OCR` (l'ancienne valeur stockée « LLM » est relue par `ScanSource.fromStored`), `mergeOffWithLlm` → `mergeOffWithPhoto`, commentaires corrigés (test `ScanSourceTest`).
+
 106 mentions de `LLM` dans le code, dont l'énum `ScanSource.LLM` utilisée pour les
 **photos lues sur l'appareil par ML Kit**, des commentaires « OFF-vs-LLM conflict » et le
 commentaire de `FoodDb.kt` (« falling back to the LLM's own rough macro guess »). Le README

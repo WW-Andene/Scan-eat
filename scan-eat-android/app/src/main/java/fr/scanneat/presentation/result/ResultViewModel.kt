@@ -257,7 +257,7 @@ class ResultViewModel @Inject constructor(
     fun clearLogState() { _logState.value = LogState.Idle }
 
     // Price history for this exact product — matched by barcode when the scan has
-    // one, else falls back to matching by name (LLM-identified/no-barcode scans
+    // one, else falls back to matching by name (photo-identified/no-barcode scans
     // still worth tracking a price against). Empty until a scan is loaded.
     val priceEntries: StateFlow<List<PriceEntry>> = combine(state, profile.map { it.id }.flatMapLatest { id -> priceRepo.observeAll(id) }) { s, all ->
         val scan = s.scanResult ?: return@combine emptyList()

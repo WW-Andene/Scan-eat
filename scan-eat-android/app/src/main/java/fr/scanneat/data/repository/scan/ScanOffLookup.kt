@@ -10,7 +10,7 @@ import fr.scanneat.domain.engine.nutrition.detectSourceConflicts
 import fr.scanneat.domain.engine.nutrition.hasOffNutritionData
 import fr.scanneat.domain.engine.nutrition.isOffSparse
 import fr.scanneat.domain.engine.nutrition.mapOffProduct
-import fr.scanneat.domain.engine.nutrition.mergeOffWithLlm
+import fr.scanneat.domain.engine.nutrition.mergeOffWithPhoto
 import fr.scanneat.domain.engine.nutrition.withEstimatedMicronutrients
 import fr.scanneat.domain.engine.scoring.scoreProduct
 import fr.scanneat.data.remote.api.ImagePayload
@@ -226,19 +226,19 @@ internal class ScanOffLookup(
         val (finalProduct, source, warnings) = when {
             offProduct != null && isOffSparse(offProduct) && images.isNotEmpty() -> {
                 val parsed    = labelReader.parseLabel(images, lang)
-                val merged    = mergeOffWithLlm(offProduct, parsed.product)
+                val merged    = mergeOffWithPhoto(offProduct, parsed.product)
                 val conflicts = detectSourceConflicts(offProduct, parsed.product)
                 Triple(merged, ScanSource.MERGED,
                     parsed.warnings + conflicts.map { conflictMessage(lang, it.field, it.offValue, it.llmValue) })
             }
             // User-reported (2nd round): the previous fix here guessed macros from
-            // the LLM's training-data knowledge of the product name/brand - that's
+            // the photo reading's training-data knowledge of the product name/brand - that's
             // an approximation, not the real values actually printed on the
             // package the user is holding. Reworked to instead ask for exactly
             // that: reuses the same "product found, needs a photo" retry flow
             // ScanViewModel already has (needsPhoto=true, see ProductNotFoundException
             // handling there) so the user's next scan attempt includes a photo of
-            // the nutrition panel, which the existing OFF+LLM merge branch above
+            // the nutrition panel, which the existing OFF+on-device OCR merge branch above
             // then reads for real - never a guess.
             //
             // User-reported (3rd round): this used the full isOffSparse() check,
@@ -260,13 +260,13 @@ internal class ScanOffLookup(
             offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
             images.isNotEmpty() -> {
                 val parsed = labelReader.parseLabel(images, lang)
-                Triple(parsed.product, ScanSource.LLM, parsed.warnings)
+                Triple(parsed.product, ScanSource.ON_DEVICE_OCR, parsed.warnings)
             }
             else -> throw ProductNotFoundException(productNotFoundMessage(lang))
         }
 
         // Fills iron/calcium/magnesium/potassium/zinc/vitC/vitD/B12 with a
-        // category-representative estimate wherever OFF/LLM declared none at all -
+        // category-representative estimate wherever OFF/on-device OCR declared none at all -
         // see MicronutrientEstimator.kt for why: most barcode products simply never
         // list these, which previously meant a real, common food (e.g. beef,
         // fresh_meat) logged with zero iron impact on the day's totals, every time.
@@ -275,7 +275,7 @@ internal class ScanOffLookup(
         )
         val audit = scoreProduct(estimatedProduct, lang)
         val result = ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
-        // Cache only the plain OFF-only path - a photo-augmented result (MERGED/LLM
+        // Cache only the plain OFF-only path - a photo-augmented result (MERGED/on-device OCR
         // source) reflects photos this specific user just took, not a stable
         // barcode-keyed answer safe to hand back for someone else's rescan.
         if (images.isEmpty() && source == ScanSource.OPEN_FOOD_FACTS) {

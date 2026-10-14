@@ -319,7 +319,7 @@ class DiaryViewModel @Inject constructor(
     // Previously the FOOD_DB/custom-food search above was the only source Quick
     // Add could ever find - ScanHistoryDao.searchByName already exists, already
     // indexed, and already powers ScanHistoryScreen, but a barcoded product
-    // scanned last week (with real OFF/LLM-sourced nutrition, not a FOOD_DB
+    // scanned last week (with real OFF/on-device OCR-sourced nutrition, not a FOOD_DB
     // approximation) was completely unreachable from this "+" flow: the user
     // had to leave Diary, go to History, and there was no logging affordance
     // there either.

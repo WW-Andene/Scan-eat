@@ -148,7 +148,7 @@ internal val OFF_ALLERGEN_TAG_MAP: Map<String, String> = mapOf(
 
 /**
  * Reverse of [OFF_ALLERGEN_TAG_MAP] — ANNEX_II short key → OFF-style tag.
- * Lets a non-OFF source (the vision LLM's own label reading — see OcrParser.
+ * Lets a non-OFF source (the on-device OCR's own label reading — see OcrParser.
  * buildLabelPrompt's allergen_declarations field) populate
  * Product.declaredAllergenTags in the same "en:xxx" vocabulary OFF itself
  * uses, so [detectAllergens] needs no separate code path per source.

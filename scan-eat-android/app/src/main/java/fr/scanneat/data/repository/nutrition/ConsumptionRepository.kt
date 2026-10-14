@@ -196,7 +196,7 @@ class ConsumptionRepository @Inject constructor(
             // code-audit §D5/D6: was bare !! - already caught/logged by the
             // .onFailure below, but error() names the corrupt field explicitly.
             nutrition   = nutritionAdapter.fromJson(nutritionJson) ?: error("nutritionJson corrupt for id=$id"),
-            source      = ScanSource.valueOf(source),
+            source      = ScanSource.fromStored(source),
             profileId   = profileId,
             ingredients = ingredientsAdapter.fromJson(ingredientsJson) ?: emptyList(),
             category    = category?.let { runCatching { ProductCategory.valueOf(it) }.getOrNull() } ?: ProductCategory.OTHER,

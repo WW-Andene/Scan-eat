@@ -6,15 +6,15 @@ import fr.scanneat.domain.model.ProductCategory
 
 // ============================================================================
 // OFF MERGE — split out of OffMapper.kt: merges an OFF-sourced Product with an
-// LLM-extracted one, and flags cross-source disagreements.
+// on-device OCR-extracted one, and flags cross-source disagreements.
 // ============================================================================
 
 /**
- * Merge OFF record with LLM extraction.
- * OFF is the trusted baseline; LLM fills empty / zero fields.
+ * Merge OFF record with on-device OCR extraction.
+ * OFF is the trusted baseline; on-device OCR fills empty / zero fields.
  * Port of mergeOFFWithLLM from off.ts.
  */
-fun mergeOffWithLlm(off: Product, llm: Product): Product {
+fun mergeOffWithPhoto(off: Product, photo: Product): Product {
     fun <T> prefer(offVal: T, llmVal: T, isEmpty: (T) -> Boolean): T =
         if (isEmpty(offVal)) llmVal else offVal
 
@@ -26,7 +26,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
     // unrelated to nutrition (isOffSparse is also true when ingredients or
     // category are missing - see ScanOffLookup's own 3rd-round fix for exactly
     // this), so treating every OFF zero as "empty" meant a perfectly real,
-    // trustworthy zero silently lost to the LLM's photo-read guess whenever
+    // trustworthy zero silently lost to the photo reading's photo-read guess whenever
     // merge fired for an unrelated field. When OFF's overall nutrition profile
     // already passes hasOffNutritionData() (real macros, or the corroborated
     // all-zero-water case), a 0.0 on an individual field is real declared
@@ -60,7 +60,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         b12Ug         = o.b12Ug         ?: l.b12Ug,
         // b1Mg/b2Mg/b3Mg were missing here even though NutritionPer100g carries all
         // three and OffMapper.kt already maps them from OFF - any product that also
-        // went through LLM merge (isOffSparse true for some unrelated field, e.g.
+        // went through on-device OCR merge (isOffSparse true for some unrelated field, e.g.
         // missing category) silently dropped OFF's own B1/B2/B3 values back to null,
         // losing the benefit/risk hints ProductHintsBenefitsRisks.kt derives from them.
         b1Mg          = o.b1Mg          ?: l.b1Mg,
@@ -78,43 +78,43 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
     )
 
     return Product(
-        name        = prefer(off.name, llm.name, emptyStr),
-        category    = if (off.category != ProductCategory.OTHER) off.category else llm.category,
-        novaClass   = if (off.novaDeclared || !llm.novaDeclared) off.novaClass else llm.novaClass,
-        novaDeclared = off.novaDeclared || llm.novaDeclared,
+        name        = prefer(off.name, photo.name, emptyStr),
+        category    = if (off.category != ProductCategory.OTHER) off.category else photo.category,
+        novaClass   = if (off.novaDeclared || !photo.novaDeclared) off.novaClass else photo.novaClass,
+        novaDeclared = off.novaDeclared || photo.novaDeclared,
         // Threshold matches isOffSparse's own documented rule above: a genuine
         // 1-2 ingredient product (water, salt, single-origin oil) is real,
-        // correct OFF data, not a gap to paper over with an LLM guess. This
+        // correct OFF data, not a gap to paper over with an on-device OCR guess. This
         // used to require >= 3 ingredients to count as "present", so merge
         // (triggered by isOffSparse being true for some unrelated field, e.g.
         // missing category) silently threw away a short-but-correct OFF
-        // ingredient list and substituted the LLM's guess instead.
-        ingredients = prefer(off.ingredients, llm.ingredients) { it.isEmpty() },
-        nutrition   = mergeNutrition(off.nutrition, llm.nutrition),
-        weightG             = off.weightG     ?: llm.weightG,
-        origin              = off.origin      ?: llm.origin,
-        organic             = off.organic     || llm.organic,
-        hasHealthClaims     = off.hasHealthClaims || llm.hasHealthClaims,
-        hasMisleadingMarketing = off.hasMisleadingMarketing || llm.hasMisleadingMarketing,
-        namedOils           = off.namedOils   ?: llm.namedOils,
-        originTransparent   = off.originTransparent || llm.originTransparent,
-        wholeGrainPrimary   = off.wholeGrainPrimary || llm.wholeGrainPrimary,
-        fermented           = off.fermented || llm.fermented,
-        declaredMicronutrients = (off.declaredMicronutrients + llm.declaredMicronutrients).distinct(),
+        // ingredient list and substituted the photo reading's guess instead.
+        ingredients = prefer(off.ingredients, photo.ingredients) { it.isEmpty() },
+        nutrition   = mergeNutrition(off.nutrition, photo.nutrition),
+        weightG             = off.weightG     ?: photo.weightG,
+        origin              = off.origin      ?: photo.origin,
+        organic             = off.organic     || photo.organic,
+        hasHealthClaims     = off.hasHealthClaims || photo.hasHealthClaims,
+        hasMisleadingMarketing = off.hasMisleadingMarketing || photo.hasMisleadingMarketing,
+        namedOils           = off.namedOils   ?: photo.namedOils,
+        originTransparent   = off.originTransparent || photo.originTransparent,
+        wholeGrainPrimary   = off.wholeGrainPrimary || photo.wholeGrainPrimary,
+        fermented           = off.fermented || photo.fermented,
+        declaredMicronutrients = (off.declaredMicronutrients + photo.declaredMicronutrients).distinct(),
         ecoscoreGrade   = off.ecoscoreGrade,
         ecoscoreValue   = off.ecoscoreValue,
         nutriscoreGrade = off.nutriscoreGrade,
-        // Previously kept only off.declaredAllergenTags, discarding the LLM's own -
+        // Previously kept only off.declaredAllergenTags, discarding the photo reading's own -
         // LlmLabelParser.mapToProduct() reads the packaging's printed allergen box
         // (allergen_declarations) into declaredAllergenTags just like OFF's allergens_tags,
         // but OFF frequently has none even for a well-populated record, silently losing
-        // a real, LLM-read allergen declaration on merge. Mirrors declaredMicronutrients'
+        // a real, on-device OCR-read allergen declaration on merge. Mirrors declaredMicronutrients'
         // union just above.
-        declaredAllergenTags = (off.declaredAllergenTags + llm.declaredAllergenTags).distinct(),
-        // OFF-only field - the LLM/photo path has no equivalent "may contain
+        declaredAllergenTags = (off.declaredAllergenTags + photo.declaredAllergenTags).distinct(),
+        // OFF-only field - the on-device OCR/photo path has no equivalent "may contain
         // traces" concept to read (it only extracts the packaging's printed
         // allergen box, a confirmed declaration, not precautionary labeling),
-        // so llm.declaredTracesTags is always empty and this is effectively
+        // so photo.declaredTracesTags is always empty and this is effectively
         // a pass-through of OFF's own value.
         declaredTracesTags = off.declaredTracesTags,
     )
@@ -122,7 +122,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
 
 data class SourceConflict(val field: String, val offValue: String, val llmValue: String)
 
-fun detectSourceConflicts(off: Product, llm: Product): List<SourceConflict> {
+fun detectSourceConflicts(off: Product, photo: Product): List<SourceConflict> {
     val conflicts = mutableListOf<SourceConflict>()
     fun check(field: String, o: Double, l: Double, unit: String = "g") {
         if (o > 0 && l > 0 && kotlin.math.abs(o - l) / maxOf(o, l) > 0.3)
@@ -131,13 +131,13 @@ fun detectSourceConflicts(off: Product, llm: Product): List<SourceConflict> {
     // energy_kcal was never checked here despite being the single most
     // user-visible and most error-prone field (OffMapper.kt even derives it
     // via a kJ→kcal fallback when OFF's own kcal field is absent) - a >30%
-    // OFF-vs-LLM calorie disagreement previously went completely unflagged
+    // OFF-vs-on-device OCR calorie disagreement previously went completely unflagged
     // while the same-magnitude mismatch on protein/fat/carbs/sugars already
     // surfaced a warning.
-    check("energy_kcal", off.nutrition.energyKcal, llm.nutrition.energyKcal, unit = "kcal")
-    check("protein_g", off.nutrition.proteinG, llm.nutrition.proteinG)
-    check("fat_g",     off.nutrition.fatG,     llm.nutrition.fatG)
-    check("carbs_g",   off.nutrition.carbsG,   llm.nutrition.carbsG)
-    check("sugars_g",  off.nutrition.sugarsG,  llm.nutrition.sugarsG)
+    check("energy_kcal", off.nutrition.energyKcal, photo.nutrition.energyKcal, unit = "kcal")
+    check("protein_g", off.nutrition.proteinG, photo.nutrition.proteinG)
+    check("fat_g",     off.nutrition.fatG,     photo.nutrition.fatG)
+    check("carbs_g",   off.nutrition.carbsG,   photo.nutrition.carbsG)
+    check("sugars_g",  off.nutrition.sugarsG,  photo.nutrition.sugarsG)
     return conflicts
 }

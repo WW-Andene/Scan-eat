@@ -157,7 +157,7 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
         GENERIC_OIL_TERMS.any { n.contains(it) }
     }
     // product.namedOils is near-always null for barcode-scanned OFF products
-    // (it's only populated on the LLM fresh-food-identification path), so
+    // (it's only populated on the on-device OCR fresh-food-identification path), so
     // `product.namedOils != false` was true for virtually every product
     // regardless of whether it contained any oil at all - an oil-free product
     // (fish fillet, yogurt, soda) silently collected the same +3 "oils

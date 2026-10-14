@@ -82,7 +82,7 @@ private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<De
     val bonuses = mutableListOf<Deduction>()
     if (product.organic) bonuses += Deduction("global_bonus", if (en) "Organic certification" else "Certification biologique", 2.0, Severity.INFO)
     if (product.wholeGrainPrimary) bonuses += Deduction("global_bonus", if (en) "Whole grain as primary grain" else "Céréale complète en ingrédient principal", 3.0, Severity.INFO)
-    // ALCOHOLIC_BEVERAGE excluded - "fermented" is judged from OFF data/LLM
+    // ALCOHOLIC_BEVERAGE excluded - "fermented" is judged from OFF data/on-device OCR
     // inference with no exclusion of the literal alcoholic-fermentation
     // process (OcrPrompts.kt's own instruction just says "judge from what's
     // visible," no alcohol carve-out), so beer/wine/cider previously earned
@@ -466,7 +466,7 @@ private fun collectWarnings(product: Product, lang: String = "en"): List<String>
  */
 fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
     val en = lang == "en"
-    // Final fallback: if both OFF and LLM landed on 'other', infer from name
+    // Final fallback: if both OFF and on-device OCR landed on 'other', infer from name
     val product = if (input.category == ProductCategory.OTHER) {
         val inferred = inferCategoryFromName(input.name)
         if (inferred != ProductCategory.OTHER) input.copy(category = inferred) else input

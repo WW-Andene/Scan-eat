@@ -23,7 +23,7 @@ internal fun buildKeyInfo(product: Product, lang: String): List<String> {
 }
 
 /** Origin, cholesterol, and curated ingredient trivia (see IngredientFactsDb
- *  for why this is a hand-curated substring match rather than LLM-generated). */
+ *  for why this is a hand-curated substring match rather than on-device OCR-generated). */
 internal fun buildFacts(product: Product, lang: String): List<String> {
     val en = lang == "en"
     val n = product.nutrition

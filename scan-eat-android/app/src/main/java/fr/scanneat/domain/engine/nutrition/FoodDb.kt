@@ -14,17 +14,17 @@ import java.text.Normalizer
 //   (ANSES, https://ciqual.anses.fr/, DOI 10.5281/zenodo.4770600).
 //   NOT a bit-for-bit export. Accurate to ±10 % for these ~230 foods
 //   (expanded 2026-07-17 from the original ~54, then again 2026-08-03 from
-//   ~146 to ~230 - Quick Add search and LLM reconciliation previously
+//   ~146 to ~230 - Quick Add search and on-device OCR reconciliation previously
 //   missed most common everyday foods outside the smaller sets, e.g.
 //   peach/cauliflower/turkey/tofu/hazelnut/hummus in the first expansion,
 //   then passion fruit/fennel/sourdough bread/rabbit/pecan/raclette/
 //   maple syrup/ratatouille/kebab and more in the second - falling back to
-//   the LLM's own rough macro guess instead of a grounded CIQUAL-style
+//   the photo reading's own rough macro guess instead of a grounded CIQUAL-style
 //   value for anything not in it).
 //   Do not use for clinical or research work without verifying against
 //   the canonical ANSES XML distribution.
 //
-// Used for: Quick Add autocomplete, LLM-identify reconciliation.
+// Used for: Quick Add autocomplete, photo-identify reconciliation.
 //
 // Data split across sibling files in this package (model + per-category
 // entries); this file assembles FOOD_DB and holds search/reconciliation:
@@ -111,7 +111,7 @@ fun searchFoodDB(
 }
 
 // ============================================================================
-// LLM reconciliation
+// on-device OCR reconciliation
 // ============================================================================
 
 data class ReconcileResult(
@@ -121,26 +121,26 @@ data class ReconcileResult(
     val proteinG: Double,
     val carbsG: Double,
     val fatG: Double,
-    val source: String,            // "db" | "llm"
+    val source: String,            // "db" | "photo"
     val matchedName: String? = null,
 )
 
 /**
- * Match an LLM-identified food against the DB. On hit, replace per-100g
- * macros with CIQUAL values while keeping the LLM's gram estimate.
+ * Match an photo-identified food against the DB. On hit, replace per-100g
+ * macros with CIQUAL values while keeping the photo reading's gram estimate.
  * Port of reconcileWithFoodDB() from food-db.js.
  */
 fun reconcileWithFoodDB(
     name: String,
     estimatedGrams: Double,
-    llmKcal: Double,
-    llmProteinG: Double,
-    llmCarbsG: Double,
-    llmFatG: Double,
+    photoKcal: Double,
+    photoProteinG: Double,
+    photoCarbsG: Double,
+    photoFatG: Double,
     extraFoods: List<FoodEntry> = emptyList(),
 ): ReconcileResult {
     if (estimatedGrams <= 0) {
-        return ReconcileResult(name, estimatedGrams, llmKcal, llmProteinG, llmCarbsG, llmFatG, "llm")
+        return ReconcileResult(name, estimatedGrams, photoKcal, photoProteinG, photoCarbsG, photoFatG, "photo")
     }
 
     fun tryMatch(q: String): FoodEntry? = searchFoodDB(q, 1, extraFoods).firstOrNull()
@@ -152,7 +152,7 @@ fun reconcileWithFoodDB(
     }
 
     if (match == null) {
-        return ReconcileResult(name, estimatedGrams, llmKcal, llmProteinG, llmCarbsG, llmFatG, "llm")
+        return ReconcileResult(name, estimatedGrams, photoKcal, photoProteinG, photoCarbsG, photoFatG, "photo")
     }
 
     val f = estimatedGrams / 100.0

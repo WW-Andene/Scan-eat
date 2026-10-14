@@ -163,7 +163,7 @@ data class NutritionPer100g(
     val alcoholPercentVol: Double? = null,
     // True when one or more of the mineral/vitamin fields above were filled in by
     // MicronutrientEstimator.kt (category-based typical values) rather than
-    // actually declared by the source (OFF/LLM) - most barcode products simply
+    // actually declared by the source (OFF/on-device OCR) - most barcode products simply
     // never list iron/calcium/zinc/etc, which previously meant a user who scanned
     // and logged real food (e.g. beef) saw their iron intake silently stay at 0g
     // for the day. Surfaced in MicronutrientCard so an estimate is never presented
@@ -223,7 +223,7 @@ data class Product(
     // OFF's own curated allergen tags (e.g. "en:gluten", "en:milk") - verified
     // against the manufacturer's declaration, more reliable than regexing the
     // free-text ingredient list. Empty when OFF has none declared or the
-    // product came from the LLM/photo fallback path instead.
+    // product came from the on-device OCR/photo fallback path instead.
     val declaredAllergenTags: List<String> = emptyList(),
     // OFF's own curated traces_tags (e.g. "en:nuts") - manufacturer's
     // precautionary "may contain traces of X" cross-contamination labeling,
@@ -359,4 +359,17 @@ data class ScanResult(
     val rescoredFrom: Int? = null,
 )
 
-enum class ScanSource { OPEN_FOOD_FACTS, LLM, MERGED, MANUAL }
+/**
+ * Where a scan's data came from. ON_DEVICE_OCR = label/photo read on the
+ * device by ML Kit (no AI service is used - see README); it was named `LLM`
+ * until Roadmap C6, and rows stored before that keep the string "LLM", which
+ * [fromStored] maps back.
+ */
+enum class ScanSource {
+    OPEN_FOOD_FACTS, ON_DEVICE_OCR, MERGED, MANUAL;
+
+    companion object {
+        fun fromStored(name: String): ScanSource =
+            if (name == "LLM") ON_DEVICE_OCR else valueOf(name)
+    }
+}

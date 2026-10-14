@@ -31,7 +31,7 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 // these exact metrics from Open Food Facts and computes them locally, yet a
 // user comparing Scan'eat's own result against the label's printed NutriScore
 // letter, or OFF's own listing, had no way to see them side by side. Each
-// badge omits itself when the underlying value is absent (LLM/photo-sourced
+// badge omits itself when the underlying value is absent (on-device OCR/photo-sourced
 // scans usually carry neither eco-score nor NutriScore).
 
 @Composable

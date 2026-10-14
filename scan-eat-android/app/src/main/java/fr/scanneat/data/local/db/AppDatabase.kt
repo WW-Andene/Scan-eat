@@ -298,7 +298,7 @@ val MIGRATION_16_17 = object : Migration(16, 17) {
         // ResultViewModel's scoreDelta/scoreHistory feature to compare against. That
         // feature was therefore structurally dead for every barcoded scan (the vast
         // majority of real scans) and only ever worked for the rarer no-barcode/
-        // LLM-identified path. This table is an append-only log written alongside
+        // photo-identified path. This table is an append-only log written alongside
         // (not instead of) scan_history, purely to give that feature real data.
         db.execSQL(
             "CREATE TABLE IF NOT EXISTS `scan_score_history` (" +
@@ -327,7 +327,7 @@ val MIGRATION_18_19 = object : Migration(18, 19) {
     override fun migrate(db: SupportSQLiteDatabase) {
         // v18 → v19: scan_history gains warningsJson - OcrParser.buildWarnings()/
         // detectSourceConflicts() produce real per-scan warning messages
-        // (unreadable nutrition values, barcode-vs-label mismatches, OFF/LLM
+        // (unreadable nutrition values, barcode-vs-label mismatches, OFF/on-device OCR
         // conflicts) that ResultContent's WarningsSection was already built to
         // render, but scan_history had nowhere to store them - every persisted
         // scan silently lost this half of ScanResult.warnings, so the section

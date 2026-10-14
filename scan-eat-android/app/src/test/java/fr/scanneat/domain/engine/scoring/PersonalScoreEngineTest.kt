@@ -515,7 +515,7 @@ class PersonalScoreEngineTest {
     fun `Juice-blended soda with low added sugar is not treated as SSB, even with higher total sugar`() {
         // isSugarSweetenedBeverage previously hard-coded total sugarsG despite
         // its own comment claiming to match checkVeto's addedSugarsG-preferring
-        // definition exactly - a real divergence for any beverage where OFF/LLM
+        // definition exactly - a real divergence for any beverage where OFF/on-device OCR
         // populates addedSugarsG separately and lower than sugarsG (e.g. a soda
         // blended with real fruit juice). addedSugarsG=4.5 (<=5) must NOT be
         // treated as SSB even though total sugarsG=8.9 (>5) alone would suggest it.

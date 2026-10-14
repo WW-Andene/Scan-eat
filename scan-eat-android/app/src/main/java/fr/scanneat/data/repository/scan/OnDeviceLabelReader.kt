@@ -24,7 +24,7 @@ data class ParseLabelResult(
 /**
  * Reads a packaging photo entirely on the device: ML Kit text recognition
  * (bundled model, no network) then [parseLabelText]. Replaces the former
- * vision-LLM call - nothing leaves the phone and no API key is needed.
+ * cloud vision-model call - nothing leaves the phone and no API key is needed.
  */
 @javax.inject.Singleton
 class OnDeviceLabelReader @javax.inject.Inject constructor() {

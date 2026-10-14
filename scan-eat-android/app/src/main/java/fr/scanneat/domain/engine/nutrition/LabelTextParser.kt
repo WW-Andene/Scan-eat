@@ -13,7 +13,7 @@ import fr.scanneat.util.hasValidGs1CheckDigit
 import java.text.Normalizer
 
 // ============================================================================
-// LABEL TEXT PARSER — on-device replacement for the former vision-LLM label
+// LABEL TEXT PARSER — on-device replacement for the former cloud vision-model label
 // reading. Input is the text lines ML Kit recognised on a packaging photo,
 // with their bounding boxes; output is a draft Product the regular scoring
 // engine then scores. Pure and deterministic, so it's unit-testable.

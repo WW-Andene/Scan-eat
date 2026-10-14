@@ -40,7 +40,7 @@ private val CATEGORY_REF_PRICE_PER_KG: Map<ProductCategory, Double> = mapOf(
     // fallback in opposite directions (honey underrated as POOR value, cheap
     // jam overrated as GREAT/GOOD). Missing entirely until now, the same
     // hand-maintained-map-drift risk this category was already found to hit
-    // in the OFF tag mapper and LLM prompt schema. 12€ splits the difference
+    // in the OFF tag mapper and on-device OCR prompt schema. 12€ splits the difference
     // toward honey's higher typical price since jam's own ratio error at a
     // shared reference is smaller in absolute terms.
     ProductCategory.SPREAD_SWEET     to 12.0,
