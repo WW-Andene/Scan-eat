@@ -2271,7 +2271,6 @@
     <string name="settings_hide_med_names_hint">Dose reminders never show the medication name, even when the phone is unlocked.</string>
     <string name="medication_supply_title">Stock and prescription</string>
     <string name="medication_supply_stock">Doses left in the box</string>
-    <string name="medication_supply_renewal">Prescription end (YYYY-MM-DD)</string>
     <string name="medication_supply_days_left">About %1$d days of treatment left</string>
     <string name="medication_notif_low_stock">Low stock: about %1$d days left.</string>
     <string name="medication_notif_renewal_due">Prescription to renew soon.</string>
@@ -2279,4 +2278,6 @@
     <string name="scan_identify_choose_other">Not right? Other matches:</string>
     <string name="scan_identify_choose_confirm">That\'s right</string>
     <string name="trial_target_polyols">Polyols (FODMAP)</string>
+    <string name="medication_supply_renewal_set">Prescription end: pick a date</string>
+    <string name="medication_supply_renewal_on">Prescription end: %1$s</string>
 </resources>
