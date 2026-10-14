@@ -60,6 +60,7 @@ private fun offlineMessage(lang: String) =
 @Singleton
 class ScanRepository @Inject constructor(
     private val offApi: OpenFoodFactsApi,
+    private val salApi: fr.scanneat.data.remote.api.SearchaliciousApi,
     private val opfApi: OpenProductsFactsApi,
     private val obfApi: OpenBeautyFactsApi,
     private val dao: ScanHistoryDao,
@@ -79,7 +80,7 @@ class ScanRepository @Inject constructor(
     )
 
     // Open Food Facts lookups (with on-device label reading for sparse records) live in ScanOffLookup.
-    private val offLookup = ScanOffLookup(offApi, labelReader)
+    private val offLookup = ScanOffLookup(offApi, labelReader, salApi)
 
     // ---- History ----
     //

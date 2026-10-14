@@ -75,6 +75,19 @@ object NetworkModule {
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
+    // Roadmap A8: Search-a-licious (new OFF search API).
+    @Provides @Singleton @Named("sal")
+    fun provideSalRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://search.openfoodfacts.org/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides @Singleton
+    fun provideSalApi(@Named("sal") retrofit: Retrofit): fr.scanneat.data.remote.api.SearchaliciousApi =
+        retrofit.create(fr.scanneat.data.remote.api.SearchaliciousApi::class.java)
+
     @Provides @Singleton @Named("opf")
     fun provideOpfRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
         Retrofit.Builder()

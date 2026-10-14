@@ -54,6 +54,7 @@ private fun conflictMessage(lang: String, field: String, offValue: Any?, llmValu
 internal class ScanOffLookup(
     private val offApi: OpenFoodFactsApi,
     private val labelReader: OnDeviceLabelReader,
+    private val salApi: fr.scanneat.data.remote.api.SearchaliciousApi,
 ) {
     /**
      * Looks up a barcode on OFF, retrying against every plausible alternate
@@ -307,7 +308,8 @@ internal class ScanOffLookup(
         kotlinx.coroutines.withTimeoutOrNull(6000L) {
             val tags = offApi.getProduct(barcode, fields = "categories_tags").product?.categoriesTags.orEmpty()
             val tag = tags.lastOrNull { it.startsWith("en:") } ?: return@withTimeoutOrNull emptyList()
-            offApi.searchByCategory(tag, lang = lang).products.orEmpty().mapNotNull { dto -> mapSearchResult(dto, lang) }
+            salApi.search(q = fr.scanneat.data.remote.api.salCategoryQuery(tag), langs = lang, sortBy = "-unique_scans_n")
+                .hits.orEmpty().mapNotNull { hit -> mapSearchResult(hit.toOffProductDto(), lang) }
         } ?: emptyList()
     } catch (e: kotlinx.coroutines.CancellationException) {
         throw e
@@ -325,7 +327,8 @@ internal class ScanOffLookup(
         var lastErr: Throwable? = null
         repeat(OFF_MAX_ATTEMPTS) { attempt ->
             try {
-                return offApi.searchProducts(searchTerms = query, pageSize = limit, lang = lang)
+                // Roadmap A8: Search-a-licious instead of the legacy cgi/search.pl.
+                return OffSearchResponse(salApi.search(q = query, pageSize = limit, langs = lang).hits.orEmpty().map { it.toOffProductDto() })
             } catch (e: HttpException) {
                 if (e.code() != 429 && e.code() !in 500..599) return null
                 lastErr = e

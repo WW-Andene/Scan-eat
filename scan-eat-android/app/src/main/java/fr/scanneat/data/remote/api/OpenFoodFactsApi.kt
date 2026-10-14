@@ -19,33 +19,7 @@ interface OpenFoodFactsApi {
         @Query("lc") lang: String = "fr",
     ): OffResponse
 
-    // Legacy search endpoint, not the v2 barcode-lookup one above - OFF's v2 API
-    // has no free-text/ingredient search of its own, only this CGI endpoint does
-    // (search_terms matches name/brand/ingredients text server-side). Lets
-    // "Recherche" query the full Open Food Facts catalog by ingredient, additive,
-    // or any other keyword, not just the user's own scan history/curated DB.
-    @GET("cgi/search.pl")
-    suspend fun searchProducts(
-        @Query("search_terms") searchTerms: String,
-        @Query("page_size") pageSize: Int = 24,
-        @Query("fields") fields: String = OFF_SEARCH_FIELDS,
-        @Query("lc") lang: String = "fr",
-        @Query("json") json: Int = 1,
-    ): OffSearchResponse
 
-    /** Roadmap A3: most popular products of one category tag (e.g. "en:plain-yogurts"). */
-    @GET("cgi/search.pl")
-    suspend fun searchByCategory(
-        @Query("tag_0") categoryTag: String,
-        @Query("tagtype_0") tagType: String = "categories",
-        @Query("tag_contains_0") contains: String = "contains",
-        @Query("sort_by") sortBy: String = "unique_scans_n",
-        @Query("page_size") pageSize: Int = 24,
-        @Query("fields") fields: String = OFF_SEARCH_FIELDS,
-        @Query("lc") lang: String = "fr",
-        @Query("action") action: String = "process",
-        @Query("json") json: Int = 1,
-    ): OffSearchResponse
 }
 
 val OFF_FIELDS = listOf(
@@ -104,7 +78,7 @@ data class OffProductDto(
     // traces of X" cross-contamination labeling. See Product.declaredTracesTags.
     @Json(name = "traces_tags") val tracesTags: List<String>? = null,
     @Json(name = "additives_tags") val additivesTags: List<String>?,
-    // Only populated by searchProducts() (see OFF_SEARCH_FIELDS) - null and
+    // Only populated by search results (see OFF_SEARCH_FIELDS) - null and
     // unused on the single-barcode getProduct() path.
     val code: String? = null,
 )

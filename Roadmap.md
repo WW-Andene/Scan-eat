@@ -666,7 +666,7 @@ malvoyante, et proposer l'option dans l'onboarding accessibilité.
 Fonctionnalités qui reposent sur des modules existants.
 
 ### 34. A8. Recherche Open Food Facts sur l'ancienne API
-⚠️ **Vérifié (passe 7)** : la recherche en ligne a déjà un debounce de 700 ms, un minimum de 2 caractères et un cache ; reste la migration vers Search-a-licious.
+✅ **Fait** : recherche en ligne et alternatives (A3) migrées vers Search-a-licious (`search.openfoodfacts.org`), vérifié sur l'API en direct ; l'ancien `cgi/search.pl` renvoyait des pages « temporarily unavailable » et a été retiré (test `SearchaliciousParseTest` sur une vraie réponse).
 
 `OpenFoodFactsApi` utilise `cgi/search.pl`, l'ancien point d'accès de recherche, lent et limité
 à environ 10 requêtes par minute par Open Food Facts. Avec un debounce de 150 ms (`FoodSearchViewModel`), la frappe
@@ -690,7 +690,7 @@ l'app : exactement ceux où elle est la plus parlante.
 > *Pourquoi ici :* Même chantier que A8 (API Open Food Facts).
 
 ### 36. A3 – Alternatives venant d'Open Food Facts
-✅ **Fait (à vérifier en ligne)** : si l'historique ne propose rien, recherche Open Food Facts sur la catégorie la plus précise du produit (produits les plus scannés), notation locale, mêmes filtres allergènes/régime/conditions, au moins +10 points ; chargée à part pour ne jamais retarder le résultat. Requête non vérifiée en direct pendant cette passe (OFF indisponible depuis l'environnement de travail) ; en cas d'échec, rien n'est affiché.
+✅ **Fait** : si l'historique ne propose rien, recherche Open Food Facts sur la catégorie la plus précise du produit (produits les plus scannés), notation locale, mêmes filtres allergènes/régime/conditions, au moins +10 points ; chargée à part pour ne jamais retarder le résultat. Requête par catégorie vérifiée en direct sur Search-a-licious (A8) ; en cas d'échec, rien n'est affiché.
 
 Aujourd'hui limitées à l'historique :
 un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégorie
