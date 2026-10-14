@@ -2264,6 +2264,9 @@
     <string name="tile_fasting_blocked">Not recommended for this profile</string>
     <string name="condition_ibd_flare">IBD: flare in progress</string>
     <string name="reminders_notif_medication_body_hidden">Time for your treatment</string>
+    <string name="settings_retention_title">History full</string>
+    <string name="settings_retention_body">One of your histories (diary, mood, sleep, activity or medication doses) has reached about 10 years of entries. Nothing has been deleted: export a backup below first if you want to keep everything. Once you agree, the oldest entries will be removed as new ones are added.</string>
+    <string name="settings_retention_ack">Delete the oldest</string>
     <string name="settings_hide_med_names">Hide medication names</string>
     <string name="settings_hide_med_names_hint">Dose reminders never show the medication name, even when the phone is unlocked.</string>
 </resources>

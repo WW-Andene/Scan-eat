@@ -60,6 +60,7 @@ fun SettingsScreen(
     val voiceScoreAnnounce = viewModel.voiceScoreAnnounce.collectAsStateWithLifecycle()
     val hiddenModulesCsv = viewModel.hiddenModules.collectAsStateWithLifecycle()
     val hideMedNames = viewModel.hideMedicationNames.collectAsStateWithLifecycle()
+    val retentionPending = viewModel.retentionWarningPending.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
@@ -127,6 +128,15 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
+
+            // Roadmap C15: history reached its cap - nothing is deleted until the user agrees.
+            if (retentionPending.value) item {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text(stringResource(R.string.settings_retention_title), color = Gold, style = MaterialTheme.typography.titleSmall)
+                    Text(stringResource(R.string.settings_retention_body), color = OnBackground, style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = viewModel::acknowledgeRetentionTrim) { Text(stringResource(R.string.settings_retention_ack)) }
+                }
+            }
 
             // ---- Profile — first thing in Réglages, not buried at the bottom ----
             item { ProfileSection(onOpenProfile) }

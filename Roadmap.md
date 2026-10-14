@@ -603,7 +603,7 @@ une sauvegarde Android chiffrée côté client, avec des règles `data_extractio
 > *Pourquoi ici :* Bloquant publication au même titre que C4/C5 : la promesse « tout est local » implique d'assumer la sauvegarde.
 
 ### 28. C15. Historique de santé supprimé silencieusement 🟠
-✅ **Partiellement fait** : plafonds relevés pour couvrir ~10 ans d'usage assidu (humeur et sommeil 730 → 3650, journal et prises de médicaments 5000 → 20 000, activité 5000 → 10 000). Reste : archivage par agrégats et avertissement avant la première suppression.
+✅ **Fait** : plafonds relevés pour couvrir ~10 ans d'usage assidu (humeur et sommeil 730 → 3650, journal et prises de médicaments 5000 → 20 000, activité 5000 → 10 000). Avertissement avant la première suppression : quand un historique dépasse son plafond, rien n'est supprimé ; Réglages affiche « Historique plein » avec l'invitation à exporter une sauvegarde, et l'élagage ne reprend qu'après l'accord de l'utilisateur (`HistoryRetentionGuard`). Non fait : archivage par agrégats (la sauvegarde exportée conserve déjà tout l'historique).
 
 Plafonds de rétention par `trim` : humeur et sommeil **730 lignes** (`MoodRepository`,
 `SleepRepository`), non-alimentaire 500, et poids, prises de médicaments, journal et scans 5000.

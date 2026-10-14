@@ -121,6 +121,8 @@ class UserPreferences @Inject constructor(
         // dashboard cards hidden/reordered - opaque CSVs parsed in presentation.
         val KEY_HIDDEN_MODULES       = stringPreferencesKey("hidden_modules")
         val KEY_HIDE_MED_NAMES       = booleanPreferencesKey("hide_medication_names")
+        val KEY_RETENTION_PENDING    = booleanPreferencesKey("retention_warning_pending")
+        val KEY_RETENTION_ACK        = booleanPreferencesKey("retention_trim_acknowledged")
         val KEY_DASHBOARD_LAYOUT     = stringPreferencesKey("dashboard_layout")
     }
 
@@ -192,6 +194,11 @@ class UserPreferences @Inject constructor(
     /** Roadmap C11: never show the medication name in a notification, even unlocked. */
     val hideMedicationNames: Flow<Boolean> = storeData.map { it[KEY_HIDE_MED_NAMES] ?: false }.distinctUntilChanged()
     suspend fun setHideMedicationNames(on: Boolean) = store.edit { it[KEY_HIDE_MED_NAMES] = on }
+    /** Roadmap C15: a history table reached its cap and is waiting for the user's OK to trim. */
+    val retentionWarningPending: Flow<Boolean> = storeData.map { it[KEY_RETENTION_PENDING] ?: false }.distinctUntilChanged()
+    val retentionTrimAcknowledged: Flow<Boolean> = storeData.map { it[KEY_RETENTION_ACK] ?: false }.distinctUntilChanged()
+    suspend fun setRetentionWarningPending(on: Boolean) = store.edit { it[KEY_RETENTION_PENDING] = on }
+    suspend fun acknowledgeRetentionTrim() = store.edit { it[KEY_RETENTION_ACK] = true; it[KEY_RETENTION_PENDING] = false }
 
     val hiddenModules: Flow<String> = storeData.map { it[KEY_HIDDEN_MODULES] ?: "" }.distinctUntilChanged()
     suspend fun setHiddenModules(csv: String) = store.edit { it[KEY_HIDDEN_MODULES] = csv }

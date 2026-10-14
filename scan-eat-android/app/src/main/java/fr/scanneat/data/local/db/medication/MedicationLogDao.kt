@@ -77,4 +77,7 @@ interface MedicationLogDao {
         )
     """)
     suspend fun trim(keepCount: Int, profileId: String = "default")
+
+    @Query("SELECT COUNT(*) FROM medication_log WHERE profileId = :profileId")
+    suspend fun countRows(profileId: String = "default"): Int
 }

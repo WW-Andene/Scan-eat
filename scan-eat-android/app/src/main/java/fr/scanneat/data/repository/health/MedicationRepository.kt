@@ -78,6 +78,7 @@ data class MedicationLogEntry(
 class MedicationRepository @Inject constructor(
     private val dao: MedicationDao,
     private val logDao: MedicationLogDao,
+    private val retention: fr.scanneat.data.repository.HistoryRetentionGuard,
 ) {
 
     // name/dosage/scheduleNote are encrypted at rest (see toEntity/toDomain), so
@@ -199,7 +200,7 @@ class MedicationRepository @Inject constructor(
                 profileId      = profileId,
             )
         }
-        logDao.trim(MAX_HISTORY_ROWS, profileId)
+        retention.trim(MAX_HISTORY_ROWS, { logDao.countRows(profileId) }, { logDao.trim(MAX_HISTORY_ROWS, profileId) })
     }
 
     suspend fun deleteLogEntry(id: String) = logDao.delete(id)

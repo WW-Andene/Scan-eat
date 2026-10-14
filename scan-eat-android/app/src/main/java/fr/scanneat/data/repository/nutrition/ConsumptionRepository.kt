@@ -28,6 +28,7 @@ import javax.inject.Singleton
 @Singleton
 class ConsumptionRepository @Inject constructor(
     private val dao: ConsumptionDao,
+    private val retention: fr.scanneat.data.repository.HistoryRetentionGuard,
     private val moshi: Moshi,
     private val healthConnect: HealthConnectRepository,
     private val priceRepo: PriceRepository,
@@ -68,7 +69,7 @@ class ConsumptionRepository @Inject constructor(
      *  to show this (see ResultViewModel/FoodSearchViewModel/DiaryViewModel). */
     suspend fun log(entry: DiaryEntry): Boolean {
         dao.insert(entry.toEntity())
-        dao.trim(MAX_HISTORY_ROWS, entry.profileId)
+        retention.trim(MAX_HISTORY_ROWS, { dao.countRows(entry.profileId) }, { dao.trim(MAX_HISTORY_ROWS, entry.profileId) })
         priceRepo.deductStock(entry.barcode, entry.portionG, entry.profileId)
         pantryRepo.deductStock(entry.barcode, entry.productName, entry.portionG, entry.profileId)
         mirrorToHealthConnect(entry)
@@ -80,7 +81,7 @@ class ConsumptionRepository @Inject constructor(
     /** Atomic multi-entry write — use when logging a template or recipe that expands to several entries. */
     suspend fun logAll(entries: List<DiaryEntry>): Boolean {
         dao.insertAll(entries.map { it.toEntity() })
-        entries.map { it.profileId }.distinct().forEach { dao.trim(MAX_HISTORY_ROWS, it) }
+        entries.map { it.profileId }.distinct().forEach { retention.trim(MAX_HISTORY_ROWS, { dao.countRows(it) }, { dao.trim(MAX_HISTORY_ROWS, it) }) }
         entries.forEach { priceRepo.deductStock(it.barcode, it.portionG, it.profileId) }
         entries.forEach { pantryRepo.deductStock(it.barcode, it.productName, it.portionG, it.profileId) }
         entries.forEach { mirrorToHealthConnect(it) }

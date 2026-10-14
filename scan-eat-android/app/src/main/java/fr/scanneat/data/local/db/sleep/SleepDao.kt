@@ -35,4 +35,7 @@ interface SleepDao {
         )
     """)
     suspend fun trim(keepCount: Int, profileId: String = "default")
+
+    @Query("SELECT COUNT(*) FROM sleep_log WHERE profileId = :profileId")
+    suspend fun countRows(profileId: String = "default"): Int
 }

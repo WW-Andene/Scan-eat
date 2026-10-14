@@ -2268,6 +2268,9 @@
     <string name="tile_fasting_blocked">Déconseillé pour ce profil</string>
     <string name="condition_ibd_flare">MICI : poussée en cours</string>
     <string name="reminders_notif_medication_body_hidden">C\'est l\'heure de votre traitement</string>
+    <string name="settings_retention_title">Historique plein</string>
+    <string name="settings_retention_body">Un de vos historiques (journal, humeur, sommeil, activité ou prises de médicaments) a atteint environ 10 ans d\'entrées. Rien n\'a été supprimé : exportez d\'abord une sauvegarde ci-dessous si vous voulez tout garder. Après votre accord, les entrées les plus anciennes seront supprimées au fil des nouveaux ajouts.</string>
+    <string name="settings_retention_ack">Supprimer les plus anciennes</string>
     <string name="settings_hide_med_names">Masquer le nom des médicaments</string>
     <string name="settings_hide_med_names_hint">Les rappels de prise n\'affichent jamais le nom du médicament, même téléphone déverrouillé.</string>
 </resources>
