@@ -145,6 +145,11 @@ interface ScanHistoryDao {
      * at all, so it's removed outright rather than kept around for
      * findBetterInCategory/observeTopScanned to keep surfacing.
      */
+    /** Roadmap C3: every barcode scanned since [since] (all profiles - a recall
+     *  concerns the device's owner whoever scanned it). */
+    @Query("SELECT DISTINCT barcode FROM scan_history WHERE barcode IS NOT NULL AND scannedAt >= :since")
+    suspend fun barcodesScannedSince(since: Long): List<String>
+
     @Query("DELETE FROM scan_history WHERE barcode = :barcode AND profileId = :profileId")
     suspend fun deleteByBarcode(barcode: String, profileId: String = "default")
 

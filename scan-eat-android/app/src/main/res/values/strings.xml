@@ -2053,4 +2053,7 @@
     <string name="calendar_month_days">%1$d j actifs</string>
     <string name="history_pane_select_hint">Sélectionnez un scan pour voir son analyse</string>
     <string name="recipes_import_notes_estimated">Quantités estimées (poids moyen d\'une pièce) — à vérifier :</string>
+    <string name="notif_channel_recalls">Rappels de produits</string>
+    <string name="recall_notif_title">Produit rappelé : %1$s</string>
+    <string name="recall_notif_body">Rappel officiel (RappelConso) d\'un produit que vous avez scanné ou stocké — ne pas le consommer, consultez la fiche de rappel.</string>
 </resources>

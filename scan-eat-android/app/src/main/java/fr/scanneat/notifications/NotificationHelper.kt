@@ -29,6 +29,7 @@ enum class NotifChannel(val id: String, val nameRes: Int) {
     SUMMARY    ("daily_summary",        R.string.notif_channel_summary),
     CUSTOM     ("reminders_custom",     R.string.notif_channel_custom),
     PANTRY     ("reminders_pantry",     R.string.notif_channel_pantry),
+    RECALLS    ("product_recalls",      R.string.notif_channel_recalls),
 }
 
 object NotificationHelper {
@@ -40,7 +41,11 @@ object NotificationHelper {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         NotifChannel.entries.forEach { ch ->
             manager.createNotificationChannel(
-                NotificationChannel(ch.id, context.getString(ch.nameRes), NotificationManager.IMPORTANCE_DEFAULT)
+                NotificationChannel(
+                    ch.id, context.getString(ch.nameRes),
+                    // A government safety recall must be seen (heads-up), not only listed.
+                    if (ch == NotifChannel.RECALLS) NotificationManager.IMPORTANCE_HIGH else NotificationManager.IMPORTANCE_DEFAULT,
+                )
             )
         }
         // Keep the legacy catch-all channel for any notification still using CHANNEL_ID
@@ -77,6 +82,7 @@ object NotificationHelper {
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(contentIntent)

@@ -3,7 +3,9 @@ package fr.scanneat.data.repository.recall
 import fr.scanneat.data.local.db.recall.RecallDao
 import fr.scanneat.data.local.db.recall.RecallEntity
 import fr.scanneat.data.remote.api.RappelConsoApi
+import fr.scanneat.data.remote.api.matchRecallsToOwnedBarcodes
 import fr.scanneat.data.remote.api.rappelConsoGtinWhereClause
+import fr.scanneat.data.remote.api.rappelConsoPublishedSinceClause
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -34,6 +36,11 @@ data class RecallEntry(
 // own doc comment) - once a barcode is a confirmed recall, that fact doesn't
 // need re-verifying every scan.
 private val NEGATIVE_CACHE_TTL_MS = TimeUnit.DAYS.toMillis(7)
+
+private const val SYNC_PAGE_SIZE = 100
+// ~6 weeks of RappelConso publications at the observed rate (~40/week); the
+// sync window is a few days in steady state, this only bounds a first run.
+private const val MAX_SYNC_RECORDS = 1_000
 
 /**
  * Checks a scanned barcode against RappelConso, the official French
@@ -106,6 +113,42 @@ class RecallRepository @Inject constructor(
             // class's own doc comment.
             null
         }
+    }
+
+    /**
+     * Roadmap C3: re-checks the user's products against every recall published
+     * since [sinceIsoDate] (one paged query, not one per barcode). Matches are
+     * written to the cache as positive entries; returns only the NEWLY recalled
+     * ones (barcode → entry), so a recall is notified once. Throws on network
+     * failure so the worker can retry.
+     */
+    suspend fun syncRecentRecalls(ownedBarcodes: Collection<String>, sinceIsoDate: String): Map<String, RecallEntry> {
+        if (ownedBarcodes.isEmpty()) return emptyMap()
+        val where = rappelConsoPublishedSinceClause(sinceIsoDate)
+        val records = mutableListOf<fr.scanneat.data.remote.api.RappelConsoRecordDto>()
+        var offset = 0
+        while (offset < MAX_SYNC_RECORDS) {
+            val page = api.findPublishedSince(where, limit = SYNC_PAGE_SIZE, offset = offset)
+            val results = page.results.orEmpty()
+            records += results
+            offset += results.size
+            if (results.size < SYNC_PAGE_SIZE || offset >= page.totalCount) break
+        }
+        val alreadyRecalled = dao.recalledBarcodes().toSet()
+        val now = System.currentTimeMillis()
+        val newlyRecalled = LinkedHashMap<String, RecallEntry>()
+        matchRecallsToOwnedBarcodes(records, ownedBarcodes).forEach { (barcode, record) ->
+            val entity = RecallEntity(
+                barcode = barcode, found = true,
+                productLabel = record.libelle, recallReason = record.motifRappel,
+                risks = record.risquesEncourus, publicationDate = record.datePublication,
+                consumerInstructions = record.conduitesATenir, recallSheetUrl = record.lienVersLaFicheRappel,
+                checkedAt = now,
+            )
+            dao.upsert(entity)
+            if (barcode !in alreadyRecalled) newlyRecalled[barcode] = entity.toEntry()
+        }
+        return newlyRecalled
     }
 
     private fun RecallEntity.toEntry() = RecallEntry(

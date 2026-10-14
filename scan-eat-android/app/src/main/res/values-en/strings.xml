@@ -2049,4 +2049,7 @@
     <string name="calendar_month_days">%1$d active days</string>
     <string name="history_pane_select_hint">Select a scan to see its analysis</string>
     <string name="recipes_import_notes_estimated">Estimated quantities (average piece weight) — please check:</string>
+    <string name="notif_channel_recalls">Product recalls</string>
+    <string name="recall_notif_title">Product recalled: %1$s</string>
+    <string name="recall_notif_body">Official recall (RappelConso, French government) of a product you scanned or stocked — do not consume it, see the recall notice.</string>
 </resources>

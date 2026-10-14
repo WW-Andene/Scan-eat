@@ -18,6 +18,10 @@ interface PantryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: PantryEntity)
 
+    /** Roadmap C3: barcodes currently stocked, all profiles. */
+    @Query("SELECT DISTINCT barcode FROM pantry WHERE barcode IS NOT NULL")
+    suspend fun allBarcodes(): List<String>
+
     @Query("UPDATE pantry SET quantity = :quantity WHERE id = :id")
     suspend fun updateQuantity(id: String, quantity: Double)
 

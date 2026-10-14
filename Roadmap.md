@@ -355,6 +355,8 @@ lorsque `medicationRisks` n'est pas vide ; le panneau reste pour le détail.
 > *Pourquoi ici :* Même écran que C1 : à faire dans la foulée.
 
 ### 9. C3. Rappels produits jamais revérifiés après le scan 🔴
+✅ **Fait** : `RecallSyncWorker` quotidien (réseau requis) : rappels publiés depuis la dernière synchro × codes-barres de l'historique (180 j) et du garde-manger ; cache positif (bandeau résultat, garde-manger) et notification « Produit rappelé » une seule fois par produit, canal dédié prioritaire (test `RecallSyncMatchTest`).
+
 `RecallRepository` interroge RappelConso **au scan** ; le cache négatif expire en 7 jours
 mais n'est réinterrogé qu'**au prochain scan** du même code-barres. `ReminderWorker` ne
 contient aucune logique de rappel produit. Un produit acheté, scanné puis rappelé la

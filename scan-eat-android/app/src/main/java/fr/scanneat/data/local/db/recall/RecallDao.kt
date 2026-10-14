@@ -19,6 +19,9 @@ interface RecallDao {
     @Query("SELECT barcode FROM recall_cache WHERE found = 1")
     fun observeRecalledBarcodes(): Flow<List<String>>
 
+    @Query("SELECT barcode FROM recall_cache WHERE found = 1")
+    suspend fun recalledBarcodes(): List<String>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entry: RecallEntity)
 
