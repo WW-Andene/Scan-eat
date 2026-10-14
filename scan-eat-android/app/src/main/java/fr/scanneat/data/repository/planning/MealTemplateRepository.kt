@@ -16,7 +16,7 @@ import javax.inject.Singleton
 import kotlin.math.roundToInt
 
 // ============================================================================
-// MEAL TEMPLATE REPOSITORY — port of public/data/meal-templates.js
+// MEAL TEMPLATE REPOSITORY — originally ported from the former web prototype's public/data/meal-templates.js
 //
 // Templates are named snapshots of consumption items that can be re-applied
 // to any date/meal with one tap. MFP calls these "Saved Meals".
@@ -177,7 +177,7 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
 
     /**
      * Expand a template into concrete DiaryEntries for a given date.
-     * Port of expandTemplate() from meal-templates.js.
+     * Originally ported from expandTemplate() in the former web prototype\'s meal-templates.js.
      */
     fun expand(
         template: MealTemplate,

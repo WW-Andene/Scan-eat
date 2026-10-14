@@ -109,15 +109,12 @@ internal fun appendPersonalizedHints(
         conditionRisks += if (en) "May contain caffeine — ANSES recommends pregnant women keep total daily caffeine intake under 200 mg"
                  else "Peut contenir de la caféine — l'ANSES recommande de limiter l'apport total en caféine à 200 mg/jour pendant la grossesse"
     }
-    // Same alcohol-content check PersonalScoreEngine already runs for its own
-    // cancer/depression adjustments — kept in sync so the hint panel never
-    // disagrees with the score adjustments section.
-    // \b-bounded, not `.contains()` - a plain substring check on "vin " (space-
-    // suffixed to avoid matching "vinaigre") missed the case where "vin" is the
-    // ingredient's exact/final name with nothing following it.
-    val containsAlcohol = product.ingredients.any {
-        Regex("""\b(?:alcool|alcohol|vin|wine|bi[eè]re|beer)\b""", RegexOption.IGNORE_CASE).containsMatchIn(it.name)
-    }
+    // S13: the comment here claimed to be the same check as the score's, but
+    // it was a narrower regex on raw names - cider, whisky, a beer whose
+    // ingredients don't say "bière", or a product only known as an alcoholic
+    // beverage by category/% vol were penalised in the score with no hint.
+    // Now literally the same function.
+    val containsAlcohol = fr.scanneat.domain.engine.scoring.productContainsAlcohol(product)
     if ("cancer" in conditions && containsAlcohol) {
         conditionRisks += if (en) "Contains alcohol — WCRF cancer prevention guidance recommends limiting alcohol intake"
                  else "Contient de l'alcool — les recommandations WCRF de prévention du cancer conseillent d'en limiter la consommation"
@@ -134,10 +131,11 @@ internal fun appendPersonalizedHints(
         conditionRisks += if (en) "Contains alcohol — can lower seizure threshold and interacts with most anti-epileptic medications (Epilepsy Foundation)"
                  else "Contient de l'alcool — peut abaisser le seuil épileptogène et interagit avec la plupart des traitements antiépileptiques (Epilepsy Foundation)"
     }
-    // Mirrors PersonalScoreEngine's own sugar/NOVA depression adjustments exactly
-    // (same 15.0 g threshold, same two cited cohort studies) so the two surfaces
-    // never disagree.
-    if ("depression" in conditions && n.sugarsG >= 15.0) {
+    // Same condition as checkCancerDepressionEpilepsyConditions (S13: the
+    // sugar-sweetened-beverage half was missing here, so a 10 g soda was
+    // penalised in the score with no matching hint).
+    if ("depression" in conditions &&
+        (fr.scanneat.domain.engine.scoring.isSugarSweetenedBeverage(product.category, n) || n.sugarsG >= 15.0)) {
         conditionRisks += if (en) "High sugar (${n.sugarsG} g/100 g) — prospectively associated with depression risk (Knüppel et al., Whitehall II cohort, Sci Rep 2017)"
                  else "Sucres élevés (${n.sugarsG} g/100 g) — associé de façon prospective au risque de dépression (Knüppel et al., cohorte Whitehall II, Sci Rep 2017)"
     }

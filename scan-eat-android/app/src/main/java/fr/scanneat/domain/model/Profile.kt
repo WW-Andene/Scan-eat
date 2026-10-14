@@ -1,7 +1,7 @@
 package fr.scanneat.domain.model
 
 // ============================================================================
-// USER PROFILE — port of public/data/profile.js
+// USER PROFILE — originally ported from the former web prototype's public/data/profile.js
 // ============================================================================
 
 enum class Sex { MALE, FEMALE, NOT_SPECIFIED }

@@ -261,9 +261,9 @@ class RecipesViewModel @Inject constructor(
     // functions on RecipesViewModel, same cohesive "recipe CRUD + logging" concern
     // ScanRepository's own split pulled ScanOffLookup out for.
 
-    // ── Import from URL — wires up the server's fetch-recipe route (SSRF-guarded
-    // HTML fetch + schema.org Recipe JSON-LD extraction), which existed with no
-    // Android caller at all: every recipe previously had to be typed in by hand.
+    // ── Import from URL — on-device fetch + schema.org Recipe JSON-LD extraction
+    // (RecipeRepository.fetchRecipeFromUrl); previously every recipe had to be
+    // typed in by hand.
     // ────────────────────────────────────────────────────────────────────────
     sealed class ImportUiState {
         data object Idle : ImportUiState()

@@ -3,7 +3,7 @@ package fr.scanneat.domain.engine.scoring
 import fr.scanneat.domain.model.Product
 
 // ============================================================================
-// ALLERGEN DETECTOR — port of public/core/allergens.js
+// ALLERGEN DETECTOR — originally ported from the former web prototype's public/core/allergens.js
 //
 // AUTHORITATIVE:
 //   EU Regulation No 1169/2011, Annex II — 14 mandatory allergens.
@@ -166,7 +166,7 @@ val ANNEX_II_KEY_TO_OFF_TAG: Map<String, String> = OFF_ALLERGEN_TAG_MAP.entries.
  * Also appends trace-only hits (isTraceOnly=true) from OFF's traces_tags for
  * any allergen not already confirmed present some other way.
  *
- * Port of detectAllergens() from allergens.js.
+ * Originally ported from detectAllergens() in the former web prototype\'s allergens.js.
  */
 fun detectAllergens(product: Product, lang: String = "fr"): List<AllergenHit> {
     // key → triggers set

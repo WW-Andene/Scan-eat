@@ -7,7 +7,7 @@ import fr.scanneat.domain.model.NovaClass
 import java.text.Normalizer
 
 // ============================================================================
-// FOOD DATABASE — port of public/data/food-db.js
+// FOOD DATABASE — originally ported from the former web prototype's public/data/food-db.js
 //
 // ⚠️  PROVENANCE NOTICE:
 //   Values are hand-transcribed approximations of CIQUAL 2020
@@ -73,7 +73,7 @@ private val NORMALIZED_FOOD_DB: List<Pair<FoodEntry, List<String>>> =
  * Case- and accent-insensitive. Custom foods from [extraFoods] win ties
  * (same ranking as the original JS implementation).
  *
- * Port of searchFoodDB() from food-db.js.
+ * Originally ported from searchFoodDB() in the former web prototype\'s food-db.js.
  */
 fun searchFoodDB(
     query: String,
@@ -128,7 +128,7 @@ data class ReconcileResult(
 /**
  * Match an photo-identified food against the DB. On hit, replace per-100g
  * macros with CIQUAL values while keeping the photo reading's gram estimate.
- * Port of reconcileWithFoodDB() from food-db.js.
+ * Originally ported from reconcileWithFoodDB() in the former web prototype\'s food-db.js.
  */
 fun reconcileWithFoodDB(
     name: String,

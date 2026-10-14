@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 // ============================================================================
-// DIARY / CONSUMPTION — port of public/data/consumption.js
+// DIARY / CONSUMPTION — originally ported from the former web prototype's public/data/consumption.js
 // ============================================================================
 
 enum class MealSlot { BREAKFAST, LUNCH, DINNER, SNACK }

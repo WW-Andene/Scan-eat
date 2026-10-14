@@ -9,7 +9,7 @@ import kotlin.math.roundToInt
 
 /**
  * Compute the personal score overlay on top of the classic ScoreAudit.
- * Port of computePersonalScore() from personal-score.js.
+ * Originally ported from computePersonalScore() in the former web prototype\'s personal-score.js.
  *
  * @param audit       Output of scoreProduct()
  * @param product     The same product that was scored
@@ -115,7 +115,8 @@ fun computePersonalScore(
     var personalScore = if (veto) 0.0
         else (audit.score + delta).coerceIn(0.0, 100.0)
 
-    // Re-apply engine veto cap after personal delta (same as JS Fix #7)
+    // Re-apply the engine's veto cap after the personal delta - a personal bonus
+    // must never lift a product above the cap its own veto set.
     if (!veto && audit.veto.triggered && personalScore > audit.veto.cap) {
         personalScore = audit.veto.cap.toDouble()
     }

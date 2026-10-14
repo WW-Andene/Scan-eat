@@ -8,7 +8,8 @@ import kotlin.math.roundToInt
 // FOOD SCORING ENGINE — see ENGINE_VERSION below for current version
 //
 // Authoritative vs Editorial boundary preserved from original.
-// See scoring-engine.ts header for full provenance notes.
+// Provenance notes live with each rule below (the former web prototype's
+// scoring-engine.ts is not in this repository).
 //
 // Main entry: scoreProduct(product: Product): ScoreAudit
 // Pure function — no I/O, no side effects.
@@ -462,7 +463,8 @@ private fun collectWarnings(product: Product, lang: String = "en"): List<String>
 
 /**
  * Score a product. Pure synchronous function.
- * Mirrors scoreProduct() from scoring-engine.ts exactly.
+ * Originally ported from scoreProduct() of the former web prototype's scoring-engine.ts
+ * (not in this repository); it has diverged since - this Kotlin file is the reference.
  */
 fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
     val en = lang == "en"

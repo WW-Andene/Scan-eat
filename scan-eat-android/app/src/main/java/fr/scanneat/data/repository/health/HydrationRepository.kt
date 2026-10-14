@@ -21,7 +21,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// HYDRATION REPOSITORY — port of public/features/hydration.js
+// HYDRATION REPOSITORY — originally ported from the former web prototype's public/features/hydration.js
 //
 // Tracks daily water intake in mL. Default glass = 250 mL.
 // Goal is derived from BiolismEngine.computeWaterNeedL (EFSA 2010 gender

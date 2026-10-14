@@ -15,7 +15,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// MEAL PLAN REPOSITORY — port of public/features/meal-plan.js
+// MEAL PLAN REPOSITORY — originally ported from the former web prototype's public/features/meal-plan.js
 //
 // Forward meal plan: what you INTEND to eat over the next 7 days.
 // Distinct from ConsumptionRepository (what you DID eat).

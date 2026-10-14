@@ -7,7 +7,7 @@ private val COMBINING_MARKS = Regex("[\\u0300-\\u036f]")
 private val WHITESPACE = Regex("\\s+")
 
 // ============================================================================
-// PAIRINGS DATABASE — port of public/data/pairings.js
+// PAIRINGS DATABASE — originally ported from the former web prototype's public/data/pairings.js
 //
 // SOURCE: Ahn, Ahnert, Bagrow, Barabási — Sci. Rep. 1:196 (2011)
 //   doi:10.1038/srep00196 — 56 498 published recipes, 11 cuisines
@@ -350,7 +350,7 @@ private fun normalizePairing(s: String): String =
 /**
  * Resolve a French or English ingredient name to its canonical EN key.
  * Tries largest n-gram window first: "saumon fumé" → smoked_salmon.
- * Port of resolveIngredient() from pairings.js.
+ * Originally ported from resolveIngredient() in the former web prototype\'s pairings.js.
  */
 fun resolveIngredient(name: String): String? {
     val q = normalizePairing(name)
@@ -375,7 +375,7 @@ fun resolveIngredient(name: String): String? {
 
 /**
  * Return French display names of ingredients that pair well with [name].
- * Port of findPairings() from pairings.js.
+ * Originally ported from findPairings() in the former web prototype\'s pairings.js.
  *
  * [exclude] — user-reported: "pairs well with" suggested "poulet" for a
  * recipe whose main/largest ingredient already *is* poulet (riz's own
@@ -442,7 +442,7 @@ fun findPairings(name: String, limit: Int = 6, exclude: Set<String> = emptySet()
 
 /**
  * Full pairing result including scores. Returns null on miss.
- * Port of matchPairings() from pairings.js.
+ * Originally ported from matchPairings() in the former web prototype\'s pairings.js.
  */
 fun matchPairings(name: String): PairingsResult? {
     val en = resolveIngredient(name) ?: return null

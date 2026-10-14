@@ -30,9 +30,9 @@ import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
 /**
- * Entry dialog for RecipesViewModel.importRecipeFromUrl() — wires up the server's
- * fetch-recipe route (SSRF-guarded HTML fetch + schema.org Recipe JSON-LD extraction),
- * which previously had no Android caller at all. [isLoading]/[errorMessage] mirror the
+ * Entry dialog for RecipesViewModel.importRecipeFromUrl() — fetches the page on the
+ * device (RecipeRepository.fetchRecipeFromUrl: https-only HTML fetch + schema.org
+ * Recipe JSON-LD extraction, SchemaOrgRecipeParser) - no server involved. [isLoading]/[errorMessage] mirror the
  * ViewModel's ImportUiState so this dialog stays a thin view over that state.
  */
 @Composable

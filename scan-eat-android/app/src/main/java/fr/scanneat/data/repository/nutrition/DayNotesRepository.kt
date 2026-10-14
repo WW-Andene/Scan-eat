@@ -15,7 +15,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// DAY NOTES REPOSITORY — port of public/features/day-notes.js
+// DAY NOTES REPOSITORY — originally ported from the former web prototype's public/features/day-notes.js
 //
 // Per-day free-text notes: mood, training, cycle phase, medication, etc.
 // Cap: 500 chars per note (same as original).

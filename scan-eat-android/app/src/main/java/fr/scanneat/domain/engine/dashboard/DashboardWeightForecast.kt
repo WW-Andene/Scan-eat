@@ -7,7 +7,7 @@ import kotlin.math.roundToInt
 
 // ============================================================================
 // weightForecast — linear extrapolation to goal weight
-// Port of weightForecast() from presenters.js
+// Originally ported from weightForecast() in the former web prototype\'s presenters.js
 //
 // Split out of DashboardAggregator.kt (pure structural move, no behavior
 // change).

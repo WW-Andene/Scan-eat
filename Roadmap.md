@@ -232,6 +232,8 @@ SII : Monash (Australie). MICI : Crohn's & Colitis Foundation (États-Unis) et N
 **ECCO** pour les MICI, **SNFGE / HAS** pour le SII. C'est contraire à la règle du README (« sources européennes préférées »).
 
 ### S13. Commentaires de parité obsolètes 🟡 📖
+✅ **Fait** : « Mirrors … exactly », « JS Fix #7 », « the server's … route » et les en-têtes « port of » corrigés (prototype web absent du dépôt ; import de recettes fait sur l'appareil). Vérification ligne à ligne des « mirrors » restants : 2 vraies divergences score ↔ panneau d'aide corrigées (détection d'alcool, sodas sucrés en cas de dépression), verrouillées par `HintScoreParityTest`.
+
 « Mirrors scoreProduct() from scoring-engine.ts exactly », « same as JS Fix #7 », « the server mirrors this
 exact function » : il n'y a **aucun** fichier TypeScript ni serveur dans le dépôt (le README dit « ni serveur »). D'après la règle du projet, toute
 divergence entre un commentaire et le comportement réel compte comme un bug.

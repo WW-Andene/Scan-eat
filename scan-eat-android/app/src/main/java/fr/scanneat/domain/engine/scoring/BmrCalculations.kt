@@ -4,7 +4,7 @@ import fr.scanneat.domain.model.*
 import kotlin.math.roundToInt
 
 // ============================================================================
-// PERSONAL SCORE ENGINE — port of public/core/personal-score.js
+// PERSONAL SCORE ENGINE — originally ported from the former web prototype's public/core/personal-score.js
 //                       + public/data/profile.js helper functions
 //
 // AUTHORITATIVE anchors (preserved from original):
@@ -28,7 +28,7 @@ import kotlin.math.roundToInt
 // ============================================================================
 
 // ============================================================================
-// Profile helper functions (port of profile.js)
+// Profile helper functions (originally ported from the former web prototype\'s profile.js)
 // ============================================================================
 
 private val ACTIVITY_PAL = mapOf(

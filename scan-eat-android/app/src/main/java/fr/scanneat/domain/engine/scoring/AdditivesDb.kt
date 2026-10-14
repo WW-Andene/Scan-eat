@@ -4,7 +4,7 @@ import java.text.Normalizer
 import java.util.concurrent.ConcurrentHashMap
 
 // ============================================================================
-// ADDITIVES DATABASE — port of scoring-engine.ts SECTION 2
+// ADDITIVES DATABASE — originally ported from the former web prototype's scoring-engine.ts SECTION 2
 // Source citations preserved verbatim from the original TS engine.
 //
 // Data split across sibling files in this package (models + per-tier

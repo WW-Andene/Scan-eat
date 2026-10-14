@@ -18,7 +18,7 @@ import kotlin.math.roundToInt
 
 // ============================================================================
 // closeTheGap — nutrient suggestions to close today's deficit
-// Port of closeTheGap() from presenters.js
+// Originally ported from closeTheGap() in the former web prototype\'s presenters.js
 // ============================================================================
 
 data class GapSuggestion(val name: String, val grams: Int, val contribution: Double)
@@ -83,7 +83,7 @@ private fun <T> List<T>.preferNovelCategory(eatenCategories: Set<ProductCategory
  * [targets] is the user's DailyTargets from PersonalScoreEngine.
  * [foodDB] is FOOD_DB + custom foods (as FoodEntry list).
  *
- * Port of closeTheGap() from presenters.js.
+ * Originally ported from closeTheGap() in the former web prototype\'s presenters.js.
  */
 fun closeTheGap(
     totals: ConsumedNutrition,

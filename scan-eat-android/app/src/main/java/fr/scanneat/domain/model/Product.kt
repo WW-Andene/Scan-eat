@@ -1,7 +1,7 @@
 package fr.scanneat.domain.model
 
 // ============================================================================
-// DOMAIN MODELS — port of scoring-engine.ts §SECTION 1: TYPES
+// DOMAIN MODELS — originally ported from the former web prototype's scoring-engine.ts §SECTION 1: TYPES
 // All nullability mirrors the original TypeScript optional fields.
 // ============================================================================
 
@@ -351,7 +351,7 @@ data class ScanResult(
     val scannedAt: Long = 0,   // epoch millis from scan_history; 0 when not yet persisted
     // User-requested: transient signal set only by ScanRepositoryHistory's
     // stale-scan rescore (never persisted - not part of productJson/auditJson,
-    // not mirrored on the server since it's Android-only UI feedback) so
+    // Android-only UI feedback) so
     // ResultContent can show "this score just changed from X to Y" instead of
     // silently swapping the number with no explanation. Null on every other
     // read path (a fresh scan, an already-current row) and whenever a rescore

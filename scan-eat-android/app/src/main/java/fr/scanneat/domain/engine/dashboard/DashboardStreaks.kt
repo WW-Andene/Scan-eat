@@ -5,13 +5,13 @@ import java.time.LocalDate
 
 // ============================================================================
 // Log-streak math — split out of DashboardAggregator.kt (pure structural
-// move, no behavior change). Port of logStreakDays() from presenters.js, plus
+// move, no behavior change). Originally ported from logStreakDays() in the former web prototype\'s presenters.js, plus
 // longestLogStreak() (all-time record, not just the current streak).
 // ============================================================================
 
 // ============================================================================
 // logStreakDays — consecutive days with at least one logged entry (1-day grace)
-// Port of logStreakDays() from presenters.js
+// Originally ported from logStreakDays() in the former web prototype\'s presenters.js
 // ============================================================================
 
 fun logStreakDays(entries: List<DiaryEntry>, today: LocalDate = LocalDate.now()): Int =

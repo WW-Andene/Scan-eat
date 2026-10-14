@@ -15,7 +15,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// CUSTOM FOOD REPOSITORY — port of public/data/custom-food-db.js
+// CUSTOM FOOD REPOSITORY — originally ported from the former web prototype's public/data/custom-food-db.js
 //
 // User-persisted foods that extend FOOD_DB for Quick Add autocomplete
 // and photo-identify reconciliation.
@@ -248,7 +248,7 @@ class CustomFoodRepository @Inject constructor(
 
     /**
      * Convert a custom food to a scorable Product.
-     * Port of buildCustomFoodProductInput() from custom-food-db.js.
+     * Originally ported from buildCustomFoodProductInput() in the former web prototype\'s custom-food-db.js.
      */
     fun toProduct(entry: FoodEntry): Product = Product(
         name        = entry.name,

@@ -14,7 +14,7 @@ import javax.inject.Singleton
 import kotlin.math.roundToInt
 
 // ============================================================================
-// ACTIVITY REPOSITORY — port of public/data/activity.js
+// ACTIVITY REPOSITORY — originally ported from the former web prototype's public/data/activity.js
 //
 // Burned kcal estimated with the MET equation:
 //   kcal = MET × weight_kg × hours

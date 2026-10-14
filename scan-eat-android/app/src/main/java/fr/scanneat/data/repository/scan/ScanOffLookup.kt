@@ -131,7 +131,7 @@ internal class ScanOffLookup(
     private val resultCacheTtlMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(30)
 
     // Same size-cap-plus-clear safety valve as AdditivesDb.kt's additiveLookupCache
-    // (and the server's own OffService.kt result cache) - the TTL above bounds how
+    // - the TTL above bounds how
     // long an entry survives, but nothing previously bounded how many distinct
     // barcodes could accumulate within one 30-minute window. A long scanning session
     // (a whole pantry, a large shopping trip) scanning many distinct barcodes back to

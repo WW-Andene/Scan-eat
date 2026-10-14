@@ -752,7 +752,7 @@ class ScanViewModel @Inject constructor(
     }
 
     internal companion object {
-        /** Mirrors the server's RouteHelpers.MAX_IMAGES - see addPhoto()'s doc comment (ScanViewModelPhotoQueue.kt). */
+        /** Cap on queued photos per scan - see addPhoto()'s doc comment (ScanViewModelPhotoQueue.kt). */
         const val MAX_QUEUED_PHOTOS = 8
         /** See onBarcodeDetected()'s own doc comment. */
         const val BARCODE_STABILITY_FRAMES = 3

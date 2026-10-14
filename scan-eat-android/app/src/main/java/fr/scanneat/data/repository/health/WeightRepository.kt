@@ -16,7 +16,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// WEIGHT REPOSITORY — port of public/data/weight-log.js
+// WEIGHT REPOSITORY — originally ported from the former web prototype's public/data/weight-log.js
 // ============================================================================
 
 data class WeightEntry(
@@ -220,7 +220,7 @@ class WeightRepository @Inject constructor(
         )
     }
 
-    // ---- Pure math — port of weeklyTrend() from weight-log.js ----
+    // ---- Pure math — originally ported from weeklyTrend() in the former web prototype\'s weight-log.js ----
 
     private fun weeklyTrend(entries: List<WeightEntry>): Double {
         if (entries.size < 2) return 0.0
