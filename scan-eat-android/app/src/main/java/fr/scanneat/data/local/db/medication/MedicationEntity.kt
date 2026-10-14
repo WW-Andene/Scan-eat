@@ -36,4 +36,8 @@ data class MedicationEntity(
     // "matin et soir") get reminded at each real time instead of only once.
     // See Medication.reminderTimes().
     val extraReminderTimes: String = "",
+    // Roadmap D6: doses left in the box (null = not tracked) and the date the
+    // prescription runs out (ISO yyyy-MM-dd, null = not set).
+    val stockCount: Int? = null,
+    val renewalDate: String? = null,
 )

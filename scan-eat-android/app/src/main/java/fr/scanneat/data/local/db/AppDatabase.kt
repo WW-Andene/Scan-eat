@@ -68,7 +68,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MoodEntity::class,
         MisclassificationReportEntity::class,
     ],
-    version = 42,
+    version = 43,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -711,5 +711,12 @@ val MIGRATION_41_42 = object : Migration(41, 42) {
             "CREATE TABLE IF NOT EXISTS `offline_products` (" +
                 "`barcode` TEXT NOT NULL, `json` TEXT NOT NULL, `downloadedAt` INTEGER NOT NULL, PRIMARY KEY(`barcode`))"
         )
+    }
+}
+val MIGRATION_42_43 = object : Migration(42, 43) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v42 → v43: medication stock and prescription renewal (Roadmap D6).
+        db.execSQL("ALTER TABLE `medications` ADD COLUMN `stockCount` INTEGER")
+        db.execSQL("ALTER TABLE `medications` ADD COLUMN `renewalDate` TEXT")
     }
 }

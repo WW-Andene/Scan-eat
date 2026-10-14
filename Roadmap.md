@@ -532,7 +532,7 @@ fluoroquinolones/tétracyclines, levure de riz rouge et statines.
 > *Pourquoi ici :* Nouvelles interactions aliment-médicament (ANSM/EMA).
 
 ### 22. D6. Actions « Pris / Reporter » et suivi du stock de médicaments
-✅ **Partiellement fait** : boutons « Pris » (enregistre la prise datée, comme dans l'app) et « Reporter 15 min » sur chaque rappel de dose. Restent : stock de comprimés et rappel de renouvellement d'ordonnance (migration Room).
+✅ **Fait** : boutons « Pris » (enregistre la prise datée, comme dans l'app) et « Reporter 15 min » sur chaque rappel de dose. Stock et ordonnance (migration Room 42 → 43) : doses restantes, décomptées à chaque « Pris » et rendues si la prise est annulée ; date de fin d'ordonnance ; le rappel de dose ajoute « Stock bas : environ N jours restants » (≤ 7 jours) et « Ordonnance à renouveler bientôt » (≤ 7 jours), sans le nom si l'option C11 est active (test `MedicationSupplyTest`).
 
 Les notifications n'ont aucune action (pas d'`addAction` dans `NotificationHelper`) :
 pour marquer une prise, il faut ouvrir l'app. Il n'existe pas non plus de suivi du nombre de

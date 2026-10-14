@@ -349,7 +349,12 @@ class MedicationViewModel @Inject constructor(
     }
 
     fun undoTaken(entry: MedicationLogEntry) {
-        guardedLaunch { repo.deleteLogEntry(entry.id) }
+        guardedLaunch { repo.deleteLogEntry(entry.id); repo.restoreStock(entry.medicationId) }
+    }
+
+    /** Roadmap D6. */
+    fun setStockAndRenewal(medication: Medication, stock: Int?, renewalDate: java.time.LocalDate?) {
+        guardedLaunch { repo.setStockAndRenewal(medication.id, stock, renewalDate) }
     }
 
     fun save(name: String, dosage: String, scheduleNote: String, reminderOn: Boolean = false, reminderTime: String = "08:00") {

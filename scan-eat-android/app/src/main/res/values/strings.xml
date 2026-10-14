@@ -2273,4 +2273,10 @@
     <string name="settings_retention_ack">Supprimer les plus anciennes</string>
     <string name="settings_hide_med_names">Masquer le nom des médicaments</string>
     <string name="settings_hide_med_names_hint">Les rappels de prise n\'affichent jamais le nom du médicament, même téléphone déverrouillé.</string>
+    <string name="medication_supply_title">Stock et ordonnance</string>
+    <string name="medication_supply_stock">Doses restantes dans la boîte</string>
+    <string name="medication_supply_renewal">Fin de l\'ordonnance (AAAA-MM-JJ)</string>
+    <string name="medication_supply_days_left">Environ %1$d jours de traitement restants</string>
+    <string name="medication_notif_low_stock">Stock bas : environ %1$d jours restants.</string>
+    <string name="medication_notif_renewal_due">Ordonnance à renouveler bientôt.</string>
 </resources>
