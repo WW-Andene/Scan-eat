@@ -586,6 +586,8 @@ que le README affirme « ni serveur ni IA » (cf. C6).
 > *Pourquoi ici :* Décision : Billing ou retrait du Premium.
 
 ### 27. C12. Risque de perte totale des données au changement de téléphone 🟠
+✅ **Fait** : sauvegarde automatique hebdomadaire chiffrée (même format que l'export, restaurable) dans un dossier choisi par l'utilisateur (SAF, permission persistante), 4 dernières conservées, mot de passe gardé chiffré par le Keystore, date de la dernière sauvegarde et échec affichés dans les réglages (test `AutoBackupPruneTest`).
+
 `AndroidManifest.xml` : `android:allowBackup="false"`. L'app est 100 % locale et la sauvegarde
 chiffrée (`BackupRepository`) est **uniquement manuelle** : on ne trouve ni sauvegarde
 périodique, ni rappel « dernière sauvegarde il y a X jours ». Un téléphone perdu ou réinitialisé fait perdre

@@ -2164,4 +2164,17 @@
     <string name="scan_voice_alert_veto">Attention, déconseillé pour vous : %1$s.</string>
     <string name="scan_voice_alert_traces">Peut contenir des traces de : %1$s.</string>
     <string name="scan_voice_alert_medication">Interaction possible avec l\'un de vos médicaments.</string>
+    <string name="auto_backup_title">Sauvegarde automatique</string>
+    <string name="auto_backup_hint">Chaque semaine, une sauvegarde chiffrée de toutes vos données est écrite dans un dossier de votre choix (par exemple un dossier synchronisé avec votre cloud). Les 4 plus récentes sont conservées ; restaurez-les avec « Restaurer une sauvegarde ».</string>
+    <string name="auto_backup_off">Désactivée : vos données ne sont protégées que par vos exports manuels.</string>
+    <string name="auto_backup_on_never">Activée — première sauvegarde en cours.</string>
+    <string name="auto_backup_on_last">Activée — dernière sauvegarde le %1$s.</string>
+    <string name="auto_backup_last_failed">La dernière tentative a échoué (dossier supprimé ou inaccessible ?). Désactivez puis réactivez pour choisir un autre dossier.</string>
+    <string name="auto_backup_enable">Activer la sauvegarde automatique</string>
+    <string name="auto_backup_disable">Désactiver</string>
+    <string name="auto_backup_passphrase_title">Mot de passe de la sauvegarde</string>
+    <string name="auto_backup_passphrase_body">Les sauvegardes sont chiffrées avec ce mot de passe (8 caractères minimum). Notez-le : il sera indispensable pour restaurer vos données sur un autre téléphone.</string>
+    <string name="auto_backup_passphrase">Mot de passe</string>
+    <string name="auto_backup_passphrase_confirm">Confirmer le mot de passe</string>
+    <string name="auto_backup_choose_folder">Choisir le dossier</string>
 </resources>

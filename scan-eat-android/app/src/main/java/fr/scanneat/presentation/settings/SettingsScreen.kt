@@ -184,6 +184,9 @@ fun SettingsScreen(
                 )
             }
 
+            // Roadmap C12: automatic weekly encrypted backup.
+            item { fr.scanneat.presentation.settings.components.AutoBackupSection() }
+
             // Backup — local export/import, no cloud account required
             item {
                 BackupSection(

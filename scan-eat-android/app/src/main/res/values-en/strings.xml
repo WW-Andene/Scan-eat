@@ -2160,4 +2160,17 @@
     <string name="scan_voice_alert_veto">Warning, not recommended for you: %1$s.</string>
     <string name="scan_voice_alert_traces">May contain traces of: %1$s.</string>
     <string name="scan_voice_alert_medication">Possible interaction with one of your medications.</string>
+    <string name="auto_backup_title">Automatic backup</string>
+    <string name="auto_backup_hint">Every week, an encrypted backup of all your data is written into a folder of your choice (for example a folder synced with your cloud). The 4 most recent are kept; restore them with “Restore a backup”.</string>
+    <string name="auto_backup_off">Off: your data is only protected by your manual exports.</string>
+    <string name="auto_backup_on_never">On — first backup in progress.</string>
+    <string name="auto_backup_on_last">On — last backup on %1$s.</string>
+    <string name="auto_backup_last_failed">The last attempt failed (folder deleted or unreachable?). Turn it off and on again to pick another folder.</string>
+    <string name="auto_backup_enable">Turn on automatic backup</string>
+    <string name="auto_backup_disable">Turn off</string>
+    <string name="auto_backup_passphrase_title">Backup password</string>
+    <string name="auto_backup_passphrase_body">Backups are encrypted with this password (at least 8 characters). Write it down: you will need it to restore your data on another phone.</string>
+    <string name="auto_backup_passphrase">Password</string>
+    <string name="auto_backup_passphrase_confirm">Confirm password</string>
+    <string name="auto_backup_choose_folder">Choose the folder</string>
 </resources>
