@@ -38,6 +38,7 @@ object AppRoutes {
     const val SOURCES = "sources"
     const val MY_SAFETY = "my_safety"
     const val REACTIONS = "reactions"
+    const val MENU_SCAN = "menu_scan"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }

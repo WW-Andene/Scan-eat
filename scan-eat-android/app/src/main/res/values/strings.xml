@@ -2184,4 +2184,12 @@
     <string name="receipt_scan_add_to_pantry">Ajouter aussi ces articles au garde-manger</string>
     <string name="recipes_suggest_expiring_soon">bientôt périmé</string>
     <string name="result_alternative_off_title">Mieux noté dans la même catégorie (Open Food Facts)</string>
+    <string name="menu_scan_title">Scanner une carte de restaurant</string>
+    <string name="menu_scan_hint">Photographiez la carte, plat par plat lisible</string>
+    <string name="menu_scan_error">La carte n\'a pas pu être lue. Réessayez avec plus de lumière, bien à plat.</string>
+    <string name="menu_scan_retry">Scanner une autre photo</string>
+    <string name="menu_scan_disclaimer">Seuls les ingrédients écrits sur la carte peuvent être détectés : un plat sans alerte n\'est pas garanti sans allergène. Le restaurant doit vous indiquer les allergènes de chaque plat sur demande (règlement INCO, art. 44) : demandez toujours.</string>
+    <string name="menu_scan_no_profile">Aucun allergène ni régime déclaré dans le profil : rien n\'est vérifié.</string>
+    <string name="menu_scan_allergens">Mentionne : %1$s</string>
+    <string name="menu_scan_diet">Incompatible avec votre régime : %1$s</string>
 </resources>

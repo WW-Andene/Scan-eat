@@ -2180,4 +2180,12 @@
     <string name="receipt_scan_add_to_pantry">Also add these items to the pantry</string>
     <string name="recipes_suggest_expiring_soon">expiring soon</string>
     <string name="result_alternative_off_title">Better rated in the same category (Open Food Facts)</string>
+    <string name="menu_scan_title">Scan a restaurant menu</string>
+    <string name="menu_scan_hint">Photograph the menu with each dish readable</string>
+    <string name="menu_scan_error">The menu could not be read. Try again with more light, held flat.</string>
+    <string name="menu_scan_retry">Scan another photo</string>
+    <string name="menu_scan_disclaimer">Only ingredients written on the menu can be detected: a dish without an alert is not guaranteed allergen-free. Restaurants must tell you the allergens of each dish on request (EU INCO regulation, art. 44): always ask.</string>
+    <string name="menu_scan_no_profile">No allergen or diet declared in the profile: nothing is checked.</string>
+    <string name="menu_scan_allergens">Mentions: %1$s</string>
+    <string name="menu_scan_diet">Not compatible with your diet: %1$s</string>
 </resources>

@@ -766,6 +766,8 @@ d'écriture OFF, compte utilisateur ou anonyme).
 > *Pourquoi ici :* Contribution Open Food Facts.
 
 ### 45. N3 – Scan de carte de restaurant
+✅ **Fait** : « Scanner une carte de restaurant » (depuis « Ma sécurité ») : OCR sur l'appareil, une ligne = un plat, mêmes détecteurs d'allergènes et de régime que les produits (seuls les ingrédients interdits nommés comptent), plats signalés en tête ; avertissement explicite « un plat sans alerte n'est pas garanti » et rappel de l'obligation d'information du restaurant (INCO art. 44) (test `MenuAnalysisTest`).
+
 OCR ML Kit, puis détection allergènes/régime par plat,
 en réutilisant `AllergenDetector` et `DietChecker`.
 

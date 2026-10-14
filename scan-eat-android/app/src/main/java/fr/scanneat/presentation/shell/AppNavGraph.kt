@@ -234,7 +234,12 @@ fun AppNavGraph(
                 onOpenRecalls = { navController.navigate(AppRoutes.RECALLS) },
                 onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
                 onOpenReactions = { navController.navigate(AppRoutes.REACTIONS) },
+                onOpenMenuScan = { navController.navigate(AppRoutes.MENU_SCAN) },
             )
+        }
+
+        composable(AppRoutes.MENU_SCAN) {
+            fr.scanneat.presentation.menu.MenuScanScreen(onBack = { navController.popBackStack() })
         }
 
         composable(AppRoutes.REACTIONS) {
