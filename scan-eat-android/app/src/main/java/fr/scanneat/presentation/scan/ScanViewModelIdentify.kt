@@ -71,7 +71,10 @@ internal fun ScanViewModel.identifyFromPhotos() {
                         // leave a stale error banner behind after navigating away.
                         else -> runCatching { scanRepo.persist(scanResult, activeProfileId.value) }
                             .fold(
-                                onSuccess = { id -> _state.value = ScanUiState.Success(scanResult, id); announceScoreIfEnabled(scanResult) },
+                                onSuccess = { id ->
+                                    if (scanResult.needsOcrReview) _state.value = ScanUiState.ReviewOcr(scanResult, id)
+                                    else { _state.value = ScanUiState.Success(scanResult, id); announceScoreIfEnabled(scanResult) }
+                                },
                                 onFailure = { e ->
                                     if (e is kotlinx.coroutines.CancellationException) throw e
                                     _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang))

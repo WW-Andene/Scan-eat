@@ -357,6 +357,10 @@ data class ScanResult(
     // read path (a fresh scan, an already-current row) and whenever a rescore
     // happened to land on the exact same score.
     val rescoredFrom: Int? = null,
+    // Roadmap C16: transient, set only when the product was read from a label
+    // photo by OCR on this scan - the scan screen then asks the user to check
+    // the values before showing the score. Never persisted.
+    val needsOcrReview: Boolean = false,
 )
 
 /**

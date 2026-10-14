@@ -2079,4 +2079,18 @@
     <string name="notif_medication_public_title">Treatment reminder</string>
     <string name="profile_goal_lose_unsafe">Weight-loss goal not applied: pregnancy, under 18 or BMI below 18.5. Calculations use “Maintain”. Talk to a health professional.</string>
     <string name="weight_goal_underweight">Goal weight below BMI 18.5 (underweight): talk to a health professional</string>
+    <string name="ocr_review_title">Check the values read</string>
+    <string name="ocr_review_body">These values were read from the photo by text recognition and may contain errors (shifted column, misread comma). Correct them before the score is computed.</string>
+    <string name="ocr_review_name">Product name</string>
+    <string name="ocr_review_kcal">Energy (kcal / 100 g)</string>
+    <string name="ocr_review_fat">Fat (g / 100 g)</string>
+    <string name="ocr_review_satfat">of which saturates (g)</string>
+    <string name="ocr_review_carbs">Carbohydrate (g / 100 g)</string>
+    <string name="ocr_review_sugars">of which sugars (g)</string>
+    <string name="ocr_review_fiber">Fibre (g / 100 g)</string>
+    <string name="ocr_review_protein">Protein (g / 100 g)</string>
+    <string name="ocr_review_salt">Salt (g / 100 g)</string>
+    <string name="ocr_review_ingredients">Ingredients (comma-separated)</string>
+    <string name="ocr_review_confirm">Confirm and score</string>
+    <string name="ocr_review_cancel">Cancel the scan</string>
 </resources>

@@ -480,8 +480,11 @@ class ScanViewModel @Inject constructor(
                 }
                 result.fold(
                     onSuccess = { (scanResult, id) ->
-                        _state.value = ScanUiState.Success(scanResult, id)
-                        announceScoreIfEnabled(scanResult)
+                        if (scanResult.needsOcrReview) _state.value = ScanUiState.ReviewOcr(scanResult, id)
+                        else {
+                            _state.value = ScanUiState.Success(scanResult, id)
+                            announceScoreIfEnabled(scanResult)
+                        }
                         if (barcode != null) {
                             _recentBarcodes.value = (_recentBarcodes.value - barcode + barcode)
                                 .distinct().takeLast(5)
@@ -577,6 +580,29 @@ class ScanViewModel @Inject constructor(
     }
 
     fun dismissError() { _state.value = ScanUiState.Idle }
+
+    /** Roadmap C16: user confirmed (possibly corrected) the OCR-read values. */
+    fun confirmOcrReview(reviewed: fr.scanneat.domain.model.Product) {
+        val s = _state.value as? ScanUiState.ReviewOcr ?: return
+        viewModelScope.launch {
+            val lang = prefs.language.first()
+            runCatching { scanRepo.applyReviewedProduct(s.persistedId, s.result, reviewed, lang) }
+                .onSuccess { r -> _state.value = ScanUiState.Success(r, s.persistedId); announceScoreIfEnabled(r) }
+                .onFailure { e ->
+                    if (e is CancellationException) throw e
+                    _state.value = ScanUiState.Error(genericErrorMessage(lang))
+                }
+        }
+    }
+
+    /** Roadmap C16: the reading is wrong - drop the saved row, back to the camera. */
+    fun cancelOcrReview() {
+        val s = _state.value as? ScanUiState.ReviewOcr ?: return
+        viewModelScope.launch {
+            runCatching { scanRepo.delete(s.persistedId) }
+            _state.value = ScanUiState.Idle
+        }
+    }
 
     /**
      * Reports a camera-capture failure (bind failure, buffer/driver fault, storage

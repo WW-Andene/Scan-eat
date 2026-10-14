@@ -57,6 +57,10 @@ interface ScanHistoryDao {
     @Query("UPDATE scan_history SET score = :score, grade = :grade, category = :category, productJson = :productJson, auditJson = :auditJson WHERE id = :id")
     suspend fun updateRescored(id: Long, score: Int, grade: String, category: String, productJson: String, auditJson: String)
 
+    /** Roadmap C16: the user reviewed/corrected the values read from a label photo. */
+    @Query("UPDATE scan_history SET productName = :productName, score = :score, grade = :grade, category = :category, productJson = :productJson, auditJson = :auditJson, warningsJson = :warningsJson WHERE id = :id")
+    suspend fun updateReviewed(id: Long, productName: String, score: Int, grade: String, category: String, productJson: String, auditJson: String, warningsJson: String)
+
     // Previously unbounded (no LIMIT) unlike observeRecent above — a heavy user
     // who favorites hundreds of products over years re-ran a full, unpaginated
     // query on every single insert/favorite toggle, holding the whole result set

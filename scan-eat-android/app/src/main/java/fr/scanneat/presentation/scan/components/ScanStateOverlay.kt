@@ -103,9 +103,12 @@ internal fun BoxScope.ScanStateOverlay(
     onSaveDetectedMedication: (fr.scanneat.domain.engine.medication.MedicationDbEntry) -> Unit,
     onReportMisclassification: (barcode: String?, productName: String, brand: String, currentClassification: String, correctedClassification: String, note: String) -> Unit = { _, _, _, _, _, _ -> },
     medicationInteractionWarnings: List<InteractionWarning> = emptyList(),
+    onConfirmOcrReview: (fr.scanneat.domain.model.Product) -> Unit = {},
+    onCancelOcrReview: () -> Unit = {},
 ) {
     when (val s = state) {
         is ScanUiState.Idle, is ScanUiState.Scanning, is ScanUiState.Success -> Unit
+        is ScanUiState.ReviewOcr -> OcrReviewDialog(s.result.product, onConfirm = onConfirmOcrReview, onCancel = onCancelOcrReview)
         is ScanUiState.Error -> {
             if (hasCamera && !cameraUnavailable) {
                 if (s.needsPhoto) {

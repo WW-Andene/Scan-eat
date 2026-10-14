@@ -182,6 +182,23 @@ class ScanRepository @Inject constructor(
 
     suspend fun delete(id: Long) = historyQueries.delete(id)
 
+    /**
+     * Roadmap C16: values read by OCR from a label photo are confirmed or
+     * corrected by the user before the result is shown. Re-scores the reviewed
+     * product, marks it "read by OCR, checked by you" and rewrites the saved row.
+     */
+    suspend fun applyReviewedProduct(id: Long, original: ScanResult, reviewed: fr.scanneat.domain.model.Product, lang: String): ScanResult {
+        val audit = scoreProduct(reviewed, lang)
+        val reviewedNote = if (lang == "en") "Values read from the photo (OCR), checked by you" else "Valeurs lues sur la photo (OCR), vérifiées par vous"
+        val result = original.copy(product = reviewed, audit = audit, warnings = listOf(reviewedNote) + original.warnings, dbId = id)
+        dao.updateReviewed(
+            id = id, productName = reviewed.name, score = audit.score, grade = audit.grade.label,
+            category = reviewed.category.key, productJson = productAdapter.toJson(reviewed),
+            auditJson = auditAdapter.toJson(audit), warningsJson = warningsAdapter.toJson(result.warnings),
+        )
+        return result
+    }
+
     suspend fun findBetterAlternative(
         scan: ScanResult,
         allergens: Set<String> = emptySet(),
@@ -405,7 +422,7 @@ class ScanRepository @Inject constructor(
                     if (lang == "en") "This food wasn't recognised — search it by name instead"
                     else "Aliment non reconnu — recherchez-le plutôt par son nom",
                 )
-            return@ioCatching ScanResult(parsed.product, scoreProduct(parsed.product, lang), parsed.warnings, ScanSource.ON_DEVICE_OCR, parsed.barcode)
+            return@ioCatching ScanResult(parsed.product, scoreProduct(parsed.product, lang), parsed.warnings, ScanSource.ON_DEVICE_OCR, parsed.barcode, needsOcrReview = true)
         }
         val parsed = labelReader.parseLabel(images, lang)
         ScanResult(
@@ -414,6 +431,7 @@ class ScanRepository @Inject constructor(
             warnings = parsed.warnings,
             source   = ScanSource.ON_DEVICE_OCR,
             barcode  = parsed.barcode,
+            needsOcrReview = true,
         )
     }
 

@@ -2083,4 +2083,18 @@
     <string name="notif_medication_public_title">Rappel de traitement</string>
     <string name="profile_goal_lose_unsafe">Objectif de perte de poids non appliqué : grossesse, moins de 18 ans ou IMC inférieur à 18,5. Les calculs utilisent « Maintenir ». Parlez-en à un professionnel de santé.</string>
     <string name="weight_goal_underweight">Poids cible sous l\'IMC 18,5 (insuffisance pondérale) : parlez-en à un professionnel de santé</string>
+    <string name="ocr_review_title">Vérifiez les valeurs lues</string>
+    <string name="ocr_review_body">Ces valeurs ont été lues sur la photo par reconnaissance de texte et peuvent contenir des erreurs (colonne décalée, virgule mal lue). Corrigez-les avant le calcul de la note.</string>
+    <string name="ocr_review_name">Nom du produit</string>
+    <string name="ocr_review_kcal">Énergie (kcal / 100 g)</string>
+    <string name="ocr_review_fat">Matières grasses (g / 100 g)</string>
+    <string name="ocr_review_satfat">dont acides gras saturés (g)</string>
+    <string name="ocr_review_carbs">Glucides (g / 100 g)</string>
+    <string name="ocr_review_sugars">dont sucres (g)</string>
+    <string name="ocr_review_fiber">Fibres (g / 100 g)</string>
+    <string name="ocr_review_protein">Protéines (g / 100 g)</string>
+    <string name="ocr_review_salt">Sel (g / 100 g)</string>
+    <string name="ocr_review_ingredients">Ingrédients (séparés par des virgules)</string>
+    <string name="ocr_review_confirm">Valider et noter</string>
+    <string name="ocr_review_cancel">Annuler le scan</string>
 </resources>

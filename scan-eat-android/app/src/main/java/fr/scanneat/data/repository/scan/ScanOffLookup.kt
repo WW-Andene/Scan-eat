@@ -274,7 +274,8 @@ internal class ScanOffLookup(
             nutrition = finalProduct.nutrition.withEstimatedMicronutrients(finalProduct.category),
         )
         val audit = scoreProduct(estimatedProduct, lang)
-        val result = ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
+        val result = ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode,
+            needsOcrReview = source == ScanSource.ON_DEVICE_OCR)
         // Cache only the plain OFF-only path - a photo-augmented result (MERGED/on-device OCR
         // source) reflects photos this specific user just took, not a stable
         // barcode-keyed answer safe to hand back for someone else's rescan.
