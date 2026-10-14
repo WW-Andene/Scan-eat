@@ -641,6 +641,8 @@ suivis, et masquer les autres dans la navigation.
 > *Pourquoi ici :* Onboarding « modules suivis » et navigation allégée.
 
 ### 32. A11. Tableau de bord personnalisable
+✅ **Fait** : « Personnaliser le tableau de bord » : 18 cartes à masquer et réordonner (↑/↓, réinitialiser), enregistrées immédiatement ; le centre de vigilance reste toujours en haut ; les cartes des modules non suivis (A4 : poids, dépenses) sont masquées automatiquement (test `DashboardLayoutTest`).
+
 `presentation/dashboard/cards/` contient **21 cartes**. Le réordonnancement n'existe que pour les onglets
 du Journal (`UserPreferences`, l. 113). Permettre de masquer et réordonner les cartes, avec des préréglages
 selon les modules choisis à l'onboarding (A4).

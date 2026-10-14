@@ -92,6 +92,9 @@ fun DashboardScreen(
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val safetyWarnings = viewModel.safetyWarnings.collectAsStateWithLifecycle()
     val whatsNewSeenVersion = viewModel.whatsNewSeenVersion.collectAsStateWithLifecycle()
+    val dashboardLayout = viewModel.dashboardLayout.collectAsStateWithLifecycle().value
+    val hiddenModules = viewModel.hiddenModules.collectAsStateWithLifecycle().value
+    var showLayoutEditor by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     var loggingScan by remember { mutableStateOf<ScanResult?>(null) }
     // User-reported: tapping a GapCloser/ChronicGap suggestion chip logged it to the
@@ -152,94 +155,124 @@ fun DashboardScreen(
                 item { SafetyCenterCard(safetyWarnings.value) }
             }
 
-            // ---- Caloric balance — the hero card, streak badge overlapping its corner ----
-            s.calorieBalance?.let { item { CalorieBalanceCard(it, streak = s.streak, longestStreak = s.longestStreak) } }
+            // Roadmap A11: cards in the user's order, hidden ones and those of
+            // unfollowed modules (A4) skipped. The safety center above stays first.
+            dashboardLayout.visible(hiddenModules).forEach { card ->
+                when (card) {
+                    DashboardCard.CALORIES -> {
+                    // ---- Caloric balance — the hero card, streak badge overlapping its corner ----
+                    s.calorieBalance?.let { item { CalorieBalanceCard(it, streak = s.streak, longestStreak = s.longestStreak) } }
+                    }
+                    DashboardCard.WEEKLY_SCORE -> {
+                    // ---- Weekly nutrition-quality score rollup — R&D roadmap: the app's
+                    // score/grade system (its differentiator vs. calorie-only trackers)
+                    // previously only appeared per-item at the very bottom of "Recent scans",
+                    // buried below ~15 other cards. Placed right under the hero so it's
+                    // visible without scrolling. Null (no scans this week) renders nothing. ----
+                    weeklyScoreSummary.value?.let { item { WeeklyScoreCard(it) } }
+                    }
+                    DashboardCard.MACROS -> {
+                    // ---- Today's macros as rings ----
+                    item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }
+                    }
+                    DashboardCard.OTHER_TRACKERS -> {
+                    // ---- Water/Fasting/Treatment glance row - Dashboard previously showed
+                    // nutrition + weight only, with zero signal for the other three trackers
+                    // Journal already tracks (see DashboardViewModel.otherTrackers) ----
+                    item {
+                        OtherTrackersCard(
+                            otherTrackers.value,
+                            onOpenHydration  = { onOpenDiaryTab("WATER") },
+                            onOpenFasting    = { onOpenDiaryTab("FASTING") },
+                            onOpenMedication = { onOpenDiaryTab("TREATMENT") },
+                        )
+                    }
+                    }
+                    DashboardCard.MICRONUTRIENTS -> {
+                    // ---- Micronutrient progress (fiber, iron, calcium, vitD, B12) ----
+                    item { MicronutrientCard(totals = s.todayTotals, targets = s.targets) }
+                    }
+                    DashboardCard.BUDGET -> {
+                    // ---- Daily "don't exceed" budgets (sat-fat/sugars/salt) - DailyTargets already
+                    // computes all three but nothing on Dashboard/Diary ever showed them ----
+                    s.targets?.let { t -> item { NutrientBudgetCard(totals = s.todayTotals, targets = t) } }
+                    }
+                    DashboardCard.WEEKLY_BARS -> {
+                    // ---- Weekly bars ----
+                    s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets, language = language.value) } }
+                    }
+                    DashboardCard.BEST_WORST -> {
+                    // ---- Best / Worst day of the week ----
+                    s.weekly?.let { item { BestWorstDayCard(rollup = it, targets = s.targets, language = language.value) } }
+                    }
+                    DashboardCard.MONTHLY -> {
+                    // ---- Monthly trend ----
+                    s.monthly?.let { item { MonthlyTrendCard(rollup = it, targets = s.targets, language = language.value, delta = s.monthDelta) } }
+                    }
+                    DashboardCard.WEEK_DELTA -> {
+                    // ---- Week-over-week delta ----
+                    s.weekDelta?.let { delta ->
+                        if (delta.kcal != 0.0) item { WeekDeltaCard(delta = delta) }
+                    }
+                    }
+                    DashboardCard.INSIGHT -> {
+                    // ---- Cross-tracker insight: does this week's intake actually agree
+                    // with the real weight-trend direction? INCONCLUSIVE means neither
+                    // signal is strong enough yet to say anything useful. ----
+                    (s.crossInsight as? CrossTrackerInsight.WeightVsIntake)?.let { insight ->
+                        if (insight.agreement != InsightAgreement.INCONCLUSIVE) {
+                            item { WeeklyInsightCard(insight, useImperial = useImperialWeight.value) }
+                        }
+                    }
+                    }
+                    DashboardCard.VALUE_SCORE -> {
+                    if (weeklyValueScoreCounts.value.isNotEmpty()) {
+                        item { WeeklyValueScoreCard(weeklyValueScoreCounts.value) }
+                    }
+                    }
+                    DashboardCard.DIVERSITY -> {
+                    // ---- Food diversity: distinct foods eaten this week, independent
+                    // of any single product's own score ----
+                    s.foodDiversity?.let { diversity ->
+                        if (diversity.distinctCount > 0) {
+                            item { fr.scanneat.presentation.dashboard.cards.FoodDiversityCard(diversity) }
+                        }
+                    }
+                    }
+                    DashboardCard.WEIGHT -> {
+                    // ---- Weight summary ----
+                    s.weightSummary?.let { ws ->
+                        item { WeightCard(summary = ws, forecast = s.weightForecast, useImperial = useImperialWeight.value) }
+                    }
+                    }
+                    DashboardCard.EXPENSES -> {
+                    // ---- Expenses recap (self-contained, own hiltViewModel - see ExpensesRecapCard's doc comment) ----
+                    item { fr.scanneat.presentation.dashboard.cards.ExpensesRecapCard(onClick = { onOpenDiaryTab("EXPENSES") }) }
+                    }
+                    DashboardCard.GAPS -> {
+                    // ---- Gap-closer suggestions ----
+                    if (s.gapSuggestions.isNotEmpty()) {
+                        item { GapCloserCard(gaps = s.gapSuggestions, onSuggestionClick = { pendingGapSuggestion = it }) }
+                    }
+                    }
+                    DashboardCard.CHRONIC_GAPS -> {
+                    // ---- Chronic (recurring, multi-day) nutrient gaps ----
+                    if (s.chronicGaps.isNotEmpty()) {
+                        item { ChronicGapCard(gaps = s.chronicGaps, onSuggestionClick = { pendingGapSuggestion = it }) }
+                    }
+                    }
+                    DashboardCard.NEVER_LOGGED -> {
+                    // ---- Scanned today but never logged ----
+                    if (s.neverLoggedScans.isNotEmpty()) {
+                        item { NeverLoggedScansCard(scans = s.neverLoggedScans, onLogClick = { loggingScan = it }) }
+                    }
+                    }
+                }
+            }
 
-            // ---- Weekly nutrition-quality score rollup — R&D roadmap: the app's
-            // score/grade system (its differentiator vs. calorie-only trackers)
-            // previously only appeared per-item at the very bottom of "Recent scans",
-            // buried below ~15 other cards. Placed right under the hero so it's
-            // visible without scrolling. Null (no scans this week) renders nothing. ----
-            weeklyScoreSummary.value?.let { item { WeeklyScoreCard(it) } }
-
-            // ---- Today's macros as rings ----
-            item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }
-
-            // ---- Water/Fasting/Treatment glance row - Dashboard previously showed
-            // nutrition + weight only, with zero signal for the other three trackers
-            // Journal already tracks (see DashboardViewModel.otherTrackers) ----
+            // Roadmap A11: customise the cards above.
             item {
-                OtherTrackersCard(
-                    otherTrackers.value,
-                    onOpenHydration  = { onOpenDiaryTab("WATER") },
-                    onOpenFasting    = { onOpenDiaryTab("FASTING") },
-                    onOpenMedication = { onOpenDiaryTab("TREATMENT") },
-                )
-            }
-
-            // ---- Micronutrient progress (fiber, iron, calcium, vitD, B12) ----
-            item { MicronutrientCard(totals = s.todayTotals, targets = s.targets) }
-
-            // ---- Daily "don't exceed" budgets (sat-fat/sugars/salt) - DailyTargets already
-            // computes all three but nothing on Dashboard/Diary ever showed them ----
-            s.targets?.let { t -> item { NutrientBudgetCard(totals = s.todayTotals, targets = t) } }
-
-            // ---- Weekly bars ----
-            s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets, language = language.value) } }
-
-            // ---- Best / Worst day of the week ----
-            s.weekly?.let { item { BestWorstDayCard(rollup = it, targets = s.targets, language = language.value) } }
-
-            // ---- Monthly trend ----
-            s.monthly?.let { item { MonthlyTrendCard(rollup = it, targets = s.targets, language = language.value, delta = s.monthDelta) } }
-
-            // ---- Week-over-week delta ----
-            s.weekDelta?.let { delta ->
-                if (delta.kcal != 0.0) item { WeekDeltaCard(delta = delta) }
-            }
-
-            // ---- Cross-tracker insight: does this week's intake actually agree
-            // with the real weight-trend direction? INCONCLUSIVE means neither
-            // signal is strong enough yet to say anything useful. ----
-            (s.crossInsight as? CrossTrackerInsight.WeightVsIntake)?.let { insight ->
-                if (insight.agreement != InsightAgreement.INCONCLUSIVE) {
-                    item { WeeklyInsightCard(insight, useImperial = useImperialWeight.value) }
-                }
-            }
-
-            if (weeklyValueScoreCounts.value.isNotEmpty()) {
-                item { WeeklyValueScoreCard(weeklyValueScoreCounts.value) }
-            }
-
-            // ---- Food diversity: distinct foods eaten this week, independent
-            // of any single product's own score ----
-            s.foodDiversity?.let { diversity ->
-                if (diversity.distinctCount > 0) {
-                    item { fr.scanneat.presentation.dashboard.cards.FoodDiversityCard(diversity) }
-                }
-            }
-
-            // ---- Weight summary ----
-            s.weightSummary?.let { ws ->
-                item { WeightCard(summary = ws, forecast = s.weightForecast, useImperial = useImperialWeight.value) }
-            }
-
-            // ---- Expenses recap (self-contained, own hiltViewModel - see ExpensesRecapCard's doc comment) ----
-            item { fr.scanneat.presentation.dashboard.cards.ExpensesRecapCard(onClick = { onOpenDiaryTab("EXPENSES") }) }
-
-            // ---- Gap-closer suggestions ----
-            if (s.gapSuggestions.isNotEmpty()) {
-                item { GapCloserCard(gaps = s.gapSuggestions, onSuggestionClick = { pendingGapSuggestion = it }) }
-            }
-
-            // ---- Chronic (recurring, multi-day) nutrient gaps ----
-            if (s.chronicGaps.isNotEmpty()) {
-                item { ChronicGapCard(gaps = s.chronicGaps, onSuggestionClick = { pendingGapSuggestion = it }) }
-            }
-
-            // ---- Scanned today but never logged ----
-            if (s.neverLoggedScans.isNotEmpty()) {
-                item { NeverLoggedScansCard(scans = s.neverLoggedScans, onLogClick = { loggingScan = it }) }
+                TextButton(onClick = { showLayoutEditor = true }) { Text(stringResource(R.string.dash_customize), color = AccentCoral) }
             }
 
             // ---- One-time spotlight for features that otherwise shipped with zero
@@ -321,6 +354,10 @@ fun DashboardScreen(
 
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
+    }
+
+    if (showLayoutEditor) {
+        DashboardLayoutDialog(dashboardLayout, onChange = viewModel::setDashboardLayout, onDismiss = { showLayoutEditor = false })
     }
 
     // Portion/meal-slot picker for NeverLoggedScansCard's "Log it" action - same
