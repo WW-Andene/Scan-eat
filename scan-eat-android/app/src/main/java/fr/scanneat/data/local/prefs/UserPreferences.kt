@@ -292,6 +292,7 @@ class UserPreferences @Inject constructor(
                 activityLevel  = ActivityLevel.values().firstOrNull { it.name == p[profileKey(id, "activity")] } ?: ActivityLevel.MODERATELY_ACTIVE,
                 goal           = Goal.values().firstOrNull { it.name == p[profileKey(id, "goal")] } ?: Goal.MAINTAIN,
                 isMenstruating = p[profileBoolKey(id, "menstruating")] ?: false,
+                sharedReadOnly = p[profileBoolKey(id, "shared_ro")] ?: false,
                 allergens      = decryptCsvSet(p[profileKey(id, "allergens")]),
                 allergenSeverities = decryptSeverities(p[profileKey(id, "allergen_severity")]),
                 healthConditions = decryptCsvSet(p[profileKey(id, "conditions")]),
@@ -381,6 +382,7 @@ class UserPreferences @Inject constructor(
             p.remove(profileFloatKey(id, "height"))
             p.remove(profileFloatKey(id, "goal_weight"))
             p.remove(profileBoolKey(id, "menstruating"))
+            p.remove(profileBoolKey(id, "shared_ro"))
             // saveProfile() (below) also writes this key but it was never listed
             // here - pregnancy status is medical data same as allergens/conditions
             // above, and a user deleting a profile expects it gone, not left
@@ -428,6 +430,7 @@ class UserPreferences @Inject constructor(
         p[profileKey(id, "activity")]     = profile.activityLevel.name
         p[profileKey(id, "goal")]         = profile.goal.name
         p[profileBoolKey(id, "menstruating")] = profile.isMenstruating
+        p[profileBoolKey(id, "shared_ro")] = profile.sharedReadOnly
         p[profileKey(id, "allergens")]    = SecureFieldCipher.encrypt(profile.allergens.joinToString(","))
         // Only non-default severities of currently declared allergens are kept.
         p[profileKey(id, "allergen_severity")] = SecureFieldCipher.encrypt(

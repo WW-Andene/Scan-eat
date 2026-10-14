@@ -2192,6 +2192,7 @@
     <string name="profile_share_body">They open “My safety › Import a shared profile” in Scan\'eat, scan this QR code and type the code. Only allergens, their level and the diet are shared, encrypted; no server.</string>
     <string name="profile_share_code">Code to give them</string>
     <string name="profile_share_received">shared on</string>
+    <string name="profile_shared_read_only">Shared profile: its allergens, their levels and its diet stay as received and cannot be edited here.</string>
     <string name="profile_import_title">Import a shared profile</string>
     <string name="profile_import_hint">Scan the shared profile QR code</string>
     <string name="profile_import_code">Type the 8-character code</string>

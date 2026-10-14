@@ -2196,6 +2196,7 @@
     <string name="profile_share_body">Le proche ouvre « Ma sécurité › Importer un profil partagé » dans Scan\'eat, scanne ce QR code puis saisit le code. Seuls les allergènes, leur niveau et le régime sont partagés, chiffrés ; aucun serveur.</string>
     <string name="profile_share_code">Code à communiquer</string>
     <string name="profile_share_received">partagé le</string>
+    <string name="profile_shared_read_only">Profil partagé : ses allergènes, leurs niveaux et son régime restent ceux reçus et ne sont pas modifiables ici.</string>
     <string name="profile_import_title">Importer un profil partagé</string>
     <string name="profile_import_hint">Scannez le QR code du profil partagé</string>
     <string name="profile_import_code">Saisissez le code de 8 caractères</string>

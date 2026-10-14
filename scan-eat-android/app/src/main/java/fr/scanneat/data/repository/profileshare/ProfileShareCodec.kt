@@ -57,6 +57,7 @@ object ProfileShareCodec {
         allergens = p.allergens.toSet(),
         allergenSeverities = p.severities.mapNotNull { (k, v) -> AllergenSeverity.entries.firstOrNull { it.name == v }?.let { k to it } }.toMap(),
         diet = DietKey.entries.firstOrNull { it.key == p.diet } ?: DietKey.NONE,
+        sharedReadOnly = true,
     )
 
     private fun normalize(code: String) = code.trim().uppercase().replace(" ", "")
