@@ -224,6 +224,7 @@ class MedicationRepository @Inject constructor(
 
     companion object {
         /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS. */
-        const val MAX_HISTORY_ROWS = 5000
+        // Roadmap C15: was 5000 doses (~4.5 years at 3/day); long adherence history matters for the doctor report.
+        const val MAX_HISTORY_ROWS = 20_000
     }
 }

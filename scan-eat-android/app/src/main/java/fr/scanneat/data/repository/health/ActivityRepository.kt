@@ -324,6 +324,7 @@ class ActivityRepository @Inject constructor(
 
     companion object {
         /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS. */
-        const val MAX_HISTORY_ROWS = 5000
+        // Roadmap C15: was 5000.
+        const val MAX_HISTORY_ROWS = 10_000
     }
 }

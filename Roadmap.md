@@ -281,7 +281,7 @@ version → build KSP), puis écrire un test de migration 15→40.
 > *Pourquoi ici :* Prérequis de C6 et de toute évolution de schéma (A1, D1, D2).
 
 ### 2. C7. Séparateur NUL brut dans le code source 🟡
-✅ **Déjà corrigé** : plus aucun octet NUL dans le code source.
+✅ **Fait (passe 7)** : les 5 caractères NUL littéraux de `ManualGroceryRepository.kt` sont écrits `\u0000` (même valeur à l'exécution, données compatibles) ; le fichier n'est plus vu comme binaire.
 
 `data/repository/planning/ManualGroceryRepository.kt` contient 226 octets `0x00`. Le
 fichier est vu comme **binaire** par git/grep, car il utilise un caractère NUL littéral comme séparateur
@@ -597,6 +597,8 @@ une sauvegarde Android chiffrée côté client, avec des règles `data_extractio
 > *Pourquoi ici :* Bloquant publication au même titre que C4/C5 : la promesse « tout est local » implique d'assumer la sauvegarde.
 
 ### 28. C15. Historique de santé supprimé silencieusement 🟠
+✅ **Partiellement fait** : plafonds relevés pour couvrir ~10 ans d'usage assidu (humeur et sommeil 730 → 3650, journal et prises de médicaments 5000 → 20 000, activité 5000 → 10 000). Reste : archivage par agrégats et avertissement avant la première suppression.
+
 Plafonds de rétention par `trim` : humeur et sommeil **730 lignes** (`MoodRepository`,
 `SleepRepository`), non-alimentaire 500, et poids, prises de médicaments, journal et scans 5000.
 Pour un utilisateur assidu (5 entrées par jour), le journal alimentaire perd ses données les plus anciennes au bout d'environ 2,7 ans,
