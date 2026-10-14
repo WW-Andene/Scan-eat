@@ -29,7 +29,10 @@ class OnDeviceFoodIdentifier @javax.inject.Inject constructor() {
     }
 
     /** Best food-database match across all photos, or null when nothing recognisable matched. */
-    suspend fun identify(images: List<ImagePayload>): FoodEntry? {
+    suspend fun identify(images: List<ImagePayload>): FoodEntry? = identifyTop(images).firstOrNull()
+
+    /** Roadmap C16: up to [n] distinct food-database matches, most confident first. */
+    suspend fun identifyTop(images: List<ImagePayload>, n: Int = 3): List<FoodEntry> {
         val labels = images.flatMap { img ->
             val bytes = Base64.decode(img.base64, Base64.DEFAULT)
             val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return@flatMap emptyList()
@@ -37,7 +40,9 @@ class OnDeviceFoodIdentifier @javax.inject.Inject constructor() {
         }
         return labels.sortedByDescending { it.confidence }
             .filter { it.text.lowercase() !in GENERIC_LABELS }
-            .firstNotNullOfOrNull { findFoodByName(it.text) }
+            .mapNotNull { findFoodByName(it.text) }
+            .distinctBy { it.name }
+            .take(n)
     }
 
     fun toResultProduct(food: FoodEntry) = food.toProduct(100.0)

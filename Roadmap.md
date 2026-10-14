@@ -447,7 +447,7 @@ cible sous IMC 18,5, afficher une alerte au lieu d'une date de « réussite » (
 > *Pourquoi ici :* Même famille que C13 ; touche le profil, donc à faire juste après.
 
 ### 15. C16. Résultats OCR et photo notés sans relecture par l'utilisateur 🟠
-✅ **Partiellement fait** : une étiquette lue par OCR ouvre un écran de relecture (nom, 8 valeurs pour 100 g, ingrédients, virgule acceptée) avant la note ; le résultat porte « Valeurs lues sur la photo (OCR), vérifiées par vous » ; « Annuler » supprime le scan (test `OcrReviewTest`). Restent : surlignage sur la photo et 3 meilleures correspondances pour la reconnaissance d'image.
+✅ **Partiellement fait** : une étiquette lue par OCR ouvre un écran de relecture (nom, 8 valeurs pour 100 g, ingrédients, virgule acceptée) avant la note ; le résultat porte « Valeurs lues sur la photo (OCR), vérifiées par vous » ; « Annuler » supprime le scan (test `OcrReviewTest`). Reconnaissance d'image : les 3 meilleures correspondances sont proposées (« Reconnu : X — C'est bien ça » ou une des 2 autres, qui renote le scan enregistré). Non fait : surlignage des zones lues sur la photo (l'écran de relecture couvre déjà la vérification).
 
 `ScanRepository.identifyOrScoreFromImages` : le produit lu par ML Kit (`parseLabel`) ou
 reconnu par l'image (`foodIdentifier`) est **noté immédiatement**. Seul un avertissement

@@ -496,6 +496,7 @@ class ScanViewModel @Inject constructor(
                 result.fold(
                     onSuccess = { (scanResult, id) ->
                         if (scanResult.needsOcrReview) _state.value = ScanUiState.ReviewOcr(scanResult, id)
+                        else if (scanResult.alternativeFoods.isNotEmpty()) _state.value = ScanUiState.ChooseFood(scanResult, id)
                         else {
                             _state.value = ScanUiState.Success(scanResult, id)
                             announceScoreIfEnabled(scanResult)
@@ -607,6 +608,20 @@ class ScanViewModel @Inject constructor(
                     if (e is CancellationException) throw e
                     _state.value = ScanUiState.Error(genericErrorMessage(lang))
                 }
+        }
+    }
+
+    /** Roadmap C16: keep the food recognised first, or switch to another of the best matches. */
+    fun chooseFood(name: String?) {
+        val s = _state.value as? ScanUiState.ChooseFood ?: return
+        viewModelScope.launch {
+            val lang = prefs.language.first()
+            val r = if (name == null || name == s.result.product.name) s.result.copy(alternativeFoods = emptyList())
+                else runCatching { scanRepo.replaceIdentifiedFood(s.persistedId, s.result, name, lang) }
+                    .onFailure { if (it is CancellationException) throw it }.getOrNull()
+            if (r == null) { _state.value = ScanUiState.Error(genericErrorMessage(lang)); return@launch }
+            _state.value = ScanUiState.Success(r, s.persistedId)
+            announceScoreIfEnabled(r)
         }
     }
 

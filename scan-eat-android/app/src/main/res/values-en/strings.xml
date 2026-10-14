@@ -2275,4 +2275,7 @@
     <string name="medication_supply_days_left">About %1$d days of treatment left</string>
     <string name="medication_notif_low_stock">Low stock: about %1$d days left.</string>
     <string name="medication_notif_renewal_due">Prescription to renew soon.</string>
+    <string name="scan_identify_choose_title">Recognised: %1$s</string>
+    <string name="scan_identify_choose_other">Not right? Other matches:</string>
+    <string name="scan_identify_choose_confirm">That\'s right</string>
 </resources>

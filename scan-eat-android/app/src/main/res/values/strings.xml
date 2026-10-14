@@ -2279,4 +2279,7 @@
     <string name="medication_supply_days_left">Environ %1$d jours de traitement restants</string>
     <string name="medication_notif_low_stock">Stock bas : environ %1$d jours restants.</string>
     <string name="medication_notif_renewal_due">Ordonnance à renouveler bientôt.</string>
+    <string name="scan_identify_choose_title">Reconnu : %1$s</string>
+    <string name="scan_identify_choose_other">Ce n\'est pas ça ? Autres correspondances :</string>
+    <string name="scan_identify_choose_confirm">C\'est bien ça</string>
 </resources>
