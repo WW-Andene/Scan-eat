@@ -104,7 +104,11 @@ class ReminderWorker @AssistedInject constructor(
                 // Previously fired on the fixed interval regardless of intake — a user
                 // who already hit today's water goal kept getting nudged anyway.
                 val profile = prefs.profile.first()
-                val goalMl = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, weightKg = profile.weightKg)
+                // Same goal the Hydration screen shows: the user's own override, else the
+                // formula with today's logged exercise - this used the bare formula only.
+                val exerciseMin = activityRepo.observeByDate(LocalDate.now(), profileId).first().sumOf { it.minutes }
+                val goalMl = hydrationRepo.customGoalMl(profileId).first()
+                    ?: hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, exerciseMin, profile.weightKg)
                 val todayMl = hydrationRepo.observe(LocalDate.now(), profileId).first()
                 if (todayMl < goalMl) {
                     NotificationHelper.show(applicationContext, 104,

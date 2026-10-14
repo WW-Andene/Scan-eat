@@ -74,7 +74,7 @@ class HydrationViewModel @Inject constructor(
     // ever consulted the profile's static ActivityLevel, never what was
     // actually logged today - see HydrationRepository.goalMl's own doc
     // comment on the ACE-sourced per-minute bonus this feeds.
-    private val todayExerciseMinutes: Flow<Int> = today.flatMapLatest { date -> activityRepo.observeByDate(date) }
+    private val todayExerciseMinutes: Flow<Int> = combine(today, activeProfileId) { d, id -> d to id }.flatMapLatest { (d, id) -> activityRepo.observeByDate(d, id) }
         .map { entries -> entries.sumOf { it.minutes } }
 
     /** mL currently added to the formula goal from today's logged activity - shown
