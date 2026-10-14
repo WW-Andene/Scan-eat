@@ -2266,4 +2266,7 @@
     <string name="tile_fasting_start">Toucher pour démarrer (16 h)</string>
     <string name="tile_fasting_blocked">Déconseillé pour ce profil</string>
     <string name="condition_ibd_flare">MICI : poussée en cours</string>
+    <string name="reminders_notif_medication_body_hidden">C\'est l\'heure de votre traitement</string>
+    <string name="settings_hide_med_names">Masquer le nom des médicaments</string>
+    <string name="settings_hide_med_names_hint">Les rappels de prise n\'affichent jamais le nom du médicament, même téléphone déverrouillé.</string>
 </resources>

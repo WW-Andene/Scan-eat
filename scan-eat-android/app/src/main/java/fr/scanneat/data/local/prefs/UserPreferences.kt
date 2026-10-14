@@ -120,6 +120,7 @@ class UserPreferences @Inject constructor(
         // Roadmap A4/A11: modules the user does not follow (Journal trackers) and
         // dashboard cards hidden/reordered - opaque CSVs parsed in presentation.
         val KEY_HIDDEN_MODULES       = stringPreferencesKey("hidden_modules")
+        val KEY_HIDE_MED_NAMES       = booleanPreferencesKey("hide_medication_names")
         val KEY_DASHBOARD_LAYOUT     = stringPreferencesKey("dashboard_layout")
     }
 
@@ -187,6 +188,10 @@ class UserPreferences @Inject constructor(
     /** Custom drag-and-drop order for Journal's always-visible header tabs — see [KEY_DIARY_PRIMARY_TABS]. */
     val diaryPrimaryTabsOrder: Flow<String> = storeData.map { it[KEY_DIARY_PRIMARY_TABS] ?: "" }.distinctUntilChanged()
     suspend fun setDiaryPrimaryTabsOrder(csv: String) = store.edit { it[KEY_DIARY_PRIMARY_TABS] = csv }
+
+    /** Roadmap C11: never show the medication name in a notification, even unlocked. */
+    val hideMedicationNames: Flow<Boolean> = storeData.map { it[KEY_HIDE_MED_NAMES] ?: false }.distinctUntilChanged()
+    suspend fun setHideMedicationNames(on: Boolean) = store.edit { it[KEY_HIDE_MED_NAMES] = on }
 
     val hiddenModules: Flow<String> = storeData.map { it[KEY_HIDDEN_MODULES] ?: "" }.distinctUntilChanged()
     suspend fun setHiddenModules(csv: String) = store.edit { it[KEY_HIDDEN_MODULES] = csv }

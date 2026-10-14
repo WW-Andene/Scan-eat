@@ -2262,4 +2262,7 @@
     <string name="tile_fasting_start">Tap to start (16 h)</string>
     <string name="tile_fasting_blocked">Not recommended for this profile</string>
     <string name="condition_ibd_flare">IBD: flare in progress</string>
+    <string name="reminders_notif_medication_body_hidden">Time for your treatment</string>
+    <string name="settings_hide_med_names">Hide medication names</string>
+    <string name="settings_hide_med_names_hint">Dose reminders never show the medication name, even when the phone is unlocked.</string>
 </resources>
