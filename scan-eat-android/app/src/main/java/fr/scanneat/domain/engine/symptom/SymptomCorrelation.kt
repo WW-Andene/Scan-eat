@@ -7,8 +7,8 @@ import kotlin.math.roundToInt
 // ============================================================================
 // symptomFoodCorrelations — user-requested: correlate a symptom journal
 // against what was actually logged in the diary. Deliberately a crude,
-// transparent heuristic (day-level co-occurrence rate, not a real statistical
-// test - no p-value, no causal claim) since a handful of logged days can
+// transparent heuristic (day-level co-occurrence rate, filtered since C17 by
+// a one-sided Fisher exact test - still no causal claim) since a handful of logged days can
 // never support anything stronger, and overstating confidence here would be
 // actively misleading for what's ultimately a personal-health signal. Meant
 // to surface "worth paying attention to", not "this food causes X".
@@ -23,12 +23,44 @@ data class FoodCorrelation(
     val differencePct: Int,
     val symptomDaysWithFood: Int,
     val totalSymptomDays: Int,
+    /** One-sided Fisher exact test p-value (C17). */
+    val pValue: Double = 1.0,
 )
 
-// A food seen on only one symptom day is exactly as likely to be
-// coincidence as signal - require at least this many co-occurrences before
-// it's worth showing at all.
-private const val MIN_SYMPTOM_DAY_OCCURRENCES = 2
+// Roadmap C17: was 2 - two days were enough to suggest a link between a
+// symptom and a treatment. Now at least 5 co-occurrences, at least 14 observed
+// days, and a one-sided Fisher exact test below [MAX_P_VALUE].
+internal const val MIN_SYMPTOM_DAY_OCCURRENCES = 5
+internal const val MIN_OBSERVED_DAYS = 14
+internal const val MAX_P_VALUE = 0.05
+
+/** STRONG below p = 0.01, otherwise MODERATE (only p < 0.05 is ever returned). */
+enum class CorrelationRobustness { MODERATE, STRONG }
+
+fun robustnessOf(pValue: Double): CorrelationRobustness =
+    if (pValue < 0.01) CorrelationRobustness.STRONG else CorrelationRobustness.MODERATE
+
+/**
+ * One-sided Fisher exact test on the 2x2 table
+ * [a = symptom & exposed, b = symptom & not exposed, c = no symptom & exposed,
+ * d = no symptom & not exposed]: probability of seeing a or more exposed
+ * symptom days by chance, given the margins (hypergeometric upper tail).
+ */
+fun fisherExactGreater(a: Int, b: Int, c: Int, d: Int): Double {
+    val n = a + b + c + d
+    val row1 = a + b
+    val col1 = a + c
+    fun logC(nn: Int, k: Int): Double = logFact(nn) - logFact(k) - logFact(nn - k)
+    val denom = logC(n, row1)
+    var p = 0.0
+    for (x in a..minOf(row1, col1)) {
+        if (row1 - x > n - col1) continue
+        p += kotlin.math.exp(logC(col1, x) + logC(n - col1, row1 - x) - denom)
+    }
+    return p.coerceIn(0.0, 1.0)
+}
+
+private fun logFact(n: Int): Double { var s = 0.0; for (i in 2..n) s += kotlin.math.ln(i.toDouble()); return s }
 
 // Below this point-difference, day-to-day meal variation alone plausibly
 // explains it - not worth surfacing as "possibly related".
@@ -42,6 +74,7 @@ fun symptomFoodCorrelations(
     val allDates = diaryEntries.mapTo(mutableSetOf()) { it.date }
     val nonSymptomDates = allDates - symptomDates
     if (nonSymptomDates.isEmpty()) return emptyList() // no contrast group to compare against
+    if (allDates.size < MIN_OBSERVED_DAYS) return emptyList()
 
     val byFood = diaryEntries.groupBy { it.productName.trim().lowercase() }
     return byFood.mapNotNull { (_, entries) ->
@@ -59,7 +92,10 @@ fun symptomFoodCorrelations(
         val nonSymptomPct = (nonSymptomDaysWithFood * 100.0 / nonSymptomDates.size).roundToInt()
         val diff = symptomPct - nonSymptomPct
         if (diff < MIN_DIFFERENCE_PCT) return@mapNotNull null
-        FoodCorrelation(displayName, diff, symptomDaysWithFood, symptomDates.size)
+        val p = fisherExactGreater(symptomDaysWithFood, symptomDates.size - symptomDaysWithFood,
+            nonSymptomDaysWithFood, nonSymptomDates.size - nonSymptomDaysWithFood)
+        if (p >= MAX_P_VALUE) return@mapNotNull null
+        FoodCorrelation(displayName, diff, symptomDaysWithFood, symptomDates.size, p)
     }.sortedByDescending { it.differencePct }
 }
 
@@ -79,6 +115,7 @@ data class MedicationCorrelation(
     val differencePct: Int,
     val symptomDaysWithMedication: Int,
     val totalSymptomDays: Int,
+    val pValue: Double = 1.0,
 )
 
 fun symptomMedicationCorrelations(
@@ -89,6 +126,7 @@ fun symptomMedicationCorrelations(
     val allDates = medicationDoseDates.mapTo(mutableSetOf()) { it.first }
     val nonSymptomDates = allDates - symptomDates
     if (nonSymptomDates.isEmpty()) return emptyList()
+    if (allDates.size < MIN_OBSERVED_DAYS) return emptyList()
 
     val byMedication = medicationDoseDates.groupBy { it.second.trim().lowercase() }
     return byMedication.mapNotNull { (_, doses) ->
@@ -101,6 +139,9 @@ fun symptomMedicationCorrelations(
         val nonSymptomPct = (nonSymptomDaysWithMedication * 100.0 / nonSymptomDates.size).roundToInt()
         val diff = symptomPct - nonSymptomPct
         if (diff < MIN_DIFFERENCE_PCT) return@mapNotNull null
-        MedicationCorrelation(displayName, diff, symptomDaysWithMedication, symptomDates.size)
+        val p = fisherExactGreater(symptomDaysWithMedication, symptomDates.size - symptomDaysWithMedication,
+            nonSymptomDaysWithMedication, nonSymptomDates.size - nonSymptomDaysWithMedication)
+        if (p >= MAX_P_VALUE) return@mapNotNull null
+        MedicationCorrelation(displayName, diff, symptomDaysWithMedication, symptomDates.size, p)
     }.sortedByDescending { it.differencePct }
 }

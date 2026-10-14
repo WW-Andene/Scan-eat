@@ -535,6 +535,8 @@ de traitement » et un rappel de renouvellement d'ordonnance. L'observance entre
 > *Pourquoi ici :* Après C9/C11 (même infrastructure de notifications) ; alimente le rapport médecin D5.
 
 ### 23. C17. Corrélations symptômes ↔ traitements sur 2 occurrences 🟡
+✅ **Fait** : ≥ 5 co-occurrences, ≥ 14 jours observés, test exact de Fisher unilatéral (p < 0,05), indicateur « lien net / modéré » et mention rouge « N'arrêtez jamais un traitement sans avis médical » (test `SymptomCorrelationTest`). Reste : export vers le rapport médecin (D5).
+
 `SymptomCorrelation.kt` : `MIN_SYMPTOM_DAY_OCCURRENCES = 2` et `MIN_DIFFERENCE_PCT = 20`,
 sans test statistique, appliqués aussi aux **médicaments** (« Corrélations possibles avec un
 traitement »). La mention « pas une preuve médicale » existe, mais deux jours suffisent pour

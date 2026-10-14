@@ -2135,4 +2135,7 @@
         <item quantity="one">%1$d produit rappelé parmi vos produits</item>
         <item quantity="other">%1$d produits rappelés parmi vos produits</item>
     </plurals>
+    <string name="symptom_medication_do_not_stop">N\'arrêtez jamais un traitement sans avis médical : parlez de ces observations à votre médecin.</string>
+    <string name="symptom_robustness_strong">lien statistique net</string>
+    <string name="symptom_robustness_moderate">lien statistique modéré</string>
 </resources>

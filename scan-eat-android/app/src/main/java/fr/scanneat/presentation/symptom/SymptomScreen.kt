@@ -162,7 +162,8 @@ private fun SymptomCorrelationCard(correlations: List<fr.scanneat.domain.engine.
         Text(stringResource(R.string.symptom_correlation_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
         correlations.take(5).forEach { c ->
             Text(
-                stringResource(R.string.symptom_correlation_row, c.productName, c.symptomDaysWithFood, c.totalSymptomDays),
+                stringResource(R.string.symptom_correlation_row, c.productName, c.symptomDaysWithFood, c.totalSymptomDays) +
+                    " · " + robustnessLabel(c.pValue),
                 style = MaterialTheme.typography.bodySmall, color = semanticAmber(),
             )
         }
@@ -176,14 +177,23 @@ private fun SymptomMedicationCorrelationCard(correlations: List<fr.scanneat.doma
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Text(stringResource(R.string.symptom_medication_correlation_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         Text(stringResource(R.string.symptom_correlation_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+        // Roadmap C17: never an invitation to stop a treatment alone.
+        Text(stringResource(R.string.symptom_medication_do_not_stop), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.SemiBold)
         correlations.take(5).forEach { c ->
             Text(
-                stringResource(R.string.symptom_correlation_row, c.medicationName, c.symptomDaysWithMedication, c.totalSymptomDays),
+                stringResource(R.string.symptom_correlation_row, c.medicationName, c.symptomDaysWithMedication, c.totalSymptomDays) +
+                    " · " + robustnessLabel(c.pValue),
                 style = MaterialTheme.typography.bodySmall, color = semanticAmber(),
             )
         }
     }
 }
+
+@Composable
+private fun robustnessLabel(pValue: Double): String = stringResource(
+    if (fr.scanneat.domain.engine.symptom.robustnessOf(pValue) == fr.scanneat.domain.engine.symptom.CorrelationRobustness.STRONG)
+        R.string.symptom_robustness_strong else R.string.symptom_robustness_moderate
+)
 
 @Composable
 private fun AddSymptomDialog(
