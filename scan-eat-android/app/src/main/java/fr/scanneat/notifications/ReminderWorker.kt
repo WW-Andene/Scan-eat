@@ -163,7 +163,8 @@ class ReminderWorker @AssistedInject constructor(
                 med.reminderTimes.forEach { time ->
                     val slotTaken = (dosesTakenToday[med.id] ?: 0) > slotOrder.indexOf(time)
                     val slotId = medicationNotificationId(med.id, time)
-                    val justFired = checkMeal(true, time, remindersRepo.medicationLastFiredKey(med.id, time), now, slotId, title, body, NotifChannel.MEDICATION)
+                    val justFired = checkMeal(true, time, remindersRepo.medicationLastFiredKey(med.id, time), now, slotId, title, body, NotifChannel.MEDICATION,
+                        doseAction = DoseAction(med.id, profileId))
 
                     // Dose reminders used to fire once at the scheduled time and go silent
                     // regardless of whether the dose was ever logged. MedicationLogEntry
@@ -178,7 +179,7 @@ class ReminderWorker @AssistedInject constructor(
                         // naggy rather than a helpful nudge, with no acknowledgment this is
                         // a repeat.
                         val repeatBody = String.format(localizedString(lang, R.string.reminders_notif_medication_body_repeat), med.name)
-                        NotificationHelper.show(applicationContext, slotId, title, repeatBody, NotifChannel.MEDICATION)
+                        NotificationHelper.show(applicationContext, slotId, title, repeatBody, NotifChannel.MEDICATION, doseAction = DoseAction(med.id, profileId))
                     }
                 }
             }
@@ -266,6 +267,7 @@ class ReminderWorker @AssistedInject constructor(
     private suspend fun checkMeal(
         on: Boolean, timeStr: String, lastFiredKey: androidx.datastore.preferences.core.Preferences.Key<String>,
         now: LocalTime, notifId: Int, title: String, text: String, channel: NotifChannel? = null,
+        doseAction: DoseAction? = null,
     ): Boolean {
         if (!on) return false
         val target = runCatching { LocalTime.parse(timeStr) }.getOrNull() ?: return false
@@ -281,7 +283,7 @@ class ReminderWorker @AssistedInject constructor(
             // otherwise a day with permission denied permanently lost this reminder
             // with no way to recover, since wasFiredToday would then suppress every
             // later check on the same day even once permission is granted.
-            if (NotificationHelper.show(applicationContext, notifId, title, text, channel)) {
+            if (NotificationHelper.show(applicationContext, notifId, title, text, channel, doseAction = doseAction)) {
                 remindersRepo.markFiredToday(lastFiredKey)
             }
         }

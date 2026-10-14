@@ -63,6 +63,9 @@ object NotificationHelper {
         manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
     }
 
+    /** Intent extra: scan id whose result screen the tap should open (recall notifications). */
+    const val EXTRA_OPEN_SCAN_ID = "fr.scanneat.extra.OPEN_SCAN_ID"
+
     /**
      * @return true if the notification was actually posted, false if it was
      * silently skipped (POST_NOTIFICATIONS denied on API 33+). Callers that also
@@ -71,10 +74,10 @@ object NotificationHelper {
      * whether the user ever saw a notification, so a day with permission denied
      * silently lost every reminder with no way to recover until the next day.
      */
-    /** Intent extra: scan id whose result screen the tap should open (recall notifications). */
-    const val EXTRA_OPEN_SCAN_ID = "fr.scanneat.extra.OPEN_SCAN_ID"
-
-    fun show(context: Context, id: Int, title: String, text: String, channel: NotifChannel? = null, openScanId: Long? = null): Boolean {
+    fun show(
+        context: Context, id: Int, title: String, text: String, channel: NotifChannel? = null, openScanId: Long? = null,
+        doseAction: DoseAction? = null,
+    ): Boolean {
         ensureChannels(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -99,6 +102,13 @@ object NotificationHelper {
             .setAutoCancel(true)
             .setContentIntent(contentIntent)
             .apply {
+                // Roadmap D6: "Pris" / "Reporter" straight from a dose reminder.
+                doseAction?.let { a ->
+                    addAction(0, context.getString(R.string.notif_action_taken),
+                        MedicationActionReceiver.pendingIntent(context, MedicationActionReceiver.ACTION_TAKEN, id, title, text, a))
+                    addAction(0, context.getString(R.string.notif_action_snooze),
+                        MedicationActionReceiver.pendingIntent(context, MedicationActionReceiver.ACTION_SNOOZE, id, title, text, a))
+                }
                 if (channel?.isSensitive == true) {
                     setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                     setPublicVersion(
@@ -116,3 +126,6 @@ object NotificationHelper {
         return true
     }
 }
+
+/** Identifies the dose a medication notification is about (Roadmap D6). */
+data class DoseAction(val medicationId: String, val profileId: String)

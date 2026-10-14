@@ -97,6 +97,9 @@
             android:name=".notifications.MedicationAlarmReceiver"
             android:exported="false" />
         <receiver
+            android:name=".notifications.MedicationActionReceiver"
+            android:exported="false" />
+        <receiver
             android:name=".notifications.MedicationBootReceiver"
             android:exported="true">
             <intent-filter>

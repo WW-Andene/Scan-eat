@@ -2138,4 +2138,6 @@
     <string name="symptom_medication_do_not_stop">N\'arrêtez jamais un traitement sans avis médical : parlez de ces observations à votre médecin.</string>
     <string name="symptom_robustness_strong">lien statistique net</string>
     <string name="symptom_robustness_moderate">lien statistique modéré</string>
+    <string name="notif_action_taken">Pris</string>
+    <string name="notif_action_snooze">Reporter 15 min</string>
 </resources>

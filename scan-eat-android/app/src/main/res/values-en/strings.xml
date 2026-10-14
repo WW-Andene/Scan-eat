@@ -2134,4 +2134,6 @@
     <string name="symptom_medication_do_not_stop">Never stop a treatment without medical advice: discuss these observations with your doctor.</string>
     <string name="symptom_robustness_strong">clear statistical link</string>
     <string name="symptom_robustness_moderate">moderate statistical link</string>
+    <string name="notif_action_taken">Taken</string>
+    <string name="notif_action_snooze">Snooze 15 min</string>
 </resources>
