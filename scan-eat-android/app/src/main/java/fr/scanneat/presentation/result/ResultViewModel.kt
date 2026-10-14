@@ -118,6 +118,10 @@ class ResultViewModel @Inject constructor(
     val profile: StateFlow<Profile> = prefs.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
 
+    // Roadmap D10: every household profile, for the "Famille" row.
+    val profileList: StateFlow<List<Profile>> = prefs.profileList
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // User-requested: interactive walkthrough shown once, over a real scan
     // result, instead of a static onboarding page - see
     // ScanResultTutorialDialog.kt's own header.

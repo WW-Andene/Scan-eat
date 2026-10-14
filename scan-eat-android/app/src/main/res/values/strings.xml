@@ -2056,4 +2056,10 @@
     <string name="notif_channel_recalls">Rappels de produits</string>
     <string name="recall_notif_title">Produit rappelé : %1$s</string>
     <string name="recall_notif_body">Rappel officiel (RappelConso) d\'un produit que vous avez scanné ou stocké — ne pas le consommer, consultez la fiche de rappel.</string>
+    <string name="result_family_title">Famille</string>
+    <string name="result_family_ok">Aucun problème détecté pour ce profil</string>
+    <string name="result_family_traces">Peut contenir des traces : %1$s</string>
+    <string name="result_family_unverified">Ingrédients illisibles — allergènes et régime non vérifiés</string>
+    <string name="result_family_blocked">Déconseillé pour ce profil</string>
+    <string name="result_family_active_suffix">(profil actif)</string>
 </resources>

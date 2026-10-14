@@ -55,6 +55,8 @@ internal fun ResultContent(
     currencySymbol: String = "€",
     improvementTips: List<ImprovementTip> = emptyList(),
     medicationRisks: List<String> = emptyList(),
+    familyVerdicts: List<fr.scanneat.domain.engine.scoring.FamilyMemberVerdict> = emptyList(),
+    activeProfileId: String = "default",
     onSavePrice: (Double, Double?) -> Unit = { _, _ -> },
     onDeletePrice: (String) -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
@@ -168,6 +170,10 @@ internal fun ResultContent(
 
         if (medicationRisks.isNotEmpty()) {
             MedicationRiskBanner(medicationRisks)
+        }
+
+        if (familyVerdicts.isNotEmpty()) {
+            FamilyCheckCard(familyVerdicts, activeProfileId)
         }
 
         // User-requested: mapCategory() fell back to OTHER's generic,

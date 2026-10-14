@@ -655,6 +655,8 @@ observation personnelle et non un diagnostic.
 > *Pourquoi ici :* Journal d'élimination symptômes ↔ aliments.
 
 ### 40. D10. Évaluer un produit pour toute la famille en un scan
+✅ **Fait** : carte « Famille » sur le résultat (dès 2 profils) : ✕ veto, ⚠ traces, ? ingrédients illisibles, ✓ rien détecté, via `familyVerdicts` (test `FamilyCheckTest`).
+
 Le multi-profils existe, mais le résultat n'est calculé que pour le profil **actif**
 (`prefs.activeProfileId`). Ajouter sur le résultat une ligne « Famille » : une pastille par profil
 (✓ / ⚠ / ✕) en relançant `PersonalScoreEngine` pour chacun. C'est le cas d'usage du parent qui fait les

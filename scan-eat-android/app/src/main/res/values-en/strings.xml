@@ -2052,4 +2052,10 @@
     <string name="notif_channel_recalls">Product recalls</string>
     <string name="recall_notif_title">Product recalled: %1$s</string>
     <string name="recall_notif_body">Official recall (RappelConso, French government) of a product you scanned or stocked — do not consume it, see the recall notice.</string>
+    <string name="result_family_title">Family</string>
+    <string name="result_family_ok">No problem found for this profile</string>
+    <string name="result_family_traces">May contain traces: %1$s</string>
+    <string name="result_family_unverified">Ingredients unreadable — allergens and diet not verified</string>
+    <string name="result_family_blocked">Not recommended for this profile</string>
+    <string name="result_family_active_suffix">(active profile)</string>
 </resources>

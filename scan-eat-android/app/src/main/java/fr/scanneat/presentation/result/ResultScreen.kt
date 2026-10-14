@@ -63,6 +63,7 @@ fun ResultScreen(
     val state       = viewModel.state.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
+    val profileList = viewModel.profileList.collectAsStateWithLifecycle()
     val activeMedicationNames = viewModel.activeMedicationNames.collectAsStateWithLifecycle()
     val todaysLoggedFoodNames = viewModel.todaysLoggedFoodNames.collectAsStateWithLifecycle()
     val priceEntries = viewModel.priceEntries.collectAsStateWithLifecycle()
@@ -226,6 +227,11 @@ fun ResultScreen(
                 // Roadmap C2: food-drug interactions were only reachable by
                 // opening the hint dialog; shown inline in the safety block now.
                 medicationRisks   = contentHints.medicationRisks,
+                // Roadmap D10: only meaningful with at least two profiles.
+                familyVerdicts    = profileList.value.takeIf { it.size >= 2 }
+                    ?.let { fr.scanneat.domain.engine.scoring.familyVerdicts(s.scanResult.audit, s.scanResult.product, it, language.value) }
+                    .orEmpty(),
+                activeProfileId   = profile.value.id,
                 onSavePrice       = { price, weight -> viewModel.savePrice(price, weight) },
                 onDeletePrice     = { id -> viewModel.deletePrice(id) },
                 onOpenResult      = onOpenResult,
