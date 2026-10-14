@@ -31,7 +31,7 @@ class PremiumGateViewModel @Inject constructor(prefs: UserPreferences) : ViewMod
 }
 
 /**
- * Wraps a Premium-only screen (Biolism, AI photo scanning) - shows [content] as-is
+ * Wraps a Premium-only screen (Biolism, on-device photo scanning) - shows [content] as-is
  * for a Premium user, or a locked empty state with an upgrade CTA otherwise. See
  * UserPreferences.isPremium's own doc comment for why these two specifically are
  * the paid tier and everything else stays free.

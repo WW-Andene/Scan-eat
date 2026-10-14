@@ -1400,8 +1400,8 @@
     <string name="settings_animated_background_hint">Motif de pluie sur flaque d\'eau généré en fond d\'écran, au lieu d\'un dégradé fixe</string>
     <string name="settings_dyslexic_font">Police adaptée dyslexie</string>
     <string name="settings_dyslexic_font_hint">Interlettrage et espacement des lignes augmentés pour une lecture plus facile</string>
-    <string name="settings_voice_score_announce">Lecture vocale du score</string>
-    <string name="settings_voice_score_announce_hint">Annonce le score et la note à voix haute après chaque scan</string>
+    <string name="settings_voice_score_announce">Lecture vocale des alertes et du score</string>
+    <string name="settings_voice_score_announce_hint">Après chaque scan, annonce d\'abord les alertes (rappel, allergène, régime, interaction médicamenteuse) puis le score</string>
     <string name="settings_colorblind_mode">Mode daltonien</string>
     <string name="settings_colorblind_none">Aucun</string>
     <string name="settings_colorblind_deuteranopia">Deutéranopie</string>
@@ -2160,4 +2160,8 @@
     <string name="reactions_notes">Notes</string>
     <string name="reactions_save">Enregistrer</string>
     <string name="my_safety_reactions">Carnet de réactions allergiques</string>
+    <string name="scan_voice_alert_recall">Attention : ce produit fait l\'objet d\'un rappel officiel, ne le consommez pas.</string>
+    <string name="scan_voice_alert_veto">Attention, déconseillé pour vous : %1$s.</string>
+    <string name="scan_voice_alert_traces">Peut contenir des traces de : %1$s.</string>
+    <string name="scan_voice_alert_medication">Interaction possible avec l\'un de vos médicaments.</string>
 </resources>

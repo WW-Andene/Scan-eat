@@ -636,6 +636,8 @@ selon les modules choisis à l'onboarding (A4).
 > *Pourquoi ici :* Va de pair avec A4 (navigation allégée).
 
 ### 33. N11. Lecture vocale des alertes, pas seulement de la note
+✅ **Fait** : la lecture vocale annonce d'abord les alertes (rappel officiel, veto personnel avec son motif, traces d'allergènes, interaction médicamenteuse), puis la note ; libellé du réglage mis à jour. Reste : proposer l'option dans l'onboarding.
+
 **Partiellement existant (corrigé après vérification)** : `util/ScoreSpeechAnnouncer` lit déjà la
 note et le grade à voix haute après un scan (option désactivée par défaut). À faire : annoncer aussi les
 **alertes** (allergène, interaction, rappel, veto), qui sont l'information vitale pour une personne

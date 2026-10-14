@@ -1338,8 +1338,8 @@
     <string name="settings_animated_background_hint">A generated rain-on-a-puddle ripple pattern behind the screen, instead of a fixed gradient</string>
     <string name="settings_dyslexic_font">Dyslexia-friendly font</string>
     <string name="settings_dyslexic_font_hint">Wider letter and line spacing for easier reading</string>
-    <string name="settings_voice_score_announce">Voice score announcement</string>
-    <string name="settings_voice_score_announce_hint">Reads the score and grade aloud after every scan</string>
+    <string name="settings_voice_score_announce">Voice alerts and score</string>
+    <string name="settings_voice_score_announce_hint">After every scan, reads the alerts first (recall, allergen, diet, drug interaction), then the score</string>
     <string name="settings_colorblind_mode">Colorblind mode</string>
     <string name="settings_colorblind_none">None</string>
     <string name="settings_colorblind_deuteranopia">Deuteranopia</string>
@@ -2156,4 +2156,8 @@
     <string name="reactions_notes">Notes</string>
     <string name="reactions_save">Save</string>
     <string name="my_safety_reactions">Allergic reaction log</string>
+    <string name="scan_voice_alert_recall">Warning: this product is under an official recall, do not consume it.</string>
+    <string name="scan_voice_alert_veto">Warning, not recommended for you: %1$s.</string>
+    <string name="scan_voice_alert_traces">May contain traces of: %1$s.</string>
+    <string name="scan_voice_alert_medication">Possible interaction with one of your medications.</string>
 </resources>

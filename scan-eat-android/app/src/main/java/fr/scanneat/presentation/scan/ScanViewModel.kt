@@ -111,8 +111,23 @@ class ScanViewModel @Inject constructor(
         viewModelScope.launch {
             if (!prefs.voiceScoreAnnounce.first()) return@launch
             val lang = prefs.language.first()
-            val text = localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_announce_format, scanResult.audit.score, scanResult.audit.grade.label)
-            speechAnnouncer.speak(text, lang)
+            val scoreText = localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_announce_format, scanResult.audit.score, scanResult.audit.grade.label)
+            // Roadmap N11: the vital information for a low-vision user is the
+            // alerts, not the score - spoken first.
+            val alerts = buildList {
+                scanResult.barcode?.let { b -> runCatching { recallRepo.checkBarcode(b) }.getOrNull() }
+                    ?.let { add(localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_alert_recall)) }
+                val profile = prefs.profile.first()
+                val personal = fr.scanneat.domain.engine.scoring.computePersonalScore(scanResult.audit, scanResult.product, profile, lang)
+                if (personal.veto) personal.dietReason?.let { add(localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_alert_veto, it)) }
+                val traces = personal.allergenHits.filter { it.isTraceOnly }
+                if (!personal.veto && traces.isNotEmpty()) add(localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_alert_traces,
+                    traces.joinToString(", ") { if (lang == "en") it.labelEn else it.labelFr }))
+                val meds = runCatching { medicationRepo.observeAll(activeProfileId.value).first().filter { it.active }.map { it.name }.toSet() }.getOrDefault(emptySet())
+                if (fr.scanneat.domain.engine.medication.checkFoodDrugInteractions(scanResult.product, meds, lang).isNotEmpty())
+                    add(localizedString(appContext, lang, fr.scanneat.R.string.scan_voice_alert_medication))
+            }
+            speechAnnouncer.speak((alerts + scoreText).joinToString(" "), lang)
         }
     }
 
