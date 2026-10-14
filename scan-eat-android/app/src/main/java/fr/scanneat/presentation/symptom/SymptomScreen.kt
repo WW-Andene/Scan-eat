@@ -37,6 +37,8 @@ fun SymptomScreen(viewModel: SymptomViewModel = hiltViewModel(), onBack: () -> U
     val loggedTypes = viewModel.loggedTypes.collectAsStateWithLifecycle()
     val selectedType = viewModel.selectedType.collectAsStateWithLifecycle()
     val correlations = viewModel.correlations.collectAsStateWithLifecycle()
+    val trial = viewModel.trial.collectAsStateWithLifecycle()
+    val trialReport = viewModel.trialReport.collectAsStateWithLifecycle()
     val medicationCorrelations = viewModel.medicationCorrelations.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -85,6 +87,12 @@ fun SymptomScreen(viewModel: SymptomViewModel = hiltViewModel(), onBack: () -> U
                         }
                     }
                 }
+            }
+
+            // Roadmap D4: guided elimination trial.
+            item {
+                EliminationTrialCard(trial.value, trialReport.value,
+                    onStart = { t, a, r -> viewModel.startTrial(t, a, r) }, onStop = { viewModel.stopTrial() })
             }
 
             if (correlations.value.isNotEmpty()) {

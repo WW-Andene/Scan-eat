@@ -2232,4 +2232,17 @@
     <string name="dash_card_never_logged">Scannés mais non notés</string>
     <string name="grocery_cost_estimate">Coût estimé : %1$s %2$s (prix connus pour %3$d / %4$d articles, d\'après vos derniers achats)</string>
     <string name="grocery_cost_budget">budget de la semaine : %1$s %2$s</string>
+    <string name="trial_title">Essai d\'éviction guidé</string>
+    <string name="trial_disclaimer">Observation personnelle, pas un diagnostic : à mener avec votre médecin ou un diététicien, surtout pour le gluten (un dépistage de la maladie cœliaque se fait avant toute éviction).</string>
+    <string name="trial_days">%1$d jours d\'éviction</string>
+    <string name="trial_start">Commencer (puis 7 jours de réintroduction)</string>
+    <string name="trial_phase_avoid">Éviction du %1$s — encore %2$d jour(s)</string>
+    <string name="trial_phase_reintro">Réintroduction du %1$s — encore %2$d jour(s)</string>
+    <string name="trial_phase_done">Essai terminé : comparez les périodes ci-dessous avec votre médecin.</string>
+    <string name="trial_baseline">14 jours avant</string>
+    <string name="trial_avoidance">Pendant l\'éviction</string>
+    <string name="trial_reintroduction">Pendant la réintroduction</string>
+    <string name="trial_rate">%1$d %% des jours avec symptôme (%2$d / %3$d)</string>
+    <string name="trial_slips">%1$d écart(s) notés pendant l\'éviction :</string>
+    <string name="trial_stop">Arrêter l\'essai</string>
 </resources>

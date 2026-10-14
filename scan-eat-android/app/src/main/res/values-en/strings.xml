@@ -2228,4 +2228,17 @@
     <string name="dash_card_never_logged">Scanned but not logged</string>
     <string name="grocery_cost_estimate">Estimated cost: %1$s %2$s (known prices for %3$d / %4$d items, from your last purchases)</string>
     <string name="grocery_cost_budget">weekly budget: %1$s %2$s</string>
+    <string name="trial_title">Guided elimination trial</string>
+    <string name="trial_disclaimer">Personal observation, not a diagnosis: run it with your doctor or a dietitian, especially for gluten (coeliac disease is tested before any avoidance).</string>
+    <string name="trial_days">%1$d days of avoidance</string>
+    <string name="trial_start">Start (then 7 days of reintroduction)</string>
+    <string name="trial_phase_avoid">Avoiding %1$s — %2$d day(s) left</string>
+    <string name="trial_phase_reintro">Reintroducing %1$s — %2$d day(s) left</string>
+    <string name="trial_phase_done">Trial finished: compare the periods below with your doctor.</string>
+    <string name="trial_baseline">14 days before</string>
+    <string name="trial_avoidance">During avoidance</string>
+    <string name="trial_reintroduction">During reintroduction</string>
+    <string name="trial_rate">%1$d%% of days with a symptom (%2$d / %3$d)</string>
+    <string name="trial_slips">%1$d slip(s) logged during avoidance:</string>
+    <string name="trial_stop">Stop the trial</string>
 </resources>
