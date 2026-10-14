@@ -463,6 +463,8 @@ d'image : proposer les 3 meilleures correspondances au lieu d'en choisir une.
 C8 d'abord : une fois que le domaine renvoie des clés structurées, on y attache la source (A1) au même endroit au lieu de le faire deux fois.
 
 ### 16. C8. Internationalisation dans le moteur 🟡
+⏸️ **Reporté (passe 7)** : refonte de ~230 textes du moteur en clés, à faire dans une passe dédiée (risque de régression élevé) ; les nouveaux textes de cette passe sont dans `strings.xml`.
+
 233 occurrences de `if (en) "…" else "…"` dans le code (moteur de scoring compris, ex.
 `ScoringEngine.kt:578`). Le domaine produit des textes localisés : impossible d'ajouter une
 3ᵉ langue, et les traductions échappent aux outils.
@@ -472,6 +474,8 @@ et la présentation les résout via `strings.xml`.
 > *Pourquoi ici :* Domaine → clés ; présentation → `strings.xml`.
 
 ### 17. A1 – Transparence des sources dans l'UI
+✅ **Fait (niveau table)** : catalogue `DATA_SOURCES` (nom, usage, version/date, lien), chaque entrée vérifiée contre un commentaire de provenance du code. Reste : la source en pied de chaque alerte (dépend de C8).
+
 Les sources existent en commentaires ;
 les remonter en données (`source`, `version`, `verifiedOn` par table ou par entrée) et
 les afficher dans un écran « Sources et versions des données », ainsi qu'en pied de chaque
@@ -481,6 +485,8 @@ alerte (« Source : ANSM, 2024 »). C'est le différenciateur central de la phil
 > *Pourquoi ici :* Métadonnées `source`/`version`/`verifiedOn` sur ces mêmes clés.
 
 ### 18. N2 – Écran « Sources & méthodologie »
+✅ **Fait** : écran « Sources et méthodologie » (calcul de la note, note personnelle, traitement sur l'appareil, version du moteur, 8 sources) ouvert depuis les réglages et depuis chaque note (« Comment est calculée cette note ? »).
+
 public (cf. A1), lien depuis chaque note.
 
 > *Pourquoi ici :* Écran « Sources & méthodologie » alimenté par A1.

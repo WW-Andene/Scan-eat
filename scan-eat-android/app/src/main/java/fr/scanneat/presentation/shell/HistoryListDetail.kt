@@ -49,6 +49,7 @@ internal fun HistoryListDetail(
     onBack: () -> Unit,
     onOpenNonFoodHistory: () -> Unit,
     onOpenRecalls: () -> Unit = {},
+    onOpenSources: () -> Unit = {},
     onOpenProfile: () -> Unit,
     onLog: () -> Unit,
 ) {
@@ -79,6 +80,7 @@ internal fun HistoryListDetail(
                         onBack = { selectedId = null },
                         onOpenResult = { selectedId = it },
                         onOpenProfile = onOpenProfile,
+                        onOpenSources = onOpenSources,
                         onLog = onLog,
                     )
                 }

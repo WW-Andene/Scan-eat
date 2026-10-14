@@ -61,6 +61,7 @@ internal fun ResultContent(
     onDeletePrice: (String) -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
     onOpenProfile: () -> Unit = {},
+    onOpenSources: () -> Unit = {},
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -228,6 +229,10 @@ internal fun ResultContent(
         } else audit.verdict
         Text(verdictText, style = MaterialTheme.typography.bodyLarge, color = OnBackground,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+        // Roadmap N2: every score links to the methodology and data sources.
+        androidx.compose.material3.TextButton(onClick = onOpenSources, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Text(stringResource(R.string.result_how_scored), style = MaterialTheme.typography.labelMedium)
+        }
 
         comparisonResult?.let { ComparisonCard(it) }
 

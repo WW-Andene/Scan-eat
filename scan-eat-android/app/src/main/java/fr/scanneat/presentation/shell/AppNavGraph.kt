@@ -226,6 +226,10 @@ fun AppNavGraph(
         // User-requested: non-food products (shampoo/gel douche/cosmétiques...)
         // scored and given a history/favorites view too, not just food - see
         // NonFoodHistoryScreen/CosmeticTransparencyScore's own doc comments.
+        composable(AppRoutes.SOURCES) {
+            fr.scanneat.presentation.sources.SourcesScreen(onBack = { navController.popBackStack() })
+        }
+
         composable(AppRoutes.RECALLS) {
             fr.scanneat.presentation.recalls.RecallsScreen(
                 onBack = { navController.popBackStack() },
@@ -243,6 +247,7 @@ fun AppNavGraph(
                 isTabRoot = true,
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onOpenReminders = { navController.navigate(AppRoutes.REMINDERS) },
+                onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
             )
         }
 
@@ -261,6 +266,7 @@ fun AppNavGraph(
                 // ScanHistoryScreen/DashboardScreen already use below.
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
+                onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
                 // collapseFirst = true: Result is reachable more than one level deep
                 // (Dashboard → History/Favorites/Recherche → Result) - without collapsing
                 // first, the popUpTo(startDestination){saveState=true} inside switchToTab
@@ -341,6 +347,7 @@ fun AppNavGraph(
                 onBack       = { navController.popBackStack() },
                 onOpenNonFoodHistory = { navController.navigate(AppRoutes.NONFOOD_HISTORY) },
                 onOpenRecalls = { navController.navigate(AppRoutes.RECALLS) },
+                onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onLog        = { navController.switchToTab(TopTab.Diary.route, collapseFirst = true) },
             )

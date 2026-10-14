@@ -59,6 +59,7 @@ fun ResultScreen(
     onLog: () -> Unit,
     onOpenResult: (Long) -> Unit = {},
     onOpenProfile: () -> Unit = {},
+    onOpenSources: () -> Unit = {},
 ) {
     val state       = viewModel.state.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
@@ -236,6 +237,7 @@ fun ResultScreen(
                 onDeletePrice     = { id -> viewModel.deletePrice(id) },
                 onOpenResult      = onOpenResult,
                 onOpenProfile     = onOpenProfile,
+                onOpenSources     = onOpenSources,
                 contentPadding    = padding,
             )
         }

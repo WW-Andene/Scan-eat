@@ -11,6 +11,17 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
+internal fun SourcesSection(onOpenSources: () -> Unit) {
+    SettingsSection(stringResource(R.string.settings_sources), icon = Icons.Default.Info) {
+        ScanEatOutlinedButton(onClick = onOpenSources, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.Info, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
+            Spacer(Modifier.width(Spacing.S))
+            Text(stringResource(R.string.settings_sources), color = OnBackground)
+        }
+    }
+}
+
+@Composable
 internal fun RemindersSection(onOpenReminders: () -> Unit) {
     SettingsSection(stringResource(R.string.reminders_title), icon = Icons.Default.Notifications) {
         Text(stringResource(R.string.settings_reminders_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))

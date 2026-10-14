@@ -47,6 +47,7 @@ fun SettingsScreen(
     isTabRoot: Boolean = false,
     onOpenProfile: () -> Unit = {},
     onOpenReminders: () -> Unit = {},
+    onOpenSources: () -> Unit = {},
 ) {
     val language  = viewModel.language.collectAsStateWithLifecycle()
     val theme     = viewModel.theme.collectAsStateWithLifecycle()
@@ -130,6 +131,9 @@ fun SettingsScreen(
             // even though the underlying reminder system covers meals, hydration,
             // weigh-ins, activity, and fasting targets app-wide. ----
             item { RemindersSection(onOpenReminders) }
+
+            // Roadmap A1/N2: data sources and methodology.
+            item { fr.scanneat.presentation.settings.components.SourcesSection(onOpenSources) }
 
             // ---- Premium — everything else is free; this gates Biolism (metabolism)
             // and photo scanning. ----
