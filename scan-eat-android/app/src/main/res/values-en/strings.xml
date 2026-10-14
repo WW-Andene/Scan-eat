@@ -2241,4 +2241,7 @@
     <string name="trial_rate">%1$d%% of days with a symptom (%2$d / %3$d)</string>
     <string name="trial_slips">%1$d slip(s) logged during avoidance:</string>
     <string name="trial_stop">Stop the trial</string>
+    <string name="mealplan_generate">Generate my week</string>
+    <string name="mealplan_generate_done">%1$d meals added from your recipes that suit your profile</string>
+    <string name="mealplan_generate_none">No saved recipe suits your allergens and diet</string>
 </resources>

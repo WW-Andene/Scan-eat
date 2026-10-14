@@ -745,6 +745,8 @@ articles au garde-manger », avec des dates de péremption estimées par catégo
 > *Pourquoi ici :* Complète D3 (boucle plan → courses → ticket).
 
 ### 42. D8. Générateur de plan de repas
+✅ **Fait** : bouton « Générer ma semaine » du plan de repas : remplit les déjeuners et dîners vides avec les recettes de l'utilisateur compatibles avec ses allergènes (traces exclues pour une allergie sévère) et son régime, d'abord celles qui utilisent un produit bientôt périmé du garde-manger, sans répétition dans une journée et en tournant sur toutes les recettes (test `WeekPlanGeneratorTest`). La liste de courses du plan existe déjà. Restent : contraintes de budget et de temps, recettes externes.
+
 `MealPlanViewModel` ne propose que des actions manuelles (`setRecipe`, `duplicateDay`, `duplicateWeek`).
 Toutes les briques d'un générateur existent pourtant : cibles journalières (`DailyTargets`),
 recettes et modèles, garde-manger avec urgence de péremption, fruits et légumes de saison (`seasonal/`),

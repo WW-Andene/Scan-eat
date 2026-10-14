@@ -2245,4 +2245,7 @@
     <string name="trial_rate">%1$d %% des jours avec symptôme (%2$d / %3$d)</string>
     <string name="trial_slips">%1$d écart(s) notés pendant l\'éviction :</string>
     <string name="trial_stop">Arrêter l\'essai</string>
+    <string name="mealplan_generate">Générer ma semaine</string>
+    <string name="mealplan_generate_done">%1$d repas ajoutés depuis vos recettes compatibles avec votre profil</string>
+    <string name="mealplan_generate_none">Aucune recette enregistrée compatible avec vos allergènes et votre régime</string>
 </resources>

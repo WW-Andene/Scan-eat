@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.mealplan
 
+import kotlinx.coroutines.launch
+import compose.icons.tablericons.Wand
 import compose.icons.tablericons.Copy
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
@@ -53,6 +55,9 @@ fun MealPlanScreen(
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val lastPrunedOrphanCount = viewModel.lastPrunedOrphanCount.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val generateNone = stringResource(R.string.mealplan_generate_none)
+    val generateDone = stringResource(R.string.mealplan_generate_done)
     // "Duplicate week" was gated on weeklyTotalKcal > 0, which only counts assigned
     // Recipe/Template slots - a week planned entirely with free-text notes has
     // weeklyTotalKcal == 0, so the action disappeared even though there's a full
@@ -89,6 +94,14 @@ fun MealPlanScreen(
         // week onto the next 7 days in one tap.
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.MEAL_PLAN, onNavigate = onNavigateToPlanning)
+            // Roadmap D8: fill the empty lunch/dinner slots of this week.
+            IconButton(onClick = {
+                viewModel.generateWeek { n ->
+                    scope.launch { snackbarHostState.showSnackbar(if (n == 0) generateNone else generateDone.format(n)) }
+                }
+            }) {
+                Icon(compose.icons.TablerIcons.Wand, stringResource(R.string.mealplan_generate), tint = OnBackground)
+            }
             if (weekHasAnyPlan) {
                 IconButton(onClick = { viewModel.duplicateWeek() }) {
                     Icon(TablerIcons.Copy, stringResource(R.string.mealplan_duplicate_week), tint = OnBackground)

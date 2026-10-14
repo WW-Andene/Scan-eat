@@ -14,6 +14,8 @@ import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.personalWarning
 import fr.scanneat.domain.model.MealSlot
+import fr.scanneat.domain.model.severityOf
+import fr.scanneat.presentation.pantry.expiryUrgency
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -31,6 +33,7 @@ class MealPlanViewModel @Inject constructor(
     private val recipeRepo: RecipeRepository,
     private val templateRepo: MealTemplateRepository,
     private val consumptionRepo: ConsumptionRepository,
+    private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
 ) : ActionFailureViewModel() {
     // R&D audit finding, phase 2: profileId was dead scaffolding until
     // multi-profile support made it real. MealPlanRepository's weekly plan
@@ -216,6 +219,33 @@ class MealPlanViewModel @Inject constructor(
     fun duplicateWeek() {
         val start = weekDates.value.firstOrNull() ?: return
         guardedLaunch { repo.copyWeek(start, start.plusDays(7), activeProfileId.value) }
+    }
+
+    /**
+     * Roadmap D8: "Générer ma semaine" - fills the empty lunch/dinner slots of
+     * the displayed week with the user's own recipes compatible with the
+     * profile's allergens (confirmed, and traces for a severe allergy) and diet.
+     * Returns how many slots were filled (0 = no eligible recipe).
+     */
+    fun generateWeek(onDone: (Int) -> Unit) = guardedLaunch {
+        val days = weekDates.value
+        if (days.isEmpty()) return@guardedLaunch
+        val profileId = activeProfileId.value
+        val profile = prefs.profile.first()
+        val candidates = recipes.value.filter { r ->
+            val p = r.toCheckProduct()
+            val hits = if (profile.allergens.isEmpty()) emptyList() else fr.scanneat.domain.engine.scoring.checkUserAllergens(p, profile.allergens)
+            hits.none { !it.isTraceOnly || profile.severityOf(it.key) == fr.scanneat.domain.model.AllergenSeverity.SEVERE } &&
+                fr.scanneat.domain.engine.scoring.checkDiet(p, profile.diet).violations.isEmpty()
+        }.map { r -> fr.scanneat.domain.engine.planning.PlanCandidate(r.id, r.name, r.components.map { it.productName }) }
+        val plans = repo.weekPlan(profileId).first()
+        val meals = listOf("lunch", "dinner")
+        val occupied = days.flatMap { day -> meals.filter { plans[day]?.get(it) != null }.map { day to it } }.toSet()
+        val expiring = pantryRepo.observeAll(profileId).first()
+            .filter { it.expiryUrgency() == fr.scanneat.presentation.pantry.PantryExpiryUrgency.SOON }.map { it.name }.toSet()
+        val filled = fr.scanneat.domain.engine.planning.generateWeekPlan(candidates, days, meals, occupied, expiring)
+        filled.forEach { (slot, c) -> repo.setSlot(slot.first, slot.second, MealPlanSlot.RecipeSlot(c.id, c.name), profileId) }
+        onDone(filled.size)
     }
 
     fun setRecipe(date: LocalDate, meal: String, recipe: Recipe) {
