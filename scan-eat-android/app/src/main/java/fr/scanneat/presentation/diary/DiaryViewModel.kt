@@ -78,6 +78,9 @@ class DiaryViewModel @Inject constructor(
     // same as every other Settings-level preference.
     val primaryDiaryTabsOrder: StateFlow<String> = prefs.diaryPrimaryTabsOrder
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    val hiddenModules: StateFlow<String> = prefs.hiddenModules
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
     fun setPrimaryDiaryTabsOrder(csv: String) {
         viewModelScope.launch { runCatching { prefs.setDiaryPrimaryTabsOrder(csv) } }
     }

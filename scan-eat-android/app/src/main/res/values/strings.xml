@@ -2202,4 +2202,8 @@
     <string name="profile_import_wrong_code">Code incorrect</string>
     <string name="profile_import_confirm">Importer</string>
     <string name="profile_import_done">Profil « %1$s » ajouté. Votre profil actif n\'a pas changé.</string>
+    <string name="modules_title">Que voulez-vous suivre ?</string>
+    <string name="modules_hint">Les modules décochés sont masqués du Journal (vous pourrez changer d\'avis dans les Réglages). Les repas restent toujours visibles.</string>
+    <string name="modules_continue">Continuer</string>
+    <string name="settings_modules">Modules suivis</string>
 </resources>

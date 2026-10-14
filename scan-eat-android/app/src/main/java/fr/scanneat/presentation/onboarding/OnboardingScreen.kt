@@ -19,6 +19,8 @@ import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Sex
 import fr.scanneat.presentation.onboarding.components.ProfileCapturePage
+import fr.scanneat.presentation.diary.components.ModulesSelector
+import fr.scanneat.presentation.diary.components.serializeHiddenModules
 import fr.scanneat.presentation.onboarding.components.ValuePropositionPage
 import fr.scanneat.presentation.onboarding.components.WelcomePage
 import fr.scanneat.presentation.ui.theme.*
@@ -80,6 +82,7 @@ fun OnboardingScreen(
     // locale/font-scale change, on any device) recreated the Activity and wiped
     // every field typed so far, resetting to page 0 with no way to recover.
     var page by rememberSaveable { mutableIntStateOf(0) }
+    var hiddenModules by remember { mutableStateOf(emptySet<fr.scanneat.presentation.diary.components.DiaryTab>()) }
     var sex by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(Sex.NOT_SPECIFIED) }
     var ageText by rememberSaveable { mutableStateOf("") }
     var heightText by rememberSaveable { mutableStateOf("") }
@@ -133,7 +136,7 @@ fun OnboardingScreen(
                     // viewModel.finish() this jumps straight to. A returning user reinstalling,
                     // or anyone who just wants to explore the app first, previously had no way
                     // to bail out of these first two pages.
-                    if (page <= 1) {
+                    if (page <= 2) {
                         Box(Modifier.fillMaxWidth()) {
                             TextButton(
                                 onClick = { viewModel.finish() },
@@ -152,13 +155,22 @@ fun OnboardingScreen(
                         // ---- Page 1: Value proposition — what sets this apart ----
                         1 -> ValuePropositionPage(onNext = { page = 2 })
 
+                        // ---- Page 2: modules followed (Roadmap A4) ----
+                        2 -> Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                            Text(stringResource(R.string.modules_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground)
+                            ModulesSelector(hiddenModules) { hiddenModules = it }
+                            Button(onClick = { viewModel.setHiddenModules(serializeHiddenModules(hiddenModules)); page = 3 }, modifier = Modifier.fillMaxWidth()) {
+                                Text(stringResource(R.string.modules_continue))
+                            }
+                        }
+
                         // ---- Page 2: Profile capture — previously just a prompt pointing at a
                         // separate, skippable screen. hasMinimalProfile() (PersonalScoreEngine)
                         // requires sex+age+height+weight before dailyTargets()/PersonalScoreEngine
                         // compute anything at all, so a "Skip" tap here meant zero personalized
                         // score/targets indefinitely - the fields are now captured inline instead,
                         // still skippable, reusing the exact selectors ProfileScreen itself uses. ----
-                        2 -> ProfileCapturePage(
+                        3 -> ProfileCapturePage(
                             sex = sex, onSexChange = { sex = it },
                             ageText = ageText, onAgeTextChange = { ageText = it },
                             heightText = heightText, onHeightTextChange = { heightText = it },
@@ -184,7 +196,7 @@ fun OnboardingScreen(
                                 Modifier.align(Alignment.Center),
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                (1..2).forEach { step ->
+                                (1..3).forEach { step ->
                                     val active = step == page
                                     Box(
                                         Modifier

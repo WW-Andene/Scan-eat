@@ -53,6 +53,9 @@ class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences
             prefs.saveProfile(Profile(sex = sex, ageYears = ageYears, heightCm = heightCm, weightKg = weightKg, activityLevel = activityLevel, goal = goal, healthConditions = healthConditions))
         }
 
+    /** Roadmap A4: modules not followed, chosen during onboarding. */
+    fun setHiddenModules(csv: String) = guardedLaunch { prefs.setHiddenModules(csv) }
+
     fun finish(goToProfile: Boolean = false) {
         guardedLaunch { prefs.setOnboardingComplete(true) }
         _exit.value = if (goToProfile) Exit.PROFILE else Exit.SCAN

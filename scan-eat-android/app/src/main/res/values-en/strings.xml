@@ -2198,4 +2198,8 @@
     <string name="profile_import_wrong_code">Wrong code</string>
     <string name="profile_import_confirm">Import</string>
     <string name="profile_import_done">Profile “%1$s” added. Your active profile is unchanged.</string>
+    <string name="modules_title">What do you want to track?</string>
+    <string name="modules_hint">Unchecked modules are hidden from the Journal (you can change this in Settings). Meals always stay visible.</string>
+    <string name="modules_continue">Continue</string>
+    <string name="settings_modules">Tracked modules</string>
 </resources>

@@ -54,6 +54,8 @@ internal fun ColumnScope.DiaryTabRow(
     // DiaryViewModel.primaryDiaryTabsOrder).
     primaryTabs: List<DiaryTab>,
     onPrimaryTabsChange: (List<DiaryTab>) -> Unit,
+    /** Roadmap A4: modules hidden from the "more" menu (already removed from [primaryTabs]). */
+    hiddenTabs: Set<DiaryTab> = emptySet(),
 ) {
     // User-reported (2nd round): the single button below (showing only the
                 // active tab, everything else behind a DropdownMenu) read as "one tab"
@@ -64,7 +66,7 @@ internal fun ColumnScope.DiaryTabRow(
                 // forced to Modifier.weight(1f) before that (see history) - a full
                 // horizontally-scrollable 7-tab row still didn't reliably fit any phone
                 // width, which is why only 3 are direct buttons here, not all 7.
-                val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs }
+                val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs && it !in hiddenTabs }
 
                 // User-requested: hold-to-arm-then-tap-to-replace instead of a
                 // continuous drag. A continuous drag out of the "more" dropdown

@@ -45,3 +45,22 @@ internal fun serializePrimaryDiaryTabs(tabs: List<DiaryTab>): String = tabs.join
  *  otherwise silently reset whichever Journal sub-tab (Weight/Water/Activity/
  *  Fasting/Treatment) the user was on back to Meals with no indication anything moved. */
 internal val DiaryTabSaver = Saver<DiaryTab, String>(save = { it.name }, restore = { DiaryTab.valueOf(it) })
+
+/** Roadmap A4: Journal trackers the user can stop following (Meals always stays). */
+internal val HIDEABLE_DIARY_TABS = DiaryTab.entries - DiaryTab.MEALS
+
+internal fun parseHiddenModules(csv: String): Set<DiaryTab> =
+    csv.split(",").mapNotNull { n -> HIDEABLE_DIARY_TABS.firstOrNull { it.name == n.trim() } }.toSet()
+
+internal fun serializeHiddenModules(hidden: Set<DiaryTab>): String = hidden.filter { it in HIDEABLE_DIARY_TABS }.joinToString(",") { it.name }
+
+/**
+ * Header tabs once hidden modules are removed: each hidden primary slot is
+ * filled by the next followed tab not already shown, overflow keeps the rest.
+ */
+internal fun visibleDiaryTabs(primary: List<DiaryTab>, hidden: Set<DiaryTab>): Pair<List<DiaryTab>, List<DiaryTab>> {
+    val followed = DiaryTab.entries.filter { it !in hidden }
+    val kept = primary.filter { it !in hidden }.toMutableList()
+    followed.filter { it !in kept }.forEach { if (kept.size < primary.size) kept += it }
+    return kept to followed.filter { it !in kept }
+}

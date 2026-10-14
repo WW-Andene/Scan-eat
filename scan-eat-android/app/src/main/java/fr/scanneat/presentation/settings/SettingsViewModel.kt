@@ -147,6 +147,11 @@ class SettingsViewModel @Inject constructor(
     // Backup export/import
     // ─────────────────────────────────────────────────────────────────────────
     private val _backupState = MutableStateFlow<BackupUiState>(BackupUiState.Idle)
+    // Roadmap A4: tracked modules.
+    val hiddenModules: StateFlow<String> = prefs.hiddenModules
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    fun setHiddenModules(csv: String) { viewModelScope.launch { runCatching { prefs.setHiddenModules(csv) } } }
+
     val backupState: StateFlow<BackupUiState> = _backupState.asStateFlow()
 
     /**

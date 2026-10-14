@@ -632,6 +632,8 @@ en mode sombre.
 > *Pourquoi ici :* Accessibilité et contraste.
 
 ### 31. A4 – Navigation
+✅ **Fait** : étape « Que voulez-vous suivre ? » dans l'onboarding et section « Modules suivis » dans les réglages ; les suivis décochés (poids, eau, activité, jeûne, traitement, dépenses, sommeil, humeur) disparaissent du Journal, les repas restent toujours (test `ModulesTest`).
+
 34 modules dans `presentation/` (fasting, loyalty, seasonal,
 calendar, sleep, symptom, expenses…). Proposer à l'onboarding de choisir les modules
 suivis, et masquer les autres dans la navigation.
