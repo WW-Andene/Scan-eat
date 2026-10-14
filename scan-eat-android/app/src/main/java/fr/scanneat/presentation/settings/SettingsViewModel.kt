@@ -53,6 +53,7 @@ enum class BackupErrorKey { UNSUPPORTED_VERSION, MALFORMED, IO }
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val prefs: UserPreferences,
+    internal val offlinePack: fr.scanneat.data.repository.offline.OfflinePackRepository,
     private val backupRepository: BackupRepository,
     private val csvExportRepository: CsvExportRepository,
     private val pdfReportRepository: PdfReportRepository,

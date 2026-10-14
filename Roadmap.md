@@ -809,6 +809,8 @@ avec la philosophie « tout est local » ; le profil reçu est en lecture seule,
 > *Pourquoi ici :* Après N6 (sévérités) et D10 (multi-profils au scan).
 
 ### 49. N9. Base de produits hors-ligne
+✅ **Fait** : option « Base de produits hors-ligne » dans les réglages : les 5 000 produits les plus scannés en France (Search-a-licious, 1 page par seconde, Wi-Fi uniquement, mise à jour mensuelle), table `offline_products` (migration 41→42, schéma 42 exporté, rejeu sans différence) ; sans réseau ou en cas d'échec réseau, le scan utilise cette base et affiche la date des données (test `OfflinePackTest`). Limite : la fenêtre de recherche d'OFF plafonne à 10 000 résultats.
+
 En magasin, le réseau est souvent mauvais. Proposer le téléchargement d'un instantané Open Food Facts des
 produits les plus scannés en France (export officiel, filtré sur les champs utiles : environ 50 000 produits,
 quelques dizaines de Mo) dans une table Room, mis à jour chaque mois. Le scan fonctionne alors sans réseau,

@@ -2253,4 +2253,10 @@
     <string name="store_mode_ticked">Coché dans la liste : %1$s</string>
     <string name="store_mode_last_price">Dernier prix payé : %1$s %2$s</string>
     <string name="store_mode_todo">Reste à acheter (%1$d)</string>
+    <string name="offline_pack_title">Base de produits hors-ligne</string>
+    <string name="offline_pack_hint">Télécharge les 5 000 produits les plus scannés en France depuis Open Food Facts (environ 20 Mo, en Wi-Fi uniquement, mis à jour chaque mois) pour scanner sans réseau en magasin. La date des données est indiquée sur le résultat.</string>
+    <string name="offline_pack_toggle">Activer la base hors-ligne</string>
+    <string name="offline_pack_pending">Téléchargement prévu à la prochaine connexion Wi-Fi.</string>
+    <string name="offline_pack_status">%1$d produits, téléchargés le %2$s</string>
+    <string name="offline_pack_refresh">Mettre à jour maintenant (Wi-Fi)</string>
 </resources>

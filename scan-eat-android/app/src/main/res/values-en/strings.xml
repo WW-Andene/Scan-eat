@@ -2249,4 +2249,10 @@
     <string name="store_mode_ticked">Ticked on the list: %1$s</string>
     <string name="store_mode_last_price">Last price paid: %1$s %2$s</string>
     <string name="store_mode_todo">Still to buy (%1$d)</string>
+    <string name="offline_pack_title">Offline product database</string>
+    <string name="offline_pack_hint">Downloads the 5,000 most scanned products in France from Open Food Facts (about 20 MB, Wi-Fi only, refreshed monthly) so you can scan without a network in store. The data date is shown on the result.</string>
+    <string name="offline_pack_toggle">Turn on the offline database</string>
+    <string name="offline_pack_pending">Download scheduled for the next Wi-Fi connection.</string>
+    <string name="offline_pack_status">%1$d products, downloaded on %2$s</string>
+    <string name="offline_pack_refresh">Update now (Wi-Fi)</string>
 </resources>

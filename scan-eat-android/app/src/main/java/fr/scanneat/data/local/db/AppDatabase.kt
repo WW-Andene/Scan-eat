@@ -62,12 +62,13 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         PantryEntity::class,
         SymptomEntity::class,
         fr.scanneat.data.local.db.reaction.AllergicReactionEntity::class,
+        fr.scanneat.data.local.db.offline.OfflineProductEntity::class,
         NonFoodScanEntity::class,
         SleepEntity::class,
         MoodEntity::class,
         MisclassificationReportEntity::class,
     ],
-    version = 41,
+    version = 42,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -87,6 +88,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun pantryDao(): PantryDao
     abstract fun symptomDao(): SymptomDao
     abstract fun allergicReactionDao(): fr.scanneat.data.local.db.reaction.AllergicReactionDao
+    abstract fun offlineProductDao(): fr.scanneat.data.local.db.offline.OfflineProductDao
     abstract fun nonFoodScanDao(): NonFoodScanDao
     abstract fun sleepDao(): SleepDao
     abstract fun moodDao(): MoodDao
@@ -699,5 +701,15 @@ val MIGRATION_40_41 = object : Migration(40, 41) {
                 "`profileId` TEXT NOT NULL, PRIMARY KEY(`id`))"
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_allergic_reactions_profileId_date` ON `allergic_reactions` (`profileId`, `date`)")
+    }
+}
+val MIGRATION_41_42 = object : Migration(41, 42) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v41 → v42: new `offline_products` table (Roadmap N9) - see
+        // OfflineProductEntity's own doc comment.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `offline_products` (" +
+                "`barcode` TEXT NOT NULL, `json` TEXT NOT NULL, `downloadedAt` INTEGER NOT NULL, PRIMARY KEY(`barcode`))"
+        )
     }
 }

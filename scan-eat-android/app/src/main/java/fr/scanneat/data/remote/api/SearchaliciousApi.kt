@@ -21,6 +21,7 @@ interface SearchaliciousApi {
         @Query("fields") fields: String = OFF_SEARCH_FIELDS,
         @Query("langs") langs: String = "fr",
         @Query("sort_by") sortBy: String? = null,
+        @Query("page") page: Int? = null,
     ): SearchaliciousResponse
 }
 

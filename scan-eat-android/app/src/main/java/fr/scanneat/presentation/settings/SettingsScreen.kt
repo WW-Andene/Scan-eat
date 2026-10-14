@@ -197,6 +197,9 @@ fun SettingsScreen(
                 )
             }
 
+            // Roadmap N9: offline product database.
+            item { fr.scanneat.presentation.settings.components.OfflinePackSection(viewModel.offlinePack) }
+
             // Roadmap C12: automatic weekly encrypted backup.
             item { fr.scanneat.presentation.settings.components.AutoBackupSection() }
 

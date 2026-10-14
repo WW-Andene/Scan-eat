@@ -340,6 +340,10 @@ internal class ScanOffLookup(
         return null
     }
 
+    /** Roadmap N9: score a product from the offline pack, with its snapshot date as a warning. */
+    fun scoreOffline(dto: fr.scanneat.data.remote.api.OffProductDto, barcode: String, snapshotLabel: String, lang: String): ScanResult? =
+        mapSearchResult(dto.copy(code = dto.code ?: barcode), lang)?.let { it.copy(barcode = barcode, warnings = listOf(snapshotLabel) + it.warnings) }
+
     private fun mapSearchResult(dto: fr.scanneat.data.remote.api.OffProductDto, lang: String): ScanResult? {
         // Blank (not just null) rejected too - FoodSearchViewModel.openOnlineItem matches
         // results back to their raw ScanResult by barcode, so multiple blank-barcode OFF
