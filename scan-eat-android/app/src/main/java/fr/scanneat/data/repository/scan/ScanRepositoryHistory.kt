@@ -84,6 +84,28 @@ internal class ScanHistoryQueries(
      * stall this read path) and rescore against the corrected category when
      * it returns one.
      */
+    /**
+     * Roadmap S14: after an ENGINE_VERSION bump, recompute every stored score
+     * once (math only, from the stored product - no network), so history
+     * sorting, alternatives and widgets, which read the plain score/grade
+     * columns, stop showing grades from the old rules. Returns how many rows
+     * were rescored.
+     */
+    suspend fun rescoreAllStale(lang: String): Int {
+        var n = 0
+        dao.getAllRows().forEach { entity ->
+            val cached = toDomain(entity) ?: return@forEach
+            if (cached.audit.engineVersion == ENGINE_VERSION) return@forEach
+            val audit = scoreProduct(cached.product, lang)
+            runCatching {
+                dao.updateRescored(entity.id, audit.score, audit.grade.label, cached.product.category.key,
+                    serializeProduct(cached.product), serializeAudit(audit))
+                n++
+            }
+        }
+        return n
+    }
+
     suspend fun getById(id: Long, lang: String = "en"): ScanResult? =
         dao.findById(id)?.let { toDomain(it) }?.let { cached ->
             if (cached.audit.engineVersion != ENGINE_VERSION) rescoreStale(cached, lang) else cached

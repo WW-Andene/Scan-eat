@@ -239,6 +239,8 @@ exact function » : il n'y a **aucun** fichier TypeScript ni serveur dans le dé
 divergence entre un commentaire et le comportement réel compte comme un bug.
 
 ### S14. Version du moteur non liée aux scores enregistrés 🟡 📖
+✅ **Fait** : le recalcul par version existait mais `ENGINE_VERSION` était resté à 2.4.0 malgré S1-S10 : passé à 2.5.0, et un recalcul unique en arrière-plan de toutes les notes enregistrées (`EngineRescoreWorker`, une fois par version) met aussi à jour les colonnes utilisées par le tri de l'historique, les alternatives et les widgets.
+
 `ENGINE_VERSION = "2.4.0"` est enregistrée dans l'audit, mais rien ne recalcule ni ne signale un ancien score après un changement de
 règles. Après les corrections S1 à S10, l'historique affichera des notes produites par un moteur faux.
 → Recalculer à la volée (les données produit sont stockées) ou marquer « note calculée avec une version antérieure ».

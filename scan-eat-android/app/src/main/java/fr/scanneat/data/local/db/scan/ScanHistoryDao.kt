@@ -133,6 +133,10 @@ interface ScanHistoryDao {
     }
 
     /** Full unfiltered read/write pair for backup export/import. */
+    /** Roadmap S14: every row, all profiles, for the one-off rescore after an engine bump. */
+    @Query("SELECT * FROM scan_history")
+    suspend fun getAllRows(): List<ScanHistoryEntity>
+
     @Query("SELECT * FROM scan_history WHERE profileId = :profileId")
     suspend fun getAllForBackup(profileId: String = "default"): List<ScanHistoryEntity>
 

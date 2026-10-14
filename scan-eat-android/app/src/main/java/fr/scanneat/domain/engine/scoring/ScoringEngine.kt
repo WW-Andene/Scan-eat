@@ -21,7 +21,10 @@ import kotlin.math.roundToInt
 // previously a single 724-line file with all of the above inline.
 // ============================================================================
 
-const val ENGINE_VERSION = "2.4.0"
+// 2.5.0 (Roadmap S14): S1-S10, C10/N6 allergen severity and C14 safe goal
+// changed the rules; bumping this is what makes every stored score be
+// recomputed (ScanHistoryQueries.rescoreAllStale / rescoreStale).
+const val ENGINE_VERSION = "2.5.0"
 
 // ============================================================================
 // SECTION 10: GLOBAL MODIFIERS, VETOES & ORCHESTRATOR

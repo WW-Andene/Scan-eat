@@ -182,6 +182,9 @@ class ScanRepository @Inject constructor(
 
     suspend fun delete(id: Long) = historyQueries.delete(id)
 
+    /** Roadmap S14 - see ScanHistoryQueries.rescoreAllStale. */
+    suspend fun rescoreAllStale(lang: String): Int = historyQueries.rescoreAllStale(lang)
+
     /**
      * Roadmap C16: values read by OCR from a label photo are confirmed or
      * corrected by the user before the result is shown. Re-scores the reviewed

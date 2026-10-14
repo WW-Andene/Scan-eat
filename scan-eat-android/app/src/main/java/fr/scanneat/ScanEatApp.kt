@@ -50,6 +50,9 @@ class ScanEatApp : Application(), Configuration.Provider {
         // of the next medication dose (alarms do not survive an app update).
         fr.scanneat.notifications.MedicationAlarms.runReminderWorkerNow(this)
 
+        // Roadmap S14: recompute stored scores once after a scoring-engine change.
+        fr.scanneat.data.repository.scan.EngineRescoreWorker.enqueue(this)
+
         // Roadmap C3: daily re-check of scanned/stocked products against
         // RappelConso - see RecallSyncWorker's own doc comment.
         val recallSync = PeriodicWorkRequestBuilder<RecallSyncWorker>(1, TimeUnit.DAYS)
