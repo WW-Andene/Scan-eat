@@ -172,12 +172,19 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     // general-population default - halved rather than a made-up clinical value,
     // since an exact per-condition target needs a dietitian, not this app.
     val sugarsCapFraction = if ("diabetes" in p.healthConditions) 0.05 else 0.10
-    val saltCap = if ("hypertension" in p.healthConditions) 3.0 else 5.0
+    // S9: hypertension used an unsourced 3 g/day. ESH 2023 guidelines (and
+    // HAS) recommend < 5 g salt/day for hypertensive adults - the same bar as
+    // the WHO general-population cap, so no separate value is invented here;
+    // the hypertension-specific salt penalty lives in checkHealthConditions.
+    val saltCap = 5.0
 
     // Diet-driven overrides - Volek & Phinney clinical ketosis range is 20-50g net
-    // carbs/day; carnivore structurally has no plant fiber intake to target.
+    // carbs/day.
     val carbsMax = if (p.diet == DietKey.KETO) 30.0 else null
-    val fiberTarget = if (p.diet == DietKey.CARNIVORE) 0.0 else 25.0
+    // S9: EFSA's adequate intake (25 g/day, 2010) is shown for every diet. A
+    // carnivore diet used to get a 0 g target, i.e. the app validated a
+    // target contrary to the European reference instead of reporting the gap.
+    val fiberTarget = 25.0
     val fatTarget = (0.30 * goalAdjustedKcal / 9.0)
     // Remaining calories after protein+fat, converted at 4 kcal/g - the
     // standard "carbs fill the rest of the budget" AMDR approach, so every
@@ -204,7 +211,7 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
         zincMgTarget      = zincTarget,
         vitCMgTarget      = vitCTarget,
         vitAUgTarget      = vitATarget,
-        // Pregnancy: 600 µg DFE/day (IOM 2001 RDA, commonly cited) vs 330 µg
+        // Pregnancy: 600 µg DFE/day (EFSA DRV for folate 2014, AI in pregnancy) vs 330 µg
         // baseline - neural tube defect prevention is highest-stakes in the
         // very first weeks, so this stays flat across all three trimesters
         // rather than only bumping from a given week on.

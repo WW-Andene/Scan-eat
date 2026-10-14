@@ -30,7 +30,9 @@ private val NRV_TARGETS = mapOf(
     "zinc"      to Pair("zincMg",    10.0),
 )
 
-private val OMEGA3_INGREDIENT = Regex("""\blin\b|\bchia\b|\bnoix\b|\bsaumon\b|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE)
+// S10: plain "noix" (walnut, also "noix de Grenoble") only - coconut,
+// cashew, nutmeg, pecan, macadamia and Brazil nuts are not omega-3 sources.
+internal val OMEGA3_INGREDIENT = Regex("""\blin\b|\bchia\b|\bnoix\b(?!\s+(?:de|du|d['’])\s*(?!grenoble\b)\S)|\bsaumon\b|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE)
 
 private fun getNutrientValue(n: NutritionPer100g, key: String): Double? = when (key) {
     "proteinG"    -> n.proteinG

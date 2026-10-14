@@ -198,6 +198,8 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
 → Retirer ou sourcer chaque bonus ; ignorer les micronutriments ajoutés (listés dans les ingrédients) ; appliquer 7,5 % aux boissons.
 
 ### S9. Profil : formules hors domaine de validité 🟠 📖
+✅ **Partiellement fait** : folates de grossesse sourcés EFSA 2014 (600 µg), sel en cas d'hypertension aligné sur ESH 2023 (< 5 g), cible de fibres EFSA (25 g) pour tous les régimes. Restent : équations pédiatriques, état poussée/rémission MICI.
+
 - **Mifflin-St Jeor appliqué aux mineurs** (`clampedAge` de 1 à 110) : formule validée chez l'adulte. L'EFSA utilise des
   équations spécifiques intégrant la croissance pour les 1-17 ans. Le calcium de 950 mg vaut pour les adultes, alors que l'EFSA recommande 1150 mg chez les 11-17 ans.
 - **Folates de grossesse non relevés** : la cible reste à 330 µg, alors que l'EFSA recommande 600 µg pendant la grossesse (et une supplémentation de 400 µg d'acide
@@ -209,6 +211,8 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
   afficher la cible EFSA de fibres même pour un régime restrictif ; ajouter un état « poussée / rémission » pour les MICI.
 
 ### S10. Incohérences internes du calcul 🟡 📖
+✅ **Partiellement fait** : bonus « Peu transformé » compté ; bonus oméga-3 limité à la noix (plus coco, cajou, muscade, pécan, macadamia, Brésil). Restent : pénalités en double (pilier + veto).
+
 - `scoreProcessing` : le bonus « +2 Peu transformé » est **affiché** mais jamais ajouté au score.
 - `scoreNutritionalDensity` : la déduction « Aucun apport… » vaut 0 point mais est classée MAJOR. Elle compte donc dans
   `severeFlagCount`, déclenche une pénalité globale et apparaît en drapeau rouge.
