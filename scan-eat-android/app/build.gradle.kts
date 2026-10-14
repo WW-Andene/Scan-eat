@@ -206,6 +206,7 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
     implementation(libs.mlkit.barcode)
+    implementation(libs.zxing.core)
     implementation(libs.mlkit.objectdetection)
     implementation(libs.mlkit.textrecognition)
     // On-device food recognition for unlabelled items (fresh produce) - replaces the former vision-LLM identify.

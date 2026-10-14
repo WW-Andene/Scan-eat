@@ -235,8 +235,13 @@ fun AppNavGraph(
                 onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
                 onOpenReactions = { navController.navigate(AppRoutes.REACTIONS) },
                 onOpenMenuScan = { navController.navigate(AppRoutes.MENU_SCAN) },
+                onOpenProfileShare = { navController.navigate(AppRoutes.PROFILE_SHARE) },
+                onOpenProfileImport = { navController.navigate(AppRoutes.PROFILE_IMPORT) },
             )
         }
+
+        composable(AppRoutes.PROFILE_SHARE) { fr.scanneat.presentation.profileshare.ProfileShareScreen(onBack = { navController.popBackStack() }) }
+        composable(AppRoutes.PROFILE_IMPORT) { fr.scanneat.presentation.profileshare.ProfileImportScreen(onBack = { navController.popBackStack() }) }
 
         composable(AppRoutes.MENU_SCAN) {
             fr.scanneat.presentation.menu.MenuScanScreen(onBack = { navController.popBackStack() })

@@ -2188,4 +2188,14 @@
     <string name="menu_scan_no_profile">No allergen or diet declared in the profile: nothing is checked.</string>
     <string name="menu_scan_allergens">Mentions: %1$s</string>
     <string name="menu_scan_diet">Not compatible with your diet: %1$s</string>
+    <string name="profile_share_title">Share my allergies with someone</string>
+    <string name="profile_share_body">They open “My safety › Import a shared profile” in Scan\'eat, scan this QR code and type the code. Only allergens, their level and the diet are shared, encrypted; no server.</string>
+    <string name="profile_share_code">Code to give them</string>
+    <string name="profile_share_received">shared on</string>
+    <string name="profile_import_title">Import a shared profile</string>
+    <string name="profile_import_hint">Scan the shared profile QR code</string>
+    <string name="profile_import_code">Type the 8-character code</string>
+    <string name="profile_import_wrong_code">Wrong code</string>
+    <string name="profile_import_confirm">Import</string>
+    <string name="profile_import_done">Profile “%1$s” added. Your active profile is unchanged.</string>
 </resources>

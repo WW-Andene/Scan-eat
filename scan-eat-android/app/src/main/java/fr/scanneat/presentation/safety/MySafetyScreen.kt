@@ -39,6 +39,8 @@ fun MySafetyScreen(
     onOpenSources: () -> Unit,
     onOpenReactions: () -> Unit = {},
     onOpenMenuScan: () -> Unit = {},
+    onOpenProfileShare: () -> Unit = {},
+    onOpenProfileImport: () -> Unit = {},
 ) {
     val s = viewModel.state.collectAsStateWithLifecycle().value
     val allergenNames = allergenLabels()
@@ -69,6 +71,8 @@ fun MySafetyScreen(
                     TextButton(onClick = onOpenProfile) { Text(stringResource(R.string.my_safety_edit_profile)) }
                     TextButton(onClick = onOpenReactions) { Text(stringResource(R.string.my_safety_reactions)) }
                     TextButton(onClick = onOpenMenuScan) { Text(stringResource(R.string.menu_scan_title)) }
+                    TextButton(onClick = onOpenProfileShare) { Text(stringResource(R.string.profile_share_title)) }
+                    TextButton(onClick = onOpenProfileImport) { Text(stringResource(R.string.profile_import_title)) }
                 }
             }
 

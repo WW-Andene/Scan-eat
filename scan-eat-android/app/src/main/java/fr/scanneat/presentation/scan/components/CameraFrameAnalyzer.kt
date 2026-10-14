@@ -65,6 +65,8 @@ internal fun analyzeFrame(
     // of frames, which show no barcode at all yet.
     priceScanner: TextRecognizer? = null,
     onPriceTextDetected: ((String) -> Unit)? = null,
+    /** Roadmap N8: raw text of every QR code (profile-share import screen only). */
+    onRawQrDetected: ((String) -> Unit)? = null,
 ) {
     val media = proxy.image
     if (media == null) { proxy.close(); return }
@@ -98,6 +100,7 @@ internal fun analyzeFrame(
             val seenValues = mutableSetOf<String>()
             for (bc in barcodes) {
                 val raw = bc.rawValue ?: continue
+                if (onRawQrDetected != null && bc.format == Barcode.FORMAT_QR_CODE) onRawQrDetected(raw)
                 // CODABAR: older/still-common on some pharmacy and blood-bank packaging
                 // (e.g. some pre-DataMatrix French medication boxes) - like CODE_128/ITF
                 // it's a symbology, not a fixed-length GTIN encoding, so the digit-length

@@ -786,6 +786,8 @@ prix au dernier prix payé (D7). Écran unique, pensé pour une seule main.
 > *Pourquoi ici :* Assemble D7, D10 et la liste de courses existante.
 
 ### 48. N8. Partage d'un profil avec un aidant
+✅ **Fait** : « Partager mes allergies » affiche un QR chiffré (PBKDF2 + AES-GCM, même chiffrement que les sauvegardes) et un code de 8 caractères ; « Importer un profil partagé » scanne le QR, demande le code et crée un nouveau profil « … (partagé le date) » sans changer le profil actif. Seuls allergènes, sévérités et régime sont partagés (test `ProfileShareCodecTest`). Reste : verrouiller le profil reçu en lecture seule.
+
 Permettre à un parent de transmettre le profil d'un enfant allergique (allergènes, sévérités, régime) à un
 autre appareil (grands-parents, nourrice, cantine) via un QR code chiffré, sans compte ni serveur. C'est cohérent
 avec la philosophie « tout est local » ; le profil reçu est en lecture seule, avec une date de mise à jour.

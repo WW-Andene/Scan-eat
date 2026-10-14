@@ -74,6 +74,8 @@ fun CameraPreview(
     // behind the nav bar.
     bottomNavClearance: androidx.compose.ui.unit.Dp = 0.dp,
     topInset: androidx.compose.ui.unit.Dp = 0.dp,
+    /** Roadmap N8: raw QR payloads, for the profile-share import screen. */
+    onRawQrDetected: ((String) -> Unit)? = null,
 ) {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -139,7 +141,7 @@ fun CameraPreview(
                         .build()
                         .also { ia ->
                             ia.setAnalyzer(executor) { proxy ->
-                                analyzeFrame(proxy, scanner, onBarcodeDetected, onBarcodesInFrame, objectDetector, onObjectsDetected, priceScanner, onPriceTextDetected)
+                                analyzeFrame(proxy, scanner, onBarcodeDetected, onBarcodesInFrame, objectDetector, onObjectsDetected, priceScanner, onPriceTextDetected, onRawQrDetected = onRawQrDetected)
                             }
                         }
                     // Previously a bare runCatching with no onFailure branch: a bind failure

@@ -39,6 +39,8 @@ object AppRoutes {
     const val MY_SAFETY = "my_safety"
     const val REACTIONS = "reactions"
     const val MENU_SCAN = "menu_scan"
+    const val PROFILE_SHARE = "profile_share"
+    const val PROFILE_IMPORT = "profile_import"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }
