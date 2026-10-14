@@ -2179,4 +2179,5 @@
     <string name="share_card_footer">Scored by Scan\'eat — computed on the phone</string>
     <string name="receipt_scan_add_to_pantry">Also add these items to the pantry</string>
     <string name="recipes_suggest_expiring_soon">expiring soon</string>
+    <string name="result_alternative_off_title">Better rated in the same category (Open Food Facts)</string>
 </resources>

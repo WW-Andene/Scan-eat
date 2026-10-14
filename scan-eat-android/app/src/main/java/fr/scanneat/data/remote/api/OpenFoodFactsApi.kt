@@ -32,6 +32,20 @@ interface OpenFoodFactsApi {
         @Query("lc") lang: String = "fr",
         @Query("json") json: Int = 1,
     ): OffSearchResponse
+
+    /** Roadmap A3: most popular products of one category tag (e.g. "en:plain-yogurts"). */
+    @GET("cgi/search.pl")
+    suspend fun searchByCategory(
+        @Query("tag_0") categoryTag: String,
+        @Query("tagtype_0") tagType: String = "categories",
+        @Query("tag_contains_0") contains: String = "contains",
+        @Query("sort_by") sortBy: String = "unique_scans_n",
+        @Query("page_size") pageSize: Int = 24,
+        @Query("fields") fields: String = OFF_SEARCH_FIELDS,
+        @Query("lc") lang: String = "fr",
+        @Query("action") action: String = "process",
+        @Query("json") json: Int = 1,
+    ): OffSearchResponse
 }
 
 val OFF_FIELDS = listOf(

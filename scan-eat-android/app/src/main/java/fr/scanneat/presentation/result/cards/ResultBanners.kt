@@ -76,7 +76,7 @@ internal fun PairingsCard(pairings: List<String>) {
 // better yourself." §X R&D pass: Yuka's most-cited feature was a same-category
 // better-score suggestion, which Scan'eat had no equivalent of at all.
 @Composable
-internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = null) {
+internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = null, fromOpenFoodFacts: Boolean = false) {
     // findBetterAlternative only ever returns an already-persisted scan_history
     // row (see ScanRepository.findBetterAlternative), so dbId is always valid
     // here - but the card is reused defensively with onOpen omitted rather than
@@ -86,7 +86,7 @@ internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = nu
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
         contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
-        Text(stringResource(R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
+        Text(stringResource(if (fromOpenFoodFacts) R.string.result_alternative_off_title else R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
         Text(stringResource(R.string.result_alternative_item, alternative.product.name, alternative.audit.score, alternative.audit.grade.label),
             style = MaterialTheme.typography.bodyMedium, color = OnBackground)

@@ -686,6 +686,8 @@ l'app : exactement ceux où elle est la plus parlante.
 > *Pourquoi ici :* Même chantier que A8 (API Open Food Facts).
 
 ### 36. A3 – Alternatives venant d'Open Food Facts
+✅ **Fait (à vérifier en ligne)** : si l'historique ne propose rien, recherche Open Food Facts sur la catégorie la plus précise du produit (produits les plus scannés), notation locale, mêmes filtres allergènes/régime/conditions, au moins +10 points ; chargée à part pour ne jamais retarder le résultat. Requête non vérifiée en direct pendant cette passe (OFF indisponible depuis l'environnement de travail) ; en cas d'échec, rien n'est affiché.
+
 Aujourd'hui limitées à l'historique :
 un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégorie
 (`categories_tags`) et trier par le score local du profil.

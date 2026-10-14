@@ -45,6 +45,7 @@ internal fun ResultContent(
     comparisonResult: fr.scanneat.data.repository.scan.ComparisonResult? = null,
     pairings: List<String> = emptyList(),
     betterAlternative: ScanResult? = null,
+    offAlternative: ScanResult? = null,
     language: String = "fr",
     scoreDelta: Int? = null,
     scoreHistory: List<Int> = emptyList(),
@@ -237,6 +238,7 @@ internal fun ResultContent(
         comparisonResult?.let { ComparisonCard(it) }
 
         betterAlternative?.let { AlternativeCard(it, onOpen = { onOpenResult(it.dbId) }) }
+            ?: offAlternative?.let { AlternativeCard(it, onOpen = null, fromOpenFoodFacts = true) }
 
         if (pairings.isNotEmpty()) {
             PairingsCard(pairings)

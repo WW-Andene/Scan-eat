@@ -182,6 +182,10 @@ class ScanRepository @Inject constructor(
 
     suspend fun delete(id: Long) = historyQueries.delete(id)
 
+    /** Roadmap A3 - see ScanHistoryQueries.findOffAlternative. */
+    suspend fun findOffAlternative(scan: ScanResult, allergens: Set<String>, dietKey: fr.scanneat.domain.engine.scoring.DietKey, healthConditions: Set<String>, lang: String): ScanResult? =
+        historyQueries.findOffAlternative(scan, allergens, dietKey, healthConditions, lang)
+
     /** Roadmap S14 - see ScanHistoryQueries.rescoreAllStale. */
     suspend fun rescoreAllStale(lang: String): Int = historyQueries.rescoreAllStale(lang)
 

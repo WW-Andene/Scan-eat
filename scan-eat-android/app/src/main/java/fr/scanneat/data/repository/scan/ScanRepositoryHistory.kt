@@ -284,6 +284,29 @@ internal class ScanHistoryQueries(
      * this can walk past any candidate that fails either check instead of
      * being stuck with the single row the old query returned.
      */
+    /**
+     * Roadmap A3: when the user's own history has nothing better, look at
+     * Open Food Facts - same category, at least [MIN_GAIN] points better, and
+     * the same allergen/diet/condition checks as the history alternative.
+     */
+    suspend fun findOffAlternative(
+        scan: ScanResult,
+        allergens: Set<String>,
+        dietKey: DietKey,
+        healthConditions: Set<String>,
+        lang: String,
+    ): ScanResult? {
+        val barcode = scan.barcode ?: return null
+        return offLookup.categoryCandidates(barcode, lang)
+            .filter { it.barcode != barcode && it.product.category == scan.product.category && it.audit.score >= scan.audit.score + MIN_GAIN }
+            .filter { c ->
+                (allergens.isEmpty() || checkUserAllergens(c.product, allergens, lang).isEmpty()) &&
+                    checkDiet(c.product, dietKey, lang).compliant &&
+                    healthConditionCautions(c.product, healthConditions, lang).isEmpty()
+            }
+            .maxByOrNull { it.audit.score }
+    }
+
     suspend fun findBetterAlternative(
         scan: ScanResult,
         allergens: Set<String> = emptySet(),
@@ -323,4 +346,9 @@ internal class ScanHistoryQueries(
     /** Top-N most-frequently-scanned products, counted from the append-only score log - see ScanHistoryDao.observeTopScanned's own doc comment. */
     fun observeTopScanned(profileId: String = "default", limit: Int = 3): Flow<List<TopScannedRow>> =
         dao.observeTopScanned(profileId, limit)
+
+    private companion object {
+        /** Points of improvement below which an OFF suggestion is not worth showing. */
+        const val MIN_GAIN = 10
+    }
 }

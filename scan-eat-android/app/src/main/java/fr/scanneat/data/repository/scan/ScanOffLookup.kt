@@ -299,6 +299,22 @@ internal class ScanOffLookup(
      * results missing a barcode or usable name are silently dropped rather than
      * surfaced as broken rows.
      */
+    /**
+     * Roadmap A3: popular Open Food Facts products of the scanned product's most
+     * specific category, scored locally. Best-effort: any failure returns empty.
+     */
+    suspend fun categoryCandidates(barcode: String, lang: String): List<ScanResult> = try {
+        kotlinx.coroutines.withTimeoutOrNull(6000L) {
+            val tags = offApi.getProduct(barcode, fields = "categories_tags").product?.categoriesTags.orEmpty()
+            val tag = tags.lastOrNull { it.startsWith("en:") } ?: return@withTimeoutOrNull emptyList()
+            offApi.searchByCategory(tag, lang = lang).products.orEmpty().mapNotNull { dto -> mapSearchResult(dto, lang) }
+        } ?: emptyList()
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        emptyList()
+    }
+
     suspend fun searchOffProducts(query: String, lang: String, limit: Int = 24): List<ScanResult> {
         if (query.isBlank()) return emptyList()
         val response = fetchOffSearch(query, lang, limit) ?: return emptyList()

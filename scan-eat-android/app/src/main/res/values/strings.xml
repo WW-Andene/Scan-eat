@@ -2183,4 +2183,5 @@
     <string name="share_card_footer">Noté par Scan\'eat — calculé sur le téléphone</string>
     <string name="receipt_scan_add_to_pantry">Ajouter aussi ces articles au garde-manger</string>
     <string name="recipes_suggest_expiring_soon">bientôt périmé</string>
+    <string name="result_alternative_off_title">Mieux noté dans la même catégorie (Open Food Facts)</string>
 </resources>

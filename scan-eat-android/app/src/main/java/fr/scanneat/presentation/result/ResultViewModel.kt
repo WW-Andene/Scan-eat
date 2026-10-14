@@ -189,6 +189,20 @@ class ResultViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ResultUiState())
 
+    // Roadmap A3: Open Food Facts alternative, only when the history has none
+    // and the grade is eligible. Separate from the main load so the network
+    // never delays the result screen.
+    val offAlternative: StateFlow<ScanResult?> = state
+        .map { s -> s.scanResult?.takeIf { s.betterAlternative == null && it.barcode != null && it.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES } }
+        .distinctUntilChanged { a, b -> a?.dbId == b?.dbId && a?.audit?.score == b?.audit?.score }
+        .mapLatest { scan ->
+            if (scan == null) null else {
+                val profile = prefs.profile.first()
+                runCatching { scanRepo.findOffAlternative(scan, profile.allergens, profile.diet, profile.healthConditions, prefs.language.first()) }.getOrNull()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     // User-requested "connect everything": scanning a product already in the
     // pantry showed no indication of that anywhere on the Result screen - the
     // user had no way to tell "I already have this at home" without leaving

@@ -65,6 +65,7 @@ fun ResultScreen(
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
     val profileList = viewModel.profileList.collectAsStateWithLifecycle()
+    val offAlternative = viewModel.offAlternative.collectAsStateWithLifecycle()
     val activeMedicationNames = viewModel.activeMedicationNames.collectAsStateWithLifecycle()
     val todaysLoggedFoodNames = viewModel.todaysLoggedFoodNames.collectAsStateWithLifecycle()
     val priceEntries = viewModel.priceEntries.collectAsStateWithLifecycle()
@@ -226,6 +227,7 @@ fun ResultScreen(
                 comparisonResult  = s.comparisonResult,
                 pairings          = s.pairings,
                 betterAlternative = s.betterAlternative,
+                offAlternative    = offAlternative.value,
                 language          = language.value,
                 scoreDelta        = s.scoreDelta,
                 scoreHistory      = s.scoreHistory,
