@@ -613,6 +613,8 @@ de la recherche en ligne à environ 400 ms, en gardant la recherche locale insta
 > *Pourquoi ici :* Prérequis de A3 : les alternatives Open Food Facts reposent sur cette recherche.
 
 ### 35. A10. Green-Score : les notes A+ et F sont jetées 🟡
+✅ **Fait** : `environmental_score_*` demandés en priorité (repli sur `ecoscore_*`), A+ et F conservés, badge renommé « Green-Score » (test `GreenScoreGradeTest`).
+
 **Vérifié.** `OffMapper.kt:153` : `ecoscoreGrade … takeIf { it.matches(Regex("[a-e]")) }`. Fin 2024,
 Open Food Facts a renommé l'Eco-Score en **Green-Score** et ajouté deux notes : **A+** et **F**. Les produits les
 meilleurs et les pires sur le plan environnemental perdent donc silencieusement leur information environnementale dans

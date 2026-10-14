@@ -38,7 +38,9 @@ val OFF_FIELDS = listOf(
     "product_name", "product_name_fr", "generic_name_fr", "brands",
     "categories_tags", "ingredients_text_fr", "ingredients_text",
     "nova_group", "nutriments", "labels_tags", "origins", "countries_tags",
-    "quantity", "ecoscore_grade", "ecoscore_score", "nutrition_grades",
+    "quantity", "ecoscore_grade", "ecoscore_score",
+    // Green-Score (Eco-Score renamed by OFF in 2025, with new A+ and F grades).
+    "environmental_score_grade", "environmental_score_score", "nutrition_grades",
     "allergens_tags", "traces_tags", "additives_tags",
 ).joinToString(",")
 
@@ -80,6 +82,8 @@ data class OffProductDto(
     val quantity: String?,
     @Json(name = "ecoscore_grade") val ecoscoreGrade: String?,
     @Json(name = "ecoscore_score") val ecoscoreScore: Int?,
+    @Json(name = "environmental_score_grade") val environmentalScoreGrade: String? = null,
+    @Json(name = "environmental_score_score") val environmentalScoreScore: Int? = null,
     @Json(name = "nutrition_grades") val nutritionGrades: String?,
     @Json(name = "allergens_tags") val allergensTags: List<String>?,
     // Distinct from allergens_tags - manufacturer precautionary "may contain

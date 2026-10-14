@@ -1,5 +1,6 @@
 package fr.scanneat.data.repository.scan
 
+import fr.scanneat.domain.engine.nutrition.pickGreenScoreGrade
 import fr.scanneat.data.remote.api.OffResponse
 import fr.scanneat.data.remote.api.OffSearchResponse
 import fr.scanneat.data.remote.api.OpenFoodFactsApi
@@ -213,8 +214,8 @@ internal class ScanOffLookup(
                 origins           = dto.origins,
                 countriesTags     = dto.countriesTags,
                 quantity          = dto.quantity,
-                ecoscoreGrade     = dto.ecoscoreGrade,
-                ecoscoreScore     = dto.ecoscoreScore,
+                ecoscoreGrade     = pickGreenScoreGrade(dto.environmentalScoreGrade, dto.ecoscoreGrade),
+                ecoscoreScore     = dto.environmentalScoreScore ?: dto.ecoscoreScore,
                 nutritionGrades   = dto.nutritionGrades,
                 allergensTags     = dto.allergensTags,
                 tracesTags        = dto.tracesTags,
@@ -341,8 +342,8 @@ internal class ScanOffLookup(
             origins           = dto.origins,
             countriesTags     = dto.countriesTags,
             quantity          = dto.quantity,
-            ecoscoreGrade     = dto.ecoscoreGrade,
-            ecoscoreScore     = dto.ecoscoreScore,
+            ecoscoreGrade     = pickGreenScoreGrade(dto.environmentalScoreGrade, dto.ecoscoreGrade),
+            ecoscoreScore     = dto.environmentalScoreScore ?: dto.ecoscoreScore,
             nutritionGrades   = dto.nutritionGrades,
             allergensTags     = dto.allergensTags,
             additivesTags     = dto.additivesTags,
