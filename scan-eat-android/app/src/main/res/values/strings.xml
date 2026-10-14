@@ -2062,4 +2062,12 @@
     <string name="result_family_unverified">Ingrédients illisibles — allergènes et régime non vérifiés</string>
     <string name="result_family_blocked">Déconseillé pour ce profil</string>
     <string name="result_family_active_suffix">(profil actif)</string>
+    <string name="fasting_safety_title_blocked">Jeûne déconseillé pour ce profil</string>
+    <string name="fasting_safety_title_warning">Parlez-en à votre médecin avant de jeûner</string>
+    <string name="fasting_risk_pregnancy">Grossesse : les besoins en énergie et en protéines augmentent à chaque trimestre.</string>
+    <string name="fasting_risk_minor">Moins de 18 ans : la croissance demande des apports réguliers.</string>
+    <string name="fasting_risk_diabetes">Diabète : risque d\'hypoglycémie, notamment avec l\'insuline ou un sulfamide hypoglycémiant ; le traitement peut devoir être adapté.</string>
+    <string name="fasting_risk_underweight">IMC inférieur à 18,5 (insuffisance pondérale selon l\'OMS).</string>
+    <string name="fasting_safety_ed_help">Si votre rapport à l\'alimentation vous inquiète, la FFAB (Fédération française anorexie boulimie) oriente vers des professionnels.</string>
+    <string name="fasting_safety_start_blocked">Le démarrage d\'un jeûne est désactivé pour ce profil (voir ci-dessus).</string>
 </resources>

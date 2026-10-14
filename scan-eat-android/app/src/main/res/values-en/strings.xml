@@ -2058,4 +2058,12 @@
     <string name="result_family_unverified">Ingredients unreadable — allergens and diet not verified</string>
     <string name="result_family_blocked">Not recommended for this profile</string>
     <string name="result_family_active_suffix">(active profile)</string>
+    <string name="fasting_safety_title_blocked">Fasting not recommended for this profile</string>
+    <string name="fasting_safety_title_warning">Talk to your doctor before fasting</string>
+    <string name="fasting_risk_pregnancy">Pregnancy: energy and protein needs rise every trimester.</string>
+    <string name="fasting_risk_minor">Under 18: growth needs regular intake.</string>
+    <string name="fasting_risk_diabetes">Diabetes: risk of hypoglycaemia, especially with insulin or a sulfonylurea; treatment may need adjusting.</string>
+    <string name="fasting_risk_underweight">BMI below 18.5 (WHO underweight).</string>
+    <string name="fasting_safety_ed_help">If your relationship with food worries you, FFAB (French eating-disorder federation) can direct you to professionals.</string>
+    <string name="fasting_safety_start_blocked">Starting a fast is disabled for this profile (see above).</string>
 </resources>

@@ -49,6 +49,7 @@ fun FastingScreen(
     val state          = viewModel.fastingState.collectAsStateWithLifecycle()
     val history        = viewModel.history.collectAsStateWithLifecycle()
     val streak         = viewModel.streak.collectAsStateWithLifecycle()
+    val safety         = viewModel.safety.collectAsStateWithLifecycle()
     val language       = viewModel.language.collectAsStateWithLifecycle()
     val personalRecord = viewModel.personalRecord.collectAsStateWithLifecycle()
     val preferredTargetHours = viewModel.preferredTargetHours.collectAsStateWithLifecycle()
@@ -145,7 +146,11 @@ fun FastingScreen(
             // Streak — was a hand-rolled Row (different icon variant, no pill
             // background, full-sentence text) instead of the shared StreakBadge
             // component Activity/Hydration/Medication already use.
-            if (streak.value > 0) {
+            if (safety.value.risks.isNotEmpty()) {
+                item { fr.scanneat.presentation.fasting.components.FastingSafetyCard(safety.value) }
+            }
+
+            if (streak.value > 0 && safety.value.showStreak) {
                 item {
                     StreakBadge(streakDays = streak.value, accentColor = CalorieOrange)
                 }
@@ -169,6 +174,11 @@ fun FastingScreen(
                                 personalRecord = personalRecord.value,
                                 onCancel = { showCancelConfirm = true },
                                 onStop = { viewModel.stop() },
+                            )
+                        } else if (safety.value.blocked) {
+                            Text(
+                                stringResource(R.string.fasting_safety_start_blocked),
+                                style = MaterialTheme.typography.bodyMedium, color = OnBackground,
                             )
                         } else {
                             StartFastForm(

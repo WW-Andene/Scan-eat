@@ -401,6 +401,8 @@ traitement ». Ajouter une option « masquer le nom du médicament ».
 > *Pourquoi ici :* Même code que C9 (notifications de doses) : à traiter dans le même passage.
 
 ### 13. C13. Jeûne intermittent sans aucune contre-indication 🔴
+✅ **Fait** : `fastingSafety(profile)` bloque le démarrage (grossesse, mineur), avertit (diabète, IMC < 18,5), masque la série pour ces profils et cite la FFAB (test `FastingSafetyTest`).
+
 `presentation/fasting/` : `FastingViewModel` ne lit que `activeProfileId` ; aucun champ du
 profil n'est consulté. `StartFastForm` propose 12, 16, 18, 20 et **24 h** et un compteur de
 **série** (streak) quel que soit le profil. Or le profil connaît déjà la grossesse
