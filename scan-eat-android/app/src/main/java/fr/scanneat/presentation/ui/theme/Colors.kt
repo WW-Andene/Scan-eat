@@ -307,14 +307,16 @@ val CalorieOrange   = Color(0xFFFF6B35)
 // between D and F's already-close oranges/reds, which round-6's public-bench
 // audit flagged as functionally indistinguishable at badge size despite
 // technically satisfying "darker = worse."
-private val NormalGradeColors = mapOf(
-    Grade.A_PLUS to Color(0xFF2E7D32), // Green
+// Roadmap A6: dark-theme palettes are checked by GradeColorContrastTest -
+// every grade >= 4.5:1 (WCAG AA, normal text) against every dark background.
+internal val NormalGradeColors = mapOf(
+    Grade.A_PLUS to Color(0xFF43A047), // Green (was 0xFF2E7D32: 3.7:1 on the dark background)
     Grade.A      to Color(0xFF8BC34A), // Yellow-Green (Chartreuse)
     Grade.B      to Color(0xFFFDD835), // Yellow
     Grade.C      to Color(0xFFFFC107), // Yellow-Orange (Amber)
     Grade.D      to Color(0xFFFF9800), // Orange
     Grade.E      to Color(0xFFF4511E), // Red-Orange (Vermilion)
-    Grade.F      to Color(0xFFE53935), // Red
+    Grade.F      to Color(0xFFEF5350), // Red (A6: was 0xFFE53935, 4.4:1 on the green dark theme)
 )
 // Round-7 audit: gradeColor() is consumed as literal TEXT color at 26-44sp
 // (ScoreDisplay.kt), not a chip fill with its own contrasting label - but
@@ -343,14 +345,17 @@ private val NormalGradeColorsLight = mapOf(
 // Same wider-spacing fix as NormalGradeColors above - D/E/F were previously
 // three shades within ~0x25 of each other on each channel, functionally one
 // color at badge size.
-private val ProtanDeuteranSafeGradeColors = mapOf(
-    Grade.A_PLUS to Color(0xFF0072B2),
+// A6: E/F used to darken to 0xFF9E3D00 / 0xFF632600 (2.8:1 / 1.65:1 on the dark
+// background - nearly invisible); on a dark theme they now move to lighter
+// Okabe-Ito hues instead (A+ bluish green, F reddish purple).
+internal val ProtanDeuteranSafeGradeColors = mapOf(
+    Grade.A_PLUS to Color(0xFF00A87A),
     Grade.A      to Color(0xFF56B4E9),
     Grade.B      to Color(0xFFF0E442),
     Grade.C      to Color(0xFFE69F00),
     Grade.D      to Color(0xFFD55E00),
-    Grade.E      to Color(0xFF9E3D00),
-    Grade.F      to Color(0xFF632600),
+    Grade.E      to Color(0xFFE87F6A),
+    Grade.F      to Color(0xFFCC79A7),
 )
 // Same Light-background contrast fix as NormalGradeColorsLight above,
 // same-hue darkened variants (E/F already cleared 4.5:1 unmodified).
@@ -368,14 +373,15 @@ private val ProtanDeuteranSafeGradeColorsLight = mapOf(
 // one of the worst choices here since it sits right on the confused axis. This
 // scale stays on teal↔red instead, which tritanopia leaves largely intact.
 // Same wider-spacing fix as the other two palettes.
-private val TritanopiaSafeGradeColors = mapOf(
-    Grade.A_PLUS to Color(0xFF0B7A75),
-    Grade.A      to Color(0xFF4FB3AC),
+// A6: same dark-theme fix as the protan/deuteran palette above (E/F were 2.9:1 / 1.9:1).
+internal val TritanopiaSafeGradeColors = mapOf(
+    Grade.A_PLUS to Color(0xFF1FA39C),
+    Grade.A      to Color(0xFF6FD0C8),
     Grade.B      to Color(0xFFB5B5B5),
     Grade.C      to Color(0xFFE8998D),
     Grade.D      to Color(0xFFD45D5D),
-    Grade.E      to Color(0xFFA33636),
-    Grade.F      to Color(0xFF7A1F1F),
+    Grade.E      to Color(0xFFE07A9A),
+    Grade.F      to Color(0xFFC792DF),
 )
 // Same Light-background contrast fix as the other two palettes above
 // (E/F already cleared 4.5:1 unmodified).

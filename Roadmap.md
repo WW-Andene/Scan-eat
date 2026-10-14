@@ -619,6 +619,8 @@ gratuits).
 > *Pourquoi ici :* Implémentation de la décision de C4.
 
 ### 30. A6 – Accessibilité
+✅ **Fait** : les icônes d'alerte sans description sont toutes accompagnées d'un texte équivalent (vérifié) ; palettes de notes en thème sombre corrigées (daltonisme : E/F à 1,65-2,9:1, désormais ≥ 4,5:1 sur les 6 fonds sombres ; A+ et F standard relevés), verrouillé par `GradeColorContrastTest`.
+
 Environ 40 `contentDescription = null` : vérifier qu'aucune ne
 porte sur une icône de statut ou d'alerte. Valider le contraste AA des couleurs de grade
 en mode sombre.
