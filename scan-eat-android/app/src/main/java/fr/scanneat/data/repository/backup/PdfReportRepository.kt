@@ -62,21 +62,23 @@ class PdfReportRepository @Inject constructor(
         val dateFmt = DateTimeFormatter.ofPattern("d MMM yyyy", Locale(language))
         val isFr = language == "fr"
         val currencySymbol = prefs.currencySymbol.first()
+        // Every section reads the ACTIVE profile - the weight, diary, fasting and
+        // price reads used to fall back to the "default" profile.
+        val profileId = prefs.activeProfileId.first()
 
-        val weights = weightDao.getAllForBackup().sortedBy { it.date }
-        val diaryLast30 = consumptionRepo.observeRange(today.minusDays(29), today).first()
+        val weights = weightDao.getAllForBackup(profileId).sortedBy { it.date }
+        val diaryLast30 = consumptionRepo.observeRange(today.minusDays(29), today, profileId).first()
         val diaryLast7  = diaryLast30.filter { !it.date.isBefore(today.minusDays(6)) }
         val weekRollup  = weeklyRollup(diaryLast7, today)
         val monthRollup = monthlyRollup(diaryLast30, today)
         val targets = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
-        val hydration = hydrationRepo.exportAll().filter { (d, _) -> !d.isBefore(today.minusDays(29)) }
-        val fasts = fastingRepo.history().first().filter { c ->
+        val hydration = hydrationRepo.observeAll(profileId).first().filter { (d, _) -> !d.isBefore(today.minusDays(29)) }
+        val fasts = fastingRepo.history(profileId).first().filter { c ->
             runCatching { LocalDate.parse(c.date) }.getOrNull()?.let { !it.isBefore(today.minusDays(29)) } == true
         }
-        val priceEntries = priceRepo.observeAll().first().filter { !it.date.isBefore(today.minusDays(29)) }
+        val priceEntries = priceRepo.observeAll(profileId).first().filter { !it.date.isBefore(today.minusDays(29)) }
 
         // Roadmap D5: treatments, adherence, interactions and symptoms (30 days).
-        val profileId = prefs.activeProfileId.first()
         val from30 = today.minusDays(29)
         val meds = medicationRepo.observeAll(profileId).first().filter { it.active }
         val medLogs = medicationRepo.getLogRange(from30, today, profileId)
@@ -85,6 +87,9 @@ class PdfReportRepository @Inject constructor(
         val symptoms = symptomRepo.observeAll(profileId).first().filter { !it.date.isBefore(from30) }
         val medCorrelations = fr.scanneat.domain.engine.symptom.symptomMedicationCorrelations(
             symptoms.mapTo(mutableSetOf()) { it.date }, medLogs.map { it.date to it.medicationName })
+        // Roadmap D5/C17: food links that passed the same Fisher test as the Symptoms screen.
+        val foodCorrelations = fr.scanneat.domain.engine.symptom.symptomFoodCorrelations(
+            symptoms.mapTo(mutableSetOf()) { it.date }, diaryLast30)
 
         val reactions = reactionRepo.observeAll(profileId).first()
 
@@ -95,7 +100,7 @@ class PdfReportRepository @Inject constructor(
         body.weightPage(weights, profile)
         body.nutritionPage(weekRollup, monthRollup, targets)
         body.wellnessPage(hydration, fasts, priceEntries)
-        body.healthPage(profile, adherence, interactions.size, symptoms, medCorrelations, reactions, language)
+        body.healthPage(profile, adherence, interactions.size, symptoms, medCorrelations, reactions, language, foodCorrelations)
 
         return doc
     }
@@ -301,6 +306,7 @@ private class ReportPageBuilder(
         medCorrelations: List<fr.scanneat.domain.engine.symptom.MedicationCorrelation>,
         reactions: List<fr.scanneat.data.repository.reaction.AllergicReaction> = emptyList(),
         language: String = "fr",
+        foodCorrelations: List<fr.scanneat.domain.engine.symptom.FoodCorrelation> = emptyList(),
     ) {
         val (page, canvas) = newPage()
         var y = 60f
@@ -339,12 +345,16 @@ private class ReportPageBuilder(
                 val avg = list.map { it.severity }.average()
                 line("$label : ${list.map { it.date }.distinct().size} " + (if (isFr) "jour(s), sévérité moyenne " else "day(s), mean severity ") + "%.1f/5".format(Locale.US, avg))
             }
-        if (medCorrelations.isNotEmpty()) {
+        if (medCorrelations.isNotEmpty() || foodCorrelations.isNotEmpty()) {
             y += 8f
             header(if (isFr) "Observations à discuter (pas une preuve médicale)" else "Observations to discuss (not medical proof)")
             medCorrelations.take(5).forEach { c ->
                 line("${c.medicationName} : ${c.symptomDaysWithMedication}/${c.totalSymptomDays} " + (if (isFr) "jours avec symptôme" else "symptom days") + " (p = %.3f)".format(Locale.US, c.pValue))
             }
+            foodCorrelations.take(5).forEach { c ->
+                line("${c.productName} : ${c.symptomDaysWithFood}/${c.totalSymptomDays} " + (if (isFr) "jours avec symptôme, +${c.differencePct} pts vs jours sans" else "symptom days, +${c.differencePct} pts vs other days") + " (p = %.3f)".format(Locale.US, c.pValue))
+            }
+            if (medCorrelations.isNotEmpty()) line(if (isFr) "N'arrêtez jamais un traitement sans avis médical." else "Never stop a treatment without medical advice.")
         }
 
         // Roadmap N10: allergic-reaction log, all entries (an allergist wants the full history).
