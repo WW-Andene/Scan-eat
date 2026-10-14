@@ -150,6 +150,10 @@ interface ScanHistoryDao {
     @Query("SELECT DISTINCT barcode FROM scan_history WHERE barcode IS NOT NULL AND scannedAt >= :since")
     suspend fun barcodesScannedSince(since: Long): List<String>
 
+    /** Latest scan of [barcode] whatever the profile (recall notification tap target). */
+    @Query("SELECT id FROM scan_history WHERE barcode = :barcode ORDER BY scannedAt DESC LIMIT 1")
+    suspend fun latestIdForBarcode(barcode: String): Long?
+
     @Query("DELETE FROM scan_history WHERE barcode = :barcode AND profileId = :profileId")
     suspend fun deleteByBarcode(barcode: String, profileId: String = "default")
 

@@ -74,6 +74,9 @@ class RecallSyncWorker @AssistedInject constructor(
                     localizedString(applicationContext, lang, R.string.recall_notif_title, name),
                     body,
                     NotifChannel.RECALLS,
+                    // Tap opens the product's result (RecallBanner shows the
+                    // full notice); pantry-only products open the app.
+                    openScanId = scanHistoryDao.latestIdForBarcode(barcode),
                 )
             }
         }

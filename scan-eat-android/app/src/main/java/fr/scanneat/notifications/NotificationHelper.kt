@@ -63,7 +63,10 @@ object NotificationHelper {
      * whether the user ever saw a notification, so a day with permission denied
      * silently lost every reminder with no way to recover until the next day.
      */
-    fun show(context: Context, id: Int, title: String, text: String, channel: NotifChannel? = null): Boolean {
+    /** Intent extra: scan id whose result screen the tap should open (recall notifications). */
+    const val EXTRA_OPEN_SCAN_ID = "fr.scanneat.extra.OPEN_SCAN_ID"
+
+    fun show(context: Context, id: Int, title: String, text: String, channel: NotifChannel? = null, openScanId: Long? = null): Boolean {
         ensureChannels(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -75,7 +78,8 @@ object NotificationHelper {
         // auto-cancelled with no navigation back into the app at all.
         val contentIntent = PendingIntent.getActivity(
             context, id,
-            Intent(context, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            Intent(context, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                .apply { openScanId?.let { putExtra(EXTRA_OPEN_SCAN_ID, it) } },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val notification = NotificationCompat.Builder(context, channelId)

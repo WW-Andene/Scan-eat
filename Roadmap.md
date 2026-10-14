@@ -359,7 +359,7 @@ lorsque `medicationRisks` n'est pas vide ; le panneau reste pour le détail.
 > *Pourquoi ici :* Même écran que C1 : à faire dans la foulée.
 
 ### 9. C3. Rappels produits jamais revérifiés après le scan 🔴
-✅ **Fait** : `RecallSyncWorker` quotidien (réseau requis) : rappels publiés depuis la dernière synchro × codes-barres de l'historique (180 j) et du garde-manger ; cache positif (bandeau résultat, garde-manger) et notification « Produit rappelé » une seule fois par produit, canal dédié prioritaire (test `RecallSyncMatchTest`).
+✅ **Fait** : `RecallSyncWorker` quotidien (réseau requis) : rappels publiés depuis la dernière synchro × codes-barres de l'historique (180 j) et du garde-manger ; cache positif (bandeau résultat, garde-manger) et notification « Produit rappelé » une seule fois par produit, canal dédié prioritaire (test `RecallSyncMatchTest`). Toucher la notification ouvre la fiche du produit.
 
 `RecallRepository` interroge RappelConso **au scan** ; le cache négatif expire en 7 jours
 mais n'est réinterrogé qu'**au prochain scan** du même code-barres. `ReminderWorker` ne
@@ -610,6 +610,8 @@ malvoyante, et proposer l'option dans l'onboarding accessibilité.
 Fonctionnalités qui reposent sur des modules existants.
 
 ### 34. A8. Recherche Open Food Facts sur l'ancienne API
+⚠️ **Vérifié (passe 7)** : la recherche en ligne a déjà un debounce de 700 ms, un minimum de 2 caractères et un cache ; reste la migration vers Search-a-licious.
+
 `OpenFoodFactsApi` utilise `cgi/search.pl`, l'ancien point d'accès de recherche, lent et limité
 à environ 10 requêtes par minute par Open Food Facts. Avec un debounce de 150 ms (`FoodSearchViewModel`), la frappe
 d'un utilisateur peut atteindre cette limite.
