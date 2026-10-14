@@ -34,6 +34,7 @@ object AppRoutes {
     const val PANTRY = "pantry"
     const val SYMPTOMS = "symptoms"
     const val NONFOOD_HISTORY = "nonfood_history"
+    const val RECALLS = "recalls"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }

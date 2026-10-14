@@ -22,6 +22,10 @@ interface RecallDao {
     @Query("SELECT barcode FROM recall_cache WHERE found = 1")
     suspend fun recalledBarcodes(): List<String>
 
+    /** Roadmap D1: every confirmed recall, most recently published first. */
+    @Query("SELECT * FROM recall_cache WHERE found = 1 ORDER BY publicationDate DESC")
+    fun observeRecalled(): Flow<List<RecallEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entry: RecallEntity)
 

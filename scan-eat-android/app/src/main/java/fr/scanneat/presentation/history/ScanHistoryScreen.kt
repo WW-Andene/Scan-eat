@@ -2,6 +2,7 @@ package fr.scanneat.presentation.history
 
 import compose.icons.tablericons.History
 import compose.icons.TablerIcons
+import compose.icons.tablericons.Ban
 import compose.icons.tablericons.AlertCircle
 import compose.icons.tablericons.ArrowLeft
 import compose.icons.tablericons.Droplet
@@ -40,6 +41,7 @@ fun ScanHistoryScreen(
     onBack: () -> Unit,
     startFavoritesOnly: Boolean = false,
     onOpenNonFoodHistory: () -> Unit = {},
+    onOpenRecalls: () -> Unit = {},
 ) {
     val scans = viewModel.filtered.collectAsStateWithLifecycle()
     val query = viewModel.query.collectAsStateWithLifecycle()
@@ -122,6 +124,10 @@ fun ScanHistoryScreen(
             if (!startFavoritesOnly) {
                 IconButton(onClick = onOpenNonFoodHistory) {
                     Icon(TablerIcons.Droplet, stringResource(R.string.nonfood_history_title), tint = OnBackground)
+                }
+                // Roadmap D1: list of every confirmed recall (RecallsScreen).
+                IconButton(onClick = onOpenRecalls) {
+                    Icon(TablerIcons.Ban, stringResource(R.string.recalls_title), tint = OnBackground)
                 }
             }
             // User-requested: "comparer 2 scans côte à côte" - unlike the

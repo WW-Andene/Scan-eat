@@ -2070,4 +2070,10 @@
     <string name="fasting_risk_underweight">IMC inférieur à 18,5 (insuffisance pondérale selon l\'OMS).</string>
     <string name="fasting_safety_ed_help">Si votre rapport à l\'alimentation vous inquiète, la FFAB (Fédération française anorexie boulimie) oriente vers des professionnels.</string>
     <string name="fasting_safety_start_blocked">Le démarrage d\'un jeûne est désactivé pour ce profil (voir ci-dessus).</string>
+    <string name="recalls_title">Produits rappelés</string>
+    <string name="recalls_intro">Rappels officiels (RappelConso) des produits que vous avez scannés ou stockés, vérifiés au scan et chaque jour en arrière-plan. Textes officiels en français.</string>
+    <string name="recalls_empty">Aucun de vos produits ne fait l\'objet d\'un rappel connu.</string>
+    <string name="recalls_risks">Risques : %1$s</string>
+    <string name="recalls_instructions">Que faire : %1$s</string>
+    <string name="recalls_open_sheet">Voir la fiche officielle</string>
 </resources>

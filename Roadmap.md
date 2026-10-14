@@ -373,6 +373,8 @@ fonctionnalité à plus forte valeur sécurité par ligne de code de toute l'app
 > *Pourquoi ici :* Diagnostic ; s'implémente avec D1.
 
 ### 10. D1 – Synchro RappelConso en arrière-plan
+✅ **Fait** : synchro quotidienne (C3) et écran « Produits rappelés » (bouton dans l'historique) : motif, risques, conduite à tenir, lien vers la fiche officielle, ouverture du produit.
+
 (cf. C3), avec écran « Mes produits
 rappelés ».
 

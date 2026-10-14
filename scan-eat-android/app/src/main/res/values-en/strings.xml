@@ -2066,4 +2066,10 @@
     <string name="fasting_risk_underweight">BMI below 18.5 (WHO underweight).</string>
     <string name="fasting_safety_ed_help">If your relationship with food worries you, FFAB (French eating-disorder federation) can direct you to professionals.</string>
     <string name="fasting_safety_start_blocked">Starting a fast is disabled for this profile (see above).</string>
+    <string name="recalls_title">Recalled products</string>
+    <string name="recalls_intro">Official recalls (RappelConso, French government) of products you scanned or stocked, checked at scan time and daily in the background. Official texts are in French.</string>
+    <string name="recalls_empty">None of your products is under a known recall.</string>
+    <string name="recalls_risks">Risks: %1$s</string>
+    <string name="recalls_instructions">What to do: %1$s</string>
+    <string name="recalls_open_sheet">Open the official notice</string>
 </resources>

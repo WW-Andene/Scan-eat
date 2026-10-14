@@ -65,6 +65,10 @@ class RecallRepository @Inject constructor(
     fun observeRecalledBarcodes(): Flow<Set<String>> =
         dao.observeRecalledBarcodes().map { it.toSet() }
 
+    /** Roadmap D1: confirmed recalls of products the user scanned or stocked (barcode → notice). */
+    fun observeRecalledProducts(): Flow<List<Pair<String, RecallEntry>>> =
+        dao.observeRecalled().map { list -> list.map { it.barcode to it.toEntry() } }
+
     suspend fun checkBarcode(barcode: String): RecallEntry? {
         // GTINs are purely numeric (8/12/13/14 digits) - guards against
         // building a malformed ODSQL where-clause from a non-GTIN barcode
