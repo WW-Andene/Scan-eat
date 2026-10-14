@@ -400,6 +400,8 @@ worker pour les rappels de repas et d'hydratation.
 > *Pourquoi ici :* Fiabilise les rappels de doses ; indépendant mais même famille (WorkManager/alarmes).
 
 ### 12. C11. Noms de médicaments visibles sur l'écran verrouillé 🟠
+✅ **Fait** : notifications du canal MEDICATION en `VISIBILITY_PRIVATE` avec une version publique « Rappel de traitement » (et canal en visibilité privée pour les nouvelles installations). Reste : l'option « masquer le nom » même téléphone déverrouillé.
+
 `ReminderWorker` (l. 141-168) place `med.name` dans le corps de la notification, et
 `NotificationHelper.show` ne définit ni `setVisibility(VISIBILITY_PRIVATE)` ni
 `setPublicVersion(...)`. Sur un téléphone réglé pour afficher le contenu des notifications (c'est le réglage par défaut),

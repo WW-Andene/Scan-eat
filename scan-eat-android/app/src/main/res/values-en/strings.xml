@@ -2076,4 +2076,5 @@
     <string name="allergen_severity_severe">Severe</string>
     <string name="allergen_severity_allergy">Allergy</string>
     <string name="allergen_severity_intolerance">Intolerance</string>
+    <string name="notif_medication_public_title">Treatment reminder</string>
 </resources>

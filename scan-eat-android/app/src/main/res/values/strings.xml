@@ -2080,4 +2080,5 @@
     <string name="allergen_severity_severe">Sévère</string>
     <string name="allergen_severity_allergy">Allergie</string>
     <string name="allergen_severity_intolerance">Intolérance</string>
+    <string name="notif_medication_public_title">Rappel de traitement</string>
 </resources>

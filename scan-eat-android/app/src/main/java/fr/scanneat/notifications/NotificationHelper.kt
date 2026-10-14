@@ -30,6 +30,10 @@ enum class NotifChannel(val id: String, val nameRes: Int) {
     CUSTOM     ("reminders_custom",     R.string.notif_channel_custom),
     PANTRY     ("reminders_pantry",     R.string.notif_channel_pantry),
     RECALLS    ("product_recalls",      R.string.notif_channel_recalls),
+    ;
+
+    /** Content hidden on the lock screen behind a generic public version (C11). */
+    val isSensitive: Boolean get() = this == MEDICATION
 }
 
 object NotificationHelper {
@@ -45,7 +49,11 @@ object NotificationHelper {
                     ch.id, context.getString(ch.nameRes),
                     // A government safety recall must be seen (heads-up), not only listed.
                     if (ch == NotifChannel.RECALLS) NotificationManager.IMPORTANCE_HIGH else NotificationManager.IMPORTANCE_DEFAULT,
-                )
+                ).apply {
+                    // Roadmap C11: medication names are health data (GDPR art. 9) -
+                    // never shown in full on the lock screen.
+                    if (ch.isSensitive) lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
+                }
             )
         }
         // Keep the legacy catch-all channel for any notification still using CHANNEL_ID
@@ -90,6 +98,19 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(contentIntent)
+            .apply {
+                if (channel?.isSensitive == true) {
+                    setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                    setPublicVersion(
+                        NotificationCompat.Builder(context, channelId)
+                            .setSmallIcon(R.drawable.ic_notification)
+                            .setContentTitle(context.getString(R.string.notif_medication_public_title))
+                            .setContentIntent(contentIntent)
+                            .setAutoCancel(true)
+                            .build()
+                    )
+                }
+            }
             .build()
         NotificationManagerCompat.from(context).notify(id, notification)
         return true
