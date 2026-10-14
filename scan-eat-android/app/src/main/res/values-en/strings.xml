@@ -2288,4 +2288,11 @@
     <string name="settings_healthconnect_profile_linked">This profile syncs with Health Connect. Other profiles neither read from nor write to Health Connect.</string>
     <string name="settings_healthconnect_profile_other">Health Connect is linked to another profile: this one neither reads from nor writes to it.</string>
     <string name="settings_healthconnect_profile_link">Link Health Connect to this profile</string>
+    <string name="diary_alcohol_title">Alcohol over 7 days</string>
+    <string name="diary_alcohol_total">%1$s standard drinks, %2$d day(s) with alcohol</string>
+    <string name="diary_alcohol_pregnancy">During pregnancy, the guideline is no alcohol.</string>
+    <string name="diary_alcohol_over_two">%1$d day(s) above 2 drinks</string>
+    <string name="diary_alcohol_every_day">Alcohol every day: the guideline recommends days without.</string>
+    <string name="diary_alcohol_unknown">%1$d drink(s) with unknown strength, not counted</string>
+    <string name="diary_alcohol_source">Santé publique France 2017 guidelines: at most 10 drinks a week, 2 a day, not every day (1 standard drink = 10 g of pure alcohol).</string>
 </resources>

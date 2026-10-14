@@ -48,6 +48,7 @@ internal fun MealsTab(
     val language     = viewModel.language.collectAsStateWithLifecycle()
     val targets      = viewModel.targets.collectAsStateWithLifecycle()
     val caffeine     = viewModel.caffeine.collectAsStateWithLifecycle()
+    val alcohol      = viewModel.alcohol.collectAsStateWithLifecycle()
     val goalTargets  = viewModel.goalTargets.collectAsStateWithLifecycle()
     val goalWeightKg = viewModel.goalWeightKg.collectAsStateWithLifecycle()
     val diaryWarnings = viewModel.diaryWarnings.collectAsStateWithLifecycle()
@@ -147,6 +148,7 @@ internal fun MealsTab(
         // Journal's per-day view has the same feedback loop the Dashboard's today view does.
         targets.value?.let { t -> item { NutrientBudgetCard(totals = s.totals, targets = t) } }
         caffeine.value?.let { c -> item { CaffeineBudgetCard(c) } }
+        alcohol.value?.let { a -> item { AlcoholWeekCard(a) } }
 
         // Calorie intake breakdown bar — each meal slot's contribution as a colored segment
         if (s.entries.isNotEmpty()) {

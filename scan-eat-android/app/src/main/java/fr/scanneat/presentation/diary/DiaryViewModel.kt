@@ -157,6 +157,13 @@ class DiaryViewModel @Inject constructor(
         if (bioTdee != null) base.withKcalOverride(bioTdee, profile.safeGoal, currentPregnancyTrimester(profile)) else base
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    /** Last 7 days of alcohol vs the French guidelines - null hides the card. */
+    val alcohol: StateFlow<fr.scanneat.domain.engine.nutrition.AlcoholWeek?> = combine(_selectedDate, activeProfileId) { d, id -> d to id }
+        .flatMapLatest { (d, id) -> combine(consumptionRepo.observeRange(d.minusDays(6), d, id), prefs.profile) { entries, profile ->
+            fr.scanneat.domain.engine.nutrition.alcoholWeek(profile, entries, d)
+        } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     /** Daily caffeine vs the EFSA limit for this profile - null hides the card. */
     val caffeine: StateFlow<fr.scanneat.domain.engine.nutrition.CaffeineBudget?> = combine(prefs.profile, summary) { profile, s ->
         fr.scanneat.domain.engine.nutrition.caffeineBudget(profile, s.entries)
