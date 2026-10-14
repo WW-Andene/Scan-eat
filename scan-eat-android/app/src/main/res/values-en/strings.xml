@@ -2255,4 +2255,10 @@
     <string name="offline_pack_pending">Download scheduled for the next Wi-Fi connection.</string>
     <string name="offline_pack_status">%1$d products, downloaded on %2$s</string>
     <string name="offline_pack_refresh">Update now (Wi-Fi)</string>
+    <string name="tile_water">Glass of water</string>
+    <string name="tile_water_today">%1$d mL today</string>
+    <string name="tile_fasting">Fasting</string>
+    <string name="tile_fasting_running">Running — tap to stop</string>
+    <string name="tile_fasting_start">Tap to start (16 h)</string>
+    <string name="tile_fasting_blocked">Not recommended for this profile</string>
 </resources>

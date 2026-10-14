@@ -786,6 +786,8 @@ en réutilisant `AllergenDetector` et `DietChecker`.
 > *Pourquoi ici :* Scan de carte de restaurant (réutilise allergènes/régime durcis en phase 2).
 
 ### 46. N5 – Wear OS / tuile
+✅ **Partiellement fait (tuiles du téléphone)** : tuiles de réglages rapides « Verre d'eau » (+1 verre, total du jour affiché) et « Jeûne » (démarrer 16 h / arrêter, indisponible pour un profil bloqué par C13). Reste : l'application Wear OS (module montre + synchronisation Data Layer, non testable sans montre) et une tuile de prise de médicament (les boutons « Pris » des notifications couvrent déjà ce besoin).
+
 prise de médicament, verre d'eau, chrono de jeûne.
 
 > *Pourquoi ici :* Wear OS / tuile (réutilise les alarmes de C9).

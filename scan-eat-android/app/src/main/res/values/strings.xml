@@ -2259,4 +2259,10 @@
     <string name="offline_pack_pending">Téléchargement prévu à la prochaine connexion Wi-Fi.</string>
     <string name="offline_pack_status">%1$d produits, téléchargés le %2$s</string>
     <string name="offline_pack_refresh">Mettre à jour maintenant (Wi-Fi)</string>
+    <string name="tile_water">Verre d\'eau</string>
+    <string name="tile_water_today">%1$d mL aujourd\'hui</string>
+    <string name="tile_fasting">Jeûne</string>
+    <string name="tile_fasting_running">En cours — toucher pour arrêter</string>
+    <string name="tile_fasting_start">Toucher pour démarrer (16 h)</string>
+    <string name="tile_fasting_blocked">Déconseillé pour ce profil</string>
 </resources>
