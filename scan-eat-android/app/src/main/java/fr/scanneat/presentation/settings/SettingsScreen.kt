@@ -15,6 +15,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.presentation.settings.components.AboutSection
+import fr.scanneat.presentation.settings.components.SettingsSection
+import compose.icons.tablericons.Adjustments
 import fr.scanneat.presentation.settings.components.AccessibilitySection
 import fr.scanneat.presentation.settings.components.BackupSection
 import fr.scanneat.presentation.settings.components.CurrencyConversionDialog
@@ -55,6 +57,7 @@ fun SettingsScreen(
     val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val voiceScoreAnnounce = viewModel.voiceScoreAnnounce.collectAsStateWithLifecycle()
+    val hiddenModulesCsv = viewModel.hiddenModules.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
@@ -132,6 +135,16 @@ fun SettingsScreen(
             // weigh-ins, activity, and fasting targets app-wide. ----
             item { RemindersSection(onOpenReminders) }
 
+            // Roadmap A4: tracked modules.
+            item {
+                SettingsSection(stringResource(R.string.settings_modules), icon = compose.icons.TablerIcons.Adjustments) {
+                    val hidden = fr.scanneat.presentation.diary.components.parseHiddenModules(hiddenModulesCsv.value)
+                    fr.scanneat.presentation.diary.components.ModulesSelector(hidden) {
+                        viewModel.setHiddenModules(fr.scanneat.presentation.diary.components.serializeHiddenModules(it))
+                    }
+                }
+            }
+
             // Roadmap A1/N2: data sources and methodology.
             item { fr.scanneat.presentation.settings.components.SourcesSection(onOpenSources) }
 
@@ -183,6 +196,9 @@ fun SettingsScreen(
                     voiceScoreAnnounce = voiceScoreAnnounce.value, onVoiceScoreAnnounceChange = viewModel::setVoiceScoreAnnounce,
                 )
             }
+
+            // Roadmap N9: offline product database.
+            item { fr.scanneat.presentation.settings.components.OfflinePackSection(viewModel.offlinePack) }
 
             // Roadmap C12: automatic weekly encrypted backup.
             item { fr.scanneat.presentation.settings.components.AutoBackupSection() }

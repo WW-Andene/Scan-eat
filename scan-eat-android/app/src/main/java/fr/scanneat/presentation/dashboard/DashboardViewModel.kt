@@ -208,6 +208,16 @@ class DashboardViewModel @Inject constructor(
     val whatsNewSeenVersion: StateFlow<Int> = prefs.whatsNewSeenVersion
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WhatsNewContent.CURRENT_VERSION)
 
+    // Roadmap A11/A4: card layout and unfollowed modules.
+    internal val dashboardLayout: StateFlow<DashboardLayout> = prefs.dashboardLayout.map { DashboardLayout.parse(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardLayout.DEFAULT)
+    internal val hiddenModules: StateFlow<Set<fr.scanneat.presentation.diary.components.DiaryTab>> = prefs.hiddenModules
+        .map { fr.scanneat.presentation.diary.components.parseHiddenModules(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+    internal fun setDashboardLayout(layout: DashboardLayout) {
+        viewModelScope.launch { runCatching { prefs.setDashboardLayout(layout.serialize()) } }
+    }
+
     fun dismissWhatsNew() {
         viewModelScope.launch { prefs.setWhatsNewSeenVersion(WhatsNewContent.CURRENT_VERSION) }
     }

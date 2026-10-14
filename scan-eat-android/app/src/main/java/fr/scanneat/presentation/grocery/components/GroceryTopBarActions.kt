@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.grocery.components
 
+import compose.icons.tablericons.BuildingStore
 import compose.icons.tablericons.Share
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Barcode
@@ -35,8 +36,13 @@ internal fun GroceryTopBarActions(
     // hasItems like the actions below) since scanning is how a user with an
     // empty list would start filling it.
     onScanToAdd: () -> Unit,
+    /** Roadmap N7. */
+    onOpenStoreMode: () -> Unit = {},
 ) {
     PlanningSwitcherMenu(current = PlanningDestination.GROCERY, onNavigate = onNavigateToPlanning)
+    IconButton(onClick = onOpenStoreMode) {
+        Icon(compose.icons.TablerIcons.BuildingStore, androidx.compose.ui.res.stringResource(fr.scanneat.R.string.store_mode_title), tint = OnBackground)
+    }
     IconButton(onClick = onScanToAdd) {
         Icon(TablerIcons.Barcode, stringResource(R.string.grocery_scan_to_add), tint = AccentCoral)
     }

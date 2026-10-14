@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -41,6 +42,7 @@ class SymptomViewModel @Inject constructor(
     private val consumptionRepo: ConsumptionRepository,
     private val medicationRepo: MedicationRepository,
     private val prefs: UserPreferences,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
 ) : ActionFailureViewModel() {
 
     private val activeProfileId: StateFlow<String> = prefs.activeProfileId
@@ -102,4 +104,34 @@ class SymptomViewModel @Inject constructor(
     fun delete(id: String) {
         guardedLaunch { repo.delete(id) }
     }
+
+    // ── Roadmap D4: guided elimination trial (one per profile, SharedPreferences) ──
+    private val trialPrefs = appContext.getSharedPreferences("elimination_trial", android.content.Context.MODE_PRIVATE)
+    private val _trial = MutableStateFlow<fr.scanneat.domain.engine.symptom.EliminationTrial?>(null)
+    val trial: StateFlow<fr.scanneat.domain.engine.symptom.EliminationTrial?> = _trial.asStateFlow()
+
+    private fun loadTrial(profileId: String) {
+        val raw = trialPrefs.getString(profileId, null)?.split("|")
+        _trial.value = raw?.takeIf { it.size == 4 }?.let {
+            runCatching { fr.scanneat.domain.engine.symptom.EliminationTrial(it[0], java.time.LocalDate.parse(it[1]), it[2].toInt(), it[3].toInt()) }.getOrNull()
+        }
+    }
+
+    init { viewModelScope.launch { activeProfileId.collect { loadTrial(it) } } }
+
+    fun startTrial(target: String, avoidDays: Int, reintroDays: Int) {
+        val t = fr.scanneat.domain.engine.symptom.EliminationTrial(target, java.time.LocalDate.now(), avoidDays, reintroDays)
+        trialPrefs.edit().putString(activeProfileId.value, "${t.target}|${t.start}|${t.avoidDays}|${t.reintroDays}").apply()
+        _trial.value = t
+    }
+
+    fun stopTrial() { trialPrefs.edit().remove(activeProfileId.value).apply(); _trial.value = null }
+
+    val trialReport: StateFlow<fr.scanneat.domain.engine.symptom.TrialReport?> = combine(_trial, entries, activeProfileId) { t, list, id -> Triple(t, list, id) }
+        .flatMapLatest { (t, list, id) ->
+            if (t == null) kotlinx.coroutines.flow.flowOf(null)
+            else consumptionRepo.observeRange(t.start, t.reintroStart.minusDays(1), id).map { diary ->
+                fr.scanneat.domain.engine.symptom.trialReport(t, list.mapTo(mutableSetOf()) { it.date }, diary, java.time.LocalDate.now())
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 }

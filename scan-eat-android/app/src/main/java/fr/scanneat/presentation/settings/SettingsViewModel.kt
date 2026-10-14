@@ -53,6 +53,7 @@ enum class BackupErrorKey { UNSUPPORTED_VERSION, MALFORMED, IO }
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val prefs: UserPreferences,
+    internal val offlinePack: fr.scanneat.data.repository.offline.OfflinePackRepository,
     private val backupRepository: BackupRepository,
     private val csvExportRepository: CsvExportRepository,
     private val pdfReportRepository: PdfReportRepository,
@@ -147,6 +148,11 @@ class SettingsViewModel @Inject constructor(
     // Backup export/import
     // ─────────────────────────────────────────────────────────────────────────
     private val _backupState = MutableStateFlow<BackupUiState>(BackupUiState.Idle)
+    // Roadmap A4: tracked modules.
+    val hiddenModules: StateFlow<String> = prefs.hiddenModules
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    fun setHiddenModules(csv: String) { viewModelScope.launch { runCatching { prefs.setHiddenModules(csv) } } }
+
     val backupState: StateFlow<BackupUiState> = _backupState.asStateFlow()
 
     /**

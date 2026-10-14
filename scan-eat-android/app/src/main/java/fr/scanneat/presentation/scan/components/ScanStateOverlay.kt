@@ -105,7 +105,10 @@ internal fun BoxScope.ScanStateOverlay(
     medicationInteractionWarnings: List<InteractionWarning> = emptyList(),
     onConfirmOcrReview: (fr.scanneat.domain.model.Product) -> Unit = {},
     onCancelOcrReview: () -> Unit = {},
+    /** Roadmap N1: barcode of the product that was not found / is incomplete. */
+    barcode: String? = null,
 ) {
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
     when (val s = state) {
         is ScanUiState.Idle, is ScanUiState.Scanning, is ScanUiState.Success -> Unit
         is ScanUiState.ReviewOcr -> OcrReviewDialog(s.result.product, onConfirm = onConfirmOcrReview, onCancel = onCancelOcrReview)
@@ -120,8 +123,14 @@ internal fun BoxScope.ScanStateOverlay(
                         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
                             Icon(TablerIcons.Camera, null, tint = AccentCoral)
                             Spacer(Modifier.width(Spacing.S))
-                            Text(stringResource(R.string.scan_needs_photo),
-                                Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
+                            Column(Modifier.weight(1f)) {
+                                Text(stringResource(R.string.scan_needs_photo), style = MaterialTheme.typography.bodySmall, color = OnSurface)
+                                barcode?.let { fr.scanneat.util.offContributionUrl(it) }?.let { url ->
+                                    TextButton(onClick = { runCatching { uriHandler.openUri(url) } }, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                                        Text(stringResource(R.string.off_contribute_add), style = MaterialTheme.typography.labelMedium)
+                                    }
+                                }
+                            }
                             // The IconButton itself must keep Material's default 48dp touch
                             // target (WCAG 2.5.5/2.5.8) - sizing it down to 32dp shrank the
                             // tappable area, not just the glyph. Constrain the icon instead.

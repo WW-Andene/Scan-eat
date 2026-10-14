@@ -266,6 +266,10 @@ class GroceryViewModel @Inject constructor(
      * previously ignored [_sortAlpha] entirely, so toggling "Sort A-Z" changed the
      * icon's tint but never actually reordered the on-screen checklist.
      */
+    // Roadmap D3: the existing budgetEstimate is compared with this.
+    val budgetWeeklyEuros: StateFlow<Double?> = prefs.budgetWeeklyEuros
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     val checkableItems: StateFlow<List<CheckableGroceryItem>> = combine(groceryItems, activeProfileId.flatMapLatest { id -> checkedRepo.checkedKeys(id) }) { items, checked ->
         items.map { CheckableGroceryItem(it, checked = it.key in checked) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

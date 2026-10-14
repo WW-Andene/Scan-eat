@@ -632,6 +632,8 @@ en mode sombre.
 > *Pourquoi ici :* Accessibilité et contraste.
 
 ### 31. A4 – Navigation
+✅ **Fait** : étape « Que voulez-vous suivre ? » dans l'onboarding et section « Modules suivis » dans les réglages ; les suivis décochés (poids, eau, activité, jeûne, traitement, dépenses, sommeil, humeur) disparaissent du Journal, les repas restent toujours (test `ModulesTest`).
+
 34 modules dans `presentation/` (fasting, loyalty, seasonal,
 calendar, sleep, symptom, expenses…). Proposer à l'onboarding de choisir les modules
 suivis, et masquer les autres dans la navigation.
@@ -639,6 +641,8 @@ suivis, et masquer les autres dans la navigation.
 > *Pourquoi ici :* Onboarding « modules suivis » et navigation allégée.
 
 ### 32. A11. Tableau de bord personnalisable
+✅ **Fait** : « Personnaliser le tableau de bord » : 18 cartes à masquer et réordonner (↑/↓, réinitialiser), enregistrées immédiatement ; le centre de vigilance reste toujours en haut ; les cartes des modules non suivis (A4 : poids, dépenses) sont masquées automatiquement (test `DashboardLayoutTest`).
+
 `presentation/dashboard/cards/` contient **21 cartes**. Le réordonnancement n'existe que pour les onglets
 du Journal (`UserPreferences`, l. 113). Permettre de masquer et réordonner les cartes, avec des préréglages
 selon les modules choisis à l'onboarding (A4).
@@ -662,7 +666,7 @@ malvoyante, et proposer l'option dans l'onboarding accessibilité.
 Fonctionnalités qui reposent sur des modules existants.
 
 ### 34. A8. Recherche Open Food Facts sur l'ancienne API
-⚠️ **Vérifié (passe 7)** : la recherche en ligne a déjà un debounce de 700 ms, un minimum de 2 caractères et un cache ; reste la migration vers Search-a-licious.
+✅ **Fait** : recherche en ligne et alternatives (A3) migrées vers Search-a-licious (`search.openfoodfacts.org`), vérifié sur l'API en direct ; l'ancien `cgi/search.pl` renvoyait des pages « temporarily unavailable » et a été retiré (test `SearchaliciousParseTest` sur une vraie réponse).
 
 `OpenFoodFactsApi` utilise `cgi/search.pl`, l'ancien point d'accès de recherche, lent et limité
 à environ 10 requêtes par minute par Open Food Facts. Avec un debounce de 150 ms (`FoodSearchViewModel`), la frappe
@@ -686,7 +690,7 @@ l'app : exactement ceux où elle est la plus parlante.
 > *Pourquoi ici :* Même chantier que A8 (API Open Food Facts).
 
 ### 36. A3 – Alternatives venant d'Open Food Facts
-✅ **Fait (à vérifier en ligne)** : si l'historique ne propose rien, recherche Open Food Facts sur la catégorie la plus précise du produit (produits les plus scannés), notation locale, mêmes filtres allergènes/régime/conditions, au moins +10 points ; chargée à part pour ne jamais retarder le résultat. Requête non vérifiée en direct pendant cette passe (OFF indisponible depuis l'environnement de travail) ; en cas d'échec, rien n'est affiché.
+✅ **Fait** : si l'historique ne propose rien, recherche Open Food Facts sur la catégorie la plus précise du produit (produits les plus scannés), notation locale, mêmes filtres allergènes/régime/conditions, au moins +10 points ; chargée à part pour ne jamais retarder le résultat. Requête par catégorie vérifiée en direct sur Search-a-licious (A8) ; en cas d'échec, rien n'est affiché.
 
 Aujourd'hui limitées à l'historique :
 un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégorie
@@ -704,12 +708,16 @@ dans ces suggestions les produits **bientôt périmés** et les placer dans le p
 > *Pourquoi ici :* Péremption du garde-manger (même infra de worker que D1).
 
 ### 38. D3 – Plan de repas → courses → dépenses
+✅ **Fait** : l'estimation de coût qui existait déjà sur la liste de courses (prix au kilo × quantité, articles sans historique exclus) est comparée au budget hebdomadaire des Dépenses, en orange si elle le dépasse ; le ticket scanné alimente les dépenses réelles. (Une première version ajoutait une seconde estimation différente sur le même écran : retirée, information en double.)
+
 les trois modules existent ; il manque le
 bouclage « budget prévu vs ticket scanné » (`ReceiptParser` déjà présent).
 
 > *Pourquoi ici :* Plan → courses → dépenses.
 
 ### 39. D4 – Signaux croisés symptômes ↔ aliments
+✅ **Fait (lactose, gluten)** : « Essai d'éviction guidé » sur l'écran Symptômes : éviction de 14/21/28 jours puis 7 jours de réintroduction ; pourcentage de jours avec symptôme avant / pendant / après, écarts détectés dans le journal pendant l'éviction ; présenté comme observation personnelle à mener avec un médecin ou un diététicien (dépistage de la maladie cœliaque avant toute éviction du gluten) (test `EliminationTrialTest`). FODMAP non couvert : aucun détecteur FODMAP sourcé dans l'app.
+
 `SymptomCorrelation` existe ; ajouter un
 journal d'élimination guidé (FODMAP, lactose), à présenter clairement comme une
 observation personnelle et non un diagnostic.
@@ -737,6 +745,8 @@ articles au garde-manger », avec des dates de péremption estimées par catégo
 > *Pourquoi ici :* Complète D3 (boucle plan → courses → ticket).
 
 ### 42. D8. Générateur de plan de repas
+✅ **Fait** : bouton « Générer ma semaine » du plan de repas : remplit les déjeuners et dîners vides avec les recettes de l'utilisateur compatibles avec ses allergènes (traces exclues pour une allergie sévère) et son régime, d'abord celles qui utilisent un produit bientôt périmé du garde-manger, sans répétition dans une journée et en tournant sur toutes les recettes (test `WeekPlanGeneratorTest`). La liste de courses du plan existe déjà. Restent : contraintes de budget et de temps, recettes externes.
+
 `MealPlanViewModel` ne propose que des actions manuelles (`setRecipe`, `duplicateDay`, `duplicateWeek`).
 Toutes les briques d'un générateur existent pourtant : cibles journalières (`DailyTargets`),
 recettes et modèles, garde-manger avec urgence de péremption, fruits et légumes de saison (`seasonal/`),
@@ -759,6 +769,8 @@ plus parlante dans une messagerie et plus virale.
 ## Phase 7 — Nouveaux axes
 
 ### 44. N1 – Contribution Open Food Facts
+✅ **Fait (voie officielle)** : bouton « Ajouter ce produit sur Open Food Facts » quand un code-barres est introuvable, et « Compléter cette fiche » sur un résultat lu depuis des photos ; il ouvre la page produit OFF, où l'utilisateur ajoute ou corrige sous son propre compte. L'app ne manipule pas d'identifiants OFF et n'écrit pas dans la base partagée (une écriture directe par l'API resterait à faire, avec le compte de l'utilisateur et des tests sur le serveur de test d'OFF).
+
 aucune écriture vers OFF aujourd'hui. Quand un
 produit est absent ou incomplet, proposer d'envoyer photos et champs lus par OCR (API
 d'écriture OFF, compte utilisateur ou anonyme).
@@ -774,11 +786,15 @@ en réutilisant `AllergenDetector` et `DietChecker`.
 > *Pourquoi ici :* Scan de carte de restaurant (réutilise allergènes/régime durcis en phase 2).
 
 ### 46. N5 – Wear OS / tuile
+✅ **Partiellement fait (tuiles du téléphone)** : tuiles de réglages rapides « Verre d'eau » (+1 verre, total du jour affiché) et « Jeûne » (démarrer 16 h / arrêter, indisponible pour un profil bloqué par C13). Reste : l'application Wear OS (module montre + synchronisation Data Layer, non testable sans montre) et une tuile de prise de médicament (les boutons « Pris » des notifications couvrent déjà ce besoin).
+
 prise de médicament, verre d'eau, chrono de jeûne.
 
 > *Pourquoi ici :* Wear OS / tuile (réutilise les alarmes de C9).
 
 ### 47. N7. Mode « En magasin »
+✅ **Fait** : écran « En magasin » (bouton boutique dans Courses) : caméra en haut, liste restante par rayon en bas ; un produit scanné coche l'article correspondant (mots entiers, singulier/pluriel), affiche sa note, la vérification Famille (D10) et le dernier prix payé (test `StoreMatchTest`).
+
 Combiner la liste de courses (triée par rayon via `GroceryCategories`) et le scan : scanner un produit
 en rayon coche l'article correspondant, vérifie la compatibilité de toute la famille (D10) et compare le
 prix au dernier prix payé (D7). Écran unique, pensé pour une seule main.
@@ -795,6 +811,8 @@ avec la philosophie « tout est local » ; le profil reçu est en lecture seule,
 > *Pourquoi ici :* Après N6 (sévérités) et D10 (multi-profils au scan).
 
 ### 49. N9. Base de produits hors-ligne
+✅ **Fait** : option « Base de produits hors-ligne » dans les réglages : les 5 000 produits les plus scannés en France (Search-a-licious, 1 page par seconde, Wi-Fi uniquement, mise à jour mensuelle), table `offline_products` (migration 41→42, schéma 42 exporté, rejeu sans différence) ; sans réseau ou en cas d'échec réseau, le scan utilise cette base et affiche la date des données (test `OfflinePackTest`). Limite : la fenêtre de recherche d'OFF plafonne à 10 000 résultats.
+
 En magasin, le réseau est souvent mauvais. Proposer le téléchargement d'un instantané Open Food Facts des
 produits les plus scannés en France (export officiel, filtré sur les champs utiles : environ 50 000 produits,
 quelques dizaines de Mo) dans une table Room, mis à jour chaque mois. Le scan fonctionne alors sans réseau,

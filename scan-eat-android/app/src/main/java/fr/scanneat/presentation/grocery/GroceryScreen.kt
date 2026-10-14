@@ -49,6 +49,7 @@ fun GroceryScreen(
     // list - see AppRoutes.SCAN_FOR_GROCERY's own comment. Defaults to a
     // no-op so this remains source-compatible with any other call site.
     onScanToAdd: () -> Unit = {},
+    onOpenStoreMode: () -> Unit = {},
 ) {
     var groceryTab by rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver()) { mutableStateOf(GroceryTab.LIST) }
     var quickAddText by rememberSaveable { mutableStateOf("") }
@@ -65,6 +66,7 @@ fun GroceryScreen(
     val checkedProgress = viewModel.checkedProgress.collectAsStateWithLifecycle()
     val budgetEstimate = viewModel.budgetEstimate.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
+    val budgetWeekly = viewModel.budgetWeeklyEuros.collectAsStateWithLifecycle()
     val frequentSuggestions = viewModel.frequentSuggestions.collectAsStateWithLifecycle()
     val sortAlpha = viewModel.sortAlpha.collectAsStateWithLifecycle()
     val groupByAisle = viewModel.groupByAisle.collectAsStateWithLifecycle()
@@ -130,6 +132,7 @@ fun GroceryScreen(
                 onToggleSortAlpha = { viewModel.toggleSortAlpha() },
                 groupByAisle = groupByAisle.value,
                 onToggleGroupByAisle = { viewModel.toggleGroupByAisle() },
+                onOpenStoreMode = onOpenStoreMode,
                 onShare = {
                     val sendIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
@@ -313,6 +316,7 @@ fun GroceryScreen(
                         checkedProgress = checkedProgress.value,
                         budgetEstimate = budgetEstimate.value,
                         currencySymbol = currencySymbol.value,
+                        weeklyBudget = budgetWeekly.value,
                     )
                 }
                 if (searchQuery.isNotBlank() && filteredCheckable.isEmpty()) {

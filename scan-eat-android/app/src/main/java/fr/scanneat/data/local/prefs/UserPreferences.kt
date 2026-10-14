@@ -117,6 +117,10 @@ class UserPreferences @Inject constructor(
         // enums. Empty string means "no custom order saved yet, use the default".
         val KEY_DIARY_PRIMARY_TABS   = stringPreferencesKey("diary_primary_tabs")
         val KEY_NAV_TAB_ORDER        = stringPreferencesKey("nav_tab_order")
+        // Roadmap A4/A11: modules the user does not follow (Journal trackers) and
+        // dashboard cards hidden/reordered - opaque CSVs parsed in presentation.
+        val KEY_HIDDEN_MODULES       = stringPreferencesKey("hidden_modules")
+        val KEY_DASHBOARD_LAYOUT     = stringPreferencesKey("dashboard_layout")
     }
 
     // ---- API / app settings ----
@@ -183,6 +187,11 @@ class UserPreferences @Inject constructor(
     /** Custom drag-and-drop order for Journal's always-visible header tabs — see [KEY_DIARY_PRIMARY_TABS]. */
     val diaryPrimaryTabsOrder: Flow<String> = storeData.map { it[KEY_DIARY_PRIMARY_TABS] ?: "" }.distinctUntilChanged()
     suspend fun setDiaryPrimaryTabsOrder(csv: String) = store.edit { it[KEY_DIARY_PRIMARY_TABS] = csv }
+
+    val hiddenModules: Flow<String> = storeData.map { it[KEY_HIDDEN_MODULES] ?: "" }.distinctUntilChanged()
+    suspend fun setHiddenModules(csv: String) = store.edit { it[KEY_HIDDEN_MODULES] = csv }
+    val dashboardLayout: Flow<String> = storeData.map { it[KEY_DASHBOARD_LAYOUT] ?: "" }.distinctUntilChanged()
+    suspend fun setDashboardLayout(csv: String) = store.edit { it[KEY_DASHBOARD_LAYOUT] = csv }
 
     /** Custom drag-and-drop order for the bottom nav's tabs — see [KEY_NAV_TAB_ORDER]. */
     val navTabOrder: Flow<String> = storeData.map { it[KEY_NAV_TAB_ORDER] ?: "" }.distinctUntilChanged()

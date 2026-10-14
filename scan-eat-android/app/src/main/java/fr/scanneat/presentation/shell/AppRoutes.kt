@@ -41,6 +41,7 @@ object AppRoutes {
     const val MENU_SCAN = "menu_scan"
     const val PROFILE_SHARE = "profile_share"
     const val PROFILE_IMPORT = "profile_import"
+    const val STORE_MODE = "store_mode"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }

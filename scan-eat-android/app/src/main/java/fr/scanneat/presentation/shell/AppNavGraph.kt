@@ -240,6 +240,7 @@ fun AppNavGraph(
             )
         }
 
+        composable(AppRoutes.STORE_MODE) { fr.scanneat.presentation.store.StoreModeScreen(onBack = { navController.popBackStack() }) }
         composable(AppRoutes.PROFILE_SHARE) { fr.scanneat.presentation.profileshare.ProfileShareScreen(onBack = { navController.popBackStack() }) }
         composable(AppRoutes.PROFILE_IMPORT) { fr.scanneat.presentation.profileshare.ProfileImportScreen(onBack = { navController.popBackStack() }) }
 
@@ -322,6 +323,7 @@ fun AppNavGraph(
         }
         composable(AppRoutes.GROCERY) {
             GroceryScreen(
+                onOpenStoreMode = { navController.navigate(AppRoutes.STORE_MODE) },
                 onBack = { navController.popBackStack() },
                 onNavigateToPlanning = { navController.navigateToPlanning(it) },
                 onScanToAdd = { navController.navigate(AppRoutes.SCAN_FOR_GROCERY) },

@@ -24,14 +24,18 @@ internal fun GroceryProgressRow(
     // fabricated for the rest).
     budgetEstimate: GroceryBudgetEstimate? = null,
     currencySymbol: String = "€",
+    /** Roadmap D3: the weekly budget set in Expenses, to compare the estimate with. */
+    weeklyBudget: Double? = null,
 ) {
     val (checked, total) = checkedProgress
     Text(pluralStringResource(R.plurals.grocery_item_count, itemCount, itemCount),
         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
     budgetEstimate?.let { est ->
         Text(
-            stringResource(R.string.grocery_budget_estimate, dispCurrency(est.totalEuros, currencySymbol), est.matchedCount, est.totalCount),
-            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f),
+            stringResource(R.string.grocery_budget_estimate, dispCurrency(est.totalEuros, currencySymbol), est.matchedCount, est.totalCount) +
+                (weeklyBudget?.let { " · " + stringResource(R.string.grocery_weekly_budget, dispCurrency(it, currencySymbol)) } ?: ""),
+            style = MaterialTheme.typography.labelSmall,
+            color = if (weeklyBudget != null && est.totalEuros > weeklyBudget) semanticAmber() else OnBackground.copy(0.4f),
         )
     }
     if (total > 0 && checked > 0) {

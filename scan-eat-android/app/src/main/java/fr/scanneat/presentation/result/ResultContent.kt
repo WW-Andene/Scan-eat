@@ -178,6 +178,17 @@ internal fun ResultContent(
             FamilyCheckCard(familyVerdicts, activeProfileId)
         }
 
+        // Roadmap N1: data read from photos for a barcoded product = missing or
+        // incomplete on Open Food Facts - invite the user to complete it there.
+        if (scan.source != ScanSource.OPEN_FOOD_FACTS && scan.source != ScanSource.MANUAL) {
+            scan.barcode?.let { fr.scanneat.util.offContributionUrl(it) }?.let { url ->
+                val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                androidx.compose.material3.TextButton(onClick = { runCatching { uriHandler.openUri(url) } }) {
+                    Text(stringResource(R.string.off_contribute_complete), style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
+
         // User-requested: mapCategory() fell back to OTHER's generic,
         // unverified thresholds for this product - see UncertainCategoryBanner's
         // own doc comment.

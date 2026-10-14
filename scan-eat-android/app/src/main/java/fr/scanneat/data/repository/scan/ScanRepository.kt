@@ -60,6 +60,8 @@ private fun offlineMessage(lang: String) =
 @Singleton
 class ScanRepository @Inject constructor(
     private val offApi: OpenFoodFactsApi,
+    private val salApi: fr.scanneat.data.remote.api.SearchaliciousApi,
+    private val offlinePack: fr.scanneat.data.repository.offline.OfflinePackRepository,
     private val opfApi: OpenProductsFactsApi,
     private val obfApi: OpenBeautyFactsApi,
     private val dao: ScanHistoryDao,
@@ -79,7 +81,7 @@ class ScanRepository @Inject constructor(
     )
 
     // Open Food Facts lookups (with on-device label reading for sparse records) live in ScanOffLookup.
-    private val offLookup = ScanOffLookup(offApi, labelReader)
+    private val offLookup = ScanOffLookup(offApi, labelReader, salApi)
 
     // ---- History ----
     //
@@ -181,6 +183,13 @@ class ScanRepository @Inject constructor(
         historyQueries.observeTodayScanCount(profileId)
 
     suspend fun delete(id: Long) = historyQueries.delete(id)
+
+    private suspend fun offlineResult(barcode: String, lang: String): ScanResult? {
+        val dto = offlinePack.find(barcode) ?: return null
+        val date = java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(offlinePack.lastDownloadMs))
+        val label = if (lang == "en") "Offline data from Open Food Facts, downloaded on $date" else "Données hors-ligne d'Open Food Facts, téléchargées le $date"
+        return offLookup.scoreOffline(dto, barcode, label, lang)
+    }
 
     /** Roadmap A3 - see ScanHistoryQueries.findOffAlternative. */
     suspend fun findOffAlternative(scan: ScanResult, allergens: Set<String>, dietKey: fr.scanneat.domain.engine.scoring.DietKey, healthConditions: Set<String>, lang: String): ScanResult? =
@@ -339,10 +348,17 @@ class ScanRepository @Inject constructor(
                 }
             }
         }
-        if (!online) error(offlineMessage(lang))
+        // Roadmap N9: offline pack when there is no network.
+        if (!online) {
+            offlineResult(barcode, lang)?.let { return@ioCatching Pair(it, persist(it, profileId)) }
+            error(offlineMessage(lang))
+        }
 
         val result = try {
             offLookup.scoreDirectBarcode(barcode, images, lang)
+        } catch (e: java.io.IOException) {
+            // Network failure after the retries: same offline-pack fallback.
+            offlineResult(barcode, lang) ?: throw e
         } catch (e: Exception) {
             // A cancelled scan (user already left the screen) must propagate as
             // cancellation, not be reinterpreted as "lookup failed" - otherwise a

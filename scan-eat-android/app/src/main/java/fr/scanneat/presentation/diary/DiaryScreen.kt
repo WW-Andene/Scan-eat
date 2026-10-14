@@ -22,6 +22,8 @@ import fr.scanneat.presentation.diary.components.DiaryTab
 import fr.scanneat.presentation.diary.components.DiaryTabSaver
 import fr.scanneat.presentation.diary.components.MealsTab
 import fr.scanneat.presentation.diary.components.parsePrimaryDiaryTabs
+import fr.scanneat.presentation.diary.components.parseHiddenModules
+import fr.scanneat.presentation.diary.components.visibleDiaryTabs
 import fr.scanneat.presentation.diary.components.serializePrimaryDiaryTabs
 import fr.scanneat.presentation.expenses.ExpensesScreen
 import fr.scanneat.presentation.fasting.FastingScreen
@@ -72,7 +74,10 @@ fun DiaryScreen(
     var activeTab by rememberSaveable(stateSaver = DiaryTabSaver) { mutableStateOf(DiaryTab.MEALS) }
     var showAddEntry by remember { mutableStateOf(false) }
     val primaryTabsCsv = viewModel.primaryDiaryTabsOrder.collectAsStateWithLifecycle()
-    val primaryTabs = remember(primaryTabsCsv.value) { parsePrimaryDiaryTabs(primaryTabsCsv.value) }
+    val hiddenCsv = viewModel.hiddenModules.collectAsStateWithLifecycle()
+    val hiddenTabs = remember(hiddenCsv.value) { parseHiddenModules(hiddenCsv.value) }
+    val primaryTabs = remember(primaryTabsCsv.value, hiddenTabs) { visibleDiaryTabs(parsePrimaryDiaryTabs(primaryTabsCsv.value), hiddenTabs).first }
+    LaunchedEffect(hiddenTabs) { if (activeTab in hiddenTabs) activeTab = DiaryTab.MEALS }
 
     LaunchedEffect(pendingSelectedDate) {
         val date = pendingSelectedDate?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
@@ -138,6 +143,7 @@ fun DiaryScreen(
                 onTabChange = { activeTab = it },
                 primaryTabs = primaryTabs,
                 onPrimaryTabsChange = { viewModel.setPrimaryDiaryTabsOrder(serializePrimaryDiaryTabs(it)) },
+                hiddenTabs = hiddenTabs,
             )
         },
         extraContentHeight = 64.dp,
