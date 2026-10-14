@@ -213,7 +213,7 @@ class ReminderWorker @AssistedInject constructor(
         // nudge without having to open the app.
         if (s.dailyDigestOn && now.hour >= 21 && !remindersRepo.wasFiredToday(K_LAST_DIGEST_DATE)) {
             val today = LocalDate.now()
-            val dayData = consumptionRepo.observeDay(today).first()
+            val dayData = consumptionRepo.observeDay(today, profileId).first()
             val totalKcal = dayData.totals.energyKcal.toInt()
             val mealCount = dayData.entries.size
             // R&D §X.0: logStreakDays() was already computed on Dashboard/the widget
@@ -223,7 +223,7 @@ class ReminderWorker @AssistedInject constructor(
             // so this reuses that same window: with a 1-day grace period, an unlogged
             // today still returns yesterday-anchored streak length, which is exactly
             // the run that breaks at midnight if nothing is logged before then.
-            val streakAtRisk = if (mealCount == 0) logStreakDays(consumptionRepo.getAllLoggedDates(), today) else 0
+            val streakAtRisk = if (mealCount == 0) logStreakDays(consumptionRepo.getAllLoggedDates(profileId), today) else 0
             val (title, body) = if (streakAtRisk > 0)
                 localizedString(lang, R.string.notif_streak_risk_title) to
                     String.format(localizedString(lang, R.string.notif_streak_risk_body), streakAtRisk)
@@ -283,12 +283,12 @@ class ReminderWorker @AssistedInject constructor(
     ): Boolean {
         if (!on) return false
         val target = runCatching { LocalTime.parse(timeStr) }.getOrNull() ?: return false
-        // Wrap the day boundary explicitly: for targets in the evening (e.g. 22:00),
-        // target.plusHours(3) rolls over past midnight (01:00), and comparing raw
-        // LocalTime values via isBefore/isAfter breaks because "now" (still in the
-        // evening) is never isBefore an earlier-looking wrapped clock time.
-        val secondsSinceTarget = (now.toSecondOfDay() - target.toSecondOfDay()).let { if (it < 0) it + 86400 else it }
-        val dueNow = secondsSinceTarget < 3 * 3600 && !remindersRepo.wasFiredToday(lastFiredKey)
+        // The 3 h window stops at midnight: "fired today" and the medication dose
+        // count are keyed to the calendar date, so a window wrapping past midnight
+        // (23:00 target, run at 00:30) re-fired a reminder already sent - or a dose
+        // already taken - the evening before.
+        val secondsSinceTarget = now.toSecondOfDay() - target.toSecondOfDay()
+        val dueNow = secondsSinceTarget in 0 until 3 * 3600 && !remindersRepo.wasFiredToday(lastFiredKey)
         if (dueNow) {
             // Only mark "fired today" if the notification actually posted (not
             // silently skipped for a denied POST_NOTIFICATIONS permission) -

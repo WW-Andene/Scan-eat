@@ -64,6 +64,8 @@ val ANNEX_II_KEYS: List<String> = listOf(
 /** Matches an ingredient explicitly declaring gluten-free oats. */
 private val GLUTEN_FREE_OATS_QUALIFIER = Regex("(avoine|oats?)[^,;.]*(sans gluten|gluten[- ]free)|(sans gluten|gluten[- ]free)[^,;.]*(avoine|oats?)", RegexOption.IGNORE_CASE)
 
+private val GLUTEN_FREE_CLAIM = Regex("sans gluten|gluten[- ]free")
+
 /** Any OTHER gluten cereal term (no gluten-free variant exists for these) - if present, don't suppress. */
 private val GLUTEN_CEREAL_EXCL_OATS = a("gluten|bl[eé]|froment|seigle|orge|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge|wheat|barley|rye|spelt|semolina|durum|seitan")
 
@@ -183,8 +185,11 @@ fun detectAllergens(product: Product, lang: String = "fr"): List<AllergenHit> {
         // mandatory EU allergen. [name] itself (original casing) is still what
         // gets stored as the trigger, so the UI display is unaffected.
         val matchable = name.lowercase()
+        // "sans gluten"/"gluten-free" is a claim of absence, not a gluten source:
+        // the gluten rule (and the oats check below) reads the text without it.
+        val glutenText = matchable.replace(GLUTEN_FREE_CLAIM, " ")
         for (rule in RULES) {
-            if (!rule.re.containsMatchIn(matchable)) continue
+            if (!rule.re.containsMatchIn(if (rule.key == "gluten") glutenText else matchable)) continue
             // EU Annex II lists oats among gluten cereals, but "avoine" alone
             // (unlike blé/froment/seigle/orge, which are gluten-containing with
             // no gluten-free variant) is commonly sold as certified gluten-free
@@ -193,7 +198,7 @@ fun detectAllergens(product: Product, lang: String = "fr"): List<AllergenHit> {
             // already contradicts, and crying wolf on a coeliac-relevant
             // allergen erodes trust in the whole allergen panel.
             if (rule.key == "gluten" && GLUTEN_FREE_OATS_QUALIFIER.containsMatchIn(matchable) &&
-                !GLUTEN_CEREAL_EXCL_OATS.containsMatchIn(matchable)
+                !GLUTEN_CEREAL_EXCL_OATS.containsMatchIn(glutenText)
             ) continue
             hits.getOrPut(rule.key) { mutableSetOf() }.add(name)
         }
