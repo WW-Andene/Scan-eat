@@ -65,7 +65,6 @@ fun GroceryScreen(
     val checkedProgress = viewModel.checkedProgress.collectAsStateWithLifecycle()
     val budgetEstimate = viewModel.budgetEstimate.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
-    val costEstimate = viewModel.costEstimate.collectAsStateWithLifecycle()
     val budgetWeekly = viewModel.budgetWeeklyEuros.collectAsStateWithLifecycle()
     val frequentSuggestions = viewModel.frequentSuggestions.collectAsStateWithLifecycle()
     val sortAlpha = viewModel.sortAlpha.collectAsStateWithLifecycle()
@@ -267,17 +266,6 @@ fun GroceryScreen(
                     },
                 )
             } else {
-            // Roadmap D3: planned spend before going to the shop.
-            costEstimate.value?.takeIf { it.pricedCount > 0 }?.let { est ->
-                val over = budgetWeekly.value?.let { est.total > it } == true
-                Text(
-                    stringResource(R.string.grocery_cost_estimate, String.format(java.util.Locale.US, "%.2f", est.total), currencySymbol.value, est.pricedCount, est.pricedCount + est.unpricedCount) +
-                        (budgetWeekly.value?.let { " · " + stringResource(R.string.grocery_cost_budget, String.format(java.util.Locale.US, "%.2f", it), currencySymbol.value) } ?: ""),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (over) semanticAmber() else OnBackground.copy(0.7f),
-                    modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
-                )
-            }
             val filteredCheckable = remember(checkable.value, searchQuery) {
                 if (searchQuery.isBlank()) checkable.value
                 else checkable.value.filter { it.item.name.contains(searchQuery, ignoreCase = true) }
@@ -326,6 +314,7 @@ fun GroceryScreen(
                         checkedProgress = checkedProgress.value,
                         budgetEstimate = budgetEstimate.value,
                         currencySymbol = currencySymbol.value,
+                        weeklyBudget = budgetWeekly.value,
                     )
                 }
                 if (searchQuery.isNotBlank() && filteredCheckable.isEmpty()) {
