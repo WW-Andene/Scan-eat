@@ -55,6 +55,7 @@ class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences
 
     /** Roadmap A4: modules not followed, chosen during onboarding. */
     fun setHiddenModules(csv: String) = guardedLaunch { prefs.setHiddenModules(csv) }
+    fun setVoiceAnnounce(on: Boolean) = guardedLaunch { prefs.setVoiceScoreAnnounce(on) }
 
     fun finish(goToProfile: Boolean = false) {
         guardedLaunch { prefs.setOnboardingComplete(true) }

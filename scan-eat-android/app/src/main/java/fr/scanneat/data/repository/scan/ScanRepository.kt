@@ -215,6 +215,20 @@ class ScanRepository @Inject constructor(
         return result
     }
 
+    /** Roadmap C16: the user picked another recognised food - rescore the saved row with it. */
+    suspend fun replaceIdentifiedFood(id: Long, original: ScanResult, foodName: String, lang: String): ScanResult? {
+        val food = fr.scanneat.domain.engine.planning.findFoodByName(foodName) ?: return null
+        val product = foodIdentifier.toResultProduct(food)
+        val audit = scoreProduct(product, lang)
+        val result = original.copy(product = product, audit = audit, dbId = id, alternativeFoods = emptyList())
+        dao.updateReviewed(
+            id = id, productName = product.name, score = audit.score, grade = audit.grade.label,
+            category = product.category.key, productJson = productAdapter.toJson(product),
+            auditJson = auditAdapter.toJson(audit), warningsJson = warningsAdapter.toJson(result.warnings),
+        )
+        return result
+    }
+
     suspend fun findBetterAlternative(
         scan: ScanResult,
         allergens: Set<String> = emptySet(),
@@ -430,13 +444,15 @@ class ScanRepository @Inject constructor(
     ): Result<ScanResult> = ioCatching {
         // Entirely on-device (ML Kit), so this works offline too.
         if (identifyMode) {
-            val food = foodIdentifier.identify(images)
+            val matches = foodIdentifier.identifyTop(images)
+            val food = matches.firstOrNull()
             if (food != null) {
                 val product = foodIdentifier.toResultProduct(food)
                 return@ioCatching ScanResult(
                     product = product, audit = scoreProduct(product, lang),
                     warnings = listOf(if (lang == "en") "Recognised on this device from the photo — values from the built-in food table" else "Reconnu sur l'appareil depuis la photo — valeurs de la table d'aliments intégrée"),
                     source = ScanSource.ON_DEVICE_OCR, barcode = null,
+                    alternativeFoods = matches.drop(1).map { it.name },
                 )
             }
             // No recognisable food: the photo may still show a label, try reading it.

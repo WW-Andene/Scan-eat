@@ -1,5 +1,8 @@
 package fr.scanneat.notifications
 
+import fr.scanneat.data.repository.health.isLowStock
+import fr.scanneat.data.repository.health.renewalDue
+import fr.scanneat.data.repository.health.daysOfStockLeft
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
@@ -152,7 +155,15 @@ class ReminderWorker @AssistedInject constructor(
             .filter { it.active && it.reminderOn && it.isScheduledOn(today) }
             .forEach { med ->
                 val title = localizedString(lang, R.string.reminders_notif_medication_title)
-                val body = String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name)
+                val hideName = prefs.hideMedicationNames.first()
+                // Roadmap D6: stock/renewal note appended to the dose reminder (no name in it).
+                val supplyNote = listOfNotNull(
+                    if (med.isLowStock()) String.format(localizedString(lang, R.string.medication_notif_low_stock), med.daysOfStockLeft()) else null,
+                    if (med.renewalDue()) localizedString(lang, R.string.medication_notif_renewal_due) else null,
+                ).joinToString(" ")
+                val body = (if (hideName) localizedString(lang, R.string.reminders_notif_medication_body_hidden)
+                    else String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name)) +
+                    (if (supplyNote.isEmpty()) "" else " $supplyNote")
                 // User-requested: medications taken multiple times/day previously had
                 // only one reminderTime and one fired-today flag shared across the
                 // whole medication - the second/third dose of the day never got its
@@ -178,7 +189,8 @@ class ReminderWorker @AssistedInject constructor(
                         // repeated verbatim every hour indefinitely until logged - reads as
                         // naggy rather than a helpful nudge, with no acknowledgment this is
                         // a repeat.
-                        val repeatBody = String.format(localizedString(lang, R.string.reminders_notif_medication_body_repeat), med.name)
+                        val repeatBody = if (hideName) localizedString(lang, R.string.reminders_notif_medication_body_hidden)
+                            else String.format(localizedString(lang, R.string.reminders_notif_medication_body_repeat), med.name)
                         NotificationHelper.show(applicationContext, slotId, title, repeatBody, NotifChannel.MEDICATION, doseAction = DoseAction(med.id, profileId))
                     }
                 }

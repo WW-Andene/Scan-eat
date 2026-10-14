@@ -29,6 +29,15 @@ class FoodDrugA7Test {
         assertTrue(cautions("Parmesan", "lait", med = "Zyvoxid").any { "tyramine" in it })
     }
 
+    @Test fun `st john's wort with a contraceptive`() {
+        assertTrue(cautions("Tisane sérénité", "millepertuis", med = "Leeloo").any { "millepertuis" in it })
+        assertTrue(cautions("Tisane sérénité", "millepertuis", med = "paracetamol").isEmpty())
+    }
+
+    @Test fun `liquorice with a diuretic`() {
+        assertTrue(cautions("Bonbons", "extrait de réglisse", med = "Lasilix 40").any { "réglisse" in it })
+    }
+
     @Test fun `no medication, no caution`() {
         assertTrue(checkFoodDrugInteractions("Vin rouge", emptyList(), emptySet(), "fr").isEmpty())
     }

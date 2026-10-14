@@ -2196,6 +2196,7 @@
     <string name="profile_share_body">Le proche ouvre « Ma sécurité › Importer un profil partagé » dans Scan\'eat, scanne ce QR code puis saisit le code. Seuls les allergènes, leur niveau et le régime sont partagés, chiffrés ; aucun serveur.</string>
     <string name="profile_share_code">Code à communiquer</string>
     <string name="profile_share_received">partagé le</string>
+    <string name="profile_shared_read_only">Profil partagé : ses allergènes, leurs niveaux et son régime restent ceux reçus et ne sont pas modifiables ici.</string>
     <string name="profile_import_title">Importer un profil partagé</string>
     <string name="profile_import_hint">Scannez le QR code du profil partagé</string>
     <string name="profile_import_code">Saisissez le code de 8 caractères</string>
@@ -2265,4 +2266,21 @@
     <string name="tile_fasting_running">En cours — toucher pour arrêter</string>
     <string name="tile_fasting_start">Toucher pour démarrer (16 h)</string>
     <string name="tile_fasting_blocked">Déconseillé pour ce profil</string>
+    <string name="condition_ibd_flare">MICI : poussée en cours</string>
+    <string name="reminders_notif_medication_body_hidden">C\'est l\'heure de votre traitement</string>
+    <string name="settings_retention_title">Historique plein</string>
+    <string name="settings_retention_body">Un de vos historiques (journal, humeur, sommeil, activité ou prises de médicaments) a atteint environ 10 ans d\'entrées. Rien n\'a été supprimé : exportez d\'abord une sauvegarde ci-dessous si vous voulez tout garder. Après votre accord, les entrées les plus anciennes seront supprimées au fil des nouveaux ajouts.</string>
+    <string name="settings_retention_ack">Supprimer les plus anciennes</string>
+    <string name="settings_hide_med_names">Masquer le nom des médicaments</string>
+    <string name="settings_hide_med_names_hint">Les rappels de prise n\'affichent jamais le nom du médicament, même téléphone déverrouillé.</string>
+    <string name="medication_supply_title">Stock et ordonnance</string>
+    <string name="medication_supply_stock">Doses restantes dans la boîte</string>
+    <string name="medication_supply_renewal">Fin de l\'ordonnance (AAAA-MM-JJ)</string>
+    <string name="medication_supply_days_left">Environ %1$d jours de traitement restants</string>
+    <string name="medication_notif_low_stock">Stock bas : environ %1$d jours restants.</string>
+    <string name="medication_notif_renewal_due">Ordonnance à renouveler bientôt.</string>
+    <string name="scan_identify_choose_title">Reconnu : %1$s</string>
+    <string name="scan_identify_choose_other">Ce n\'est pas ça ? Autres correspondances :</string>
+    <string name="scan_identify_choose_confirm">C\'est bien ça</string>
+    <string name="trial_target_polyols">Polyols (FODMAP)</string>
 </resources>

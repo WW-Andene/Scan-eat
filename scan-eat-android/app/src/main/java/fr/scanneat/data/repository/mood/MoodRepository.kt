@@ -21,6 +21,7 @@ data class MoodEntry(
 @Singleton
 class MoodRepository @Inject constructor(
     private val dao: MoodDao,
+    private val retention: fr.scanneat.data.repository.HistoryRetentionGuard,
 ) {
     /** Same cap every other log table in this app already trims to. */
     private companion object {
@@ -49,7 +50,7 @@ class MoodRepository @Inject constructor(
                 profileId = profileId,
             )
         )
-        dao.trim(MAX_HISTORY_ROWS, profileId)
+        retention.trim(MAX_HISTORY_ROWS, { dao.countRows(profileId) }, { dao.trim(MAX_HISTORY_ROWS, profileId) })
     }
 
     suspend fun delete(id: String) = dao.delete(id)

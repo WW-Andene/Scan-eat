@@ -440,6 +440,7 @@ fun ScanScreen(
             medicationInteractionWarnings = medicationInteractionWarnings.value,
             onConfirmOcrReview = { viewModel.confirmOcrReview(it) },
             onCancelOcrReview = { viewModel.cancelOcrReview() },
+            onChooseFood = { viewModel.chooseFood(it) },
             barcode = barcode.value,
         )
     }

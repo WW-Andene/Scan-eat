@@ -361,6 +361,9 @@ data class ScanResult(
     // photo by OCR on this scan - the scan screen then asks the user to check
     // the values before showing the score. Never persisted.
     val needsOcrReview: Boolean = false,
+    // Roadmap C16: transient, the other two best foods recognised from the photo
+    // (identify mode) - the user picks the right one before the result. Never persisted.
+    val alternativeFoods: List<String> = emptyList(),
 )
 
 /**

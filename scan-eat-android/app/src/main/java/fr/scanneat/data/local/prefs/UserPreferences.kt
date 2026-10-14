@@ -120,6 +120,9 @@ class UserPreferences @Inject constructor(
         // Roadmap A4/A11: modules the user does not follow (Journal trackers) and
         // dashboard cards hidden/reordered - opaque CSVs parsed in presentation.
         val KEY_HIDDEN_MODULES       = stringPreferencesKey("hidden_modules")
+        val KEY_HIDE_MED_NAMES       = booleanPreferencesKey("hide_medication_names")
+        val KEY_RETENTION_PENDING    = booleanPreferencesKey("retention_warning_pending")
+        val KEY_RETENTION_ACK        = booleanPreferencesKey("retention_trim_acknowledged")
         val KEY_DASHBOARD_LAYOUT     = stringPreferencesKey("dashboard_layout")
     }
 
@@ -187,6 +190,15 @@ class UserPreferences @Inject constructor(
     /** Custom drag-and-drop order for Journal's always-visible header tabs — see [KEY_DIARY_PRIMARY_TABS]. */
     val diaryPrimaryTabsOrder: Flow<String> = storeData.map { it[KEY_DIARY_PRIMARY_TABS] ?: "" }.distinctUntilChanged()
     suspend fun setDiaryPrimaryTabsOrder(csv: String) = store.edit { it[KEY_DIARY_PRIMARY_TABS] = csv }
+
+    /** Roadmap C11: never show the medication name in a notification, even unlocked. */
+    val hideMedicationNames: Flow<Boolean> = storeData.map { it[KEY_HIDE_MED_NAMES] ?: false }.distinctUntilChanged()
+    suspend fun setHideMedicationNames(on: Boolean) = store.edit { it[KEY_HIDE_MED_NAMES] = on }
+    /** Roadmap C15: a history table reached its cap and is waiting for the user's OK to trim. */
+    val retentionWarningPending: Flow<Boolean> = storeData.map { it[KEY_RETENTION_PENDING] ?: false }.distinctUntilChanged()
+    val retentionTrimAcknowledged: Flow<Boolean> = storeData.map { it[KEY_RETENTION_ACK] ?: false }.distinctUntilChanged()
+    suspend fun setRetentionWarningPending(on: Boolean) = store.edit { it[KEY_RETENTION_PENDING] = on }
+    suspend fun acknowledgeRetentionTrim() = store.edit { it[KEY_RETENTION_ACK] = true; it[KEY_RETENTION_PENDING] = false }
 
     val hiddenModules: Flow<String> = storeData.map { it[KEY_HIDDEN_MODULES] ?: "" }.distinctUntilChanged()
     suspend fun setHiddenModules(csv: String) = store.edit { it[KEY_HIDDEN_MODULES] = csv }
@@ -287,6 +299,7 @@ class UserPreferences @Inject constructor(
                 activityLevel  = ActivityLevel.values().firstOrNull { it.name == p[profileKey(id, "activity")] } ?: ActivityLevel.MODERATELY_ACTIVE,
                 goal           = Goal.values().firstOrNull { it.name == p[profileKey(id, "goal")] } ?: Goal.MAINTAIN,
                 isMenstruating = p[profileBoolKey(id, "menstruating")] ?: false,
+                sharedReadOnly = p[profileBoolKey(id, "shared_ro")] ?: false,
                 allergens      = decryptCsvSet(p[profileKey(id, "allergens")]),
                 allergenSeverities = decryptSeverities(p[profileKey(id, "allergen_severity")]),
                 healthConditions = decryptCsvSet(p[profileKey(id, "conditions")]),
@@ -376,6 +389,7 @@ class UserPreferences @Inject constructor(
             p.remove(profileFloatKey(id, "height"))
             p.remove(profileFloatKey(id, "goal_weight"))
             p.remove(profileBoolKey(id, "menstruating"))
+            p.remove(profileBoolKey(id, "shared_ro"))
             // saveProfile() (below) also writes this key but it was never listed
             // here - pregnancy status is medical data same as allergens/conditions
             // above, and a user deleting a profile expects it gone, not left
@@ -423,6 +437,7 @@ class UserPreferences @Inject constructor(
         p[profileKey(id, "activity")]     = profile.activityLevel.name
         p[profileKey(id, "goal")]         = profile.goal.name
         p[profileBoolKey(id, "menstruating")] = profile.isMenstruating
+        p[profileBoolKey(id, "shared_ro")] = profile.sharedReadOnly
         p[profileKey(id, "allergens")]    = SecureFieldCipher.encrypt(profile.allergens.joinToString(","))
         // Only non-default severities of currently declared allergens are kept.
         p[profileKey(id, "allergen_severity")] = SecureFieldCipher.encrypt(

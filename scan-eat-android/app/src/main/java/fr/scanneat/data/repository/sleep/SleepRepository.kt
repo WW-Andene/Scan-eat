@@ -32,6 +32,7 @@ data class SleepEntry(
 @Singleton
 class SleepRepository @Inject constructor(
     private val dao: SleepDao,
+    private val retention: fr.scanneat.data.repository.HistoryRetentionGuard,
 ) {
     /** Same cap every other log table in this app already trims to. */
     private companion object {
@@ -63,7 +64,7 @@ class SleepRepository @Inject constructor(
                 profileId = profileId,
             )
         )
-        dao.trim(MAX_HISTORY_ROWS, profileId)
+        retention.trim(MAX_HISTORY_ROWS, { dao.countRows(profileId) }, { dao.trim(MAX_HISTORY_ROWS, profileId) })
     }
 
     suspend fun delete(id: String) = dao.delete(id)

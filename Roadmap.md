@@ -198,7 +198,7 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
 → Retirer ou sourcer chaque bonus ; ignorer les micronutriments ajoutés (listés dans les ingrédients) ; appliquer 7,5 % aux boissons.
 
 ### S9. Profil : formules hors domaine de validité 🟠 📖
-✅ **Partiellement fait** : folates de grossesse sourcés EFSA 2014 (600 µg), sel en cas d'hypertension aligné sur ESH 2023 (< 5 g), cible de fibres EFSA (25 g) pour tous les régimes. Restent : équations pédiatriques, état poussée/rémission MICI.
+✅ **Partiellement fait** : folates de grossesse sourcés EFSA 2014 (600 µg), sel en cas d'hypertension aligné sur ESH 2023 (< 5 g), cible de fibres EFSA (25 g) pour tous les régimes. Fait ensuite : équations de Henry (Oxford 2005, utilisées par l'EFSA 2013) sous 18 ans, calcium EFSA par âge (450/800/1150/1000/950 mg), condition « MICI : poussée en cours » - les règles et conseils « en poussée » ne s'appliquent plus en rémission (test `S9PediatricIbdTest`).
 
 - **Mifflin-St Jeor appliqué aux mineurs** (`clampedAge` de 1 à 110) : formule validée chez l'adulte. L'EFSA utilise des
   équations spécifiques intégrant la croissance pour les 1-17 ans. Le calcium de 950 mg vaut pour les adultes, alors que l'EFSA recommande 1150 mg chez les 11-17 ans.
@@ -211,7 +211,7 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
   afficher la cible EFSA de fibres même pour un régime restrictif ; ajouter un état « poussée / rémission » pour les MICI.
 
 ### S10. Incohérences internes du calcul 🟡 📖
-✅ **Partiellement fait** : bonus « Peu transformé » compté ; bonus oméga-3 limité à la noix (plus coco, cajou, muscade, pécan, macadamia, Brésil). Restent : pénalités en double (pilier + veto).
+✅ **Partiellement fait** : bonus « Peu transformé » compté ; bonus oméga-3 limité à la noix (plus coco, cajou, muscade, pécan, macadamia, Brésil). Fait ensuite : une déduction à 0 point ne compte plus dans la pénalité globale, et la pénalité « risque cumulé » n'est plus ajoutée quand un veto plafonne déjà la note pour les mêmes faits (une règle = un effet) ; moteur 2.6.0.
 
 - `scoreProcessing` : le bonus « +2 Peu transformé » est **affiché** mais jamais ajouté au score.
 - `scoreNutritionalDensity` : la déduction « Aucun apport… » vaut 0 point mais est classée MAJOR. Elle compte donc dans
@@ -406,7 +406,7 @@ worker pour les rappels de repas et d'hydratation.
 > *Pourquoi ici :* Fiabilise les rappels de doses ; indépendant mais même famille (WorkManager/alarmes).
 
 ### 12. C11. Noms de médicaments visibles sur l'écran verrouillé 🟠
-✅ **Fait** : notifications du canal MEDICATION en `VISIBILITY_PRIVATE` avec une version publique « Rappel de traitement » (et canal en visibilité privée pour les nouvelles installations). Reste : l'option « masquer le nom » même téléphone déverrouillé.
+✅ **Fait** : notifications du canal MEDICATION en `VISIBILITY_PRIVATE` avec une version publique « Rappel de traitement » (et canal en visibilité privée pour les nouvelles installations). Option Réglages « Masquer le nom du médicament » : le corps de la notification devient générique même téléphone déverrouillé.
 
 `ReminderWorker` (l. 141-168) place `med.name` dans le corps de la notification, et
 `NotificationHelper.show` ne définit ni `setVisibility(VISIBILITY_PRIVATE)` ni
@@ -447,7 +447,7 @@ cible sous IMC 18,5, afficher une alerte au lieu d'une date de « réussite » (
 > *Pourquoi ici :* Même famille que C13 ; touche le profil, donc à faire juste après.
 
 ### 15. C16. Résultats OCR et photo notés sans relecture par l'utilisateur 🟠
-✅ **Partiellement fait** : une étiquette lue par OCR ouvre un écran de relecture (nom, 8 valeurs pour 100 g, ingrédients, virgule acceptée) avant la note ; le résultat porte « Valeurs lues sur la photo (OCR), vérifiées par vous » ; « Annuler » supprime le scan (test `OcrReviewTest`). Restent : surlignage sur la photo et 3 meilleures correspondances pour la reconnaissance d'image.
+✅ **Partiellement fait** : une étiquette lue par OCR ouvre un écran de relecture (nom, 8 valeurs pour 100 g, ingrédients, virgule acceptée) avant la note ; le résultat porte « Valeurs lues sur la photo (OCR), vérifiées par vous » ; « Annuler » supprime le scan (test `OcrReviewTest`). Reconnaissance d'image : les 3 meilleures correspondances sont proposées (« Reconnu : X — C'est bien ça » ou une des 2 autres, qui renote le scan enregistré). Non fait : surlignage des zones lues sur la photo (l'écran de relecture couvre déjà la vérification).
 
 `ScanRepository.identifyOrScoreFromImages` : le produit lu par ML Kit (`parseLabel`) ou
 reconnu par l'image (`foodIdentifier`) est **noté immédiatement**. Seul un avertissement
@@ -521,7 +521,7 @@ C'est la vitrine de la promesse de confiance, accessible en un geste depuis la b
 S'appuie sur le format sourcé de la phase 3 : chaque nouvelle entrée naît avec sa source.
 
 ### 21. A7 – Couverture de la base médicamenteuse
-✅ **Partiellement fait** : + levure de riz rouge × statines (ANSES 2014, EFSA 2018), calcium/fer × fluoroquinolones/cyclines (RCP), alcool × métronidazole (RCP Flagyl, hors vinaigres), tyramine × linézolide (RCP Zyvoxid) (test `FoodDrugA7Test`). Restent : millepertuis et réglisse (concernent surtout des compléments ou une condition, pas une classe de médicaments).
+✅ **Fait** : + levure de riz rouge × statines (ANSES 2014, EFSA 2018), calcium/fer × fluoroquinolones/cyclines (RCP), alcool × métronidazole (RCP Flagyl, hors vinaigres), tyramine × linézolide (RCP Zyvoxid) (test `FoodDrugA7Test`). + millepertuis × contraceptifs, AVK, AOD, ciclosporine, tacrolimus, digoxine (monographie EMA/HMPC, ANSM) et réglisse × diurétiques et digoxine (règlement UE 1169/2011 annexe III, avis SCF 2003).
 
 `FoodDrugInteractionDb` couvre 5 classes
 (AVK, IMAO, statines/inhibiteurs calciques, IEC/sartans, lévothyroxine). Candidats sourcés
@@ -532,7 +532,7 @@ fluoroquinolones/tétracyclines, levure de riz rouge et statines.
 > *Pourquoi ici :* Nouvelles interactions aliment-médicament (ANSM/EMA).
 
 ### 22. D6. Actions « Pris / Reporter » et suivi du stock de médicaments
-✅ **Partiellement fait** : boutons « Pris » (enregistre la prise datée, comme dans l'app) et « Reporter 15 min » sur chaque rappel de dose. Restent : stock de comprimés et rappel de renouvellement d'ordonnance (migration Room).
+✅ **Fait** : boutons « Pris » (enregistre la prise datée, comme dans l'app) et « Reporter 15 min » sur chaque rappel de dose. Stock et ordonnance (migration Room 42 → 43) : doses restantes, décomptées à chaque « Pris » et rendues si la prise est annulée ; date de fin d'ordonnance ; le rappel de dose ajoute « Stock bas : environ N jours restants » (≤ 7 jours) et « Ordonnance à renouveler bientôt » (≤ 7 jours), sans le nom si l'option C11 est active (test `MedicationSupplyTest`).
 
 Les notifications n'ont aucune action (pas d'`addAction` dans `NotificationHelper`) :
 pour marquer une prise, il faut ouvrir l'app. Il n'existe pas non plus de suivi du nombre de
@@ -603,7 +603,7 @@ une sauvegarde Android chiffrée côté client, avec des règles `data_extractio
 > *Pourquoi ici :* Bloquant publication au même titre que C4/C5 : la promesse « tout est local » implique d'assumer la sauvegarde.
 
 ### 28. C15. Historique de santé supprimé silencieusement 🟠
-✅ **Partiellement fait** : plafonds relevés pour couvrir ~10 ans d'usage assidu (humeur et sommeil 730 → 3650, journal et prises de médicaments 5000 → 20 000, activité 5000 → 10 000). Reste : archivage par agrégats et avertissement avant la première suppression.
+✅ **Fait** : plafonds relevés pour couvrir ~10 ans d'usage assidu (humeur et sommeil 730 → 3650, journal et prises de médicaments 5000 → 20 000, activité 5000 → 10 000). Avertissement avant la première suppression : quand un historique dépasse son plafond, rien n'est supprimé ; Réglages affiche « Historique plein » avec l'invitation à exporter une sauvegarde, et l'élagage ne reprend qu'après l'accord de l'utilisateur (`HistoryRetentionGuard`). Non fait : archivage par agrégats (la sauvegarde exportée conserve déjà tout l'historique).
 
 Plafonds de rétention par `trim` : humeur et sommeil **730 lignes** (`MoodRepository`,
 `SleepRepository`), non-alimentaire 500, et poids, prises de médicaments, journal et scans 5000.
@@ -650,7 +650,7 @@ selon les modules choisis à l'onboarding (A4).
 > *Pourquoi ici :* Va de pair avec A4 (navigation allégée).
 
 ### 33. N11. Lecture vocale des alertes, pas seulement de la note
-✅ **Fait** : la lecture vocale annonce d'abord les alertes (rappel officiel, veto personnel avec son motif, traces d'allergènes, interaction médicamenteuse), puis la note ; libellé du réglage mis à jour. Reste : proposer l'option dans l'onboarding.
+✅ **Fait** : la lecture vocale annonce d'abord les alertes (rappel officiel, veto personnel avec son motif, traces d'allergènes, interaction médicamenteuse), puis la note ; libellé du réglage mis à jour. L'option est aussi proposée dans l'onboarding (page des modules).
 
 **Partiellement existant (corrigé après vérification)** : `util/ScoreSpeechAnnouncer` lit déjà la
 note et le grade à voix haute après un scan (option désactivée par défaut). À faire : annoncer aussi les
@@ -699,7 +699,7 @@ un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégor
 > *Pourquoi ici :* Alternatives Open Food Facts (le score local est stabilisé après les phases 2-3).
 
 ### 37. D2 – Garde-manger ↔ dates de péremption
-✅ **Partiellement fait** : dans « Suggérer des recettes › Garde-manger », les produits bientôt périmés sont en tête, présélectionnés et marqués « bientôt périmé » ; les produits déjà périmés sont en dernier et jamais présélectionnés (test `PantrySuggestOrderTest`). Reste : les placer dans le plan de repas (D8).
+✅ **Fait** : dans « Suggérer des recettes › Garde-manger », les produits bientôt périmés sont en tête, présélectionnés et marqués « bientôt périmé » ; les produits déjà périmés sont en dernier et jamais présélectionnés (test `PantrySuggestOrderTest`). Le générateur de semaine (D8) place en premier les recettes qui utilisent un produit bientôt périmé.
 
 **Partiellement existant** : `PantryItem.expiryUrgency`, une notification de péremption dans `ReminderWorker`,
 et des suggestions de recettes à partir du garde-manger (`SuggestRecipesDialog`, mode PANTRY). Reste à faire : prioriser
@@ -716,7 +716,7 @@ bouclage « budget prévu vs ticket scanné » (`ReceiptParser` déjà présent)
 > *Pourquoi ici :* Plan → courses → dépenses.
 
 ### 39. D4 – Signaux croisés symptômes ↔ aliments
-✅ **Fait (lactose, gluten)** : « Essai d'éviction guidé » sur l'écran Symptômes : éviction de 14/21/28 jours puis 7 jours de réintroduction ; pourcentage de jours avec symptôme avant / pendant / après, écarts détectés dans le journal pendant l'éviction ; présenté comme observation personnelle à mener avec un médecin ou un diététicien (dépistage de la maladie cœliaque avant toute éviction du gluten) (test `EliminationTrialTest`). FODMAP non couvert : aucun détecteur FODMAP sourcé dans l'app.
+✅ **Fait (lactose, gluten, polyols)** : « Essai d'éviction guidé » sur l'écran Symptômes : éviction de 14/21/28 jours puis 7 jours de réintroduction ; pourcentage de jours avec symptôme avant / pendant / après, écarts détectés dans le journal pendant l'éviction ; présenté comme observation personnelle à mener avec un médecin ou un diététicien (dépistage de la maladie cœliaque avant toute éviction du gluten) (test `EliminationTrialTest`). FODMAP : essai « Polyols (FODMAP) », le seul groupe FODMAP qu'une liste d'ingrédients nomme de façon fiable (E420 sorbitol, E421 mannitol, E953 isomalt, E965 maltitol, E966 lactitol, E967 xylitol ; règlement UE 1333/2008, mention laxative du règlement UE 1169/2011 annexe III ; érythritol exclu, peu fermenté). Fructanes, GOS et fructose non détectés : leur teneur n'est pas étiquetée.
 
 `SymptomCorrelation` existe ; ajouter un
 journal d'élimination guidé (FODMAP, lactose), à présenter clairement comme une
@@ -802,7 +802,7 @@ prix au dernier prix payé (D7). Écran unique, pensé pour une seule main.
 > *Pourquoi ici :* Assemble D7, D10 et la liste de courses existante.
 
 ### 48. N8. Partage d'un profil avec un aidant
-✅ **Fait** : « Partager mes allergies » affiche un QR chiffré (PBKDF2 + AES-GCM, même chiffrement que les sauvegardes) et un code de 8 caractères ; « Importer un profil partagé » scanne le QR, demande le code et crée un nouveau profil « … (partagé le date) » sans changer le profil actif. Seuls allergènes, sévérités et régime sont partagés (test `ProfileShareCodecTest`). Reste : verrouiller le profil reçu en lecture seule.
+✅ **Fait** : « Partager mes allergies » affiche un QR chiffré (PBKDF2 + AES-GCM, même chiffrement que les sauvegardes) et un code de 8 caractères ; « Importer un profil partagé » scanne le QR, demande le code et crée un nouveau profil « … (partagé le date) » sans changer le profil actif. Seuls allergènes, sévérités et régime sont partagés (test `ProfileShareCodecTest`). Le profil reçu est en lecture seule pour ces champs : l'enregistrement conserve les allergènes, sévérités et régime reçus, avec un bandeau explicatif (test `SharedProfileReadOnlyTest`).
 
 Permettre à un parent de transmettre le profil d'un enfant allergique (allergènes, sévérités, régime) à un
 autre appareil (grands-parents, nourrice, cantine) via un QR code chiffré, sans compte ni serveur. C'est cohérent

@@ -67,7 +67,10 @@ fun bmrMifflinStJeor(p: Profile): Double? {
     // the formula was actually validated for, then floored at a minimum
     // physiologically plausible BMR so nothing downstream (daily targets,
     // sat-fat/sugar budgets) ever displays a negative or near-zero value.
-    val clampedAge = p.ageYears!!.coerceIn(1, 110)
+    // S9: Mifflin-St Jeor is validated in adults only. Under 18, EFSA's energy
+    // DRVs (2013) use Henry's (Oxford, 2005) weight-based equations.
+    if (p.ageYears!! < 18) return henryBmrKcal(p.ageYears, p.weightKg!!, p.sex)?.coerceAtLeast(300.0)
+    val clampedAge = p.ageYears.coerceIn(18, 110)
     val raw = 10.0 * p.weightKg!! + 6.25 * p.heightCm!! - 5.0 * clampedAge + sexOffset
     // app-audit: Profile.fatLevel was previously stored/displayed but fed no
     // calculation at all (a genuine dead end, caught by an 13/08/2026 audit
@@ -185,4 +188,18 @@ fun proteinTargetG(p: Profile): Double? {
         else -> {}
     }
     return (w * perKg).roundToInt().toDouble()
+}
+
+/**
+ * Henry 2005 (Oxford) weight-only BMR equations, MJ/day, as used by EFSA's
+ * 2013 energy DRVs for children: boys 0-3 0.255W-0.141, 3-10 0.0937W+2.15,
+ * 10-18 0.0769W+2.43; girls 0-3 0.246W-0.0965, 3-10 0.0842W+2.12,
+ * 10-18 0.0465W+3.18. Unstated sex = mean of both. Returns kcal/day.
+ */
+internal fun henryBmrKcal(ageYears: Int, weightKg: Double, sex: Sex): Double? {
+    if (ageYears < 0 || weightKg <= 0) return null
+    fun boy() = when { ageYears < 3 -> 0.255 * weightKg - 0.141; ageYears < 10 -> 0.0937 * weightKg + 2.15; else -> 0.0769 * weightKg + 2.43 }
+    fun girl() = when { ageYears < 3 -> 0.246 * weightKg - 0.0965; ageYears < 10 -> 0.0842 * weightKg + 2.12; else -> 0.0465 * weightKg + 3.18 }
+    val mj = when (sex) { Sex.MALE -> boy(); Sex.FEMALE -> girl(); Sex.NOT_SPECIFIED -> (boy() + girl()) / 2 }
+    return mj * 239.006
 }

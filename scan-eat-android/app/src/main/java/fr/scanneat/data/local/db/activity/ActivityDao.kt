@@ -52,4 +52,7 @@ interface ActivityDao {
         )
     """)
     suspend fun trim(keepCount: Int, profileId: String = "default")
+
+    @Query("SELECT COUNT(*) FROM activity_log WHERE profileId = :profileId")
+    suspend fun countRows(profileId: String = "default"): Int
 }

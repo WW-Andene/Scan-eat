@@ -65,7 +65,19 @@ interface MedicationDao {
     ): MedicationEntity {
         val existing = explicitId?.let { findById(it) } ?: barcode?.let { findByBarcode(it, profileId) }
         val entity = build(existing?.id ?: explicitId ?: java.util.UUID.randomUUID().toString(), existing?.createdAt ?: System.currentTimeMillis())
+            // Stock/renewal (Roadmap D6) are only written by their own queries below - an
+            // ordinary edit must not wipe them.
+            .let { if (existing != null) it.copy(stockCount = existing.stockCount, renewalDate = existing.renewalDate) else it }
         upsert(entity)
         return entity
     }
+
+    @Query("UPDATE medications SET stockCount = :stock, renewalDate = :renewalDate WHERE id = :id")
+    suspend fun setStockAndRenewal(id: String, stock: Int?, renewalDate: String?)
+
+    @Query("UPDATE medications SET stockCount = MAX(stockCount - 1, 0) WHERE id = :id AND stockCount IS NOT NULL")
+    suspend fun decrementStock(id: String)
+
+    @Query("UPDATE medications SET stockCount = stockCount + 1 WHERE id = :id AND stockCount IS NOT NULL")
+    suspend fun incrementStock(id: String)
 }

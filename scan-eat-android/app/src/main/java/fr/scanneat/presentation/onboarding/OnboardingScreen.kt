@@ -83,6 +83,7 @@ fun OnboardingScreen(
     // every field typed so far, resetting to page 0 with no way to recover.
     var page by rememberSaveable { mutableIntStateOf(0) }
     var hiddenModules by remember { mutableStateOf(emptySet<fr.scanneat.presentation.diary.components.DiaryTab>()) }
+    var voiceAnnounce by rememberSaveable { mutableStateOf(false) }
     var sex by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(Sex.NOT_SPECIFIED) }
     var ageText by rememberSaveable { mutableStateOf("") }
     var heightText by rememberSaveable { mutableStateOf("") }
@@ -159,7 +160,16 @@ fun OnboardingScreen(
                         2 -> Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                             Text(stringResource(R.string.modules_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground)
                             ModulesSelector(hiddenModules) { hiddenModules = it }
-                            Button(onClick = { viewModel.setHiddenModules(serializeHiddenModules(hiddenModules)); page = 3 }, modifier = Modifier.fillMaxWidth()) {
+                            // Roadmap N11: offer voice alerts up front - the users who need
+                            // them most (low vision) are the least likely to find the setting.
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(stringResource(R.string.settings_voice_score_announce), color = OnBackground)
+                                    Text(stringResource(R.string.settings_voice_score_announce_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                                }
+                                Switch(checked = voiceAnnounce, onCheckedChange = { voiceAnnounce = it })
+                            }
+                            Button(onClick = { viewModel.setHiddenModules(serializeHiddenModules(hiddenModules)); viewModel.setVoiceAnnounce(voiceAnnounce); page = 3 }, modifier = Modifier.fillMaxWidth()) {
                                 Text(stringResource(R.string.modules_continue))
                             }
                         }

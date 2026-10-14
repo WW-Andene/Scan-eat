@@ -139,6 +139,7 @@ data class ActivityEntry(
 @Singleton
 class ActivityRepository @Inject constructor(
     private val dao: ActivityDao,
+    private val retention: fr.scanneat.data.repository.HistoryRetentionGuard,
     private val healthConnect: HealthConnectRepository,
 ) {
 
@@ -179,7 +180,7 @@ class ActivityRepository @Inject constructor(
             weightUsedKg = weightUsedKg?.coerceAtLeast(0.0),
             wasOutdoors  = wasOutdoors,
         ))
-        dao.trim(MAX_HISTORY_ROWS, profileId)
+        retention.trim(MAX_HISTORY_ROWS, { dao.countRows(profileId) }, { dao.trim(MAX_HISTORY_ROWS, profileId) })
         // Health Connect had zero Activité wiring at all before this - a logged
         // workout stayed invisible to it and any other app reading from it,
         // unlike weight/hydration which already mirror.
@@ -292,7 +293,7 @@ class ActivityRepository @Inject constructor(
                 externalSourceId = session.id,
             ))
         }
-        dao.trim(MAX_HISTORY_ROWS, profileId)
+        retention.trim(MAX_HISTORY_ROWS, { dao.countRows(profileId) }, { dao.trim(MAX_HISTORY_ROWS, profileId) })
     }
 
     private fun ActivityEntity.toDomain(): ActivityEntry? = runCatching {

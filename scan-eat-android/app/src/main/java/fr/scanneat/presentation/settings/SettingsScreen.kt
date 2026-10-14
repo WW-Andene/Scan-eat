@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -58,6 +59,8 @@ fun SettingsScreen(
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val voiceScoreAnnounce = viewModel.voiceScoreAnnounce.collectAsStateWithLifecycle()
     val hiddenModulesCsv = viewModel.hiddenModules.collectAsStateWithLifecycle()
+    val hideMedNames = viewModel.hideMedicationNames.collectAsStateWithLifecycle()
+    val retentionPending = viewModel.retentionWarningPending.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
@@ -126,6 +129,15 @@ fun SettingsScreen(
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
 
+            // Roadmap C15: history reached its cap - nothing is deleted until the user agrees.
+            if (retentionPending.value) item {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text(stringResource(R.string.settings_retention_title), color = Gold, style = MaterialTheme.typography.titleSmall)
+                    Text(stringResource(R.string.settings_retention_body), color = OnBackground, style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = viewModel::acknowledgeRetentionTrim) { Text(stringResource(R.string.settings_retention_ack)) }
+                }
+            }
+
             // ---- Profile — first thing in Réglages, not buried at the bottom ----
             item { ProfileSection(onOpenProfile) }
 
@@ -134,6 +146,16 @@ fun SettingsScreen(
             // even though the underlying reminder system covers meals, hydration,
             // weigh-ins, activity, and fasting targets app-wide. ----
             item { RemindersSection(onOpenReminders) }
+            // Roadmap C11: medication names out of notifications entirely.
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_hide_med_names), color = OnBackground)
+                        Text(stringResource(R.string.settings_hide_med_names_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    }
+                    Switch(checked = hideMedNames.value, onCheckedChange = viewModel::setHideMedicationNames)
+                }
+            }
 
             // Roadmap A4: tracked modules.
             item {

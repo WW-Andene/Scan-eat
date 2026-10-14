@@ -73,6 +73,7 @@ internal fun ScanViewModel.identifyFromPhotos() {
                             .fold(
                                 onSuccess = { id ->
                                     if (scanResult.needsOcrReview) _state.value = ScanUiState.ReviewOcr(scanResult, id)
+                                    else if (scanResult.alternativeFoods.isNotEmpty()) _state.value = ScanUiState.ChooseFood(scanResult, id)
                                     else { _state.value = ScanUiState.Success(scanResult, id); announceScoreIfEnabled(scanResult) }
                                 },
                                 onFailure = { e ->

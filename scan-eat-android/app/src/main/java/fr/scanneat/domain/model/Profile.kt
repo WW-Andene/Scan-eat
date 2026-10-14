@@ -71,6 +71,9 @@ data class Profile(
     // weightKg/heightCm alone).
     val fatLevel: BodyCompositionLevel? = null,
     val muscleLevel: BodyCompositionLevel? = null,
+    // Roadmap N8: a profile imported from a share QR - its allergens, severities
+    // and diet come from the person who shared them and are kept as received.
+    val sharedReadOnly: Boolean = false,
 )
 // NOTE: DailyTargets is defined in domain/engine/scoring/PersonalScoreEngine.kt (canonical location).
 // Do NOT add a second DailyTargets here.

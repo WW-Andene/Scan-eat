@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.medication.components
 
+import fr.scanneat.data.repository.health.daysOfStockLeft
+import fr.scanneat.data.repository.health.isLowStock
+import fr.scanneat.data.repository.health.renewalDue
 import compose.icons.tablericons.Bell
 import compose.icons.tablericons.DotsVertical
 import compose.icons.tablericons.Edit
@@ -328,8 +331,11 @@ internal fun MedicationDetailDialog(
     healthConditions: Set<String>,
     language: String,
     onDismiss: () -> Unit,
+    onSaveSupply: (stock: Int?, renewalDate: java.time.LocalDate?) -> Unit = { _, _ -> },
 ) {
     val m = medication
+    var stockText by remember(m.id) { mutableStateOf(m.stockCount?.toString() ?: "") }
+    var renewalText by remember(m.id) { mutableStateOf(m.renewalDate?.toString() ?: "") }
     val hints = remember(dbEntry, healthConditions, language) {
         dbEntry?.let { generateMedicationHints(it, healthConditions, language) }
     }
@@ -366,9 +372,28 @@ internal fun MedicationDetailDialog(
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
                     )
                 }
+                // Roadmap D6: doses left and prescription end date.
+                Text(stringResource(R.string.medication_supply_title), style = MaterialTheme.typography.titleSmall, color = OnBackground)
+                m.daysOfStockLeft()?.let {
+                    Text(stringResource(R.string.medication_supply_days_left, it), style = MaterialTheme.typography.bodySmall,
+                        color = if (m.isLowStock()) AccentCoral else OnBackground.copy(0.6f))
+                }
+                if (m.renewalDue()) Text(stringResource(R.string.medication_notif_renewal_due), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
+                OutlinedTextField(stockText, { stockText = it.filter(Char::isDigit).take(4) }, singleLine = true,
+                    label = { Text(stringResource(R.string.medication_supply_stock)) },
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
+                OutlinedTextField(renewalText, { renewalText = it.take(10) }, singleLine = true,
+                    label = { Text(stringResource(R.string.medication_supply_renewal)) },
+                    isError = renewalText.isNotBlank() && parseIsoDate(renewalText) == null)
+                TextButton(
+                    onClick = { onSaveSupply(stockText.toIntOrNull(), parseIsoDate(renewalText)) },
+                    enabled = renewalText.isBlank() || parseIsoDate(renewalText) != null,
+                ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
             }
         },
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = OnBackground.copy(0.6f)) } },
     )
 }
+
+private fun parseIsoDate(s: String): java.time.LocalDate? = runCatching { java.time.LocalDate.parse(s.trim()) }.getOrNull()

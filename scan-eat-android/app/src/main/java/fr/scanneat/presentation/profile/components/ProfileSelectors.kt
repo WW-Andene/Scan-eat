@@ -236,6 +236,7 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     // and ingredient-level scoring rules.
     "ibs" to stringResource(R.string.condition_ibs),
     "crohn_ibd" to stringResource(R.string.condition_crohn_ibd),
+    "ibd_flare" to stringResource(R.string.condition_ibd_flare),
     "chronic_diarrhea" to stringResource(R.string.condition_chronic_diarrhea),
     "cancer" to stringResource(R.string.condition_cancer),
     "depression" to stringResource(R.string.condition_depression),
@@ -300,7 +301,7 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
 @Composable
 private fun conditionGroups(): List<Pair<String, List<String>>> = listOf(
     stringResource(R.string.profile_condition_group_metabolic) to listOf("diabetes", "hypertension", "kidney_disease"),
-    stringResource(R.string.profile_condition_group_digestive) to listOf("ibs", "crohn_ibd", "chronic_diarrhea"),
+    stringResource(R.string.profile_condition_group_digestive) to listOf("ibs", "crohn_ibd", "ibd_flare", "chronic_diarrhea"),
     stringResource(R.string.profile_condition_group_neurological) to listOf("chronic_migraine", "epilepsy"),
     // Split out of "other" once it grew to 3 nutrient-deficiency conditions
     // (anemia, osteoporosis, hair_loss) sharing the same underlying pattern -

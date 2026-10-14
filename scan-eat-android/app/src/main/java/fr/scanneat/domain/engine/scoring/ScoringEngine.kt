@@ -24,7 +24,8 @@ import kotlin.math.roundToInt
 // 2.5.0 (Roadmap S14): S1-S10, C10/N6 allergen severity and C14 safe goal
 // changed the rules; bumping this is what makes every stored score be
 // recomputed (ScanHistoryQueries.rescoreAllStale / rescoreStale).
-const val ENGINE_VERSION = "2.5.0"
+// 2.6.0: S9 (Henry equations, IBD flare-only rules) and S10 (one rule, one effect).
+const val ENGINE_VERSION = "2.6.0"
 
 // ============================================================================
 // SECTION 10: GLOBAL MODIFIERS, VETOES & ORCHESTRATOR
@@ -564,11 +565,17 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
         (rawBaseScore / achievableMax) * 100.0
     } else rawBaseScore
 
+    // S10: only deductions that actually cost points count - a 0-point MAJOR
+    // marker ("Aucun apport...") used to add a whole global penalty on its own.
     val severeFlagCount = listOf(processing, nutritionalDensity, negativeNutrients, additiveRisk, ingredientIntegrity)
-        .sumOf { pillar -> pillar.deductions.count { it.severity == Severity.CRITICAL || it.severity == Severity.MAJOR } }
+        .sumOf { pillar -> pillar.deductions.count { (it.severity == Severity.CRITICAL || it.severity == Severity.MAJOR) && it.points < 0.0 } }
 
+    // S10: "one rule, one effect" - when a veto caps the score, the facts that
+    // triggered it (trans fats, alcohol, tier-1 additive...) are also the
+    // severe flags; stacking the cumulative-risk penalty on top counted them twice.
+    val veto = checkVeto(product, lang)
     val globalBonuses   = computeGlobalBonuses(product, lang)
-    val globalPenalties = computeGlobalPenalties(product, severeFlagCount, lang)
+    val globalPenalties = computeGlobalPenalties(product, if (veto.triggered) 0 else severeFlagCount, lang)
     // Deliberately asymmetric, not an oversight: bonusTotal is capped at +10
     // so no combination of positive signals (organic, transparent origin,
     // eco-score, etc.) can outweigh a product's actual pillar-level nutrition
@@ -581,7 +588,6 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
     val penaltyTotal    = globalPenalties.sumOf { it.points }
 
     var score = (baseScore + bonusTotal + penaltyTotal).coerceIn(0.0, 100.0)
-    val veto = checkVeto(product, lang)
     if (veto.triggered && score > veto.cap) score = veto.cap.toDouble()
     val finalScore = score.roundToInt()
     val grade = scoreToGrade(finalScore)

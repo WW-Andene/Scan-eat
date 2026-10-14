@@ -192,6 +192,9 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
+            if (profile.value.sharedReadOnly) item {
+                Text(stringResource(R.string.profile_shared_read_only), style = MaterialTheme.typography.bodySmall, color = Gold)
+            }
 
             // ---- Profile switcher (R&D audit finding: profileId was dead
             // scaffolding until this) ----

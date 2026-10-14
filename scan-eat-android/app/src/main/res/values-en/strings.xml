@@ -2192,6 +2192,7 @@
     <string name="profile_share_body">They open “My safety › Import a shared profile” in Scan\'eat, scan this QR code and type the code. Only allergens, their level and the diet are shared, encrypted; no server.</string>
     <string name="profile_share_code">Code to give them</string>
     <string name="profile_share_received">shared on</string>
+    <string name="profile_shared_read_only">Shared profile: its allergens, their levels and its diet stay as received and cannot be edited here.</string>
     <string name="profile_import_title">Import a shared profile</string>
     <string name="profile_import_hint">Scan the shared profile QR code</string>
     <string name="profile_import_code">Type the 8-character code</string>
@@ -2261,4 +2262,21 @@
     <string name="tile_fasting_running">Running — tap to stop</string>
     <string name="tile_fasting_start">Tap to start (16 h)</string>
     <string name="tile_fasting_blocked">Not recommended for this profile</string>
+    <string name="condition_ibd_flare">IBD: flare in progress</string>
+    <string name="reminders_notif_medication_body_hidden">Time for your treatment</string>
+    <string name="settings_retention_title">History full</string>
+    <string name="settings_retention_body">One of your histories (diary, mood, sleep, activity or medication doses) has reached about 10 years of entries. Nothing has been deleted: export a backup below first if you want to keep everything. Once you agree, the oldest entries will be removed as new ones are added.</string>
+    <string name="settings_retention_ack">Delete the oldest</string>
+    <string name="settings_hide_med_names">Hide medication names</string>
+    <string name="settings_hide_med_names_hint">Dose reminders never show the medication name, even when the phone is unlocked.</string>
+    <string name="medication_supply_title">Stock and prescription</string>
+    <string name="medication_supply_stock">Doses left in the box</string>
+    <string name="medication_supply_renewal">Prescription end (YYYY-MM-DD)</string>
+    <string name="medication_supply_days_left">About %1$d days of treatment left</string>
+    <string name="medication_notif_low_stock">Low stock: about %1$d days left.</string>
+    <string name="medication_notif_renewal_due">Prescription to renew soon.</string>
+    <string name="scan_identify_choose_title">Recognised: %1$s</string>
+    <string name="scan_identify_choose_other">Not right? Other matches:</string>
+    <string name="scan_identify_choose_confirm">That\'s right</string>
+    <string name="trial_target_polyols">Polyols (FODMAP)</string>
 </resources>

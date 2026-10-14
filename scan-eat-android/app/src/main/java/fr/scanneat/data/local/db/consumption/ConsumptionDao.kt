@@ -58,4 +58,7 @@ interface ConsumptionDao {
         )
     """)
     suspend fun trim(keepCount: Int, profileId: String = "default")
+
+    @Query("SELECT COUNT(*) FROM consumption_log WHERE profileId = :profileId")
+    suspend fun countRows(profileId: String = "default"): Int
 }

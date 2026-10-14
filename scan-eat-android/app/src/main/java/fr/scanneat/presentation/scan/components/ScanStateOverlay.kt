@@ -105,6 +105,7 @@ internal fun BoxScope.ScanStateOverlay(
     medicationInteractionWarnings: List<InteractionWarning> = emptyList(),
     onConfirmOcrReview: (fr.scanneat.domain.model.Product) -> Unit = {},
     onCancelOcrReview: () -> Unit = {},
+    onChooseFood: (String?) -> Unit = {},
     /** Roadmap N1: barcode of the product that was not found / is incomplete. */
     barcode: String? = null,
 ) {
@@ -112,6 +113,19 @@ internal fun BoxScope.ScanStateOverlay(
     when (val s = state) {
         is ScanUiState.Idle, is ScanUiState.Scanning, is ScanUiState.Success -> Unit
         is ScanUiState.ReviewOcr -> OcrReviewDialog(s.result.product, onConfirm = onConfirmOcrReview, onCancel = onCancelOcrReview)
+        is ScanUiState.ChooseFood -> AlertDialog(
+            onDismissRequest = { onChooseFood(null) },
+            title = { Text(stringResource(R.string.scan_identify_choose_title, s.result.product.name)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text(stringResource(R.string.scan_identify_choose_other), style = MaterialTheme.typography.bodySmall)
+                    s.result.alternativeFoods.forEach { name ->
+                        TextButton(onClick = { onChooseFood(name) }) { Text(name) }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { onChooseFood(null) }) { Text(stringResource(R.string.scan_identify_choose_confirm)) } },
+        )
         is ScanUiState.Error -> {
             if (hasCamera && !cameraUnavailable) {
                 if (s.needsPhoto) {

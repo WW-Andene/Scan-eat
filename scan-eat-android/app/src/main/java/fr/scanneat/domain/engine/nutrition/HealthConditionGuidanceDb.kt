@@ -274,7 +274,9 @@ private val GUIDANCE_BY_CONDITION: Map<String, List<ConditionGuidance>> = mapOf(
  */
 fun findHealthConditionGuidance(ingredients: List<Ingredient>, healthConditions: Set<String>, lang: String): List<String> {
     val en = lang == "en"
+    // S9: the Crohn/IBD guidance is low-residue-during-a-flare - same gate as the score rules.
     return healthConditions
+        .filter { it != "crohn_ibd" || "ibd_flare" in healthConditions }
         .mapNotNull { GUIDANCE_BY_CONDITION[it] }
         .flatMap { dictionary -> matchIngredientDictionary(ingredients, dictionary, ConditionGuidance::names) }
         .distinct()

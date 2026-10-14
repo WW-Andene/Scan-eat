@@ -110,7 +110,7 @@ class ProfileViewModel @Inject constructor(
             // mirrors changed.
             val before = this@ProfileViewModel.profile.value
             val ok = guardedSuspend {
-                prefs.saveProfile(profile)
+                prefs.saveProfile(keepSharedFields(before, profile))
                 val sharedFieldsChanged = before.sex != profile.sex || before.ageYears != profile.ageYears ||
                     before.heightCm != profile.heightCm || before.weightKg != profile.weightKg ||
                     before.activityLevel != profile.activityLevel
@@ -169,3 +169,8 @@ class ProfileViewModel @Inject constructor(
         guardedLaunch { prefs.deleteProfile(id); biolismRepo.deleteProfileData(id) }
     }
 }
+
+/** Roadmap N8: a received profile keeps the allergens, severities and diet it was shared with. */
+internal fun keepSharedFields(stored: Profile, edited: Profile): Profile =
+    if (!stored.sharedReadOnly || stored.id != edited.id) edited
+    else edited.copy(allergens = stored.allergens, allergenSeverities = stored.allergenSeverities, diet = stored.diet, sharedReadOnly = true)

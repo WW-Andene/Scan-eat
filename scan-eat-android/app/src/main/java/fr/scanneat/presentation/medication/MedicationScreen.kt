@@ -241,6 +241,7 @@ fun MedicationScreen(
             healthConditions = healthConditions.value,
             language = language.value,
             onDismiss = { detailTarget = null },
+            onSaveSupply = { stock, renewal -> viewModel.setStockAndRenewal(m, stock, renewal); detailTarget = null },
         )
     }
 }

@@ -28,4 +28,16 @@ class EliminationTrialTest {
         assertEquals(1, r.slips.size); assertTrue("Yaourt" in r.slips.single())
         assertEquals(TrialPhase.FINISHED, trialPhase(t, start.plusDays(30)))
     }
+
+    @Test fun `polyols detected by name or E number, not erythritol`() {
+        fun entry(vararg ing: String) = fr.scanneat.domain.model.DiaryEntry(
+            date = java.time.LocalDate.of(2026, 1, 1), mealSlot = fr.scanneat.domain.model.MealSlot.SNACK, productName = "Chewing-gum",
+            portionG = 2.0, nutrition = fr.scanneat.domain.model.NutritionPer100g(energyKcal = 0.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 0.0, sugarsG = 0.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.0), source = fr.scanneat.domain.model.ScanSource.MANUAL,
+            ingredients = ing.map { fr.scanneat.domain.model.Ingredient(name = it, category = fr.scanneat.domain.model.IngredientCategory.FOOD) })
+        assertTrue(containsPolyols(entry("édulcorants : sorbitol, arôme")))
+        assertTrue(containsPolyols(entry("E420i")))
+        assertTrue(containsPolyols(entry("xylitol")))
+        assertFalse(containsPolyols(entry("érythritol")))
+        assertFalse(containsPolyols(entry("sucre", "E4200 inexistant")))
+    }
 }

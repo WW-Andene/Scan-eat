@@ -49,6 +49,9 @@ data class Medication(
     // Comma-separated "HH:mm" times beyond reminderTime (slot 0) - see
     // MedicationEntity's own doc comment and [reminderTimes] below.
     val extraReminderTimes: String = "",
+    // Roadmap D6.
+    val stockCount: Int? = null,
+    val renewalDate: LocalDate? = null,
 ) {
     /** All of this medication's real reminder times, reminderTime first,
      *  followed by extraReminderTimes in the order the user added them. */
@@ -78,6 +81,7 @@ data class MedicationLogEntry(
 class MedicationRepository @Inject constructor(
     private val dao: MedicationDao,
     private val logDao: MedicationLogDao,
+    private val retention: fr.scanneat.data.repository.HistoryRetentionGuard,
 ) {
 
     // name/dosage/scheduleNote are encrypted at rest (see toEntity/toDomain), so
@@ -157,6 +161,7 @@ class MedicationRepository @Inject constructor(
         barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
         reminderOn = reminderOn, reminderTime = reminderTime, deactivatedAt = deactivatedAt,
         scheduleDaysMask = scheduleDaysMask, extraReminderTimes = extraReminderTimes,
+        stockCount = stockCount, renewalDate = renewalDate?.toString(),
     )
 
     private fun MedicationEntity.toDomain() = Medication(
@@ -166,7 +171,15 @@ class MedicationRepository @Inject constructor(
         barcode = barcode, active = active,
         reminderOn = reminderOn, reminderTime = reminderTime, createdAt = createdAt, deactivatedAt = deactivatedAt,
         scheduleDaysMask = scheduleDaysMask, extraReminderTimes = extraReminderTimes,
+        stockCount = stockCount, renewalDate = renewalDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
     )
+
+    /** Roadmap D6: doses left (null = not tracked) and prescription end date. */
+    suspend fun setStockAndRenewal(id: String, stock: Int?, renewalDate: LocalDate?) =
+        dao.setStockAndRenewal(id, stock?.coerceAtLeast(0), renewalDate?.toString())
+
+    /** A dose un-marked as taken goes back in the box. */
+    suspend fun restoreStock(medicationId: String) = dao.incrementStock(medicationId)
 
     // ── Adherence log ("I took this") ────────────────────────────────────────
 
@@ -186,7 +199,7 @@ class MedicationRepository @Inject constructor(
     suspend fun logTaken(medication: Medication, date: LocalDate = LocalDate.now(), profileId: String = "default") {
         // Up to one log per scheduled dose - insertIfAbsent allowed only one per day,
         // so the 2nd/3rd dose of a multi-dose medication could never be recorded.
-        logDao.insertIfBelow(medication.id, date.toIsoString(), profileId, medication.dosesPerDay) {
+        val inserted = logDao.insertIfBelow(medication.id, date.toIsoString(), profileId, medication.dosesPerDay) {
             MedicationLogEntity(
                 id             = UUID.randomUUID().toString(),
                 medicationId   = medication.id,
@@ -199,7 +212,8 @@ class MedicationRepository @Inject constructor(
                 profileId      = profileId,
             )
         }
-        logDao.trim(MAX_HISTORY_ROWS, profileId)
+        if (inserted) dao.decrementStock(medication.id)
+        retention.trim(MAX_HISTORY_ROWS, { logDao.countRows(profileId) }, { logDao.trim(MAX_HISTORY_ROWS, profileId) })
     }
 
     suspend fun deleteLogEntry(id: String) = logDao.delete(id)
@@ -228,3 +242,16 @@ class MedicationRepository @Inject constructor(
         const val MAX_HISTORY_ROWS = 20_000
     }
 }
+
+/** Roadmap D6: days of treatment left in stock, null when stock isn't tracked. */
+fun Medication.daysOfStockLeft(): Int? = stockCount?.let { it / dosesPerDay.coerceAtLeast(1) }
+
+/** Low stock: a week or less left - time to go to the pharmacy. */
+fun Medication.isLowStock(): Boolean = daysOfStockLeft()?.let { it <= LOW_STOCK_DAYS } ?: false
+
+/** Prescription ends within a week (or already has). */
+fun Medication.renewalDue(today: LocalDate = LocalDate.now()): Boolean =
+    renewalDate?.let { !it.isAfter(today.plusDays(RENEWAL_NOTICE_DAYS)) } ?: false
+
+const val LOW_STOCK_DAYS = 7
+const val RENEWAL_NOTICE_DAYS = 7L
