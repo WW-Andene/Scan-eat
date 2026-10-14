@@ -68,6 +68,19 @@ class ReminderWorker @AssistedInject constructor(
     private fun medicationNotificationId(medId: String, time: String): Int =
         MEDICATION_NOTIF_ID_BASE + ("$medId|$time".hashCode() and 0x7FFFFFFF) % MEDICATION_NOTIF_ID_RANGE
 
+    // Roadmap C9: MedicationAlarms runs this worker expedited when a dose
+    // alarm rings. Before Android 12 an expedited job runs as a foreground
+    // service and needs this notification (generic text: no health data).
+    override suspend fun getForegroundInfo(): androidx.work.ForegroundInfo {
+        NotificationHelper.ensureChannels(applicationContext)
+        val n = androidx.core.app.NotificationCompat.Builder(applicationContext, NotifChannel.MEDICATION.id)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(applicationContext.getString(R.string.notif_medication_public_title))
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+            .build()
+        return androidx.work.ForegroundInfo(FOREGROUND_NOTIF_ID, n)
+    }
+
     override suspend fun doWork(): Result {
         val s = remindersRepo.settings.first()
         val lang = prefs.language.first()
@@ -169,6 +182,9 @@ class ReminderWorker @AssistedInject constructor(
                     }
                 }
             }
+
+        // Roadmap C9: arm the exact alarm for the next dose slot.
+        runCatching { MedicationAlarms.schedule(applicationContext, medicationRepo.observeAll(profileId).first()) }
 
         fastingRepo.state(profileId).first()?.let { fast ->
             if (fast.elapsedHours >= fast.targetHours && !remindersRepo.fastingTargetAlreadyNotified(fast.startMs)) {
@@ -279,6 +295,7 @@ class ReminderWorker @AssistedInject constructor(
         // fixed 101-111 ids above and the custom-reminder range (910+, see
         // RemindersRepository.K_CUSTOM_NEXT_ID), so a medication's derived id can
         // never collide with a non-medication reminder's notification/PendingIntent.
+        private const val FOREGROUND_NOTIF_ID = 7_000_002
         private const val MEDICATION_NOTIF_ID_BASE = 2_000_000
         private const val MEDICATION_NOTIF_ID_RANGE = 500_000
     }

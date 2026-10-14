@@ -46,6 +46,10 @@ class ScanEatApp : Application(), Configuration.Provider {
         WorkManager.getInstance(this)
             .enqueueUniquePeriodicWork("biolism_reminders", ExistingPeriodicWorkPolicy.KEEP, request)
 
+        // Roadmap C9: run the reminder check once now - it arms the exact alarm
+        // of the next medication dose (alarms do not survive an app update).
+        fr.scanneat.notifications.MedicationAlarms.runReminderWorkerNow(this)
+
         // Roadmap C3: daily re-check of scanned/stocked products against
         // RappelConso - see RecallSyncWorker's own doc comment.
         val recallSync = PeriodicWorkRequestBuilder<RecallSyncWorker>(1, TimeUnit.DAYS)

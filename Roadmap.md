@@ -389,6 +389,8 @@ rappelés ».
 > *Pourquoi ici :* Worker RappelConso + écran : la correction de C3.
 
 ### 11. C9. Précision des rappels de médicaments 🟡
+✅ **Fait** : alarme exacte (`setExactAndAllowWhileIdle`, repli inexact sans permission) sur la prochaine prise ; elle lance `ReminderWorker` aussitôt (expédié), qui réarme la suivante ; réarmement au démarrage et au redémarrage du téléphone. Le worker de 15 min reste en filet de sécurité (test `MedicationAlarmsTest`).
+
 Les doses sont rappelées par un `PeriodicWorkRequest` de **15 min** (choix documenté dans
 `ScanEatApp.kt`), sans `AlarmManager`. Retard possible de 15 min, et bien plus en Doze.
 → Alarmes exactes (`setExactAndAllowWhileIdle`, permission `SCHEDULE_EXACT_ALARM` /
