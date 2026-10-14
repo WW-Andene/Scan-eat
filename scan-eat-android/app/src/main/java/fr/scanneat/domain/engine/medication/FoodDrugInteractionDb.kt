@@ -18,7 +18,7 @@ import fr.scanneat.domain.model.Product
  * medication-name lookup in this app already has - see MedicationViewModel's
  * own detectInteractions doc comment) actually match the relevant drug class.
  *
- * Deliberately narrow (8 interactions, not an exhaustive pharmacology
+ * Deliberately narrow (10 interactions, not an exhaustive pharmacology
  * database this app has no legitimate data source for) - each one is a
  * textbook-level, broadly-cited interaction, not a judgment call. Every
  * caution ends by pointing to a pharmacist/doctor, same line
@@ -47,7 +47,7 @@ import fr.scanneat.domain.model.Product
 // same fix pattern.
 // STATIN, QUINOLONE_TETRACYCLINE, METRONIDAZOLE - Roadmap A7 additions, each
 // with its European source next to its caution below.
-private enum class FoodInteractionDrugClass { ANTICOAGULANT_VKA, MAOI, STATIN_OR_CCB, ACE_INHIBITOR_SARTAN, LEVOTHYROXINE, STATIN, QUINOLONE_TETRACYCLINE, METRONIDAZOLE }
+private enum class FoodInteractionDrugClass { ANTICOAGULANT_VKA, MAOI, STATIN_OR_CCB, ACE_INHIBITOR_SARTAN, LEVOTHYROXINE, STATIN, QUINOLONE_TETRACYCLINE, METRONIDAZOLE, ENZYME_INDUCTION_SENSITIVE, HYPOKALEMIA_SENSITIVE }
 
 private data class DrugKeywordGroup(val drugClass: FoodInteractionDrugClass, val keywords: List<String>)
 
@@ -119,6 +119,28 @@ private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
     DrugKeywordGroup(
         FoodInteractionDrugClass.METRONIDAZOLE,
         listOf("metronidazole", "flagyl", "rodogyl", "birodogyl"),
+    ),
+    DrugKeywordGroup(
+        // Narrow-margin drugs whose levels St John's wort (CYP3A4/P-gp inducer)
+        // is documented to lower: EMA/HMPC monograph on Hypericum perforatum,
+        // ANSM warning (contraceptives, AVK, ciclosporine, digoxine, DOAC...).
+        FoodInteractionDrugClass.ENZYME_INDUCTION_SENSITIVE,
+        listOf(
+            "ethinylestradiol", "levonorgestrel", "desogestrel", "drospirenone", "norgestimate", "gestodene", "etonogestrel",
+            "leeloo", "optilova", "minidril", "jasmine", "optimizette", "nexplanon",
+            "ciclosporine", "ciclosporin", "tacrolimus", "neoral", "prograf", "digoxine", "digoxin",
+            "warfarine", "warfarin", "fluindione", "previscan", "acenocoumarol", "sintrom",
+            "rivaroxaban", "apixaban", "dabigatran", "xarelto", "eliquis", "pradaxa",
+        ),
+    ),
+    DrugKeywordGroup(
+        // Drugs for which liquorice-induced potassium loss is a documented risk
+        // (SmPC of furosemide/thiazides/digoxine: hypokalaemia).
+        FoodInteractionDrugClass.HYPOKALEMIA_SENSITIVE,
+        listOf(
+            "furosemide", "lasilix", "bumetanide", "burinex", "hydrochlorothiazide", "esidrex", "indapamide", "fludex",
+            "digoxine", "digoxin",
+        ),
     ),
     DrugKeywordGroup(
         FoodInteractionDrugClass.LEVOTHYROXINE,
@@ -215,6 +237,25 @@ private val FOOD_CAUTIONS: List<FoodCaution> = listOf(
         "Contient de l'alcool : avec le métronidazole, risque d'effet antabuse (bouffées de chaleur, vomissements, palpitations) — évitez l'alcool pendant le traitement et après, selon la durée indiquée dans la notice.",
         "Contains alcohol: with metronidazole, risk of a disulfiram-like reaction (flushing, vomiting, palpitations) — avoid alcohol during the treatment and afterwards, for the time stated in the leaflet.",
         excludePhrases = listOf("vinaigre de vin", "vinaigre de cidre", "vinaigre", "sans alcool"),
+    ),
+    // EMA/HMPC community herbal monograph on Hypericum perforatum and ANSM
+    // warning: St John's wort induces CYP3A4 and P-gp and lowers the blood
+    // level of these drugs (contraceptive failure, transplant rejection,
+    // thrombosis risk).
+    FoodCaution(
+        FoodInteractionDrugClass.ENZYME_INDUCTION_SENSITIVE,
+        listOf("millepertuis", "hypericum", "st john's wort", "st johns wort"),
+        "Contient du millepertuis : il diminue l'efficacité de plusieurs médicaments, dont le vôtre (contraceptif, anticoagulant, immunosuppresseur, digoxine) — ne l'associez pas sans avis de votre médecin ou pharmacien (EMA, ANSM).",
+        "Contains St John's wort: it lowers the effect of several medicines, including yours (contraceptive, anticoagulant, immunosuppressant, digoxin) — do not combine without asking your doctor or pharmacist (EMA, ANSM).",
+    ),
+    // Regulation (EU) 1169/2011 Annex III (mandatory liquorice warning) and
+    // SCF 2003 opinion on glycyrrhizic acid: liquorice lowers potassium, which
+    // adds to diuretic-induced loss and raises digoxin toxicity.
+    FoodCaution(
+        FoodInteractionDrugClass.HYPOKALEMIA_SENSITIVE,
+        listOf("reglisse", "glycyrrhizine", "acide glycyrrhizique", "liquorice", "licorice"),
+        "Contient de la réglisse : en excès, elle fait baisser le potassium, ce qui s'ajoute à l'effet de votre diurétique ou augmente le risque de toxicité de la digoxine — limitez-en la consommation et demandez conseil à votre médecin (règlement UE 1169/2011, avis SCF 2003).",
+        "Contains liquorice: in excess it lowers potassium, adding to your diuretic's effect or raising the risk of digoxin toxicity — keep it occasional and ask your doctor (EU Regulation 1169/2011, SCF 2003 opinion).",
     ),
 ).map { it.copy(foodKeywords = it.foodKeywords.map(::normalizeForMatching), excludePhrases = it.excludePhrases.map(::normalizeForMatching)) }
 

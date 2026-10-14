@@ -521,7 +521,7 @@ C'est la vitrine de la promesse de confiance, accessible en un geste depuis la b
 S'appuie sur le format sourcé de la phase 3 : chaque nouvelle entrée naît avec sa source.
 
 ### 21. A7 – Couverture de la base médicamenteuse
-✅ **Partiellement fait** : + levure de riz rouge × statines (ANSES 2014, EFSA 2018), calcium/fer × fluoroquinolones/cyclines (RCP), alcool × métronidazole (RCP Flagyl, hors vinaigres), tyramine × linézolide (RCP Zyvoxid) (test `FoodDrugA7Test`). Restent : millepertuis et réglisse (concernent surtout des compléments ou une condition, pas une classe de médicaments).
+✅ **Fait** : + levure de riz rouge × statines (ANSES 2014, EFSA 2018), calcium/fer × fluoroquinolones/cyclines (RCP), alcool × métronidazole (RCP Flagyl, hors vinaigres), tyramine × linézolide (RCP Zyvoxid) (test `FoodDrugA7Test`). + millepertuis × contraceptifs, AVK, AOD, ciclosporine, tacrolimus, digoxine (monographie EMA/HMPC, ANSM) et réglisse × diurétiques et digoxine (règlement UE 1169/2011 annexe III, avis SCF 2003).
 
 `FoodDrugInteractionDb` couvre 5 classes
 (AVK, IMAO, statines/inhibiteurs calciques, IEC/sartans, lévothyroxine). Candidats sourcés
@@ -650,7 +650,7 @@ selon les modules choisis à l'onboarding (A4).
 > *Pourquoi ici :* Va de pair avec A4 (navigation allégée).
 
 ### 33. N11. Lecture vocale des alertes, pas seulement de la note
-✅ **Fait** : la lecture vocale annonce d'abord les alertes (rappel officiel, veto personnel avec son motif, traces d'allergènes, interaction médicamenteuse), puis la note ; libellé du réglage mis à jour. Reste : proposer l'option dans l'onboarding.
+✅ **Fait** : la lecture vocale annonce d'abord les alertes (rappel officiel, veto personnel avec son motif, traces d'allergènes, interaction médicamenteuse), puis la note ; libellé du réglage mis à jour. L'option est aussi proposée dans l'onboarding (page des modules).
 
 **Partiellement existant (corrigé après vérification)** : `util/ScoreSpeechAnnouncer` lit déjà la
 note et le grade à voix haute après un scan (option désactivée par défaut). À faire : annoncer aussi les
@@ -699,7 +699,7 @@ un nouvel utilisateur n'a donc jamais d'alternative. Interroger OFF par catégor
 > *Pourquoi ici :* Alternatives Open Food Facts (le score local est stabilisé après les phases 2-3).
 
 ### 37. D2 – Garde-manger ↔ dates de péremption
-✅ **Partiellement fait** : dans « Suggérer des recettes › Garde-manger », les produits bientôt périmés sont en tête, présélectionnés et marqués « bientôt périmé » ; les produits déjà périmés sont en dernier et jamais présélectionnés (test `PantrySuggestOrderTest`). Reste : les placer dans le plan de repas (D8).
+✅ **Fait** : dans « Suggérer des recettes › Garde-manger », les produits bientôt périmés sont en tête, présélectionnés et marqués « bientôt périmé » ; les produits déjà périmés sont en dernier et jamais présélectionnés (test `PantrySuggestOrderTest`). Le générateur de semaine (D8) place en premier les recettes qui utilisent un produit bientôt périmé.
 
 **Partiellement existant** : `PantryItem.expiryUrgency`, une notification de péremption dans `ReminderWorker`,
 et des suggestions de recettes à partir du garde-manger (`SuggestRecipesDialog`, mode PANTRY). Reste à faire : prioriser
