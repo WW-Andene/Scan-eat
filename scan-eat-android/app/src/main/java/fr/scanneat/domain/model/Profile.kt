@@ -47,6 +47,9 @@ data class Profile(
     // DietKey lives in domain/engine/scoring/DietChecker.kt
     val diet: fr.scanneat.domain.engine.scoring.DietKey = fr.scanneat.domain.engine.scoring.DietKey.NONE,
     val allergens: Set<String> = emptySet(),
+    // Roadmap N6: per-allergen severity; an allergen absent from this map is
+    // ALLERGY (the behaviour before severities existed). See [severityOf].
+    val allergenSeverities: Map<String, AllergenSeverity> = emptyMap(),
     // Free-form keys ("diabetes", "hypertension", "pregnancy", "kidney_disease",
     // "ibs", "crohn_ibd", "chronic_diarrhea", "cancer", "depression",
     // "chronic_migraine", "epilepsy") - same pattern as allergens, consumed by
@@ -71,3 +74,14 @@ data class Profile(
 )
 // NOTE: DailyTargets is defined in domain/engine/scoring/PersonalScoreEngine.kt (canonical location).
 // Do NOT add a second DailyTargets here.
+
+/**
+ * Roadmap N6. SEVERE (anaphylaxis risk): "may contain" traces also block the
+ * product. ALLERGY: a confirmed allergen blocks it, traces are a caution.
+ * INTOLERANCE (e.g. lactose): a confirmed allergen lowers the personal score
+ * without blocking it, traces are information only.
+ */
+enum class AllergenSeverity { SEVERE, ALLERGY, INTOLERANCE }
+
+fun Profile.severityOf(allergenKey: String): AllergenSeverity =
+    allergenSeverities[allergenKey] ?: AllergenSeverity.ALLERGY

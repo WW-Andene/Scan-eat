@@ -123,6 +123,8 @@ data class ProfileBackup(
     // backup/restore like every other profile field above it, ISO
     // yyyy-MM-dd or null.
     val pregnancyStartDate: String? = null,
+    // Roadmap N6: allergen key -> AllergenSeverity name; absent in older backups.
+    val allergenSeverities: Map<String, String> = emptyMap(),
 )
 
 // apiMode/serverUrl were dropped with the AI/server features; Moshi skips them

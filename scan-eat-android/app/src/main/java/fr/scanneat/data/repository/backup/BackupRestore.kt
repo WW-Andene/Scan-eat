@@ -49,6 +49,9 @@ internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle)
             isMenstruating = p.isMenstruating,
             healthConditions = p.healthConditions.toSet(),
             pregnancyStartDate = p.pregnancyStartDate?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() },
+            allergenSeverities = p.allergenSeverities.mapNotNull { (k, v) ->
+                fr.scanneat.domain.model.AllergenSeverity.entries.firstOrNull { it.name == v }?.let { k to it }
+            }.toMap(),
         ))
     }
     bundle.settings?.let { s ->

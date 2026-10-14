@@ -1,5 +1,6 @@
 package fr.scanneat.domain.engine.scoring
 
+import fr.scanneat.domain.model.AllergenSeverity
 import fr.scanneat.domain.model.Ingredient
 import fr.scanneat.domain.model.IngredientCategory
 import fr.scanneat.domain.model.NovaClass
@@ -57,5 +58,34 @@ class PersonalAllergenVetoTest {
         val p = product(listOf("arachides"))
         val result = computePersonalScore(scoreProduct(p), p, Profile(allergens = setOf("lactose")))
         assertFalse(result.veto)
+    }
+
+    // ---- N6: severity ----
+
+    @Test
+    fun `severe allergy also vetoes on traces`() {
+        val p = product(listOf("flocons d'avoine"), traces = listOf("en:peanuts"))
+        val profile = Profile(allergens = setOf("peanuts"), allergenSeverities = mapOf("peanuts" to AllergenSeverity.SEVERE))
+        val result = computePersonalScore(scoreProduct(p), p, profile)
+        assertTrue(result.veto)
+        assertTrue(result.dietReason!!.contains("allergie sévère"))
+    }
+
+    @Test
+    fun `intolerance lowers the score without veto`() {
+        val p = product(listOf("flocons d'avoine", "lait"))
+        val audit = scoreProduct(p)
+        val profile = Profile(allergens = setOf("lactose"), allergenSeverities = mapOf("lactose" to AllergenSeverity.INTOLERANCE))
+        val result = computePersonalScore(audit, p, profile)
+        assertFalse(result.veto)
+        assertTrue(result.adjustments.any { it.reason.contains("intolérance") && it.points < 0 })
+        assertTrue(result.personalScore < audit.score)
+    }
+
+    @Test
+    fun `intolerance traces have no effect`() {
+        val p = product(listOf("flocons d'avoine"), traces = listOf("en:milk"))
+        val profile = Profile(allergens = setOf("lactose"), allergenSeverities = mapOf("lactose" to AllergenSeverity.INTOLERANCE))
+        assertFalse(computePersonalScore(scoreProduct(p), p, profile).veto)
     }
 }

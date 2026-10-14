@@ -344,6 +344,8 @@ sous `RecallBanner`, avant l'anneau de score.
 > *Pourquoi ici :* Réordonnancement des composables du résultat.
 
 ### 7. N6. Sévérité par allergène (allergie sévère / allergie / intolérance) 🔴
+✅ **Fait** : `Profile.allergenSeverities` (DataStore chiffré, sauvegarde incluse, aucune migration Room nécessaire). SÉVÈRE : traces = veto ; ALLERGIE (défaut) : ingrédient = veto, traces = prudence ; INTOLÉRANCE : −15 points, traces sans effet. Choix par allergène dans le profil ; la carte Famille suit les mêmes règles.
+
 `Profile.allergens` est un simple `Set<String>`. Les mentions « peut contenir des traces » sont
 détectées (`isTraceOnly`), mais elles sont traitées de la même façon pour tout le monde. Or, pour une
 allergie anaphylactique, une trace est un motif de refus, alors que pour une intolérance au lactose elle est sans importance.

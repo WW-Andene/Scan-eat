@@ -64,17 +64,28 @@ fun computePersonalScore(
     val allergenHits = if (profile.allergens.isNotEmpty())
         checkUserAllergens(product, profile.allergens, lang)
     else emptyList()
-    // A CONFIRMED allergen (ingredient list or OFF allergens_tags) is a hard
-    // stop for the profile that declared it: the personal score must never
-    // stay green (it also feeds history sorting, alternatives and widgets).
-    // Trace-only "may contain" hits stay informational (AllergenWarningsCard)
-    // until per-allergen severity exists (Roadmap N6).
-    val confirmedAllergens = allergenHits.filter { !it.isTraceOnly }
-    val allergenReason = confirmedAllergens.takeIf { it.isNotEmpty() }?.let { hits ->
-        val names = hits.joinToString(", ") { if (lang == "fr") it.labelFr else it.labelEn }
-        if (lang == "fr") "Contient : $names" else "Contains: $names"
-    }
+    // C10 + N6: a CONFIRMED allergen (ingredient list or OFF allergens_tags)
+    // is a hard stop for an ALLERGY or SEVERE profile: the personal score must
+    // never stay green (it also feeds history sorting, alternatives and
+    // widgets). "May contain" traces block only a SEVERE allergy. An
+    // INTOLERANCE lowers the score instead of blocking it.
+    fun label(h: AllergenHit) = if (lang == "fr") h.labelFr else h.labelEn
+    val confirmedBlocking = allergenHits.filter { !it.isTraceOnly && profile.severityOf(it.key) != AllergenSeverity.INTOLERANCE }
+    val severeTraces = allergenHits.filter { it.isTraceOnly && profile.severityOf(it.key) == AllergenSeverity.SEVERE }
+    val allergenReason = listOfNotNull(
+        confirmedBlocking.takeIf { it.isNotEmpty() }?.joinToString(", ") { label(it) }
+            ?.let { if (lang == "fr") "Contient : $it" else "Contains: $it" },
+        severeTraces.takeIf { it.isNotEmpty() }?.joinToString(", ") { label(it) }
+            ?.let { if (lang == "fr") "Traces possibles : $it (allergie sévère)" else "May contain: $it (severe allergy)" },
+    ).takeIf { it.isNotEmpty() }?.joinToString(" · ")
     veto = veto || allergenReason != null
+    allergenHits.filter { !it.isTraceOnly && profile.severityOf(it.key) == AllergenSeverity.INTOLERANCE }.forEach { h ->
+        adjustments += PersonalAdjustment(
+            points = -INTOLERANCE_PENALTY,
+            reason = if (lang == "fr") "Contient : ${label(h)} (intolérance déclarée)" else "Contains: ${label(h)} (declared intolerance)",
+            category = AdjustmentCategory.DIET,
+        )
+    }
 
     val conditionsResult = checkHealthConditions(product, profile, lang, catThresholds, isSugarSweetenedBeverage)
     adjustments += conditionsResult.adjustments
@@ -119,6 +130,11 @@ fun computePersonalScore(
         allergenHits  = allergenHits,
     )
 }
+
+/** Points removed per confirmed allergen the profile declares as an
+ *  intolerance (N6) - a profile preference, not a clinical measure: enough to
+ *  drop about one grade, never a veto. */
+private const val INTOLERANCE_PENALTY = 15.0
 
 /** Map 0-100 personal score to grade. Was a hand-copied duplicate of
  *  scoreToGrade()'s breakpoints - the exact anti-pattern scoreToGrade's own

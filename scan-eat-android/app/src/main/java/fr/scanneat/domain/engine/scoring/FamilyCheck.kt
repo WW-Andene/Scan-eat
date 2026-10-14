@@ -1,6 +1,8 @@
 package fr.scanneat.domain.engine.scoring
 
+import fr.scanneat.domain.model.AllergenSeverity
 import fr.scanneat.domain.model.Product
+import fr.scanneat.domain.model.severityOf
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.domain.model.ScoreAudit
 
@@ -36,7 +38,7 @@ fun familyVerdicts(
     lang: String = "fr",
 ): List<FamilyMemberVerdict> = profiles.map { profile ->
     val personal = computePersonalScore(audit, product, profile, lang)
-    val traces = personal.allergenHits.filter { it.isTraceOnly }
+    val traces = personal.allergenHits.filter { it.isTraceOnly && profile.severityOf(it.key) == AllergenSeverity.ALLERGY }
     val needsIngredients = profile.allergens.isNotEmpty() || profile.diet != DietKey.NONE
     val (status, reason) = when {
         personal.veto -> FamilyStatus.BLOCKED to personal.dietReason

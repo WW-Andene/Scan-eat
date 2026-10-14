@@ -140,6 +140,7 @@ class BackupRepository @Inject constructor(
                 isMenstruating = profile.isMenstruating,
                 healthConditions = profile.healthConditions.toList(),
                 pregnancyStartDate = profile.pregnancyStartDate?.toString(),
+                allergenSeverities = profile.allergenSeverities.mapValues { it.value.name },
             ),
             settings = SettingsBackup(
                 language = prefs.language.first(),

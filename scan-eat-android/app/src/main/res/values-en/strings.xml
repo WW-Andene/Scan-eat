@@ -2072,4 +2072,8 @@
     <string name="recalls_risks">Risks: %1$s</string>
     <string name="recalls_instructions">What to do: %1$s</string>
     <string name="recalls_open_sheet">Open the official notice</string>
+    <string name="profile_allergen_severity_hint">Level for each allergen: “Severe” also blocks products that may contain traces; “Intolerance” lowers the score without blocking the product.</string>
+    <string name="allergen_severity_severe">Severe</string>
+    <string name="allergen_severity_allergy">Allergy</string>
+    <string name="allergen_severity_intolerance">Intolerance</string>
 </resources>

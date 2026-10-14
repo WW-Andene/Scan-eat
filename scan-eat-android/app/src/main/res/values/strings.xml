@@ -2076,4 +2076,8 @@
     <string name="recalls_risks">Risques : %1$s</string>
     <string name="recalls_instructions">Que faire : %1$s</string>
     <string name="recalls_open_sheet">Voir la fiche officielle</string>
+    <string name="profile_allergen_severity_hint">Niveau pour chaque allergène : « Sévère » bloque aussi les produits pouvant contenir des traces ; « Intolérance » baisse la note sans bloquer le produit.</string>
+    <string name="allergen_severity_severe">Sévère</string>
+    <string name="allergen_severity_allergy">Allergie</string>
+    <string name="allergen_severity_intolerance">Intolérance</string>
 </resources>
