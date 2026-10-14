@@ -2249,4 +2249,8 @@
     <string name="off_contribute_add">Ajouter ce produit sur Open Food Facts</string>
     <string name="off_contribute_complete">Compléter cette fiche sur Open Food Facts (base collaborative)</string>
     <string name="grocery_weekly_budget">budget de la semaine %1$s</string>
+    <string name="store_mode_title">En magasin</string>
+    <string name="store_mode_ticked">Coché dans la liste : %1$s</string>
+    <string name="store_mode_last_price">Dernier prix payé : %1$s %2$s</string>
+    <string name="store_mode_todo">Reste à acheter (%1$d)</string>
 </resources>

@@ -49,6 +49,7 @@ fun GroceryScreen(
     // list - see AppRoutes.SCAN_FOR_GROCERY's own comment. Defaults to a
     // no-op so this remains source-compatible with any other call site.
     onScanToAdd: () -> Unit = {},
+    onOpenStoreMode: () -> Unit = {},
 ) {
     var groceryTab by rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver()) { mutableStateOf(GroceryTab.LIST) }
     var quickAddText by rememberSaveable { mutableStateOf("") }
@@ -131,6 +132,7 @@ fun GroceryScreen(
                 onToggleSortAlpha = { viewModel.toggleSortAlpha() },
                 groupByAisle = groupByAisle.value,
                 onToggleGroupByAisle = { viewModel.toggleGroupByAisle() },
+                onOpenStoreMode = onOpenStoreMode,
                 onShare = {
                     val sendIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"

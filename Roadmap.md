@@ -791,6 +791,8 @@ prise de médicament, verre d'eau, chrono de jeûne.
 > *Pourquoi ici :* Wear OS / tuile (réutilise les alarmes de C9).
 
 ### 47. N7. Mode « En magasin »
+✅ **Fait** : écran « En magasin » (bouton boutique dans Courses) : caméra en haut, liste restante par rayon en bas ; un produit scanné coche l'article correspondant (mots entiers, singulier/pluriel), affiche sa note, la vérification Famille (D10) et le dernier prix payé (test `StoreMatchTest`).
+
 Combiner la liste de courses (triée par rayon via `GroceryCategories`) et le scan : scanner un produit
 en rayon coche l'article correspondant, vérifie la compatibilité de toute la famille (D10) et compare le
 prix au dernier prix payé (D7). Écran unique, pensé pour une seule main.

@@ -2245,4 +2245,8 @@
     <string name="off_contribute_add">Add this product to Open Food Facts</string>
     <string name="off_contribute_complete">Complete this product on Open Food Facts (collaborative database)</string>
     <string name="grocery_weekly_budget">weekly budget %1$s</string>
+    <string name="store_mode_title">In store</string>
+    <string name="store_mode_ticked">Ticked on the list: %1$s</string>
+    <string name="store_mode_last_price">Last price paid: %1$s %2$s</string>
+    <string name="store_mode_todo">Still to buy (%1$d)</string>
 </resources>
