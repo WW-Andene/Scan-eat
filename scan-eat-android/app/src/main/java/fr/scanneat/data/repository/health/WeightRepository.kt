@@ -42,6 +42,7 @@ data class WeightSummary(
 class WeightRepository @Inject constructor(
     private val dao: WeightDao,
     private val healthConnect: HealthConnectRepository,
+    private val hcGate: HealthConnectProfileGate,
     private val userPreferences: UserPreferences,
 ) {
 
@@ -93,7 +94,7 @@ class WeightRepository @Inject constructor(
                 profileId = profileId,
             )
         }
-        if (existing?.weightKg != rounded) healthConnect.writeWeight(date, rounded)
+        if (existing?.weightKg != rounded && hcGate.allows(profileId)) healthConnect.writeWeight(date, rounded)
         dao.trim(MAX_HISTORY_ROWS, profileId)
         // Every BMI/TDEE/calorie-balance/kcal-burned calc downstream reads
         // prefs.profile.weightKg (ProfileViewModel, DashboardViewModel,
@@ -118,7 +119,7 @@ class WeightRepository @Inject constructor(
     suspend fun delete(id: String) {
         val entry = dao.findById(id)
         dao.delete(id)
-        entry?.let {
+        entry?.takeIf { hcGate.allows(it.profileId) }?.let {
             runCatching { healthConnect.deleteWeight(it.date.toLocalDate()) }
                 .onFailure { e -> if (e is CancellationException) throw e else android.util.Log.w("WeightRepository", "HC delete failed", e) }
         }
@@ -138,6 +139,7 @@ class WeightRepository @Inject constructor(
         val zone = java.time.ZoneId.systemDefault()
         val start = LocalDate.now().minusDays(days.toLong()).atStartOfDay(zone).toInstant()
         val end = LocalDate.now().plusDays(1).atStartOfDay(zone).toInstant()
+        if (!hcGate.allows(profileId)) return
         val external = healthConnect.readExternalWeights(start, end)
         if (external.isEmpty()) return
         val existingDates = dao.getRecent(Int.MAX_VALUE, profileId).map { it.date }.toSet()

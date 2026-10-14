@@ -61,6 +61,7 @@ fun SettingsScreen(
     val hiddenModulesCsv = viewModel.hiddenModules.collectAsStateWithLifecycle()
     val hideMedNames = viewModel.hideMedicationNames.collectAsStateWithLifecycle()
     val retentionPending = viewModel.retentionWarningPending.collectAsStateWithLifecycle()
+    val hcIsActiveProfile = viewModel.healthConnectIsActiveProfile.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
@@ -264,6 +265,8 @@ fun SettingsScreen(
                     availability = healthConnectAvailability.value,
                     connected = healthConnectConnected.value,
                     onConnect = { healthConnectLauncher.launch(viewModel.healthConnectPermissions) },
+                    isActiveProfile = hcIsActiveProfile.value,
+                    onLinkActiveProfile = viewModel::linkHealthConnectToActiveProfile,
                 )
             }
 

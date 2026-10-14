@@ -2285,4 +2285,7 @@
     <string name="diary_caffeine_single_dose">Over 200 mg in one go: %1$s</string>
     <string name="diary_caffeine_source">EFSA 2015 levels (pregnancy 200 mg, under 18 3 mg/kg). Without product data, caffeine is estimated.</string>
     <string name="diary_caffeine_estimated">including about %1$d mg estimated (EFSA typical contents: coffee, tea, cola…)</string>
+    <string name="settings_healthconnect_profile_linked">This profile syncs with Health Connect. Other profiles neither read from nor write to Health Connect.</string>
+    <string name="settings_healthconnect_profile_other">Health Connect is linked to another profile: this one neither reads from nor writes to it.</string>
+    <string name="settings_healthconnect_profile_link">Link Health Connect to this profile</string>
 </resources>

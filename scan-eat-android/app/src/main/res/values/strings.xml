@@ -2289,4 +2289,7 @@
     <string name="diary_caffeine_single_dose">Plus de 200 mg en une prise : %1$s</string>
     <string name="diary_caffeine_source">Repères EFSA 2015 (grossesse 200 mg, moins de 18 ans 3 mg/kg). Sans donnée produit, la caféine est estimée.</string>
     <string name="diary_caffeine_estimated">dont environ %1$d mg estimés (teneurs habituelles EFSA : café, thé, cola…)</string>
+    <string name="settings_healthconnect_profile_linked">Ce profil est synchronisé avec Health Connect. Les autres profils ne lisent ni n\'écrivent rien dans Health Connect.</string>
+    <string name="settings_healthconnect_profile_other">Health Connect est lié à un autre profil : ce profil-ci ne lit ni n\'écrit rien dans Health Connect.</string>
+    <string name="settings_healthconnect_profile_link">Lier Health Connect à ce profil</string>
 </resources>
