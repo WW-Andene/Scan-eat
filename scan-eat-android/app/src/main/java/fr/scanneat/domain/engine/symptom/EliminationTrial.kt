@@ -10,7 +10,7 @@ import java.time.temporal.ChronoUnit
 
 /**
  * Roadmap D4: a guided avoidance trial for one Annex II allergen key the app
- * can detect ("lactose", "gluten"): a baseline window before the start, an
+ * can detect ("lactose", "gluten"), or the FODMAP polyols ([POLYOLS_TARGET]): a baseline window before the start, an
  * avoidance phase, then a reintroduction phase. Durations are the user's
  * choice (defaults 14 + 7 days), not a medical protocol - the screen says to
  * run it with a doctor or dietitian.
@@ -37,6 +37,24 @@ data class TrialReport(
     val slips: List<String>,
 )
 
+/**
+ * FODMAP polyols, the one FODMAP group an ingredient list names reliably: the
+ * polyol sweeteners of Regulation (EU) 1333/2008 (E420 sorbitol, E421 mannitol,
+ * E953 isomalt, E965 maltitol, E966 lactitol, E967 xylitol), which Regulation
+ * (EU) 1169/2011 Annex III flags for their laxative effect. Erythritol (E968)
+ * is left out: it is barely fermented in the gut. Fructans/GOS (wheat, onion,
+ * legumes) and fructose are not detected - their content isn't on the label.
+ */
+const val POLYOLS_TARGET = "polyols"
+
+private val POLYOL_RE = Regex(
+    "\\b(sorbitol|mannitol|isomalt|maltitol|lactitol|xylitol|e ?420|e ?421|e ?953|e ?965|e ?966|e ?967)[a-z]{0,2}\\b|sirop de sorbitol|sirop de maltitol",
+    RegexOption.IGNORE_CASE,
+)
+
+fun containsPolyols(e: DiaryEntry): Boolean =
+    POLYOL_RE.containsMatchIn(e.productName) || e.ingredients.any { POLYOL_RE.containsMatchIn(it.name) }
+
 fun trialPhase(t: EliminationTrial, today: LocalDate): TrialPhase = when {
     today.isBefore(t.reintroStart) -> TrialPhase.AVOIDANCE
     today.isBefore(t.end) -> TrialPhase.REINTRODUCTION
@@ -61,7 +79,7 @@ fun trialReport(t: EliminationTrial, symptomDates: Set<LocalDate>, diary: List<D
         .filter { e ->
             val p = Product(name = e.productName, category = ProductCategory.OTHER, novaClass = NovaClass.PROCESSED,
                 ingredients = e.ingredients, nutrition = e.nutrition)
-            detectAllergens(p, lang).any { it.key == t.target && !it.isTraceOnly }
+            if (t.target == POLYOLS_TARGET) containsPolyols(e) else detectAllergens(p, lang).any { it.key == t.target && !it.isTraceOnly }
         }
         .map { "${it.date} — ${it.productName}" }
     return TrialReport(

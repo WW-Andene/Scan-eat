@@ -2282,4 +2282,5 @@
     <string name="scan_identify_choose_title">Reconnu : %1$s</string>
     <string name="scan_identify_choose_other">Ce n\'est pas ça ? Autres correspondances :</string>
     <string name="scan_identify_choose_confirm">C\'est bien ça</string>
+    <string name="trial_target_polyols">Polyols (FODMAP)</string>
 </resources>

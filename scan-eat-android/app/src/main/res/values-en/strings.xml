@@ -2278,4 +2278,5 @@
     <string name="scan_identify_choose_title">Recognised: %1$s</string>
     <string name="scan_identify_choose_other">Not right? Other matches:</string>
     <string name="scan_identify_choose_confirm">That\'s right</string>
+    <string name="trial_target_polyols">Polyols (FODMAP)</string>
 </resources>

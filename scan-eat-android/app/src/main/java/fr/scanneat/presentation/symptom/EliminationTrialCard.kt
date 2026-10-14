@@ -30,7 +30,7 @@ internal fun EliminationTrialCard(
         Text(stringResource(R.string.trial_disclaimer), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
         if (trial == null) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                listOf("lactose" to R.string.allergen_lactose, "gluten" to R.string.allergen_gluten).forEach { (k, res) ->
+                listOf("lactose" to R.string.allergen_lactose, "gluten" to R.string.allergen_gluten, fr.scanneat.domain.engine.symptom.POLYOLS_TARGET to R.string.trial_target_polyols).forEach { (k, res) ->
                     FilterChip(selected = target == k, onClick = { target = k }, label = { Text(stringResource(res)) })
                 }
             }
@@ -39,7 +39,7 @@ internal fun EliminationTrialCard(
             }
             Button(onClick = { onStart(target, avoid, 7) }) { Text(stringResource(R.string.trial_start)) }
         } else {
-            val targetLabel = stringResource(if (trial.target == "gluten") R.string.allergen_gluten else R.string.allergen_lactose)
+            val targetLabel = stringResource(when (trial.target) { "gluten" -> R.string.allergen_gluten; fr.scanneat.domain.engine.symptom.POLYOLS_TARGET -> R.string.trial_target_polyols; else -> R.string.allergen_lactose })
             report?.let { r ->
                 Text(when (r.phase) {
                     TrialPhase.AVOIDANCE -> stringResource(R.string.trial_phase_avoid, targetLabel, r.daysLeftInPhase)

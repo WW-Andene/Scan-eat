@@ -716,7 +716,7 @@ bouclage « budget prévu vs ticket scanné » (`ReceiptParser` déjà présent)
 > *Pourquoi ici :* Plan → courses → dépenses.
 
 ### 39. D4 – Signaux croisés symptômes ↔ aliments
-✅ **Fait (lactose, gluten)** : « Essai d'éviction guidé » sur l'écran Symptômes : éviction de 14/21/28 jours puis 7 jours de réintroduction ; pourcentage de jours avec symptôme avant / pendant / après, écarts détectés dans le journal pendant l'éviction ; présenté comme observation personnelle à mener avec un médecin ou un diététicien (dépistage de la maladie cœliaque avant toute éviction du gluten) (test `EliminationTrialTest`). FODMAP non couvert : aucun détecteur FODMAP sourcé dans l'app.
+✅ **Fait (lactose, gluten, polyols)** : « Essai d'éviction guidé » sur l'écran Symptômes : éviction de 14/21/28 jours puis 7 jours de réintroduction ; pourcentage de jours avec symptôme avant / pendant / après, écarts détectés dans le journal pendant l'éviction ; présenté comme observation personnelle à mener avec un médecin ou un diététicien (dépistage de la maladie cœliaque avant toute éviction du gluten) (test `EliminationTrialTest`). FODMAP : essai « Polyols (FODMAP) », le seul groupe FODMAP qu'une liste d'ingrédients nomme de façon fiable (E420 sorbitol, E421 mannitol, E953 isomalt, E965 maltitol, E966 lactitol, E967 xylitol ; règlement UE 1333/2008, mention laxative du règlement UE 1169/2011 annexe III ; érythritol exclu, peu fermenté). Fructanes, GOS et fructose non détectés : leur teneur n'est pas étiquetée.
 
 `SymptomCorrelation` existe ; ajouter un
 journal d'élimination guidé (FODMAP, lactose), à présenter clairement comme une
