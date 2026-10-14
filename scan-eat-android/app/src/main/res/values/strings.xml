@@ -2284,4 +2284,8 @@
     <string name="trial_target_polyols">Polyols (FODMAP)</string>
     <string name="medication_supply_renewal_set">Fin de l\'ordonnance : choisir la date</string>
     <string name="medication_supply_renewal_on">Fin de l\'ordonnance : %1$s</string>
+    <string name="diary_caffeine_title">Caféine du jour</string>
+    <string name="diary_caffeine_total">%1$d mg sur %2$d mg conseillés au maximum</string>
+    <string name="diary_caffeine_single_dose">Plus de 200 mg en une prise : %1$s</string>
+    <string name="diary_caffeine_source">Repères EFSA 2015 (grossesse 200 mg, moins de 18 ans 3 mg/kg). Compte seulement la caféine indiquée dans les données produit.</string>
 </resources>

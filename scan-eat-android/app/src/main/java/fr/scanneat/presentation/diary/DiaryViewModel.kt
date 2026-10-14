@@ -157,6 +157,11 @@ class DiaryViewModel @Inject constructor(
         if (bioTdee != null) base.withKcalOverride(bioTdee, profile.safeGoal, currentPregnancyTrimester(profile)) else base
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    /** Daily caffeine vs the EFSA limit for this profile - null hides the card. */
+    val caffeine: StateFlow<fr.scanneat.domain.engine.nutrition.CaffeineBudget?> = combine(prefs.profile, summary) { profile, s ->
+        fr.scanneat.domain.engine.nutrition.caffeineBudget(profile, s.entries)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     /** For the goal-targets row's label ("Objectif : NN kg") - null hides the row. */
     val goalWeightKg: StateFlow<Double?> = combine(prefs.profile, goalTargets) { profile, goal ->
         profile.goalWeightKg.takeIf { goal != null }

@@ -2280,4 +2280,8 @@
     <string name="trial_target_polyols">Polyols (FODMAP)</string>
     <string name="medication_supply_renewal_set">Prescription end: pick a date</string>
     <string name="medication_supply_renewal_on">Prescription end: %1$s</string>
+    <string name="diary_caffeine_title">Caffeine today</string>
+    <string name="diary_caffeine_total">%1$d mg of a %2$d mg maximum</string>
+    <string name="diary_caffeine_single_dose">Over 200 mg in one go: %1$s</string>
+    <string name="diary_caffeine_source">EFSA 2015 levels (pregnancy 200 mg, under 18 3 mg/kg). Only counts caffeine listed in the product data.</string>
 </resources>
