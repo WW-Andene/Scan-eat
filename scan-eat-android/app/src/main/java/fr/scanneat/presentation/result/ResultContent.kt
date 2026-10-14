@@ -54,6 +54,7 @@ internal fun ResultContent(
     priceEntries: List<fr.scanneat.data.repository.expense.PriceEntry> = emptyList(),
     currencySymbol: String = "€",
     improvementTips: List<ImprovementTip> = emptyList(),
+    medicationRisks: List<String> = emptyList(),
     onSavePrice: (Double, Double?) -> Unit = { _, _ -> },
     onDeletePrice: (String) -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
@@ -139,6 +140,36 @@ internal fun ResultContent(
         // on this page.
         recall?.let { RecallBanner(it) }
 
+        // Roadmap C1: personal safety signals (confirmed allergen veto, allergen
+        // warnings, unverifiable ingredients, food-drug interactions) sit right
+        // under the recall banner, BEFORE the score ring and the pairing /
+        // alternative suggestions - for an allergic user they are information n°1.
+        if (personalScore?.veto == true) {
+            DietVetoBanner(personalScore.dietReason)
+        }
+
+        val allergens = personalScore?.allergenHits.orEmpty()
+        if (allergens.isNotEmpty()) {
+            AllergenWarningsCard(allergens, language)
+        }
+
+        // Personalization active but this particular scan's ingredient panel
+        // couldn't be OCR'd - allergenHits/veto are both silently empty in that
+        // case (nothing to match against), which otherwise looks identical to a
+        // genuine "no allergens found" result for a user with real allergens set.
+        // Checked structurally (empty ingredient list) rather than by matching
+        // scan.warnings' text, since that text is localized and this condition
+        // must hold regardless of the app's display language.
+        if (personalScore != null && personalScore.applicable && allergens.isEmpty() && personalScore.veto != true &&
+            scan.product.ingredients.isEmpty()
+        ) {
+            AllergenUnverifiedBanner()
+        }
+
+        if (medicationRisks.isNotEmpty()) {
+            MedicationRiskBanner(medicationRisks)
+        }
+
         // User-requested: mapCategory() fell back to OTHER's generic,
         // unverified thresholds for this product - see UncertainCategoryBanner's
         // own doc comment.
@@ -198,28 +229,6 @@ internal fun ResultContent(
 
         if (pairings.isNotEmpty()) {
             PairingsCard(pairings)
-        }
-
-        if (personalScore?.veto == true) {
-            DietVetoBanner(personalScore.dietReason)
-        }
-
-        val allergens = personalScore?.allergenHits.orEmpty()
-        if (allergens.isNotEmpty()) {
-            AllergenWarningsCard(allergens, language)
-        }
-
-        // Personalization active but this particular scan's ingredient panel
-        // couldn't be OCR'd - allergenHits/veto are both silently empty in that
-        // case (nothing to match against), which otherwise looks identical to a
-        // genuine "no allergens found" result for a user with real allergens set.
-        // Checked structurally (empty ingredient list) rather than by matching
-        // scan.warnings' text, since that text is localized and this condition
-        // must hold regardless of the app's display language.
-        if (personalScore != null && personalScore.applicable && allergens.isEmpty() && personalScore.veto != true &&
-            scan.product.ingredients.isEmpty()
-        ) {
-            AllergenUnverifiedBanner()
         }
 
         // Personal score adjustments

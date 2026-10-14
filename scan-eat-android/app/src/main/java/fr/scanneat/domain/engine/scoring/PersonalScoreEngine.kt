@@ -64,6 +64,17 @@ fun computePersonalScore(
     val allergenHits = if (profile.allergens.isNotEmpty())
         checkUserAllergens(product, profile.allergens, lang)
     else emptyList()
+    // A CONFIRMED allergen (ingredient list or OFF allergens_tags) is a hard
+    // stop for the profile that declared it: the personal score must never
+    // stay green (it also feeds history sorting, alternatives and widgets).
+    // Trace-only "may contain" hits stay informational (AllergenWarningsCard)
+    // until per-allergen severity exists (Roadmap N6).
+    val confirmedAllergens = allergenHits.filter { !it.isTraceOnly }
+    val allergenReason = confirmedAllergens.takeIf { it.isNotEmpty() }?.let { hits ->
+        val names = hits.joinToString(", ") { if (lang == "fr") it.labelFr else it.labelEn }
+        if (lang == "fr") "Contient : $names" else "Contains: $names"
+    }
+    veto = veto || allergenReason != null
 
     val conditionsResult = checkHealthConditions(product, profile, lang, catThresholds, isSugarSweetenedBeverage)
     adjustments += conditionsResult.adjustments
@@ -75,7 +86,8 @@ fun computePersonalScore(
     // whichever fired first and silently dropped the other, so DietVetoBanner (the
     // one UI surface explaining why the score was zeroed) could hide a genuinely
     // safety-relevant health-condition reason behind an unrelated diet reason.
-    val dietReason = listOfNotNull(dietResult.dietReason, conditionsResult.dietReason)
+    // The allergen reason goes first: it is the most safety-critical one.
+    val dietReason = listOfNotNull(allergenReason, dietResult.dietReason, conditionsResult.dietReason)
         .takeIf { it.isNotEmpty() }
         ?.joinToString(" · ")
 

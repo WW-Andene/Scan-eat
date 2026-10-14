@@ -198,6 +198,7 @@ fun ResultScreen(
                 ScanEatLoadingIndicator(size = 196.dp, strokeWidth = 12.dp, trackColor = SurfaceVariant)
             }
         } else {
+            val contentHints = generateProductHints(s.scanResult.product, profile.value, language.value, activeMedicationNames.value, todaysLoggedFoodNames.value)
             ResultContent(
                 scan              = s.scanResult,
                 personalScore     = s.personalScore,
@@ -221,7 +222,10 @@ fun ResultScreen(
                 // generateProductHints call already used for HintIconButton
                 // above; pure/cheap, safe to compute again here rather than
                 // threading it across the TopBar/content composable boundary.
-                improvementTips   = generateProductHints(s.scanResult.product, profile.value, language.value, activeMedicationNames.value, todaysLoggedFoodNames.value).improvementTips,
+                improvementTips   = contentHints.improvementTips,
+                // Roadmap C2: food-drug interactions were only reachable by
+                // opening the hint dialog; shown inline in the safety block now.
+                medicationRisks   = contentHints.medicationRisks,
                 onSavePrice       = { price, weight -> viewModel.savePrice(price, weight) },
                 onDeletePrice     = { id -> viewModel.deletePrice(id) },
                 onOpenResult      = onOpenResult,

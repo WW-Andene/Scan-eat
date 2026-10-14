@@ -306,6 +306,8 @@ migration ou un `@SerializedName`) et purger les commentaires obsolètes.
 Le cœur de la promesse ; changements localisés et à fort impact.
 
 ### 5. C10. Un allergène confirmé n'a aucun effet sur la note personnelle 🔴
+✅ **Fait** : un allergène confirmé déclenche le veto (« Contient : … »), les traces restent informatives (test `PersonalAllergenVetoTest`).
+
 `domain/engine/scoring/PersonalScoreEngine.kt` (l. 63-66) calcule `allergenHits`, mais ce
 résultat ne participe **ni au `veto` ni aux `adjustments`** : seuls `dietResult` et
 `conditionsResult` peuvent mettre la note à 0. Un produit contenant de l'arachide, scanné par un profil
@@ -319,6 +321,8 @@ selon N6.
 > *Pourquoi ici :* Le défaut de sécurité le plus grave de l'audit : à corriger avant tout le reste, y compris avant C1, puisque C1 ne fait que déplacer la carte.
 
 ### 6. C1. Alertes de sécurité mal ordonnées sur l'écran résultat 🔴
+✅ **Fait** : veto, allergènes, ingrédients non vérifiables et interactions médicamenteuses sont affichés juste sous le bandeau de rappel.
+
 `presentation/result/ResultContent.kt` affiche, dans cet ordre : bandeau de rappel, badges,
 anneau de score, verdict, **ComparisonCard, AlternativeCard, PairingsCard**, puis
 seulement ensuite **DietVetoBanner** et **AllergenWarningsCard** (l. ~200-216).
@@ -339,6 +343,8 @@ veto ; avec ALLERGIE, un malus et un bandeau ; avec INTOLÉRANCE, une simple inf
 > *Pourquoi ici :* Prolonge directement C10, dans le même moteur ; dépend de C5 pour la migration du profil.
 
 ### 8. C2. Interactions aliment-médicament cachées derrière un bouton 🔴
+✅ **Fait** : `MedicationRiskBanner` affiché directement dans l'écran résultat.
+
 Les risques médicamenteux du produit scanné (`hints.medicationRisks`, issus de
 `checkFoodDrugInteractions`) ne s'affichent que dans `HintPanel`, une boîte de dialogue
 fermée par défaut (`showHints = false`). Un utilisateur sous AVK qui scanne des épinards ne

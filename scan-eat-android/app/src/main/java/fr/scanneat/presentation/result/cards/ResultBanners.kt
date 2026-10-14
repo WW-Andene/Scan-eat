@@ -250,3 +250,27 @@ internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String
         }
     }
 }
+
+// Roadmap C2: food-drug interactions for the scanned product (from
+// checkFoodDrugInteractions, active medications of the active profile) were
+// only visible inside the closed-by-default hint dialog. Same red level as the
+// allergen warnings; the hint panel keeps the full detail.
+@Composable
+internal fun MedicationRiskBanner(risks: List<String>) {
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(alpha = 0.15f),
+        contentPadding = PaddingValues(Spacing.L),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Inline))
+                Text(stringResource(R.string.hint_section_medication_risks), style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold, color = OnBackground, modifier = Modifier.weight(1f))
+            }
+            risks.forEach { risk ->
+                Text("• $risk", style = MaterialTheme.typography.bodySmall, color = OnBackground)
+            }
+        }
+    }
+}
