@@ -560,6 +560,8 @@ allergologue** (sans conclure, cf. C17). Le carnet est exporté dans le rapport 
 > *Pourquoi ici :* Contenu santé ; réutilise l'historique de scans et `AllergenDetector`, et alimente D5.
 
 ### 25. D5 – Rapport médecin
+✅ **Fait** : page « Santé et traitements (30j) » du PDF : allergies et sévérités, conditions, traitements actifs avec observance (prises notées / prévues), nombre d'interactions entre traitements, symptômes par type avec sévérité moyenne, corrélations traitement ↔ symptôme retenues par le test de C17 (test `MedicationAdherenceTest`).
+
 ajouter interactions détectées, observance des médicaments
 et symptômes sur la période choisie dans `PdfReportRepository`.
 

@@ -46,6 +46,8 @@ class PdfReportRepository @Inject constructor(
     private val fastingRepo: FastingRepository,
     private val priceRepo: PriceRepository,
     private val prefs: UserPreferences,
+    private val medicationRepo: fr.scanneat.data.repository.health.MedicationRepository,
+    private val symptomRepo: fr.scanneat.data.repository.symptom.SymptomRepository,
 ) {
     private companion object {
         const val PAGE_W = 595   // A4 @ 72dpi
@@ -72,6 +74,17 @@ class PdfReportRepository @Inject constructor(
         }
         val priceEntries = priceRepo.observeAll().first().filter { !it.date.isBefore(today.minusDays(29)) }
 
+        // Roadmap D5: treatments, adherence, interactions and symptoms (30 days).
+        val profileId = prefs.activeProfileId.first()
+        val from30 = today.minusDays(29)
+        val meds = medicationRepo.observeAll(profileId).first().filter { it.active }
+        val medLogs = medicationRepo.getLogRange(from30, today, profileId)
+        val adherence = meds.map { it.name to fr.scanneat.domain.engine.health.medicationAdherence(it, medLogs, from30, today) }
+        val interactions = fr.scanneat.presentation.medication.detectInteractions(meds.map { it.name })
+        val symptoms = symptomRepo.observeAll(profileId).first().filter { !it.date.isBefore(from30) }
+        val medCorrelations = fr.scanneat.domain.engine.symptom.symptomMedicationCorrelations(
+            symptoms.mapTo(mutableSetOf()) { it.date }, medLogs.map { it.date to it.medicationName })
+
         val doc = PdfDocument()
         val body = ReportPageBuilder(doc, isFr, dateFmt, currencySymbol)
 
@@ -79,6 +92,7 @@ class PdfReportRepository @Inject constructor(
         body.weightPage(weights, profile)
         body.nutritionPage(weekRollup, monthRollup, targets)
         body.wellnessPage(hydration, fasts, priceEntries)
+        body.healthPage(profile, adherence, interactions.size, symptoms, medCorrelations)
 
         return doc
     }
@@ -269,6 +283,63 @@ private class ReportPageBuilder(
                 margin + 12f, y, bodyPaint,
             )
             y += 20f
+        }
+
+        footer(canvas)
+        doc.finishPage(page)
+    }
+
+    /** Roadmap D5: what a doctor needs - allergies, conditions, treatments and how they are taken, symptoms. */
+    fun healthPage(
+        profile: Profile,
+        adherence: List<Pair<String, fr.scanneat.domain.engine.health.Adherence>>,
+        interactionCount: Int,
+        symptoms: List<fr.scanneat.data.repository.symptom.SymptomEntry>,
+        medCorrelations: List<fr.scanneat.domain.engine.symptom.MedicationCorrelation>,
+    ) {
+        val (page, canvas) = newPage()
+        var y = 60f
+        fun header(t: String) { canvas.drawText(t, margin, y, headerPaint.apply { textSize = 13f }); y += 22f }
+        fun line(t: String) { if (y < pageH - 70f) { canvas.drawText(t, margin + 12f, y, bodyPaint); y += 18f } }
+        canvas.drawText(if (isFr) "Santé et traitements (30j)" else "Health & treatments (30d)", margin, y, headerPaint.apply { textSize = 18f })
+        y += 32f
+
+        header(if (isFr) "Allergies et intolérances déclarées" else "Declared allergies and intolerances")
+        if (profile.allergens.isEmpty()) line(if (isFr) "Aucune." else "None.")
+        profile.allergens.sorted().forEach { key ->
+            val sev = when (profile.allergenSeverities[key] ?: fr.scanneat.domain.model.AllergenSeverity.ALLERGY) {
+                fr.scanneat.domain.model.AllergenSeverity.SEVERE -> if (isFr) "sévère" else "severe"
+                fr.scanneat.domain.model.AllergenSeverity.ALLERGY -> if (isFr) "allergie" else "allergy"
+                fr.scanneat.domain.model.AllergenSeverity.INTOLERANCE -> if (isFr) "intolérance" else "intolerance"
+            }
+            line("${fr.scanneat.domain.engine.scoring.allergenDisplayLabel(key, if (isFr) "fr" else "en")} — $sev")
+        }
+        y += 8f
+        header(if (isFr) "Conditions de santé déclarées" else "Declared health conditions")
+        line(profile.healthConditions.sorted().joinToString(", ").ifBlank { if (isFr) "Aucune." else "None." })
+        y += 8f
+
+        header(if (isFr) "Traitements actifs et observance (prises notées / prévues)" else "Active treatments and adherence (doses logged / expected)")
+        if (adherence.isEmpty()) line(if (isFr) "Aucun traitement actif." else "No active treatment.")
+        adherence.forEach { (name, a) ->
+            line("$name : ${a.taken}/${a.expected}" + (a.percent?.let { " ($it %)" } ?: ""))
+        }
+        if (interactionCount > 0) line(if (isFr) "Interactions entre traitements détectées : $interactionCount (détail dans l'application)" else "Interactions between treatments detected: $interactionCount (details in the app)")
+        y += 8f
+
+        header(if (isFr) "Symptômes notés" else "Logged symptoms")
+        if (symptoms.isEmpty()) line(if (isFr) "Aucun." else "None.")
+        symptoms.groupBy { if (it.type == fr.scanneat.data.repository.symptom.SymptomType.OTHER) it.customLabel.ifBlank { "other" } else it.type.key }
+            .forEach { (label, list) ->
+                val avg = list.map { it.severity }.average()
+                line("$label : ${list.map { it.date }.distinct().size} " + (if (isFr) "jour(s), sévérité moyenne " else "day(s), mean severity ") + "%.1f/5".format(Locale.US, avg))
+            }
+        if (medCorrelations.isNotEmpty()) {
+            y += 8f
+            header(if (isFr) "Observations à discuter (pas une preuve médicale)" else "Observations to discuss (not medical proof)")
+            medCorrelations.take(5).forEach { c ->
+                line("${c.medicationName} : ${c.symptomDaysWithMedication}/${c.totalSymptomDays} " + (if (isFr) "jours avec symptôme" else "symptom days") + " (p = %.3f)".format(Locale.US, c.pValue))
+            }
         }
 
         footer(canvas)

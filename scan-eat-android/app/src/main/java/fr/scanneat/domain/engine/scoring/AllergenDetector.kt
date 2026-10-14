@@ -67,6 +67,10 @@ private val GLUTEN_FREE_OATS_QUALIFIER = Regex("(avoine|oats?)[^,;.]*(sans glute
 /** Any OTHER gluten cereal term (no gluten-free variant exists for these) - if present, don't suppress. */
 private val GLUTEN_CEREAL_EXCL_OATS = a("gluten|bl[eé]|froment|seigle|orge|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge|wheat|barley|rye|spelt|semolina|durum|seitan")
 
+/** Display label of an Annex II allergen key ("peanuts" → "Arachides"), the key itself if unknown. */
+fun allergenDisplayLabel(key: String, lang: String): String =
+    RULES.firstOrNull { it.key == key }?.let { if (lang == "en") it.labelEn else it.labelFr } ?: key
+
 private val RULES: List<AllergenRule> = listOf(
     AllergenRule("gluten", "Gluten", "Gluten",
         a("gluten|bl[eé]|froment|seigle|orge|avoine|oats?|wheat|barley|rye|spelt|semolina|durum|seitan|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge")),
