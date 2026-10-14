@@ -517,6 +517,8 @@ C'est la vitrine de la promesse de confiance, accessible en un geste depuis la b
 S'appuie sur le format sourcé de la phase 3 : chaque nouvelle entrée naît avec sa source.
 
 ### 21. A7 – Couverture de la base médicamenteuse
+✅ **Partiellement fait** : + levure de riz rouge × statines (ANSES 2014, EFSA 2018), calcium/fer × fluoroquinolones/cyclines (RCP), alcool × métronidazole (RCP Flagyl, hors vinaigres), tyramine × linézolide (RCP Zyvoxid) (test `FoodDrugA7Test`). Restent : millepertuis et réglisse (concernent surtout des compléments ou une condition, pas une classe de médicaments).
+
 `FoodDrugInteractionDb` couvre 5 classes
 (AVK, IMAO, statines/inhibiteurs calciques, IEC/sartans, lévothyroxine). Candidats sourcés
 ANSM/EMA : millepertuis (inducteur CYP3A4), réglisse (antihypertenseurs, hypokaliémie),
