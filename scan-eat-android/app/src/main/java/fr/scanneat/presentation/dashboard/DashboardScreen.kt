@@ -2,6 +2,7 @@ package fr.scanneat.presentation.dashboard
 
 import compose.icons.tablericons.History
 import compose.icons.TablerIcons
+import compose.icons.tablericons.ShieldCheck
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -59,6 +60,7 @@ fun DashboardScreen(
     onBack: () -> Unit,
     isTabRoot: Boolean = false,
     onOpenHistory: () -> Unit = {},
+    onOpenMySafety: () -> Unit = {},
     onOpenRecipes: () -> Unit = {},
     onOpenTemplates: () -> Unit = {},
     onOpenMealPlan: () -> Unit = {},
@@ -124,6 +126,12 @@ fun DashboardScreen(
             }
         },
         hasNavigationIcon = !isTabRoot,
+        // Roadmap D9: "Ma sécurité" one tap away from the home screen.
+        actions = {
+            IconButton(onClick = onOpenMySafety) {
+                Icon(compose.icons.TablerIcons.ShieldCheck, stringResource(R.string.my_safety_title), tint = OnBackground)
+            }
+        },
         showBottomNavClearance = isTabRoot,
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->

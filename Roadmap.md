@@ -492,6 +492,8 @@ public (cf. A1), lien depuis chaque note.
 > *Pourquoi ici :* Écran « Sources & méthodologie » alimenté par A1.
 
 ### 19. A2 – « Pourquoi cette note ? »
+⏸️ **Partiel (existant)** : la décomposition par pilier et les ajustements personnels sont déjà affichés ; le lien règle → source par ajustement dépend de C8.
+
 `AdjustmentsSection` liste déjà les ajustements
 personnels (points ±). Il manque le lien vers la règle et la source de chaque ajustement,
 ainsi que la décomposition de la note classique (`PillarsSection`) en langage simple.
@@ -499,6 +501,8 @@ ainsi que la décomposition de la note classique (`PillarsSection`) en langage s
 > *Pourquoi ici :* « Pourquoi cette note ? » : réutilise les clés de C8 et les sources de A1.
 
 ### 20. D9. Page « Ma sécurité » (évolution de `DashboardSafetyCenter`)
+✅ **Fait** : page « Ma sécurité » (icône bouclier du tableau de bord) : allergènes et sévérités, conditions et contre-indications (jeûne, perte de poids), traitements actifs et interactions, produits rappelés, lien vers les sources.
+
 `buildDashboardSafetyWarnings` agrège déjà les alertes dans une carte du tableau de bord. En faire
 une page à part entière : allergènes et sévérités (N6), interactions actives entre les traitements et le journal
 du jour, produits rappelés (D1), contre-indications du profil (C13, C14), chacun avec sa source (A1).

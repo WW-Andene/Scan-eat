@@ -2118,4 +2118,17 @@
     <string name="src_opf_usage">Hygiene and household products missing from Open Food Facts.</string>
     <string name="result_how_scored">How is this score computed?</string>
     <string name="settings_sources">Sources and methodology</string>
+    <string name="my_safety_title">My safety</string>
+    <string name="my_safety_allergens">Allergens</string>
+    <string name="my_safety_none_declared">Nothing declared in the profile.</string>
+    <string name="my_safety_edit_profile">Edit profile</string>
+    <string name="my_safety_conditions">Health and contraindications</string>
+    <string name="my_safety_treatments">Current treatments</string>
+    <string name="my_safety_no_treatment">No active treatment.</string>
+    <string name="my_safety_no_interaction">No known interaction between your treatments in the app\'s database.</string>
+    <string name="my_safety_open_recalls">See recalled products</string>
+    <plurals name="my_safety_recalled_count">
+        <item quantity="one">%1$d recalled product among yours</item>
+        <item quantity="other">%1$d recalled products among yours</item>
+    </plurals>
 </resources>

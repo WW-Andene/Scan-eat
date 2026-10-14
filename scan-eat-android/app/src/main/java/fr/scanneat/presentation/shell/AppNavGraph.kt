@@ -155,6 +155,7 @@ fun AppNavGraph(
                 onBack          = {},
                 isTabRoot       = true,
                 onOpenHistory   = { navController.navigate(AppRoutes.SCAN_HISTORY) },
+                onOpenMySafety  = { navController.navigate(AppRoutes.MY_SAFETY) },
                 onOpenRecipes   = { navController.navigate(AppRoutes.RECIPES) },
                 onOpenTemplates = { navController.navigate(AppRoutes.TEMPLATES) },
                 onOpenMealPlan  = { navController.navigate(AppRoutes.MEAL_PLAN) },
@@ -226,6 +227,15 @@ fun AppNavGraph(
         // User-requested: non-food products (shampoo/gel douche/cosmétiques...)
         // scored and given a history/favorites view too, not just food - see
         // NonFoodHistoryScreen/CosmeticTransparencyScore's own doc comments.
+        composable(AppRoutes.MY_SAFETY) {
+            fr.scanneat.presentation.safety.MySafetyScreen(
+                onBack = { navController.popBackStack() },
+                onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
+                onOpenRecalls = { navController.navigate(AppRoutes.RECALLS) },
+                onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
+            )
+        }
+
         composable(AppRoutes.SOURCES) {
             fr.scanneat.presentation.sources.SourcesScreen(onBack = { navController.popBackStack() })
         }

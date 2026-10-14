@@ -36,6 +36,7 @@ object AppRoutes {
     const val NONFOOD_HISTORY = "nonfood_history"
     const val RECALLS = "recalls"
     const val SOURCES = "sources"
+    const val MY_SAFETY = "my_safety"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }

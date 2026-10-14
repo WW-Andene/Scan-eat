@@ -2122,4 +2122,17 @@
     <string name="src_opf_usage">Produits d\'hygiène et ménagers absents d\'Open Food Facts.</string>
     <string name="result_how_scored">Comment est calculée cette note ?</string>
     <string name="settings_sources">Sources et méthodologie</string>
+    <string name="my_safety_title">Ma sécurité</string>
+    <string name="my_safety_allergens">Allergènes</string>
+    <string name="my_safety_none_declared">Rien de déclaré dans le profil.</string>
+    <string name="my_safety_edit_profile">Modifier le profil</string>
+    <string name="my_safety_conditions">Santé et contre-indications</string>
+    <string name="my_safety_treatments">Traitements en cours</string>
+    <string name="my_safety_no_treatment">Aucun traitement actif.</string>
+    <string name="my_safety_no_interaction">Aucune interaction connue entre vos traitements dans la base de l\'application.</string>
+    <string name="my_safety_open_recalls">Voir les produits rappelés</string>
+    <plurals name="my_safety_recalled_count">
+        <item quantity="one">%1$d produit rappelé parmi vos produits</item>
+        <item quantity="other">%1$d produits rappelés parmi vos produits</item>
+    </plurals>
 </resources>
