@@ -82,7 +82,10 @@ internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle)
     // exportToJson serializing all of them.
     bundle.reminderSettings?.let { r -> remindersRepo.restoreAll(r) }
     fastingRepo.importForBackup(bundle.fastingActiveStartMs, bundle.fastingActiveTargetHours, bundle.fastingHistory)
-    bundle.withdrawal?.let { withdrawalRepo.importForBackup(prefs.activeProfileId.first(), it) }
+    // From v19 on, "no withdrawal data" in the file means none: clear what's here too.
+    if (bundle.withdrawal != null || bundle.formatVersion >= 19) {
+        withdrawalRepo.importForBackup(prefs.activeProfileId.first(), bundle.withdrawal ?: fr.scanneat.data.backup.WithdrawalBackup())
+    }
     hydrationRepo.importAll(bundle.hydration.mapNotNull { entry ->
         runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry.ml }
     })

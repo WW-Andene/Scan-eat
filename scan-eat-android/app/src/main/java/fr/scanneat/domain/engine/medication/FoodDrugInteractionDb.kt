@@ -144,7 +144,7 @@ private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
     ),
     DrugKeywordGroup(
         FoodInteractionDrugClass.DISULFIRAM,
-        listOf("disulfirame", "disulfiram", "esperal"),
+        listOf("disulfirame", "disulfiram", "esperal", "antabuse", "antabus"),
     ),
     DrugKeywordGroup(
         FoodInteractionDrugClass.LEVOTHYROXINE,

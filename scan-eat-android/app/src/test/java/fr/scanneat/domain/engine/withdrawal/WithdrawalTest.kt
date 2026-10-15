@@ -45,4 +45,10 @@ class WithdrawalTest {
         assertEquals("1/2 cp", taperStepStartsOn(t, start.plusDays(14))?.dose)
         assertNull(taperStepStartsOn(t, start.plusDays(15)))
     }
+
+    @Test fun `a cigarette today ends the smoke-free run`() {
+        val now = LocalDateTime.of(2026, 10, 5, 18, 0)
+        assertEquals(0, tobaccoStats(plan, mapOf(start.plusDays(4) to 1), now, null).smokeFreeDays)
+        assertEquals(5, tobaccoStats(plan, emptyMap(), now, null).smokeFreeDays)
+    }
 }

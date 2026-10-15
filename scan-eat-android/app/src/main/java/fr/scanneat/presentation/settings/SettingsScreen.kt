@@ -71,7 +71,10 @@ fun SettingsScreen(
     val hcIsActiveProfile = viewModel.healthConnectIsActiveProfile.collectAsStateWithLifecycle()
     // Restructuration step 4: 5 collapsible groups instead of 21 sections in a row.
     var openGroupsCsv by rememberSaveable { mutableStateOf(initialOpenGroup.toString()) }
-    LaunchedEffect(autoPrepareReport) { if (autoPrepareReport) viewModel.preparePdfReport() }
+    // Once per arrival: rememberSaveable so coming back from a pushed screen or
+    // rotating doesn't prepare (and offer to save) the PDF a second time.
+    var reportPrepared by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(autoPrepareReport) { if (autoPrepareReport && !reportPrepared) { reportPrepared = true; viewModel.preparePdfReport() } }
     val openGroups = openGroupsCsv.split(',').mapNotNull { it.toIntOrNull() }.toSet()
     fun toggleGroup(i: Int) { openGroupsCsv = (if (i in openGroups) openGroups - i else openGroups + i).joinToString(",") }
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()

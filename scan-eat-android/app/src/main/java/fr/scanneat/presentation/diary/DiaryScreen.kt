@@ -87,6 +87,9 @@ fun DiaryScreen(
         else if (slot == null) activeTab = DiaryTab.MEALS
     }
     LaunchedEffect(hiddenTabs) { if (activeTab in hiddenTabs) activeTab = DiaryTab.MEALS }
+    LaunchedEffect(bodyPart, hiddenModules) {
+        if (bodyPart in hiddenModules) fr.scanneat.presentation.diary.components.BODY_PARTS.firstOrNull { it !in hiddenModules }?.let { bodyPart = it }
+    }
 
     LaunchedEffect(pendingSelectedDate) {
         val date = pendingSelectedDate?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }

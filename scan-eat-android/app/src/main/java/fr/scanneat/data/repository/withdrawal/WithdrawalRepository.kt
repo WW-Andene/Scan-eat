@@ -49,7 +49,7 @@ class WithdrawalRepository @Inject constructor(
     }.distinctUntilChanged()
 
     suspend fun setTobaccoPlan(profileId: String, plan: TobaccoPlan?) = store.edit { p ->
-        if (plan == null) { p.remove(k("tob_plan", profileId)); p.remove(k("tob_log", profileId)); p.remove(k("tob_last", profileId)) }
+        if (plan == null) { p.remove(k("tob_plan", profileId)); p.remove(k("tob_log", profileId)); p.remove(k("tob_last", profileId)); p.remove(k("tob_last_prev", profileId)) }
         else p[k("tob_plan", profileId)] = planAdapter.toJson(TobaccoPlanJson(plan.startDate.toString(), plan.baselinePerDay, plan.packPriceEuros, plan.cigarettesPerPack, plan.targetPerDay))
     }
 
@@ -59,13 +59,25 @@ class WithdrawalRepository @Inject constructor(
         p[k("tob_last", profileId)]?.toLongOrNull()?.let { LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()) }
     }.distinctUntilChanged()
 
-    /** +1 also stamps the last-cigarette time (the milestone clock); -1 only corrects the count. */
+    /** +1 also stamps the last-cigarette time (the milestone clock); -1 undoes the latest +1,
+     *  putting the clock back where it was (a mistaken tap no longer resets months of milestones). */
     suspend fun addCigarette(profileId: String, delta: Int, date: LocalDate = LocalDate.now()) = store.edit { p ->
         val log = parseLog(p[k("tob_log", profileId)]).toMutableMap()
         log[date] = ((log[date] ?: 0) + delta).coerceAtLeast(0)
         val cutoff = LocalDate.now().minusDays(LOG_DAYS)
         p[k("tob_log", profileId)] = log.filterKeys { !it.isBefore(cutoff) }.entries.joinToString(";") { "${it.key}=${it.value}" }
-        if (delta > 0) p[k("tob_last", profileId)] = System.currentTimeMillis().toString()
+        val prevKey = k("tob_last_prev", profileId)
+        if (delta > 0) {
+            // Remember the clock before this cigarette ("" = none yet) so an undo can restore it.
+            p[prevKey] = p[k("tob_last", profileId)] ?: ""
+            p[k("tob_last", profileId)] = System.currentTimeMillis().toString()
+        } else if (delta < 0) {
+            // Only right after a +1: an older count correction leaves the clock alone.
+            p[prevKey]?.let { prev ->
+                if (prev.isEmpty()) p.remove(k("tob_last", profileId)) else p[k("tob_last", profileId)] = prev
+                p.remove(prevKey)
+            }
+        }
     }
 
     private fun parseLog(raw: String?): Map<LocalDate, Int> = raw.orEmpty().split(';').mapNotNull { e ->

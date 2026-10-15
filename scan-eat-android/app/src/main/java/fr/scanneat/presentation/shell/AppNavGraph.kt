@@ -301,7 +301,7 @@ fun AppNavGraph(
             SettingsScreen(
                 // Settings can be the start destination (privacy-rationale intent):
                 // nothing to pop then, so go home instead of doing nothing.
-                onBack = { if (!navController.popBackStack()) navController.switchToTab(TopTab.Dashboard.route) },
+                onBack = { navController.popBackStack() },
                 isTabRoot = false,
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onOpenReminders = { navController.navigate(AppRoutes.REMINDERS) },

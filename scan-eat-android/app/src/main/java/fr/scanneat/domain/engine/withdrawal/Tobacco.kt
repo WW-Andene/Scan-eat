@@ -40,7 +40,8 @@ fun tobaccoStats(plan: TobaccoPlan, log: Map<LocalDate, Int>, now: LocalDateTime
     var streak = 0
     var d = today.minusDays(1)
     while (!d.isBefore(plan.startDate) && (log[d] ?: 0) == 0) { streak++; d = d.minusDays(1) }
-    if ((log[today] ?: 0) == 0 && !today.isBefore(plan.startDate)) streak++
+    if ((log[today] ?: 0) > 0) streak = 0   // a cigarette today ends the run
+    else if (!today.isBefore(plan.startDate)) streak++
     val todayCount = log[today] ?: 0
     val target = plan.targetPerDay ?: 0
     val start = plan.startDate.atStartOfDay()
