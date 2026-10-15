@@ -37,7 +37,7 @@ internal fun FastingRow(
     ) {
         Column(Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     Checkbox(checked = active, onCheckedChange = { onToggle() },
                         colors = CheckboxDefaults.colors(checkedColor = Violet, uncheckedColor = Violet.copy(0.4f)))
                     Column {

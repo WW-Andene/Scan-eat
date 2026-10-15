@@ -126,10 +126,10 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                             onDrawBehind { drawRect(brush) }
                         }
                         .padding(Spacing.XL),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.SM),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
                     Row(
-                    modifier = Modifier.fillMaxWidth().padding(end = if (streak > 0) Spacing.XXL + Spacing.SM else 0.dp),
+                    modifier = Modifier.fillMaxWidth().padding(end = if (streak > 0) Spacing.XXL + Spacing.S else 0.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(stringResource(R.string.dashboard_calorie_balance_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
@@ -152,7 +152,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 val pct = (balance.kcalIn / effectiveTdee).toFloat().coerceIn(0f, 1.2f)
                 LinearProgressIndicator(
                     progress   = { pct.coerceIn(0f, 1f) },
-                    modifier   = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                    modifier   = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(CardRadius.BADGE)),
                     color      = if (isSurplus) semanticRed() else AccentCoral,
                     trackColor = SurfaceVariant.copy(alpha = 0.3f),
                 )
@@ -199,8 +199,8 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 .align(Alignment.TopEnd)
                 .offset(x = 8.dp, y = (-10).dp)
                 .size(48.dp)
-                .shadow(elevation = 8.dp, shape = RoundedCornerShape(50)),
-            shape = RoundedCornerShape(50),
+                .shadow(elevation = 8.dp, shape = PillShape),
+            shape = PillShape,
             color = AccentCoral,
             shadowElevation = 0.dp,
         ) {

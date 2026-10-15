@@ -73,7 +73,7 @@ internal fun ColumnScope.ProfileCapturePage(
         GoalSelector(goal, onGoalChange)
         ConditionsSelector(conditions, onConditionsChange)
     }
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM), modifier = Modifier.fillMaxWidth()) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S), modifier = Modifier.fillMaxWidth()) {
         val scope = rememberCoroutineScope()
         val canSave = sex != Sex.NOT_SPECIFIED && ageText.toIntOrNull() != null && heightText.toDoubleOrNull() != null && weightText.toDoubleOrNull() != null
         ScanEatPrimaryButton(

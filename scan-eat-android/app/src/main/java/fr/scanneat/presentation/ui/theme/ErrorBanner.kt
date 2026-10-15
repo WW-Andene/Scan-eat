@@ -69,7 +69,7 @@ fun ErrorBanner(
     ) {
         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.ErrorOutline, null, tint = semanticRed())
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(Spacing.S))
             Text(message, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnBackground)
             if (actionLabel != null && onAction != null) {
                 TextButton(onClick = onAction) { Text(actionLabel, color = semanticRed()) }

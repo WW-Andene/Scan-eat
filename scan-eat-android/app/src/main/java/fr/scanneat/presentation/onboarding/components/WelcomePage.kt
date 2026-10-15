@@ -46,7 +46,7 @@ internal fun ColumnScope.WelcomePage(onNext: () -> Unit) {
                     CircleShape,
                 ),
         )
-        Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(64.dp))
+        Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Hero))
     }
     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = OnBackground, fontWeight = FontWeight.Bold)
     Text(

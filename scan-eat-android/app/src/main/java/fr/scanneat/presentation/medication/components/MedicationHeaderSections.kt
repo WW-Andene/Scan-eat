@@ -83,7 +83,7 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
         border = BorderStroke(1.dp, semanticRed().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
             Column {
                 Text(stringResource(R.string.medication_interaction_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
                 Text(message, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))
@@ -123,7 +123,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), modifier = Modifier.fillMaxWidth()) {
                 active.forEach { m ->
                     val taken = (dosesById[m.id] ?: 0) >= m.dosesPerDay
-                    Surface(shape = RoundedCornerShape(50), color = if (taken) Teal.copy(0.2f) else OnSurface.copy(0.08f)) {
+                    Surface(shape = PillShape, color = if (taken) Teal.copy(0.2f) else OnSurface.copy(0.08f)) {
                         Row(
                             Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                             verticalAlignment = Alignment.CenterVertically,
@@ -178,7 +178,7 @@ internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>,
                         else             -> semanticRed()
                     }
                     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
-                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.04f)).background(barColor, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)))
+                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.04f)).background(barColor, RoundedCornerShape(topStart = CardRadius.BADGE, topEnd = CardRadius.BADGE)))
                     }
                 }
             }

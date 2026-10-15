@@ -55,7 +55,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit,
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                             Text(date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                             if (sess.ketosis) {
-                                Surface(shape = RoundedCornerShape(4.dp), color = TealHaze, border = BorderStroke(1.dp, TealBorder)) {
+                                Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = TealHaze, border = BorderStroke(1.dp, TealBorder)) {
                                     Text(stringResource(R.string.biolism_sesshist_keto_badge), modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.T2),
                                         style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                                 }
@@ -66,9 +66,9 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit,
                         }
                         Text("${sess.activityLabel} · $dur · ${sess.kcalBurned.toInt()} kcal",
                             style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
-                        Spacer(Modifier.height(4.dp))
-                        Row(Modifier.fillMaxWidth(0.6f).height(4.dp).background(OnBackground.copy(0.06f), RoundedCornerShape(2.dp))) {
-                            Box(Modifier.fillMaxWidth(sess.fatFrac.toFloat().coerceIn(0f, 1f)).fillMaxHeight().background(Warm, RoundedCornerShape(2.dp)))
+                        Spacer(Modifier.height(Spacing.XS))
+                        Row(Modifier.fillMaxWidth(0.6f).height(4.dp).background(OnBackground.copy(0.06f), RoundedCornerShape(CardRadius.MICRO))) {
+                            Box(Modifier.fillMaxWidth(sess.fatFrac.toFloat().coerceIn(0f, 1f)).fillMaxHeight().background(Warm, RoundedCornerShape(CardRadius.MICRO)))
                         }
                     }
                     Column(horizontalAlignment = Alignment.End) {

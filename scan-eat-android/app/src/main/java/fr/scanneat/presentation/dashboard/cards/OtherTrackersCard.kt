@@ -111,9 +111,9 @@ internal fun OtherTrackersCard(
         // just fed workout dates. A separate line rather than a 4th column so
         // the existing 3-column row's equal-weight alignment isn't disturbed.
         if (snapshot.workoutStreak > 0) {
-            androidx.compose.foundation.layout.Spacer(Modifier.size(Spacing.SM))
+            androidx.compose.foundation.layout.Spacer(Modifier.size(Spacing.S))
             HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = OnSurface.copy(0.07f))
-            androidx.compose.foundation.layout.Spacer(Modifier.size(Spacing.SM))
+            androidx.compose.foundation.layout.Spacer(Modifier.size(Spacing.S))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.XS),

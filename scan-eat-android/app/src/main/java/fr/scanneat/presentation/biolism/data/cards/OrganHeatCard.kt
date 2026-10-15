@@ -33,7 +33,7 @@ fun OrganHeatCard(met: MetabolicResult, s: TimerState) {
                         Text(kcalPerDayFmt.format(kcalDay), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                     }
                 }
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(Spacing.XS))
                 LinearProgressIndicator(
                     progress = { (organ.pct / maxPct).toFloat() },
                     modifier = Modifier.fillMaxWidth().height(4.dp),

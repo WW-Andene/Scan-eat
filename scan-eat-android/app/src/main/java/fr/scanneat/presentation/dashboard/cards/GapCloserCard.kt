@@ -61,7 +61,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggesti
   var shuffleTick by remember { mutableIntStateOf(0) }
   ScanEatCard(
     contentPadding = PaddingValues(Spacing.L),
-    verticalArrangement = Arrangement.spacedBy(Spacing.SM),
+    verticalArrangement = Arrangement.spacedBy(Spacing.S),
   ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -70,7 +70,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggesti
         ) {
             Text(stringResource(R.string.dashboard_gap_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             IconButton(onClick = { shuffleTick++ }) {
-                Icon(Icons.Outlined.Refresh, contentDescription = stringResource(R.string.dashboard_gap_shuffle), tint = OnSurface.copy(0.6f), modifier = Modifier.size(IconSize.Small))
+                Icon(Icons.Outlined.Refresh, contentDescription = stringResource(R.string.dashboard_gap_shuffle), tint = OnSurface.copy(0.6f), modifier = Modifier.size(IconSize.Compact))
             }
         }
         gaps.take(3).forEach { gap ->
@@ -79,7 +79,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggesti
                 // (TemplateCard, HormonesEvolutionCard, HealthConditionCaution) pairs a
                 // WarningAmber icon with the text - this was bare amber text alone.
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
+                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Compact))
                     Text(
                         stringResource(R.string.dashboard_gap_entry, nutrientLabel(gap.nutrient), gap.deficit.formatDecimal()),
                         style = MaterialTheme.typography.labelMedium, color = semanticAmber(),

@@ -48,7 +48,7 @@ internal fun KetosisToggleRow(
                 // side wrap its own text within whatever's left, instead of the reverse.
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.SM),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                     modifier = Modifier.weight(1f).padding(end = Spacing.S),
                 ) {
                     Checkbox(checked = active, onCheckedChange = { onToggle() },
@@ -105,7 +105,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
             // squeezing the badge into an unreadable sliver.
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.SM),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                 modifier = Modifier.weight(1f).padding(end = Spacing.S),
             ) {
                 // onCheckedChange = null, not { onToggle() } - unlike KetosisToggleRow

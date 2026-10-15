@@ -70,7 +70,7 @@ internal fun OnlineSearchSection(
                 // which is blue under the Lazulite color-accent (Theme.kt).
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentCoral),
             ) {
-                Icon(TablerIcons.Search, null, modifier = Modifier.size(IconSize.Small))
+                Icon(TablerIcons.Search, null, modifier = Modifier.size(IconSize.Compact))
                 Spacer(Modifier.width(Spacing.XS))
                 Text(stringResource(R.string.foodsearch_online_search_button), style = MaterialTheme.typography.labelMedium)
             }

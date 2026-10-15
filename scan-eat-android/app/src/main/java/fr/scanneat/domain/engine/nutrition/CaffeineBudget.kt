@@ -44,13 +44,18 @@ fun caffeineDailyLimitMg(profile: Profile): Double? = when {
  * 40 mg / 355 mL, energy drink 80 mg / 250 mL, dark chocolate 25 mg / 50 g.
  * Order matters: the more specific names first.
  */
+// Word boundaries spelled out as Unicode-letter lookarounds: the "(?U)" flag
+// (UNICODE_CHARACTER_CLASS) throws on Android, and a plain \b treats "é" as a
+// non-word char on the JVM.
+private const val WB = "(?<![\\p{L}\\p{N}_])"
+private const val WE = "(?![\\p{L}\\p{N}_])"
 private val TYPICAL_CAFFEINE_PER_100: List<Pair<Regex, Double>> = listOf(
-    Regex("(?U)\\bespresso|\\bexpresso|\\bristretto") to 80.0 / 60 * 100,
-    Regex("(?U)energy drink|boisson [eé]nergisante|red bull|monster") to 80.0 / 250 * 100,
-    Regex("(?U)\\bcaf[eé]s?\\b|\\bcoffee") to 90.0 / 200 * 100,
-    Regex("(?U)\\bth[eé]s?\\b|\\btea\\b|matcha") to 50.0 / 220 * 100,
-    Regex("(?U)\\bcola\\b|coca") to 40.0 / 355 * 100,
-    Regex("(?U)chocolat noir|dark chocolate") to 25.0 / 50 * 100,
+    Regex("$WB(?:espresso|expresso|ristretto)") to 80.0 / 60 * 100,
+    Regex("energy drink|boisson [eé]nergisante|red bull|monster") to 80.0 / 250 * 100,
+    Regex("$WB(?:caf[eé]s?$WE|coffee)") to 90.0 / 200 * 100,
+    Regex("$WB(?:th[eé]s?|tea)$WE|matcha") to 50.0 / 220 * 100,
+    Regex("${WB}cola$WE|coca") to 40.0 / 355 * 100,
+    Regex("chocolat noir|dark chocolate") to 25.0 / 50 * 100,
 )
 private val NO_CAFFEINE = Regex("d[eé]ca|sans caf[eé]ine|caffeine[- ]free|zero caf|infusion|tisane|rooibos|glace au caf[eé]|ice cream")
 

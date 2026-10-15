@@ -77,7 +77,7 @@ internal fun HydrationRingAndControls(
             Text("$intakeMl", style = MaterialTheme.typography.headlineLarge, color = semanticBlue(), fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                 Text(stringResource(R.string.hydration_goal_ml, goalMl), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                Icon(TablerIcons.Edit, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.Micro))
+                Icon(TablerIcons.Edit, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.Tiny))
             }
             Text(stringResource(R.string.hydration_glasses_count, glasses, goalGlasses), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
         }
@@ -120,7 +120,7 @@ internal fun HydrationRingAndControls(
                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL)),
         ) {
             Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(IconSize.Compact))
                 Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())
             }
         }

@@ -46,7 +46,7 @@ import fr.scanneat.presentation.ui.theme.IconSize
 internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSuggestion) -> Unit) {
   ScanEatCard(
     contentPadding = PaddingValues(Spacing.L),
-    verticalArrangement = Arrangement.spacedBy(Spacing.SM),
+    verticalArrangement = Arrangement.spacedBy(Spacing.S),
   ) {
         Text(stringResource(R.string.dashboard_chronic_gap_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         gaps.take(3).forEach { gap ->
@@ -54,7 +54,7 @@ internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSugge
                 // design-aesthetic-audit §DC: same gap as GapCloserCard - every other
                 // amber-warning text in the app pairs a WarningAmber icon with the text.
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
+                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Compact))
                     Text(
                         stringResource(
                             R.string.dashboard_chronic_gap_entry,

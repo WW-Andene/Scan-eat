@@ -24,7 +24,7 @@ internal fun ActivityEntryRow(entry: ActivityEntry, typeLabels: Map<ActivityType
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.SM),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
         ) {
             Column(Modifier.weight(1f)) {
                 val subLabel = e.subType?.let { subTypeLabels[it] ?: it }
@@ -43,10 +43,10 @@ internal fun ActivityEntryRow(entry: ActivityEntry, typeLabels: Map<ActivityType
                 }
             }
             IconButton(onClick = onEdit) {
-                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
             }
             IconButton(onClick = onDelete) {
-                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
             }
         }
     }

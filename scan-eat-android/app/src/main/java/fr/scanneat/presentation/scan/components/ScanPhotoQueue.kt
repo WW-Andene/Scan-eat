@@ -67,7 +67,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                 .background(Background.copy(0.7f), RoundedCornerShape(CardRadius.CONTROL))
                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL)),
         ) {
-                Column(Modifier.padding(horizontal = Spacing.SM, vertical = 8.dp)) {
+                Column(Modifier.padding(horizontal = Spacing.S, vertical = Spacing.S)) {
                     Text(pluralStringResource(R.plurals.scan_photo_count, images.size, images.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
                     Spacer(Modifier.height(Spacing.S))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -85,8 +85,8 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                         // supported" the moment this row ever renders - i.e. on every
                         // single photo capture.
                         itemsIndexed(images, key = { _, payload -> payload.base64 }) { index, payload ->
-                            Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
+                            Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(CardRadius.SMALL))
+                                .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(CardRadius.SMALL))) {
                                 val bmp = remember(payload) { payload.thumbnail }
                                 if (bmp != null) {
                                     Image(bitmap = bmp.asImageBitmap(), contentDescription = stringResource(R.string.scan_photo_index, index + 1),
@@ -103,7 +103,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                                 IconButton(onClick = { onRemovePhoto(index) },
                                     modifier = Modifier.align(Alignment.TopEnd).minTouchTarget()) {
                                     Box(Modifier.size(24.dp).background(Background.copy(0.6f), CircleShape), contentAlignment = Alignment.Center) {
-                                        Icon(TablerIcons.X, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(IconSize.Micro))
+                                        Icon(TablerIcons.X, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(IconSize.Tiny))
                                     }
                                 }
                             }

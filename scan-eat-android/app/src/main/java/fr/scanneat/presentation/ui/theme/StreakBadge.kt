@@ -29,13 +29,13 @@ import fr.scanneat.R
  */
 @Composable
 fun StreakBadge(streakDays: Int, accentColor: Color) {
-    Surface(shape = RoundedCornerShape(50), color = accentColor.copy(0.15f)) {
+    Surface(shape = PillShape, color = accentColor.copy(0.15f)) {
         Row(
             modifier = androidx.compose.ui.Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
         ) {
-            Icon(Icons.Default.LocalFireDepartment, null, tint = accentColor, modifier = androidx.compose.ui.Modifier.size(IconSize.Small))
+            Icon(Icons.Default.LocalFireDepartment, null, tint = accentColor, modifier = androidx.compose.ui.Modifier.size(IconSize.Compact))
             Text(
                 stringResource(R.string.common_streak_days_compact, streakDays),
                 style = MaterialTheme.typography.labelMedium,

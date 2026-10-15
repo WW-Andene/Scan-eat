@@ -40,7 +40,7 @@ private fun FlagRow(text: String, isRed: Boolean) {
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Icon(if (isRed) TablerIcons.AlertTriangle else TablerIcons.CircleCheck, null,
-            tint = color, modifier = Modifier.size(IconSize.Small))
+            tint = color, modifier = Modifier.size(IconSize.Compact))
         Text(text, style = MaterialTheme.typography.bodySmall, color = OnBackground, modifier = Modifier.weight(1f))
     }
 }

@@ -36,6 +36,12 @@ object CardRadius {
     // are progress-bar ticks/dots with no text content), so this earns its
     // own named tier rather than folding into CONTROL/CARD/PROMINENT.
     val BADGE: Dp = 4.dp
+
+    /** Thumbnails and small swatches (photo queue, preview bars). */
+    val SMALL: Dp = 8.dp
+
+    /** Hairline chart bars and tick marks. */
+    val MICRO: Dp = 2.dp
 }
 
 /**
@@ -59,6 +65,9 @@ object CardRadius {
  * 48/56/48/56 - keeps the asymmetric organic silhouette above while
  * landing every corner on an even percentage.
  */
+/** Fully rounded capsule for chips, badges and progress tracks. */
+val PillShape = RoundedCornerShape(50)
+
 val OrganicBlobShape = RoundedCornerShape(
     topStartPercent = 48, topEndPercent = 56,
     bottomEndPercent = 48, bottomStartPercent = 56,

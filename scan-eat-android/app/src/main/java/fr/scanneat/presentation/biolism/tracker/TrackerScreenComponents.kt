@@ -50,7 +50,7 @@ internal fun StepperChip(label: String, color: Color, onMinus: () -> Unit, onPlu
                 .clickable(onClickLabel = decreaseDescription) { onMinus() }
                 .semantics { role = Role.Button; contentDescription = decreaseDescription }
                 .wrapContentSize()
-                .padding(horizontal = Spacing.SM, vertical = Spacing.XS),
+                .padding(horizontal = Spacing.S, vertical = Spacing.XS),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold,
         )
         Text(label, modifier = Modifier.padding(horizontal = Spacing.XS),
@@ -62,7 +62,7 @@ internal fun StepperChip(label: String, color: Color, onMinus: () -> Unit, onPlu
                 .clickable(onClickLabel = increaseDescription) { onPlus() }
                 .semantics { role = Role.Button; contentDescription = increaseDescription }
                 .wrapContentSize()
-                .padding(horizontal = Spacing.SM, vertical = Spacing.XS),
+                .padding(horizontal = Spacing.S, vertical = Spacing.XS),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold,
         )
     }

@@ -28,6 +28,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.STATUS_BORDER_ALPHA
 import fr.scanneat.presentation.ui.theme.Spacing
 import java.util.Locale
+import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
 internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
@@ -52,14 +53,14 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 // reference range just below) implied a level of accuracy this
                 // doesn't have. Whole numbers, matching the ref range's own format.
                 Text("%.0f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
-                Surface(shape = RoundedCornerShape(4.dp), color = color.copy(0.15f),
+                Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = color.copy(0.15f),
                     border = BorderStroke(1.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
                     Text(h.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                         style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
                 }
             }
         }
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Spacing.XS))
         // design-aesthetic-audit §DC3: the reference band below was a hardcoded
         // Color.White at low alpha - readable on the dark/OLED themes it was
         // eyeballed against, but nearly invisible on the Light theme's near-white

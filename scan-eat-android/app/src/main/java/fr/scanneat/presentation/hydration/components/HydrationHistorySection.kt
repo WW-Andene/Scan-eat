@@ -67,10 +67,10 @@ private fun HydrationHistoryRow(date: LocalDate, ml: Int, dateFmt: DateTimeForma
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(dispVolume(ml, useImperial), style = MaterialTheme.typography.bodyMedium, color = OnSurface.copy(0.7f))
                 IconButton(onClick = { showEdit = true }) {
-                    Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                    Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
                 }
                 IconButton(onClick = { onDelete(date) }) {
-                    Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                    Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
                 }
             }
         }

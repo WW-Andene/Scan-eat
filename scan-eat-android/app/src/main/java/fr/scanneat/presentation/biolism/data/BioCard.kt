@@ -123,7 +123,7 @@ internal fun BioCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
-                    Box(Modifier.width(2.dp).height(16.dp).background(Gold, RoundedCornerShape(1.dp)))
+                    Box(Modifier.width(2.dp).height(16.dp).background(Gold, RoundedCornerShape(CardRadius.MICRO)))
                     Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     badge?.invoke()
                     Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.Inline))

@@ -71,10 +71,10 @@ internal fun MealPlanDayCard(
                     // hand - this copies the whole day onto the same
                     // weekday next week.
                     IconButton(onClick = onDuplicateDay) {
-                        Icon(TablerIcons.Copy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                        Icon(TablerIcons.Copy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
                     }
                     IconButton(onClick = { showClearConfirm = true }) {
-                        Icon(TablerIcons.X, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                        Icon(TablerIcons.X, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
                     }
                 }
             }

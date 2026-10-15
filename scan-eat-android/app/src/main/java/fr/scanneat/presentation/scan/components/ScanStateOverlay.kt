@@ -205,7 +205,7 @@ internal fun BoxScope.ScanStateOverlay(
                 // somewhere to show up instead of silently going nowhere.
                 ErrorBanner(
                     message     = s.message,
-                    modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 24.dp),
+                    modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + Spacing.XL),
                     actionLabel = stringResource(R.string.common_retry),
                     onAction    = onRetryScore,
                     onDismiss   = onDismissError,

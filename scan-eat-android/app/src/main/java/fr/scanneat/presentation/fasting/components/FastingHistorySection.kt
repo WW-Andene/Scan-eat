@@ -91,7 +91,7 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
                         Modifier
                             .weight(1f)
                             .fillMaxHeight(if (frac == 0f) 0.06f else frac.coerceAtLeast(0.06f))
-                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                            .clip(RoundedCornerShape(topStart = CardRadius.BADGE, topEnd = CardRadius.BADGE))
                             .background(color)
                             .semantics { contentDescription = barDescription },
                     )
@@ -176,7 +176,7 @@ internal fun FastingHistoryRow(completion: FastCompletion, onDelete: () -> Unit)
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) semanticGreen() else semanticAmber())
-        Icon(if (c.reached) TablerIcons.CircleCheck else TablerIcons.X, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Small))
+        Icon(if (c.reached) TablerIcons.CircleCheck else TablerIcons.X, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Compact))
         Spacer(Modifier.width(Spacing.XS))
         // Previously the only way to fix a mis-tapped Finish (wrong hours logged)
         // was clearHistory(), which wipes all 90 entries and zeroes the streak -
@@ -184,7 +184,7 @@ internal fun FastingHistoryRow(completion: FastCompletion, onDelete: () -> Unit)
         // Distinct icon/tint from the status glyph above (also a small X when not
         // reached) so the two aren't visually confusable as the same control.
         IconButton(onClick = onDelete) {
-            Icon(Icons.Rounded.DeleteOutline, stringResource(R.string.common_delete), tint = semanticRed().copy(0.5f), modifier = Modifier.size(IconSize.Small))
+            Icon(Icons.Rounded.DeleteOutline, stringResource(R.string.common_delete), tint = semanticRed().copy(0.5f), modifier = Modifier.size(IconSize.Compact))
         }
     }
 }

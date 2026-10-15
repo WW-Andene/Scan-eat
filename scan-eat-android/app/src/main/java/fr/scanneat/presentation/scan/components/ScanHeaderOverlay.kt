@@ -47,6 +47,7 @@ import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.gradeColor
 import fr.scanneat.presentation.ui.theme.semanticAmber
+import fr.scanneat.presentation.ui.theme.PillShape
 
 @Composable
 internal fun BoxScope.ScanHeaderBar(
@@ -87,7 +88,7 @@ internal fun BoxScope.ScanHeaderBar(
             // New: today's scan count badge — previously there was no way to know how
             // many products you'd already scanned today without leaving the scan tab.
             if (todayScanCount > 0) {
-                Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.85f)) {
+                Surface(shape = PillShape, color = AccentCoral.copy(0.85f)) {
                     Text(
                         "$todayScanCount",
                         style = MaterialTheme.typography.labelSmall,
@@ -254,11 +255,11 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
         // same raw-literal drift as above - matches CardRadius.CARD exactly.
         Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant.copy(alpha = StandardCardAlpha)) {
             Row(
-                modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.SM),
+                modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
-                Surface(shape = RoundedCornerShape(50), color = gradeColor(cached.audit.grade).copy(alpha = 0.25f)) {
+                Surface(shape = PillShape, color = gradeColor(cached.audit.grade).copy(alpha = 0.25f)) {
                     Text(
                         cached.audit.grade.label,
                         style = MaterialTheme.typography.labelMedium,

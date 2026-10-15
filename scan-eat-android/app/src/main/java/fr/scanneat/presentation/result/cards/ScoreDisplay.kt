@@ -76,7 +76,7 @@ internal fun ScoreDeltaChip(delta: Int) {
         positive -> semanticGreen()
         else     -> semanticRed()
     }
-    Surface(shape = RoundedCornerShape(50), color = chipColor) {
+    Surface(shape = PillShape, color = chipColor) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
             verticalAlignment = Alignment.CenterVertically,

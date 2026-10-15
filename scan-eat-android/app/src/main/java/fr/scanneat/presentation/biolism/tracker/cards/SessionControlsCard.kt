@@ -43,13 +43,13 @@ internal fun SessionControls(
             if (!running) {
                 if (saved) {
                     ScanEatOutlinedButton(onClick = {}, enabled = false) {
-                        Icon(Icons.Outlined.Check, null, tint = Teal, modifier = Modifier.size(IconSize.Small))
+                        Icon(Icons.Outlined.Check, null, tint = Teal, modifier = Modifier.size(IconSize.Compact))
                         Spacer(Modifier.width(Spacing.XS))
                         Text(stringResource(R.string.biolism_sessctrl_saved), color = Teal)
                     }
                 } else {
                     ScanEatOutlinedButton(onClick = onSave) {
-                        Icon(Icons.Outlined.Save, null, modifier = Modifier.size(IconSize.Small))
+                        Icon(Icons.Outlined.Save, null, modifier = Modifier.size(IconSize.Compact))
                         Spacer(Modifier.width(Spacing.XS))
                         Text(stringResource(R.string.biolism_sessctrl_save))
                     }
@@ -59,7 +59,7 @@ internal fun SessionControls(
             // Reset was the only icon-only control here with a null contentDescription -
             // a TalkBack user heard nothing for it.
             ScanEatOutlinedButton(onClick = onReset) {
-                Icon(Icons.Outlined.Refresh, stringResource(R.string.biolism_sessctrl_reset), modifier = Modifier.size(IconSize.Small))
+                Icon(Icons.Outlined.Refresh, stringResource(R.string.biolism_sessctrl_reset), modifier = Modifier.size(IconSize.Compact))
             }
         }
     }

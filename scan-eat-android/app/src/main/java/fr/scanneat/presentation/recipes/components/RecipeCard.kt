@@ -204,7 +204,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
         // (allergen or diet violation) had no warning anywhere in this screen.
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
+                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Compact))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }

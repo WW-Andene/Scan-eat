@@ -79,7 +79,7 @@ internal fun ProfileMetricsPreviewCard(
                             fr.scanneat.domain.engine.scoring.BmiCategory.OBESE_3     -> stringResource(R.string.profile_bmi_cat_obese3)      to
                                 semanticRed().let { it.copy(red = it.red * 0.7f, green = it.green * 0.7f, blue = it.blue * 0.7f) }
                         }
-                        Surface(shape = RoundedCornerShape(50), color = catColor.copy(alpha = 0.15f)) {
+                        Surface(shape = PillShape, color = catColor.copy(alpha = 0.15f)) {
                             Text(catLabel, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2), style = MaterialTheme.typography.labelSmall, color = catColor)
                         }
                     }
@@ -98,7 +98,7 @@ internal fun ProfileMetricsPreviewCard(
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.profile_macro_ratio_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
             Row(
-                modifier = Modifier.fillMaxWidth().height(16.dp).clip(RoundedCornerShape(8.dp)),
+                modifier = Modifier.fillMaxWidth().height(16.dp).clip(RoundedCornerShape(CardRadius.SMALL)),
             ) {
                 Box(Modifier.weight(pPct).fillMaxHeight().background(semanticGreen()))
                 Box(Modifier.weight(cPct).fillMaxHeight().background(AccentCoral))
@@ -139,7 +139,7 @@ internal fun ProfileMetricsPreviewCard(
                 }
                 LinearProgressIndicator(
                     progress = { progress },
-                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(CardRadius.BADGE)),
                     color = AccentCoral,
                     trackColor = OnSurface.copy(0.1f),
                 )

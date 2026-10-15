@@ -211,7 +211,7 @@ private fun TodayWidgetContent(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(WidgetBackground)
-            .padding(Spacing.SM + Spacing.XS)
+            .padding(Spacing.S + Spacing.XS)
             .clickable(actionStartActivity<MainActivity>()),
     ) {
         Text(kcalLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 11.sp))
@@ -256,7 +256,7 @@ private fun TodayWidgetContent(
                     modifier = GlanceModifier
                         .background(ColorProvider(semanticBlue()))
                         .cornerRadius(12.dp)
-                        .padding(horizontal = Spacing.SM, vertical = Spacing.XS)
+                        .padding(horizontal = Spacing.S, vertical = Spacing.XS)
                         // Own clickable target inside the whole-widget-opens-app Column above -
                         // this specific chip logs a glass in place instead of launching the app.
                         .clickable(actionRunCallback<AddGlassAction>()),

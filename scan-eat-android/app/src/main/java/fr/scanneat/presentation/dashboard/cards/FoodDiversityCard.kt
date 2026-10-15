@@ -42,7 +42,7 @@ internal fun FoodDiversityCard(diversity: FoodDiversityResult) {
     }
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(TablerIcons.ChartBar, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Small))
+            Icon(TablerIcons.ChartBar, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
             Text(stringResource(R.string.dashboard_diversity_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         }
         Text(

@@ -124,7 +124,7 @@ private fun ScanWidgetContent(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(WidgetBackground)
-            .padding(Spacing.SM + Spacing.XS)
+            .padding(Spacing.S + Spacing.XS)
             .clickable(actionStartActivity<MainActivity>()),
     ) {
         if (productName != null && grade != null) {
@@ -161,7 +161,7 @@ private fun ScanWidgetContent(
                 modifier = GlanceModifier
                     .background(ColorProvider(AccentCoralRaw))
                     .cornerRadius(12.dp)
-                    .padding(horizontal = Spacing.SM, vertical = Spacing.XS)
+                    .padding(horizontal = Spacing.S, vertical = Spacing.XS)
                     .clickable(
                         actionStartActivity<MainActivity>(
                             parameters = actionParametersOf(ScanWidgetActionKey to "fr.scanneat.action.SHORTCUT_SCAN"),

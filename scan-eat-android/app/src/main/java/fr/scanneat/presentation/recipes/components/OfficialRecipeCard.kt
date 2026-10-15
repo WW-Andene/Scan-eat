@@ -57,7 +57,7 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
         }
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
+                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Compact))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }
