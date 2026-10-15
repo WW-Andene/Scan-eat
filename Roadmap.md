@@ -188,6 +188,7 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
   chaque niveau avec l'avis EFSA correspondant.
 
 ### S8. Bonus et malus sans fondement sourcé 🟠 📖
+✅ **Fait** : bio affiché mais à 0 point (AFSSA 2003 : pas de différence nutritionnelle significative) ; allégations de santé affichées sans pénalité (règlement 1924/2006 : beaucoup sont autorisées) ; origine « UE et non UE » sans bonus ; tout produit sans huile exclu des 3 points « huiles nommées » (plus seulement 7 catégories) ; micronutriments ajoutés (fer, vitamines, sels de calcium… listés dans les ingrédients) exclus du bonus ; seuil de 7,5 % des VNR par 100 mL pour les boissons (annexe XIII). Moteur 2.7.0 (test `S8BonusesTest`).
 - **Bio +2** dans un score **nutritionnel** : l'EFSA et l'ANSES ne relèvent pas de différence nutritionnelle significative.
 - **Allégations de santé -3** : pénalise aussi les allégations **autorisées** par le règlement 1924/2006.
 - **Origine +2** pour toute origine déclarée, y compris « UE et non UE ».

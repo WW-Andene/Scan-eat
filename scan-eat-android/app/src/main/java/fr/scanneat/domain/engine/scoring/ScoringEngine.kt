@@ -25,7 +25,7 @@ import kotlin.math.roundToInt
 // changed the rules; bumping this is what makes every stored score be
 // recomputed (ScanHistoryQueries.rescoreAllStale / rescoreStale).
 // 2.6.0: S9 (Henry equations, IBD flare-only rules) and S10 (one rule, one effect).
-const val ENGINE_VERSION = "2.6.2"
+const val ENGINE_VERSION = "2.7.0"
 
 // ============================================================================
 // SECTION 10: GLOBAL MODIFIERS, VETOES & ORCHESTRATOR
@@ -85,7 +85,11 @@ internal fun gradeVerdict(grade: Grade, lang: String = "en"): String = if (lang 
 private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<Deduction> {
     val en = lang == "en"
     val bonuses = mutableListOf<Deduction>()
-    if (product.organic) bonuses += Deduction("global_bonus", if (en) "Organic certification" else "Certification biologique", 2.0, Severity.INFO)
+    // S8: organic is a farming method, not a nutritional property - the French
+    // food agency (AFSSA 2003, "Évaluation nutritionnelle et sanitaire des aliments
+    // issus de l'agriculture biologique") found no significant nutritional
+    // difference. Shown, but worth 0 points in this nutrition score.
+    if (product.organic) bonuses += Deduction("global_bonus", if (en) "Organic certification (farming method — not counted in the nutrition score)" else "Certification biologique (mode de production — non comptée dans la note nutritionnelle)", 0.0, Severity.INFO)
     if (product.wholeGrainPrimary) bonuses += Deduction("global_bonus", if (en) "Whole grain as primary grain" else "Céréale complète en ingrédient principal", 3.0, Severity.INFO)
     // ALCOHOLIC_BEVERAGE excluded - "fermented" is judged from OFF data/on-device OCR
     // inference with no exclusion of the literal alcoholic-fermentation
@@ -112,7 +116,9 @@ private fun computeGlobalPenalties(product: Product, severeFlagCount: Int, lang:
     val en = lang == "en"
     val penalties = mutableListOf<Deduction>()
     if (product.hasMisleadingMarketing) penalties += Deduction("global_penalty", if (en) "Misleading marketing claims" else "Allégations marketing trompeuses", -2.0, Severity.MODERATE)
-    if (product.hasHealthClaims) penalties += Deduction("global_penalty", if (en) "Health claims present — verify vs composition" else "Allégations de santé présentes — à vérifier vs composition", -3.0, Severity.MODERATE)
+    // S8: no penalty - many claims are authorised under Regulation (EC) 1924/2006,
+    // and the data can't tell an authorised claim from a misleading one.
+    if (product.hasHealthClaims) penalties += Deduction("global_penalty", if (en) "Health claims on the pack — compare them with the composition" else "Allégations de santé sur l'emballage — à comparer avec la composition", 0.0, Severity.INFO)
     val palm = product.ingredients.find { ing -> PALM_OIL_PATTERN.containsMatchIn(ing.name) }
     if (palm != null) penalties += Deduction("global_penalty", (if (en) "Palm oil or derivative: " else "Huile de palme ou dérivé : ") + palm.name, -3.0, Severity.MODERATE)
     // Cumulative vigilance malus: each pillar's own score floors at 0 (never
@@ -552,7 +558,10 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
         ProductCategory.EGG, ProductCategory.FRESH_MEAT, ProductCategory.FISH, ProductCategory.FRESH_PRODUCE,
     )
     val ingredientsKnown = product.ingredients.isNotEmpty()
-    val unearnableOilPoints = if (ingredientsKnown && product.category in oilFreeCategories) 3.0 else 0.0
+    // S8: generalised - any product whose ingredient list holds no oil at all
+    // (yogurt, pasta, rice...) can't earn the named-oil points either, not just
+    // the categories above, so they're left out of its maximum.
+    val unearnableOilPoints = if (ingredientsKnown && (product.category in oilFreeCategories || !containsAnyOil(product))) 3.0 else 0.0
     // S3: criteria the data cannot support are excluded, not presumed.
     val unknownIngredientPoints = if (ingredientsKnown) 0.0 else additiveRisk.max + INGREDIENT_ONLY_INTEGRITY_POINTS
     // S2: an unknown processing level is excluded from the score (same

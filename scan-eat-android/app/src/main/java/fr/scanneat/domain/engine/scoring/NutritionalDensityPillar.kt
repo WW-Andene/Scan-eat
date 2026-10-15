@@ -107,13 +107,20 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
         else if (fiberScore < 5) deductions += Deduction("nutritional_density", if (en) "Low fiber ${n.fiberG}g/100g (${fiberScore.toInt()}/7)" else "Fibres faibles ${n.fiberG}g/100g (${fiberScore.toInt()}/7)", fiberScore - 7, Severity.MINOR)
     }
 
-    // Micronutrients NRV-15% bonus (0–8): +1 per micro declared at ≥15% NRV per 100g, cap 8
+    // Micronutrients bonus (0–8): +1 per micro declared at a "significant amount"
+    // per Regulation (EU) 1169/2011 Annex XIII Part A.2 - 15 % of the NRV per
+    // 100 g, but 7.5 % per 100 mL for beverages. S8: a micronutrient ADDED by the
+    // manufacturer (listed in the ingredients: fortified cereals, chocolate
+    // powders...) earns nothing - the bonus is for what the food itself brings.
     var microBonus = 0.0
     val declaredMicros = mutableListOf<String>()
+    val significantShare = if (product.category in BEVERAGE_CATEGORIES_FOR_NRV) 0.075 else 0.15
+    val fortified = fortifiedMicros(product)
     for ((name, pair) in NRV_TARGETS) {
         val (fieldKey, nrv) = pair
+        if (fieldKey in fortified) continue
         val value = getNutrientValue(n, fieldKey) ?: continue
-        if (value >= nrv * 0.15) {
+        if (value >= nrv * significantShare) {
             microBonus += 1.0
             declaredMicros += name
         }
@@ -158,4 +165,34 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
     }
 
     return PillarScore(if (en) "Nutritional Density" else "Densité nutritionnelle", MAX, minOf(MAX.toDouble(), maxOf(0.0, score)), deductions, bonuses)
+}
+
+private val BEVERAGE_CATEGORIES_FOR_NRV = setOf(
+    fr.scanneat.domain.model.ProductCategory.BEVERAGE_SOFT, fr.scanneat.domain.model.ProductCategory.BEVERAGE_JUICE,
+    fr.scanneat.domain.model.ProductCategory.BEVERAGE_WATER, fr.scanneat.domain.model.ProductCategory.ALCOHOLIC_BEVERAGE,
+)
+
+/** Ingredient names that mean a vitamin or mineral was added, per nutrient field. */
+private val FORTIFICATION_PATTERNS: Map<String, Regex> = mapOf(
+    "ironMg" to Regex("""\bfer\b|\biron\b|ferreux|ferrique|ferrous|ferric"""),
+    "calciumMg" to Regex("""(?:carbonate|phosphate|citrate|lactate|chlorure|gluconate) (?:de |tri)?calci|calcium (?:carbonate|phosphate|citrate|lactate)|\bcalcium\b"""),
+    "vitDUg" to Regex("""vitamine d\d?\b|vitamin d\d?\b|cholecalciferol|ergocalciferol"""),
+    "vitCMg" to Regex("""vitamine c\b|vitamin c\b"""),
+    "vitAUg" to Regex("""vitamine a\b|vitamin a\b|retinol|acetate de retinyle|retinyl"""),
+    "vitEMg" to Regex("""vitamine e\b|vitamin e\b|tocopheryl"""),
+    "b12Ug" to Regex("""vitamine b12|vitamin b12|cyanocobalamine|cyanocobalamin|cobalamine"""),
+    "magnesiumMg" to Regex("""(?:carbonate|oxyde|citrate|chlorure) de magnesium|magnesium (?:carbonate|oxide|citrate)"""),
+    "potassiumMg" to Regex("""(?:citrate|chlorure|iodure) de potassium|potassium (?:citrate|chloride)"""),
+    "zincMg" to Regex("""(?:oxyde|sulfate|gluconate|citrate) de zinc|zinc (?:oxide|sulphate|sulfate|gluconate)|\bzinc\b"""),
+)
+
+/** Micronutrient fields whose value comes, at least partly, from fortification listed in the ingredients. */
+internal fun fortifiedMicros(product: Product): Set<String> {
+    val names = product.ingredients.map { normalizeForMatching(it.name) }
+    // A generic "vitamines" / "mineraux" mention (e.g. "vitamines (C, D, B12)") lists them by letter.
+    val generic = names.joinToString(" ")
+    return FORTIFICATION_PATTERNS.filter { (_, re) -> names.any { re.containsMatchIn(it) } }.keys +
+        (if (Regex("""vitamines?\b[^,;]*\bd\b""").containsMatchIn(generic)) setOf("vitDUg") else emptySet()) +
+        (if (Regex("""vitamines?\b[^,;]*\bc\b""").containsMatchIn(generic)) setOf("vitCMg") else emptySet()) +
+        (if (Regex("""vitamines?\b[^,;]*\bb12\b""").containsMatchIn(generic)) setOf("b12Ug") else emptySet())
 }
