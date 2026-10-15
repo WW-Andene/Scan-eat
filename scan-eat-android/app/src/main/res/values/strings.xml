@@ -2385,4 +2385,9 @@
     <string name="home_shortcuts_hint">Choisissez jusqu\'à %1$d outils à garder sur l\'Accueil. Tous restent dans Cuisine et Santé.</string>
     <string name="dashboard_safety_low_stock">Stock bas : %1$s</string>
     <string name="dashboard_safety_renewal">Ordonnance à renouveler : %1$s</string>
+    <string name="settings_group_profile">Profil et abonnement</string>
+    <string name="settings_group_notifications">Notifications</string>
+    <string name="settings_group_display">Affichage et accessibilité</string>
+    <string name="settings_group_data">Données et sauvegarde</string>
+    <string name="settings_group_about">À propos</string>
 </resources>

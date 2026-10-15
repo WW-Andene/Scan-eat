@@ -2381,4 +2381,9 @@
     <string name="home_shortcuts_hint">Pick up to %1$d tools to keep on Home. All of them stay in Cooking and Health.</string>
     <string name="dashboard_safety_low_stock">Low stock: %1$s</string>
     <string name="dashboard_safety_renewal">Prescription to renew: %1$s</string>
+    <string name="settings_group_profile">Profile and subscription</string>
+    <string name="settings_group_notifications">Notifications</string>
+    <string name="settings_group_display">Display and accessibility</string>
+    <string name="settings_group_data">Data and backup</string>
+    <string name="settings_group_about">About</string>
 </resources>
