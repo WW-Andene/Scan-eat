@@ -43,4 +43,21 @@ class DishIdentifierTest {
     }
 
     @Test fun `nothing for gibberish`() = assertNull(identifyDish("xqzt wvb"))
+
+    @Test fun `curry, chili and couscous on a pack are the dish`() {
+        assertEquals("curry de poulet", (identifyDish("Curry") as DishMatch.Exact).food.name)
+        assertEquals("chili con carne", (identifyDish("Chili") as DishMatch.Exact).food.name)
+        assertEquals("couscous royal", (identifyDish("Couscous") as DishMatch.Exact).food.name)
+        assertEquals("curry de poulet", (identifyDish("Poulet au curry") as DishMatch.Exact).food.name)
+    }
+
+    @Test fun `in a composed name the sauce wins over the spice`() {
+        val m = identifyDish("Riz au curry") as DishMatch.Composed
+        assertTrue(m.parts.any { it.first.name == "sauce au curry" })
+    }
+
+    @Test fun `recipe lines still read the spice and the semolina`() {
+        assertEquals("curry", fr.scanneat.domain.engine.planning.parseIngredientLine("1 c. à café de curry").food?.name)
+        assertEquals("semoule cuite", fr.scanneat.domain.engine.planning.parseIngredientLine("200 g de couscous").food?.name)
+    }
 }

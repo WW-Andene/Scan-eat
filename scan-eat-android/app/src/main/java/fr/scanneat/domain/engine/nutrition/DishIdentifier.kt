@@ -38,9 +38,19 @@ private fun roleWeight(f: FoodEntry): Double = when {
 
 private fun significantWords(s: String) = norm(s).split(' ').filter { it.length > 2 && it !in STOP }
 
+/** Dish-only names (FoodEntry.dishAliases), checked before the general index. */
+private val DISH_ALIAS_INDEX: Map<String, FoodEntry> by lazy {
+    buildMap { for (f in FOOD_DB) f.dishAliases.forEach { putIfAbsent(norm(it), f) } }
+}
+
+private fun dishAlias(p: String): FoodEntry? = DISH_ALIAS_INDEX[norm(p)]
+    ?: DISH_ALIAS_INDEX[norm(p).split(' ').joinToString(" ") { w -> if (w.length > 3 && (w.endsWith("s") || w.endsWith("x"))) w.dropLast(1) else w }]
+
 fun identifyDish(name: String): DishMatch? {
     val n = norm(name)
     if (n.isBlank()) return null
+    // A whole product / menu name: "Couscous" is the dish, not the semolina.
+    dishAlias(n)?.let { return DishMatch.Exact(it) }
     findFoodExact(n)?.let { return DishMatch.Exact(it) }
 
     // Split into components; a bare sauce word after "sauce"/"à la" ("bolognaise", "tomate")
@@ -48,7 +58,8 @@ fun identifyDish(name: String): DishMatch? {
     val rawParts = n.split(CONNECTORS).map { it.trim() }.filter { it.isNotEmpty() }
         .flatMap { p -> if (p.startsWith("sauce ")) listOf(p) else p.split(Regex("""\s+sauce\s+""")).let { s -> if (s.size == 2) listOf(s[0], "sauce " + s[1]) else s } }
     val parts = rawParts.mapNotNull { p ->
-        findFoodExact(p) ?: findFoodExact("sauce $p") ?: findFoodByName(p)?.takeIf { f -> significantWords(p).any { w -> w in norm(f.name) || f.aliases.any { w in norm(it) } } }
+        // In a dish name, "... au curry" / "... à la tomate" is the sauce before the spice or vegetable.
+        findFoodExact("sauce $p") ?: findFoodExact(p) ?: findFoodByName(p)?.takeIf { f -> significantWords(p).any { w -> w in norm(f.name) || f.aliases.any { w in norm(it) } } }
     }.distinctBy { it.name }
     if (rawParts.size >= 2 && parts.size >= 2) {
         val total = parts.sumOf(::roleWeight)

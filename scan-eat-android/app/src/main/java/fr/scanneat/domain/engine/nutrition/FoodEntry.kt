@@ -85,4 +85,8 @@ data class FoodEntry(
     /** What a composed dish or sauce is defined by (FoodDbComposedDishes) - fed to
      *  toProduct() as ingredients so allergen and diet checks can run on it. */
     val typicalIngredients: List<String> = emptyList(),
+    /** Names that mean this DISH only when they are the whole name of a product or a
+     *  menu line ("Curry", "Couscous", "Chili" on a ready meal) - never used to read a
+     *  recipe ingredient line, where the same word is the spice or the semolina. */
+    val dishAliases: List<String> = emptyList(),
 )
