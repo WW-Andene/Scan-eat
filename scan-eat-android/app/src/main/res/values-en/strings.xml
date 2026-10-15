@@ -2419,4 +2419,7 @@
     <string name="withdrawal_alcohol_kcal_diary">Compared with the drinks you logged in the 4 weeks before the challenge.</string>
     <string name="withdrawal_alcohol_kcal_declared">Estimated from your drinks per week (70 kcal per standard drink, alcohol only).</string>
     <string name="withdrawal_alcohol_kcal_unknown">Calories avoided: log your drinks in the Journal, or give your drinks per week next time.</string>
+    <string name="result_ns_gap_worse">Why a stricter grade than the Nutri-Score?</string>
+    <string name="result_ns_gap_better">Why a better grade than the Nutri-Score?</string>
+    <string name="result_ns_gap_footer">The Nutri-Score (Santé publique France) rates the nutrient profile per 100 g. The Scan\'eat grade adds processing, additives and ingredient quality.</string>
 </resources>

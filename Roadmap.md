@@ -223,6 +223,7 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
 → Une règle = un effet ; tests de cohérence « bonus affiché = points comptés ».
 
 ### S11. Grades non calibrés 🟡 📖
+✅ **Partiellement fait** : quand la note Scan'eat et le Nutri-Score de l'emballage s'écartent de 2 lettres ou plus, l'écran de résultat explique pourquoi à partir du calcul (plafond appliqué, transformation NOVA, additifs, huile de palme, qualité des ingrédients ; dans l'autre sens, peu transformé ou seuils de catégorie) (test `NutriScoreGapTest`). Reste : calibrer les seuils des grades sur le jeu de vérité (S15), qui demande un panel de produits réels et une validation par des diététiciens.
 Sept grades (A+ à F) à seuils linéaires (85/70/55/40/25/10), sans calibration publiée contre une référence (Nutri-Score,
 panel de diététiciens) ni distribution observée sur un panel réel. Le même produit peut afficher un Nutri-Score A et un
 « C » Scan'eat sans explication.

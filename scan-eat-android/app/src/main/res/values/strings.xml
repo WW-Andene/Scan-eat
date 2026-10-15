@@ -2423,4 +2423,7 @@
     <string name="withdrawal_alcohol_kcal_diary">Par rapport à vos boissons notées les 4 semaines avant le défi.</string>
     <string name="withdrawal_alcohol_kcal_declared">Estimé d\'après vos verres par semaine (70 kcal par verre standard, alcool seul).</string>
     <string name="withdrawal_alcohol_kcal_unknown">Calories évitées : notez vos boissons dans le Journal, ou indiquez vos verres par semaine au prochain défi.</string>
+    <string name="result_ns_gap_worse">Pourquoi une note plus sévère que le Nutri-Score ?</string>
+    <string name="result_ns_gap_better">Pourquoi une note meilleure que le Nutri-Score ?</string>
+    <string name="result_ns_gap_footer">Le Nutri-Score (Santé publique France) évalue la composition nutritionnelle pour 100 g. La note Scan\'eat y ajoute la transformation, les additifs et la qualité des ingrédients.</string>
 </resources>
