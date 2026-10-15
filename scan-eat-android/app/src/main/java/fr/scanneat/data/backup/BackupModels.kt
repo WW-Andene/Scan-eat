@@ -225,6 +225,7 @@ data class WithdrawalBackup(
     val caffeine: CaffeineTaperBackup? = null,
     val alcoholChallengeStart: String? = null,
     val alcoholChallengeDays: Int? = null,
+    val alcoholChallengeDrinksPerWeek: Int? = null,
 )
 
 data class CaffeineTaperBackup(val startDate: String, val startMg: Int, val targetMg: Int, val weeks: Int)

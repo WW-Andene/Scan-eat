@@ -58,12 +58,12 @@ class WithdrawalViewModel @Inject constructor(
         profileId.flatMapLatest { id ->
             repo.alcoholChallenge(id).flatMapLatest { c ->
                 if (c == null) flowOf(null)
-                else consumptionRepo.observeRange(c.startDate, c.endDate, id).map { entries ->
+                else consumptionRepo.observeRange(c.startDate.minusDays(fr.scanneat.domain.engine.withdrawal.BASELINE_WINDOW_DAYS), c.endDate, id).map { entries ->
                     c to fr.scanneat.domain.engine.withdrawal.alcoholChallengeStatus(c, entries, LocalDate.now())
                 }
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-    fun startAlcoholChallenge(days: Int) = guardedLaunch { repo.setAlcoholChallenge(profileId.first(), fr.scanneat.domain.engine.withdrawal.AlcoholChallenge(LocalDate.now(), days)) }
+    fun startAlcoholChallenge(days: Int, drinksPerWeek: Int?) = guardedLaunch { repo.setAlcoholChallenge(profileId.first(), fr.scanneat.domain.engine.withdrawal.AlcoholChallenge(LocalDate.now(), days, drinksPerWeek)) }
     fun stopAlcoholChallenge() = guardedLaunch { repo.setAlcoholChallenge(profileId.first(), null) }
 
     val taperPlan: StateFlow<TaperPlan?> = profileId.flatMapLatest { repo.taperPlan(it) }

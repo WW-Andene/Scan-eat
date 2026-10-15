@@ -2417,4 +2417,10 @@
     <string name="withdrawal_alcohol_from_diary">D\'après les boissons notées dans le Journal.</string>
     <string name="withdrawal_alcohol_safety">Après une consommation régulière importante, arrêter d\'un coup peut provoquer un sevrage dangereux (tremblements, convulsions, delirium) : parlez-en d\'abord à un médecin. Alcool Info Service, gratuit et anonyme, 7j/7.</string>
     <string name="withdrawal_alcohol_call">Appeler le 0 980 980 930</string>
+    <string name="withdrawal_alcohol_per_week">Verres par semaine en général (facultatif)</string>
+    <string name="withdrawal_alcohol_per_week_hint">Sert seulement si votre Journal des 4 dernières semaines est trop vide</string>
+    <string name="withdrawal_alcohol_kcal">≈ %1$d kcal de boissons alcoolisées évitées</string>
+    <string name="withdrawal_alcohol_kcal_diary">Par rapport à vos boissons notées les 4 semaines avant le défi.</string>
+    <string name="withdrawal_alcohol_kcal_declared">Estimé d\'après vos verres par semaine (70 kcal par verre standard, alcool seul).</string>
+    <string name="withdrawal_alcohol_kcal_unknown">Calories évitées : notez vos boissons dans le Journal, ou indiquez vos verres par semaine au prochain défi.</string>
 </resources>

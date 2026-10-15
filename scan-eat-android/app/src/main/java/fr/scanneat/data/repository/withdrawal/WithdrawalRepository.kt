@@ -118,13 +118,13 @@ class WithdrawalRepository @Inject constructor(
 
     // ---- Alcohol-free challenge ----
     fun alcoholChallenge(profileId: String): Flow<fr.scanneat.domain.engine.withdrawal.AlcoholChallenge?> = data.map { p ->
-        p[k("alc_challenge", profileId)]?.split('|')?.takeIf { it.size == 2 }?.let { (d, n) ->
-            runCatching { fr.scanneat.domain.engine.withdrawal.AlcoholChallenge(LocalDate.parse(d), n.toInt()) }.getOrNull()
+        p[k("alc_challenge", profileId)]?.split('|')?.takeIf { it.size >= 2 }?.let { parts ->
+            runCatching { fr.scanneat.domain.engine.withdrawal.AlcoholChallenge(LocalDate.parse(parts[0]), parts[1].toInt(), parts.getOrNull(2)?.toIntOrNull()) }.getOrNull()
         }
     }.distinctUntilChanged()
 
     suspend fun setAlcoholChallenge(profileId: String, c: fr.scanneat.domain.engine.withdrawal.AlcoholChallenge?) = store.edit { p ->
-        if (c == null) p.remove(k("alc_challenge", profileId)) else p[k("alc_challenge", profileId)] = "${c.startDate}|${c.days}"
+        if (c == null) p.remove(k("alc_challenge", profileId)) else p[k("alc_challenge", profileId)] = "${c.startDate}|${c.days}|${c.drinksPerWeek ?: ""}"
     }
 
     // ---- Backup ----
@@ -144,6 +144,7 @@ class WithdrawalRepository @Inject constructor(
             caffeine = caf?.let { fr.scanneat.data.backup.CaffeineTaperBackup(it.startDate.toString(), it.startMg, it.targetMg, it.weeks) },
             alcoholChallengeStart = alc?.startDate?.toString(),
             alcoholChallengeDays = alc?.days,
+            alcoholChallengeDrinksPerWeek = alc?.drinksPerWeek,
         )
     }
 
@@ -158,7 +159,7 @@ class WithdrawalRepository @Inject constructor(
         setTaperPlan(profileId, b.taper?.let { t ->
             TaperPlan(t.medicationName, t.steps.mapNotNull { s -> runCatching { TaperStep(LocalDate.parse(s.startDate), s.dose) }.getOrNull() }, t.note)
         }?.takeIf { it.steps.isNotEmpty() })
-        setAlcoholChallenge(profileId, b.alcoholChallengeStart?.let { d -> runCatching { fr.scanneat.domain.engine.withdrawal.AlcoholChallenge(LocalDate.parse(d), b.alcoholChallengeDays ?: 30) }.getOrNull() })
+        setAlcoholChallenge(profileId, b.alcoholChallengeStart?.let { d -> runCatching { fr.scanneat.domain.engine.withdrawal.AlcoholChallenge(LocalDate.parse(d), b.alcoholChallengeDays ?: 30, b.alcoholChallengeDrinksPerWeek) }.getOrNull() })
         setCaffeineTaper(profileId, b.caffeine?.let { c -> runCatching { fr.scanneat.domain.engine.withdrawal.CaffeineTaper(LocalDate.parse(c.startDate), c.startMg, c.targetMg, c.weeks) }.getOrNull() })
     }
 

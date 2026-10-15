@@ -279,14 +279,19 @@ private fun CaffeineCard(plan: CaffeineTaper?, onStart: (Int, Int, Int) -> Unit,
 }
 
 @Composable
-private fun AlcoholChallengeCard(state: Pair<AlcoholChallenge, AlcoholChallengeStatus>?, onStart: (Int) -> Unit, onStop: () -> Unit) {
+private fun AlcoholChallengeCard(state: Pair<AlcoholChallenge, AlcoholChallengeStatus>?, onStart: (Int, Int?) -> Unit, onStop: () -> Unit) {
     val uri = LocalUriHandler.current
     Card {
         TitleText(stringResource(R.string.withdrawal_alcohol_title))
         if (state == null) {
             Hint(stringResource(R.string.withdrawal_alcohol_intro))
+            var perWeek by remember { mutableStateOf("") }
+            OutlinedTextField(perWeek, { perWeek = it.filter(Char::isDigit).take(3) }, singleLine = true,
+                label = { Text(stringResource(R.string.withdrawal_alcohol_per_week)) },
+                supportingText = { Text(stringResource(R.string.withdrawal_alcohol_per_week_hint)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                listOf(7, 30, 60).forEach { d -> OutlinedButton(onClick = { onStart(d) }) { Text(stringResource(R.string.withdrawal_alcohol_days, d)) } }
+                listOf(7, 30, 60).forEach { d -> OutlinedButton(onClick = { onStart(d, perWeek.toIntOrNull()) }) { Text(stringResource(R.string.withdrawal_alcohol_days, d)) } }
             }
         } else {
             val (c, st) = state
@@ -294,6 +299,10 @@ private fun AlcoholChallengeCard(state: Pair<AlcoholChallenge, AlcoholChallengeS
                 else stringResource(R.string.withdrawal_alcohol_progress, st.dayNumber, c.days, st.alcoholFreeDays),
                 style = MaterialTheme.typography.bodyLarge, color = OnBackground)
             if (!st.finished) Hint(stringResource(R.string.withdrawal_alcohol_streak, st.currentStreak))
+            st.kcalAvoided?.let {
+                Text(stringResource(R.string.withdrawal_alcohol_kcal, it), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                Hint(stringResource(if (st.baselineFromDiary) R.string.withdrawal_alcohol_kcal_diary else R.string.withdrawal_alcohol_kcal_declared), OnBackground.copy(0.4f))
+            } ?: Hint(stringResource(R.string.withdrawal_alcohol_kcal_unknown), OnBackground.copy(0.4f))
             if (st.daysWithAlcohol.isNotEmpty()) Hint(stringResource(R.string.withdrawal_alcohol_slips, st.daysWithAlcohol.joinToString(", ") { it.format(dateFmt) }), AccentCoral)
             Hint(stringResource(R.string.withdrawal_alcohol_from_diary), OnBackground.copy(0.4f))
             TextButton(onClick = onStop) { Text(stringResource(R.string.withdrawal_tobacco_stop), color = OnBackground.copy(0.6f)) }

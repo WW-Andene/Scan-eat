@@ -2413,4 +2413,10 @@
     <string name="withdrawal_alcohol_from_diary">Based on the drinks logged in the Journal.</string>
     <string name="withdrawal_alcohol_safety">After regular heavy drinking, stopping all at once can cause a dangerous withdrawal (tremors, seizures, delirium): talk to a doctor first. Alcool Info Service (France), free and anonymous, 7 days a week.</string>
     <string name="withdrawal_alcohol_call">Call 0 980 980 930</string>
+    <string name="withdrawal_alcohol_per_week">Usual drinks per week (optional)</string>
+    <string name="withdrawal_alcohol_per_week_hint">Only used if your Journal for the last 4 weeks is too sparse</string>
+    <string name="withdrawal_alcohol_kcal">≈ %1$d kcal of alcoholic drinks avoided</string>
+    <string name="withdrawal_alcohol_kcal_diary">Compared with the drinks you logged in the 4 weeks before the challenge.</string>
+    <string name="withdrawal_alcohol_kcal_declared">Estimated from your drinks per week (70 kcal per standard drink, alcohol only).</string>
+    <string name="withdrawal_alcohol_kcal_unknown">Calories avoided: log your drinks in the Journal, or give your drinks per week next time.</string>
 </resources>

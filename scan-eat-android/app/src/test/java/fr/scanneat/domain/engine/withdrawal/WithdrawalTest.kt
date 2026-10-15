@@ -80,4 +80,20 @@ class WithdrawalTest {
         assertFalse(st.finished)
         assertTrue(alcoholChallengeStatus(c, emptyList(), start.plusDays(10)).finished)
     }
+
+    @Test fun `kcal avoided from the diary baseline, else declared drinks`() {
+        val n = fr.scanneat.domain.model.NutritionPer100g(energyKcal = 40.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 0.0, sugarsG = 0.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.0)
+        fun e(day: Long, vol: Double?) = fr.scanneat.domain.model.DiaryEntry(date = start.plusDays(day), mealSlot = fr.scanneat.domain.model.MealSlot.DINNER,
+            productName = "x", portionG = 250.0, nutrition = n.copy(alcoholPercentVol = vol), source = fr.scanneat.domain.model.ScanSource.MANUAL)
+        // 28 days before: a 100 kcal beer every day -> 100 kcal/day baseline.
+        val history = (1L..28L).map { e(-it, 5.0) }
+        val st = alcoholChallengeStatus(AlcoholChallenge(start, 7), history, start.plusDays(3))
+        assertTrue(st.baselineFromDiary)
+        assertEquals(400, st.kcalAvoided)           // 4 days x 100 kcal
+        // Too little history: declared 7 drinks/week = 70 kcal/day.
+        val st2 = alcoholChallengeStatus(AlcoholChallenge(start, 7, drinksPerWeek = 7), listOf(e(-1, 5.0)), start.plusDays(1))
+        assertFalse(st2.baselineFromDiary)
+        assertEquals(140, st2.kcalAvoided)
+        assertNull(alcoholChallengeStatus(AlcoholChallenge(start, 7), emptyList(), start).kcalAvoided)
+    }
 }
