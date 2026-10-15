@@ -171,7 +171,15 @@ fun ScanEatCard(
     val hairlineBrush = Brush.horizontalGradient(
         colors = listOf(Color.Transparent, Color.White.copy(alpha = spec.edgeAlpha), Color.Transparent),
     )
-    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = if (isPrism) PrismBorderAlpha else 0.14f)
+    val themeName = LocalThemeName.current
+    // Frosted-glass treatment for the dark "scene" background (see ambientGloom).
+    val isScene = themeName !in setOf("light", "high_contrast", "low_contrast", "prism")
+    val borderColor = when {
+        isPrism -> MaterialTheme.colorScheme.outline.copy(alpha = PrismBorderAlpha)
+        isScene -> Color.White.copy(alpha = 0.09f)
+        else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
+    }
+    val frostBrush = Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.06f), Color.Transparent))
     // User-reported: putting the chrome (clip/background/border/hairline) AND
     // the content layout on the exact same Column node made the fill read as
     // "masked" wherever content sat - the card's own paint and the content's
@@ -188,6 +196,7 @@ fun ScanEatCard(
             .border(BorderStroke(1.dp, borderColor), shape)
             .drawWithCache {
                 onDrawWithContent {
+                    if (isScene) drawRect(frostBrush)
                     drawContent()
                     drawLine(
                         brush       = hairlineBrush,
