@@ -2429,4 +2429,6 @@
     <string name="scan_name_choose_title">Produit lu : « %1$s »</string>
     <string name="scan_name_choose_off">Fiche Open Food Facts trouvée par le nom</string>
     <string name="scan_name_choose_none">Aucun ne correspond</string>
+    <string name="menu_scan_typical_allergens">Dans la recette habituelle de ce plat : %1$s — demandez au restaurant</string>
+    <string name="menu_scan_estimate">Estimation : %1$s (%2$d/100), d\'après %3$s (table CIQUAL)</string>
 </resources>

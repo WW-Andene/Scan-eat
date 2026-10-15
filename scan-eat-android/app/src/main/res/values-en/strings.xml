@@ -2425,4 +2425,6 @@
     <string name="scan_name_choose_title">Product read: "%1$s"</string>
     <string name="scan_name_choose_off">Open Food Facts product found by name</string>
     <string name="scan_name_choose_none">None of these</string>
+    <string name="menu_scan_typical_allergens">In this dish\'s usual recipe: %1$s — ask the restaurant</string>
+    <string name="menu_scan_estimate">Estimate: %1$s (%2$d/100), based on %3$s (CIQUAL table)</string>
 </resources>

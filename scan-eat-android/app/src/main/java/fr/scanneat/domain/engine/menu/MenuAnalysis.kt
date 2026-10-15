@@ -1,5 +1,7 @@
 package fr.scanneat.domain.engine.menu
 
+import fr.scanneat.domain.engine.nutrition.describe
+import fr.scanneat.domain.engine.nutrition.toProduct
 import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.detectAllergens
@@ -17,9 +19,16 @@ data class MenuDish(
     val allergens: List<String>,
     /** Diet conflict reason, if the dish text names a non-compliant ingredient. */
     val dietConflict: String?,
+    /** Estimated grade when the dish is in the food table or can be composed from it. */
+    val estimate: MenuEstimate? = null,
+    /** Profile allergens of the dish's TYPICAL recipe not already named in the text. */
+    val typicalRecipeAllergens: List<String> = emptyList(),
 )
 
+data class MenuEstimate(val grade: String, val score: Int, val basis: String)
+
 private val ZERO = NutritionPer100g(energyKcal = 0.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 0.0, sugarsG = 0.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.0)
+private val PRICE = Regex("""\d+(?:[.,]\d{1,2})?\s*(?:€|eur\b|euros?\b)?""", RegexOption.IGNORE_CASE)
 private val PRICE_ONLY = Regex("""^[\s\d.,€$£xX/-]*$""")
 
 /**
@@ -43,5 +52,21 @@ fun analyzeMenuText(text: String, profile: Profile, lang: String = "fr"): List<M
             // Only explicitly named forbidden ingredients count: a dish can never
             // carry a certification label, so "not certified" is not a conflict.
             val violations = if (profile.diet == DietKey.NONE) emptyList() else checkDiet(product, profile.diet, lang).violations.distinct()
-            MenuDish(line, allergens, violations.takeIf { it.isNotEmpty() }?.joinToString(", "))
+            // Estimate from the food table: the dish as a whole, or composed from its parts.
+            // A partial match is left out - it would score only one component.
+            val match = fr.scanneat.domain.engine.nutrition.identifyDish(line.replace(PRICE, " ").trim())
+            val food = when (match) {
+                is fr.scanneat.domain.engine.nutrition.DishMatch.Exact -> match.food
+                is fr.scanneat.domain.engine.nutrition.DishMatch.Composed -> match.food
+                else -> null
+            }
+            val estimate = food?.let { f ->
+                val audit = fr.scanneat.domain.engine.scoring.scoreProduct(f.toProduct(), lang)
+                val basis = if (match is fr.scanneat.domain.engine.nutrition.DishMatch.Composed) match.describe() else f.name
+                MenuEstimate(audit.grade.label, audit.score, basis)
+            }
+            val typical = if (food == null || profile.allergens.isEmpty()) emptyList() else
+                detectAllergens(food.toProduct(), lang).filter { !it.isTraceOnly && it.key in profile.allergens }
+                    .map { if (lang == "en") it.labelEn else it.labelFr }.filter { it !in allergens }
+            MenuDish(line, allergens, violations.takeIf { it.isNotEmpty() }?.joinToString(", "), estimate, typical)
         }
