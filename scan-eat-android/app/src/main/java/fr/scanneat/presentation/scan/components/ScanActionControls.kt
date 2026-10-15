@@ -156,7 +156,7 @@ internal fun BoxScope.ScanInstantModeFab(instantMode: Boolean, topInset: Dp, onC
     FloatingActionButton(
         onClick = onClick,
         modifier       = Modifier.align(Alignment.TopEnd)
-            .padding(top = topInset + Spacing.L + 128.dp,  // two 64dp button slots end = Spacing.L)
+            .padding(top = topInset + Spacing.L + 128.dp, end = Spacing.L)
             .minTouchTarget(),
         containerColor = if (instantMode) AccentCoral else SurfaceVariant,
         shape          = RoundedCornerShape(CardRadius.CONTROL),
@@ -197,7 +197,7 @@ internal fun BoxScope.ScanShelfModeFab(shelfMode: Boolean, topInset: Dp, onClick
         // bottom-start, bottom-start, then jumped back up to this top-right button.
         // User-reported: the gap below the flash button wasn't visible on-device -
         // bumped by another 6dp on top of the existing Spacing.S gap.
-        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 64.dp,  // one 64dp button slot end = Spacing.L)
+        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 64.dp, end = Spacing.L)
             .minTouchTarget() // was a fixed 40dp, below the 48dp WCAG/Material touch-target minimum
             .semantics { traversalIndex = -1f },
         containerColor = if (shelfMode) Teal else SurfaceVariant,
