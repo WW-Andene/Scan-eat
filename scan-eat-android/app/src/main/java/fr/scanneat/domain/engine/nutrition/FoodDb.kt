@@ -210,4 +210,4 @@ fun FoodEntry.toProduct(portionG: Double = 100.0): Product = Product(
     weightG = typicalPortionG ?: portionG,
 )
 
-private val PREPARED_CATEGORIES = setOf(ProductCategory.READY_MEAL, ProductCategory.SOUP, ProductCategory.CONDIMENT, ProductCategory.SANDWICH)
+internal val PREPARED_CATEGORIES = setOf(ProductCategory.READY_MEAL, ProductCategory.SOUP, ProductCategory.CONDIMENT, ProductCategory.SANDWICH)

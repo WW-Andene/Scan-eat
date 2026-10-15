@@ -256,10 +256,15 @@ class CustomFoodRepository @Inject constructor(
         // category of its own to read back here — infer from name the same way
         // OffMapper/ScoringEngine already do for exactly this situation, rather
         // than the previous hardcoded OTHER regardless of what the food is.
-        category    = inferCategoryFromName(entry.name),
-        novaClass   = NovaClass.UNPROCESSED,
-        ingredients = listOf(Ingredient(name = entry.name, percentage = 100.0,
-            category = IngredientCategory.FOOD, isWholeFood = true)),
+        category    = entry.category ?: inferCategoryFromName(entry.name),
+        // A prepared dish or sauce of the table (FoodDbComposedDishes, or a dish
+        // composed by identifyDish) is a cooked preparation with known components,
+        // not a single whole food.
+        novaClass   = if (entry.category in fr.scanneat.domain.engine.nutrition.PREPARED_CATEGORIES) NovaClass.PROCESSED else NovaClass.UNPROCESSED,
+        novaDeclared = entry.category !in fr.scanneat.domain.engine.nutrition.PREPARED_CATEGORIES,
+        ingredients = if (entry.typicalIngredients.isNotEmpty())
+            entry.typicalIngredients.map { Ingredient(name = it, category = IngredientCategory.FOOD) }
+        else listOf(Ingredient(name = entry.name, percentage = 100.0, category = IngredientCategory.FOOD, isWholeFood = true)),
         nutrition   = NutritionPer100g(
             energyKcal    = entry.kcal,
             fatG          = entry.fatG,

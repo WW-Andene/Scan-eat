@@ -227,6 +227,9 @@ class FoodSearchViewModel @Inject constructor(
         .flatMapLatest { (q, id) -> scanRepo.searchHistory(q, id) }
         .map { results -> results.map { it.toItem() }.distinctBy { it.name.lowercase() } }
 
+    /** Dishes composed by identifyDish for the current query, so picking one can resolve it. */
+    private val composedFoods = java.util.concurrent.ConcurrentHashMap<String, fr.scanneat.domain.engine.nutrition.FoodEntry>()
+
     private val localItems: Flow<List<FoodSearchItem>> = combine(effectiveSearchQuery, customFoods) { q, customs ->
         if (q.isBlank()) {
             val customNames = customs.map { it.name }.toSet()
@@ -234,8 +237,13 @@ class FoodSearchViewModel @Inject constructor(
                 FOOD_DB.filterNot { it.name in customNames }.map { it.toItem(isCustom = false) }
         } else {
             val customNames = customs.map { it.name }.toSet()
-            searchFoodDB(q, limit = 200, extraFoods = customs)
-                .map { it.toItem(isCustom = it.name in customNames) }
+            // A dish name the table doesn't hold as such ("tagliatelles au pesto")
+            // is offered as an estimate composed from its parts.
+            val composed = (fr.scanneat.domain.engine.nutrition.identifyDish(q) as? fr.scanneat.domain.engine.nutrition.DishMatch.Composed)
+                ?.food?.also { composedFoods[it.name] = it }
+            listOfNotNull(composed?.toItem(isCustom = false)) +
+                searchFoodDB(q, limit = 200, extraFoods = customs)
+                    .map { it.toItem(isCustom = it.name in customNames) }
         }
     }
 
@@ -485,7 +493,7 @@ class FoodSearchViewModel @Inject constructor(
     private suspend fun resolveFood(item: FoodSearchItem): ResolvedFood? = when {
         item.scanId != null -> scanRepo.getById(item.scanId)?.let { ResolvedFood(it.product, it.source, it.barcode) }
         item.barcode != null -> onlineRawCache[item.barcode]?.let { ResolvedFood(it.product, it.source, it.barcode) }
-        else -> (customFoods.value.firstOrNull { it.name == item.name } ?: FOOD_DB.firstOrNull { it.name == item.name })
+        else -> (customFoods.value.firstOrNull { it.name == item.name } ?: FOOD_DB.firstOrNull { it.name == item.name } ?: composedFoods[item.name])
             ?.let { ResolvedFood(customFoodRepo.toProduct(it), ScanSource.MANUAL, null) }
     }
 
