@@ -54,6 +54,10 @@ fun SettingsScreen(
     onOpenProfile: () -> Unit = {},
     onOpenReminders: () -> Unit = {},
     onOpenSources: () -> Unit = {},
+    /** Group opened on arrival (0 = Profil); the PDF shortcut from Santé opens Données (3). */
+    initialOpenGroup: Int = 0,
+    /** True from the Santé "Rapport pour le médecin" shortcut: starts preparing the PDF right away. */
+    autoPrepareReport: Boolean = false,
 ) {
     val language  = viewModel.language.collectAsStateWithLifecycle()
     val theme     = viewModel.theme.collectAsStateWithLifecycle()
@@ -66,7 +70,8 @@ fun SettingsScreen(
     val retentionPending = viewModel.retentionWarningPending.collectAsStateWithLifecycle()
     val hcIsActiveProfile = viewModel.healthConnectIsActiveProfile.collectAsStateWithLifecycle()
     // Restructuration step 4: 5 collapsible groups instead of 21 sections in a row.
-    var openGroupsCsv by rememberSaveable { mutableStateOf("0") }
+    var openGroupsCsv by rememberSaveable { mutableStateOf(initialOpenGroup.toString()) }
+    LaunchedEffect(autoPrepareReport) { if (autoPrepareReport) viewModel.preparePdfReport() }
     val openGroups = openGroupsCsv.split(',').mapNotNull { it.toIntOrNull() }.toSet()
     fun toggleGroup(i: Int) { openGroupsCsv = (if (i in openGroups) openGroups - i else openGroups + i).joinToString(",") }
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()

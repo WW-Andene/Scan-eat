@@ -15,6 +15,7 @@ import fr.scanneat.domain.engine.withdrawal.TobaccoPlan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import java.time.Instant
@@ -87,6 +88,34 @@ class WithdrawalRepository @Inject constructor(
         if (plan == null) p.remove(k("taper", profileId))
         else p[k("taper", profileId)] = SecureFieldCipher.encrypt(taperAdapter.toJson(
             TaperJson(plan.medicationName, plan.sortedSteps.map { StepJson(it.startDate.toString(), it.dose) }, plan.note)))
+    }
+
+    // ---- Backup ----
+    suspend fun exportForBackup(profileId: String): fr.scanneat.data.backup.WithdrawalBackup? {
+        val plan = tobaccoPlan(profileId).first()
+        val log = tobaccoLog(profileId).first()
+        val last = data.first()[k("tob_last", profileId)]?.toLongOrNull()
+        val taper = taperPlan(profileId).first()
+        if (plan == null && log.isEmpty() && taper == null) return null
+        return fr.scanneat.data.backup.WithdrawalBackup(
+            tobacco = plan?.let { fr.scanneat.data.backup.TobaccoPlanBackup(it.startDate.toString(), it.baselinePerDay, it.packPriceEuros, it.cigarettesPerPack, it.targetPerDay) },
+            tobaccoLog = log.mapKeys { it.key.toString() },
+            lastSmokeMs = last,
+            taper = taper?.let { t -> fr.scanneat.data.backup.TaperPlanBackup(t.medicationName, t.sortedSteps.map { fr.scanneat.data.backup.TaperStepBackup(it.startDate.toString(), it.dose) }, t.note) },
+        )
+    }
+
+    suspend fun importForBackup(profileId: String, b: fr.scanneat.data.backup.WithdrawalBackup) {
+        val plan = b.tobacco?.let { t -> runCatching { TobaccoPlan(LocalDate.parse(t.startDate), t.baselinePerDay, t.packPriceEuros, t.cigarettesPerPack, t.targetPerDay) }.getOrNull() }
+        setTobaccoPlan(profileId, plan)
+        store.edit { p ->
+            val log = b.tobaccoLog.mapNotNull { (d, n) -> runCatching { LocalDate.parse(d) to n.coerceAtLeast(0) }.getOrNull() }
+            if (log.isEmpty()) p.remove(k("tob_log", profileId)) else p[k("tob_log", profileId)] = log.joinToString(";") { "${it.first}=${it.second}" }
+            b.lastSmokeMs?.let { p[k("tob_last", profileId)] = it.toString() } ?: p.remove(k("tob_last", profileId))
+        }
+        setTaperPlan(profileId, b.taper?.let { t ->
+            TaperPlan(t.medicationName, t.steps.mapNotNull { s -> runCatching { TaperStep(LocalDate.parse(s.startDate), s.dose) }.getOrNull() }, t.note)
+        }?.takeIf { it.steps.isNotEmpty() })
     }
 
     private companion object { const val LOG_DAYS = 400L }

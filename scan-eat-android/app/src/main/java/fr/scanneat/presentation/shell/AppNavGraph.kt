@@ -286,6 +286,17 @@ fun AppNavGraph(
             fr.scanneat.presentation.nonfood.NonFoodHistoryScreen(onBack = { navController.popBackStack() })
         }
 
+        // Santé > Rapport pour le médecin: Réglages opened on Données, PDF preparation started.
+        composable(AppRoutes.DOCTOR_REPORT) {
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
+                onOpenReminders = { navController.navigate(AppRoutes.REMINDERS) },
+                onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
+                initialOpenGroup = 3,
+                autoPrepareReport = true,
+            )
+        }
         composable(AppRoutes.SETTINGS) {
             SettingsScreen(
                 // Settings can be the start destination (privacy-rationale intent):

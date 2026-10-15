@@ -2390,4 +2390,6 @@
     <string name="settings_group_display">Affichage et accessibilité</string>
     <string name="settings_group_data">Données et sauvegarde</string>
     <string name="settings_group_about">À propos</string>
+    <string name="hub_report_title">Rapport pour le médecin</string>
+    <string name="hub_report_sub">PDF des 30 derniers jours : traitements, symptômes, repas, poids</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.compose.material.icons.rounded.Eco
 import androidx.compose.material.icons.rounded.Fastfood
 import androidx.compose.material.icons.rounded.Kitchen
 import androidx.compose.material.icons.rounded.MonitorHeart
+import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material.icons.rounded.SmokeFree
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.Composable
@@ -67,6 +68,7 @@ fun HealthHub(navigate: (String) -> Unit, openDiaryTab: (String) -> Unit, onOpen
             HubEntry(TablerIcons.Bell, R.string.recalls_title, R.string.hub_recalls_sub) { navigate(AppRoutes.RECALLS) },
         )),
         HubGroup(R.string.hub_group_info, listOf(
+            HubEntry(Icons.Rounded.PictureAsPdf, R.string.hub_report_title, R.string.hub_report_sub) { navigate(AppRoutes.DOCTOR_REPORT) },
             HubEntry(TablerIcons.Book, R.string.sources_title, R.string.hub_sources_sub) { navigate(AppRoutes.SOURCES) },
         )),
     ),

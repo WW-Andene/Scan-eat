@@ -34,6 +34,7 @@ object AppRoutes {
     const val PANTRY = "pantry"
     const val SYMPTOMS = "symptoms"
     const val COOKING = "cooking"
+    const val DOCTOR_REPORT = "doctor_report"
     const val TREATMENT = "treatment"
     const val EXPENSES = "expenses"
     const val HEALTH = "health"

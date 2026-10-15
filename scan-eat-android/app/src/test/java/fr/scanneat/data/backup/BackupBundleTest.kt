@@ -82,6 +82,19 @@ class BackupBundleTest {
     }
 
     @Test
+    fun `v19 withdrawal and shortcuts round-trip`() {
+        val w = WithdrawalBackup(
+            tobacco = TobaccoPlanBackup("2026-10-01", 15, 12.5, 20, 5),
+            tobaccoLog = mapOf("2026-10-01" to 6, "2026-10-02" to 0),
+            lastSmokeMs = 1_760_000_000_000,
+            taper = TaperPlanBackup("Médicament X", listOf(TaperStepBackup("2026-10-01", "1 cp"), TaperStepBackup("2026-10-15", "1/2 cp")), "selon Dr Y"),
+        )
+        val b = sampleBundle().copy(withdrawal = w, settings = SettingsBackup("fr", "dark", false, "none", homeShortcuts = "GROCERY,SYMPTOMS"))
+        assertEquals(b, adapter.fromJson(adapter.toJson(b)))
+        assertNull(adapter.fromJson(adapter.toJson(sampleBundle().copy(withdrawal = null)))!!.withdrawal)
+    }
+
+    @Test
     fun `empty bundle round-trips to empty lists, not nulls`() {
         val empty = BackupBundle(
             exportedAtMs = 0L, appVersionName = "0.1.0",
