@@ -2376,4 +2376,5 @@
     <string name="hub_reactions_sub">Logged allergic reactions</string>
     <string name="hub_recalls_sub">Official product recalls</string>
     <string name="hub_sources_sub">Where the data and guidelines come from</string>
+    <string name="diary_tab_body">Body</string>
 </resources>

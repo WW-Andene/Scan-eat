@@ -75,8 +75,17 @@ fun DiaryScreen(
     var showAddEntry by remember { mutableStateOf(false) }
     val primaryTabsCsv = viewModel.primaryDiaryTabsOrder.collectAsStateWithLifecycle()
     val hiddenCsv = viewModel.hiddenModules.collectAsStateWithLifecycle()
-    val hiddenTabs = remember(hiddenCsv.value) { parseHiddenModules(hiddenCsv.value) }
+    val hiddenModules = remember(hiddenCsv.value) { parseHiddenModules(hiddenCsv.value) }
+    val hiddenTabs = remember(hiddenModules) { fr.scanneat.presentation.diary.components.hiddenJournalTabs(hiddenModules) }
     val primaryTabs = remember(primaryTabsCsv.value, hiddenTabs) { visibleDiaryTabs(parsePrimaryDiaryTabs(primaryTabsCsv.value), hiddenTabs).first }
+    // Which body tracker the Corps tab shows (Weight, Activity or Sleep).
+    var bodyPart by rememberSaveable(stateSaver = DiaryTabSaver) { mutableStateOf(DiaryTab.WEIGHT) }
+    // A tab restored from before the restructuring (Activity, Sleep, Treatment, Expenses).
+    LaunchedEffect(activeTab) {
+        val slot = fr.scanneat.presentation.diary.components.journalSlotOf(activeTab)
+        if (slot == DiaryTab.WEIGHT && activeTab != DiaryTab.WEIGHT) { bodyPart = activeTab; activeTab = DiaryTab.WEIGHT }
+        else if (slot == null) activeTab = DiaryTab.MEALS
+    }
     LaunchedEffect(hiddenTabs) { if (activeTab in hiddenTabs) activeTab = DiaryTab.MEALS }
 
     LaunchedEffect(pendingSelectedDate) {
@@ -94,7 +103,10 @@ fun DiaryScreen(
         // target tab name is identical to the last one; stripped back off here before
         // parsing the actual DiaryTab.
         val tab = pendingTab?.substringBefore('|')?.let { runCatching { DiaryTab.valueOf(it) }.getOrNull() }
-        if (tab != null) activeTab = tab
+        if (tab != null) {
+            if (tab in fr.scanneat.presentation.diary.components.BODY_PARTS) bodyPart = tab
+            activeTab = fr.scanneat.presentation.diary.components.journalSlotOf(tab) ?: DiaryTab.MEALS
+        }
         onPendingTabConsumed()
     }
 
@@ -156,13 +168,11 @@ fun DiaryScreen(
         ) {
             when (activeTab) {
                 DiaryTab.MEALS    -> MealsTab(viewModel, snackbarHostState, topPadding = topPadding, bottomPadding = bottomClearance, onOpenProductDetail = onOpenResult)
-                DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.WEIGHT, DiaryTab.ACTIVITY, DiaryTab.SLEEP -> BodyTab(bodyPart, { bodyPart = it }, hiddenModules, topPadding, bottomClearance, onOpenCalendar)
                 DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                DiaryTab.EXPENSES -> ExpensesScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar, onScanReceipt = onScanReceipt)
-                DiaryTab.SLEEP    -> SleepScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                // Moved to Santé / Cuisine; the LaunchedEffect above leaves these straight away.
+                DiaryTab.TREATMENT, DiaryTab.EXPENSES -> Unit
                 DiaryTab.MOOD     -> MoodScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
             }
 
@@ -187,5 +197,42 @@ fun DiaryScreen(
 
     if (showAddEntry) {
         AddDiaryEntryDialog(viewModel = viewModel, onDismiss = { showAddEntry = false })
+    }
+}
+
+/** Restructuration step 2: Corps = Weight, Activity and Sleep behind one tab, with a chip row to switch. */
+@Composable
+private fun BodyTab(
+    part: DiaryTab,
+    onPartChange: (DiaryTab) -> Unit,
+    hiddenModules: Set<DiaryTab>,
+    topPadding: androidx.compose.ui.unit.Dp,
+    bottomPadding: androidx.compose.ui.unit.Dp,
+    onOpenCalendar: () -> Unit,
+) {
+    val parts = fr.scanneat.presentation.diary.components.BODY_PARTS.filter { it !in hiddenModules }
+    val current = if (part in parts) part else parts.firstOrNull() ?: DiaryTab.WEIGHT
+    Column(Modifier.fillMaxSize()) {
+        if (parts.size > 1) {
+            Row(
+                Modifier.padding(top = topPadding, start = Spacing.L, end = Spacing.L, bottom = Spacing.XS),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+            ) {
+                parts.forEach { p ->
+                    FilterChip(
+                        selected = p == current, onClick = { onPartChange(p) },
+                        label = { Text(stringResource(p.labelRes)) },
+                        leadingIcon = { Icon(p.icon, null, modifier = Modifier.size(IconSize.Compact)) },
+                    )
+                }
+            }
+        } else Spacer(Modifier.height(topPadding))
+        Box(Modifier.weight(1f)) {
+            when (current) {
+                DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedTopPadding = 0.dp, embeddedBottomPadding = bottomPadding, onOpenCalendar = onOpenCalendar)
+                DiaryTab.SLEEP    -> SleepScreen(onBack = {}, embedded = true, embeddedTopPadding = 0.dp, embeddedBottomPadding = bottomPadding, onOpenCalendar = onOpenCalendar)
+                else              -> WeightScreen(onBack = {}, embedded = true, embeddedTopPadding = 0.dp, embeddedBottomPadding = bottomPadding, onOpenCalendar = onOpenCalendar)
+            }
+        }
     }
 }

@@ -38,7 +38,7 @@ fun CookingHub(navigate: (String) -> Unit, openDiaryTab: (String) -> Unit, onOpe
         HubGroup(R.string.hub_group_shop, listOf(
             HubEntry(TablerIcons.ShoppingCart, R.string.dashboard_tile_grocery, R.string.hub_grocery_sub) { navigate(AppRoutes.GROCERY) },
             HubEntry(Icons.Rounded.Kitchen, R.string.dashboard_tile_pantry, R.string.hub_pantry_sub) { navigate(AppRoutes.PANTRY) },
-            HubEntry(TablerIcons.FileInvoice, R.string.diary_tab_expenses, R.string.hub_expenses_sub) { openDiaryTab("EXPENSES") },
+            HubEntry(TablerIcons.FileInvoice, R.string.diary_tab_expenses, R.string.hub_expenses_sub) { navigate(AppRoutes.EXPENSES) },
         )),
         HubGroup(R.string.hub_group_foods, listOf(
             HubEntry(TablerIcons.Search, R.string.dashboard_tile_search, R.string.hub_search_sub) { navigate(AppRoutes.FOOD_SEARCH) },
@@ -56,7 +56,7 @@ fun HealthHub(navigate: (String) -> Unit, openDiaryTab: (String) -> Unit, onOpen
     onOpenSettings = onOpenSettings,
     groups = listOf(
         HubGroup(R.string.hub_group_followup, listOf(
-            HubEntry(TablerIcons.Pill, R.string.diary_tab_treatment, R.string.hub_treatment_sub) { openDiaryTab("TREATMENT") },
+            HubEntry(TablerIcons.Pill, R.string.diary_tab_treatment, R.string.hub_treatment_sub) { navigate(AppRoutes.TREATMENT) },
             HubEntry(TablerIcons.Heart, R.string.dashboard_tile_symptoms, R.string.hub_symptoms_sub) { navigate(AppRoutes.SYMPTOMS) },
             HubEntry(Icons.Rounded.SmokeFree, R.string.dashboard_tile_withdrawal, R.string.hub_withdrawal_sub) { navigate(AppRoutes.WITHDRAWAL) },
             HubEntry(Icons.Rounded.MonitorHeart, R.string.tab_biolism, R.string.hub_biolism_sub) { navigate(AppRoutes.BIOLISM) },

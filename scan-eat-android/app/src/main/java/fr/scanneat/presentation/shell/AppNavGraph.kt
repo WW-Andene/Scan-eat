@@ -146,6 +146,20 @@ fun AppNavGraph(
         }
         // User-requested: photograph a receipt straight from Dépenses instead of
         // typing each line by hand - see ReceiptScanScreen's own doc comment.
+        // Restructuration step 2: out of the Journal, reached from Santé / Cuisine.
+        composable(AppRoutes.TREATMENT) {
+            fr.scanneat.presentation.medication.MedicationScreen(
+                onBack = { navController.popBackStack() },
+                onOpenCalendar = { navController.navigate(AppRoutes.CALENDAR) },
+            )
+        }
+        composable(AppRoutes.EXPENSES) {
+            fr.scanneat.presentation.expenses.ExpensesRoute(
+                onBack = { navController.popBackStack() },
+                onOpenCalendar = { navController.navigate(AppRoutes.CALENDAR) },
+                onScanReceipt = { navController.navigate(AppRoutes.RECEIPT_SCAN) },
+            )
+        }
         composable(AppRoutes.RECEIPT_SCAN) {
             fr.scanneat.presentation.expenses.ReceiptScanScreen(onBack = { navController.popBackStack() })
         }
@@ -450,6 +464,11 @@ internal fun NavHostController.openSettings() = navigate(AppRoutes.SETTINGS) { l
  * DiaryScreen's LaunchedEffect re-fires (it strips the suffix before parsing).
  */
 internal fun NavHostController.openDiaryTab(tab: String) {
+    // Treatment and Expenses are their own screens since the restructuring.
+    when (tab) {
+        "TREATMENT" -> { navigate(AppRoutes.TREATMENT); return }
+        "EXPENSES"  -> { navigate(AppRoutes.EXPENSES); return }
+    }
     switchToTab(TopTab.Diary.route)
     currentBackStackEntry?.savedStateHandle?.set("diary_selected_tab", "$tab|${System.nanoTime()}")
 }

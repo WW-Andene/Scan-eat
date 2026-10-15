@@ -2380,4 +2380,5 @@
     <string name="hub_reactions_sub">Réactions allergiques notées</string>
     <string name="hub_recalls_sub">Rappels officiels de produits</string>
     <string name="hub_sources_sub">D\'où viennent les données et les repères</string>
+    <string name="diary_tab_body">Corps</string>
 </resources>
