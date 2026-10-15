@@ -222,7 +222,10 @@ data class WithdrawalBackup(
     val lastSmokeMs: Long? = null,
     /** Exported decrypted, like medications: the backup file has its own optional passphrase. */
     val taper: TaperPlanBackup? = null,
+    val caffeine: CaffeineTaperBackup? = null,
 )
+
+data class CaffeineTaperBackup(val startDate: String, val startMg: Int, val targetMg: Int, val weeks: Int)
 
 data class BackupSummary(
     val scanHistory: Int,

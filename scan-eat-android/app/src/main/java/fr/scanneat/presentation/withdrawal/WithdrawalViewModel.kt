@@ -46,6 +46,13 @@ class WithdrawalViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val caffeineTaper: StateFlow<fr.scanneat.domain.engine.withdrawal.CaffeineTaper?> = profileId.flatMapLatest { repo.caffeineTaper(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    fun startCaffeineTaper(startMg: Int, targetMg: Int, weeks: Int) = guardedLaunch {
+        repo.setCaffeineTaper(profileId.first(), fr.scanneat.domain.engine.withdrawal.CaffeineTaper(LocalDate.now(), startMg, targetMg, weeks))
+    }
+    fun stopCaffeineTaper() = guardedLaunch { repo.setCaffeineTaper(profileId.first(), null) }
+
     val taperPlan: StateFlow<TaperPlan?> = profileId.flatMapLatest { repo.taperPlan(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 

@@ -18,6 +18,8 @@ data class CaffeineBudget(
     val highSingleDoses: List<String>,
     /** Part of [totalMg] estimated from EFSA typical contents, not from product data. */
     val estimatedMg: Double = 0.0,
+    /** True when [limitMg] is the user's reduction-plan cap for the day, not the EFSA limit. */
+    val fromReductionPlan: Boolean = false,
 ) {
     val over: Boolean get() = totalMg > limitMg
 }
@@ -62,12 +64,16 @@ internal fun entryCaffeineMg(e: DiaryEntry): Pair<Double, Boolean> {
 }
 
 /** Null when nothing logged today carries caffeine, or no limit applies. */
-fun caffeineBudget(profile: Profile, entries: List<DiaryEntry>): CaffeineBudget? {
+fun caffeineBudget(profile: Profile, entries: List<DiaryEntry>, planCapMg: Int? = null): CaffeineBudget? {
     val perEntry = entries.map { it to entryCaffeineMg(it) }
     val total = perEntry.sumOf { it.second.first }
-    if (total <= 0.0) return null
-    val limit = caffeineDailyLimitMg(profile) ?: return null
+    val efsa = caffeineDailyLimitMg(profile)
+    // A reduction plan shows its cap even on a day with nothing logged yet.
+    if (total <= 0.0 && planCapMg == null) return null
+    val useCap = planCapMg != null && (efsa == null || planCapMg < efsa)
+    val limit = if (useCap) planCapMg!!.toDouble() else efsa ?: return null
     return CaffeineBudget(
+        fromReductionPlan = useCap,
         totalMg = total, limitMg = limit,
         highSingleDoses = perEntry.filter { it.second.first > CAFFEINE_SINGLE_DOSE_MG }.map { it.first.productName },
         estimatedMg = perEntry.filter { it.second.second }.sumOf { it.second.first },

@@ -2394,4 +2394,13 @@
     <string name="hub_status_smoke_free">%1$d smoke-free day(s)</string>
     <string name="hub_status_taper_step">step %1$d of %2$d</string>
     <string name="hub_status_recalls">%1$d of your products recalled</string>
+    <string name="withdrawal_caffeine_title">Caffeine</string>
+    <string name="withdrawal_caffeine_intro">Cut down step by step: a daily cap that goes down every day, tracked in the Journal\'s Caffeine card. Guide: espresso ≈ 80 mg, filter coffee ≈ 90 mg (200 mL), tea ≈ 50 mg, can of cola ≈ 40 mg (EFSA).</string>
+    <string name="withdrawal_caffeine_current">Caffeine a day now (mg)</string>
+    <string name="withdrawal_caffeine_target">Daily target (mg, 0 to stop)</string>
+    <string name="withdrawal_caffeine_weeks">%1$d weeks</string>
+    <string name="withdrawal_caffeine_today">Today\'s cap: %1$d mg</string>
+    <string name="withdrawal_caffeine_plan">From %1$d to %2$d mg a day, until %3$s</string>
+    <string name="withdrawal_caffeine_tip">A gradual cut usually avoids the headaches and tiredness of an abrupt stop. Decaf and herbal teas help keep the habit.</string>
+    <string name="diary_caffeine_plan_cap">Today\'s cap from your reduction plan (Health › Quitting)</string>
 </resources>

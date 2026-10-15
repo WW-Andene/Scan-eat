@@ -43,6 +43,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DiaryViewModel @Inject constructor(
     private val consumptionRepo: ConsumptionRepository,
+    private val withdrawalRepo: fr.scanneat.data.repository.withdrawal.WithdrawalRepository,
     private val notesRepo: DayNotesRepository,
     private val customFoodRepo: CustomFoodRepository,
     private val scanRepo: ScanRepository,
@@ -165,8 +166,10 @@ class DiaryViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /** Daily caffeine vs the EFSA limit for this profile - null hides the card. */
-    val caffeine: StateFlow<fr.scanneat.domain.engine.nutrition.CaffeineBudget?> = combine(prefs.profile, summary) { profile, s ->
-        fr.scanneat.domain.engine.nutrition.caffeineBudget(profile, s.entries)
+    val caffeine: StateFlow<fr.scanneat.domain.engine.nutrition.CaffeineBudget?> = combine(
+        prefs.profile, summary, activeProfileId.flatMapLatest { withdrawalRepo.caffeineTaper(it) },
+    ) { profile, s, taper ->
+        fr.scanneat.domain.engine.nutrition.caffeineBudget(profile, s.entries, taper?.capOn(s.date))
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /** For the goal-targets row's label ("Objectif : NN kg") - null hides the row. */

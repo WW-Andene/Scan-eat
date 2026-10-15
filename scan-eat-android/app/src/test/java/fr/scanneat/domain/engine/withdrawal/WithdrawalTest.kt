@@ -51,4 +51,20 @@ class WithdrawalTest {
         assertEquals(0, tobaccoStats(plan, mapOf(start.plusDays(4) to 1), now, null).smokeFreeDays)
         assertEquals(5, tobaccoStats(plan, emptyMap(), now, null).smokeFreeDays)
     }
+
+    @Test fun `caffeine cap goes down linearly to the target`() {
+        val t = CaffeineTaper(start, 400, 100, 3)
+        assertEquals(400, t.capOn(start))
+        assertEquals(257, t.capOn(start.plusDays(10)))   // 400 - 300 * 10/21
+        assertEquals(100, t.capOn(start.plusDays(21)))
+        assertEquals(100, t.capOn(start.plusDays(40)))
+    }
+
+    @Test fun `plan cap replaces the EFSA limit only when lower`() {
+        val p = fr.scanneat.domain.model.Profile(ageYears = 30)
+        assertEquals(250.0, fr.scanneat.domain.engine.nutrition.caffeineBudget(p, emptyList(), 250)!!.limitMg, 0.0)
+        assertTrue(fr.scanneat.domain.engine.nutrition.caffeineBudget(p, emptyList(), 250)!!.fromReductionPlan)
+        assertEquals(400.0, fr.scanneat.domain.engine.nutrition.caffeineBudget(p, emptyList(), 500)!!.limitMg, 0.0)
+        assertNull(fr.scanneat.domain.engine.nutrition.caffeineBudget(p, emptyList(), null))
+    }
 }

@@ -2398,4 +2398,13 @@
     <string name="hub_status_smoke_free">%1$d jour(s) sans tabac</string>
     <string name="hub_status_taper_step">palier %1$d sur %2$d</string>
     <string name="hub_status_recalls">%1$d produit(s) rappelé(s) parmi les vôtres</string>
+    <string name="withdrawal_caffeine_title">Caféine</string>
+    <string name="withdrawal_caffeine_intro">Réduisez petit à petit : un plafond quotidien qui baisse chaque jour, suivi dans la carte Caféine du Journal. Repères : expresso ≈ 80 mg, café filtre ≈ 90 mg (200 mL), thé ≈ 50 mg, canette de cola ≈ 40 mg (EFSA).</string>
+    <string name="withdrawal_caffeine_current">Caféine par jour aujourd\'hui (mg)</string>
+    <string name="withdrawal_caffeine_target">Objectif par jour (mg, 0 pour arrêter)</string>
+    <string name="withdrawal_caffeine_weeks">%1$d semaines</string>
+    <string name="withdrawal_caffeine_today">Plafond du jour : %1$d mg</string>
+    <string name="withdrawal_caffeine_plan">De %1$d à %2$d mg par jour, jusqu\'au %3$s</string>
+    <string name="withdrawal_caffeine_tip">Une baisse progressive évite le plus souvent les maux de tête et la fatigue d\'un arrêt brutal. Le décaféiné et les tisanes aident à garder le geste.</string>
+    <string name="diary_caffeine_plan_cap">Plafond du jour de votre plan de réduction (Santé › Sevrage)</string>
 </resources>

@@ -38,6 +38,7 @@ fun WithdrawalScreen(viewModel: WithdrawalViewModel = hiltViewModel(), onBack: (
     val taper = viewModel.taperPlan.collectAsStateWithLifecycle()
     val now = viewModel.now.collectAsStateWithLifecycle()
     val cautions = viewModel.medicationCautions.collectAsStateWithLifecycle()
+    val caffeine = viewModel.caffeineTaper.collectAsStateWithLifecycle()
     var editTaper by remember { mutableStateOf(false) }
 
     FloatingScreenScaffold(
@@ -56,6 +57,7 @@ fun WithdrawalScreen(viewModel: WithdrawalViewModel = hiltViewModel(), onBack: (
                 if (p == null || s == null) TobaccoSetupCard(viewModel::startTobacco)
                 else TobaccoCard(p, s, now.value, onAdd = { viewModel.cigarette(1) }, onRemove = { viewModel.cigarette(-1) }, onStop = viewModel::stopTobacco)
             }
+            item { CaffeineCard(caffeine.value, viewModel::startCaffeineTaper, viewModel::stopCaffeineTaper) }
             if (cautions.value.isNotEmpty()) item {
                 Card {
                     TitleText(stringResource(R.string.withdrawal_med_cautions_title))
@@ -245,4 +247,31 @@ private fun TaperEditorDialog(plan: TaperPlan?, onDismiss: () -> Unit, onSave: (
         confirmButton = { TextButton(onClick = { onSave(name, steps, note) }, enabled = name.isNotBlank() && steps.isNotEmpty()) { Text(stringResource(R.string.common_save)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } },
     )
+}
+
+@Composable
+private fun CaffeineCard(plan: CaffeineTaper?, onStart: (Int, Int, Int) -> Unit, onStop: () -> Unit) {
+    Card {
+        TitleText(stringResource(R.string.withdrawal_caffeine_title))
+        if (plan == null) {
+            var current by remember { mutableStateOf("") }
+            var target by remember { mutableStateOf("") }
+            var weeks by remember { mutableIntStateOf(3) }
+            val num = KeyboardOptions(keyboardType = KeyboardType.Number)
+            Hint(stringResource(R.string.withdrawal_caffeine_intro))
+            OutlinedTextField(current, { current = it.filter(Char::isDigit).take(4) }, label = { Text(stringResource(R.string.withdrawal_caffeine_current)) }, singleLine = true, keyboardOptions = num)
+            OutlinedTextField(target, { target = it.filter(Char::isDigit).take(4) }, label = { Text(stringResource(R.string.withdrawal_caffeine_target)) }, singleLine = true, keyboardOptions = num)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                listOf(2, 3, 4).forEach { w -> FilterChip(selected = weeks == w, onClick = { weeks = w }, label = { Text(stringResource(R.string.withdrawal_caffeine_weeks, w)) }) }
+            }
+            val c = current.toIntOrNull(); val t = target.toIntOrNull()
+            Button(onClick = { onStart(c!!, t!!, weeks) }, enabled = c != null && t != null && t < c) { Text(stringResource(R.string.withdrawal_tobacco_start)) }
+        } else {
+            val today = LocalDate.now()
+            Text(stringResource(R.string.withdrawal_caffeine_today, plan.capOn(today)), style = MaterialTheme.typography.bodyLarge, color = OnBackground)
+            Hint(stringResource(R.string.withdrawal_caffeine_plan, plan.startMg, plan.targetMg, plan.endDate.format(dateFmt)))
+            Hint(stringResource(R.string.withdrawal_caffeine_tip))
+            TextButton(onClick = onStop) { Text(stringResource(R.string.withdrawal_tobacco_stop), color = OnBackground.copy(0.6f)) }
+        }
+    }
 }
