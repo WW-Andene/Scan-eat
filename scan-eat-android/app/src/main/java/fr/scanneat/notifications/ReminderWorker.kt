@@ -41,6 +41,7 @@ class ReminderWorker @AssistedInject constructor(
     private val medicationRepo: MedicationRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val hydrationRepo: HydrationRepository,
+    private val withdrawalRepo: fr.scanneat.data.repository.withdrawal.WithdrawalRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val moodRepo: MoodRepository,
     private val sleepRepo: SleepRepository,
@@ -104,7 +105,11 @@ class ReminderWorker @AssistedInject constructor(
                 // Previously fired on the fixed interval regardless of intake — a user
                 // who already hit today's water goal kept getting nudged anyway.
                 val profile = prefs.profile.first()
-                val goalMl = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, weightKg = profile.weightKg)
+                // Same goal the Hydration screen shows: the user's own override, else the
+                // formula with today's logged exercise - this used the bare formula only.
+                val exerciseMin = activityRepo.observeByDate(LocalDate.now(), profileId).first().sumOf { it.minutes }
+                val goalMl = hydrationRepo.customGoalMl(profileId).first()
+                    ?: hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, exerciseMin, profile.weightKg)
                 val todayMl = hydrationRepo.observe(LocalDate.now(), profileId).first()
                 if (todayMl < goalMl) {
                     NotificationHelper.show(applicationContext, 104,
@@ -213,7 +218,7 @@ class ReminderWorker @AssistedInject constructor(
         // nudge without having to open the app.
         if (s.dailyDigestOn && now.hour >= 21 && !remindersRepo.wasFiredToday(K_LAST_DIGEST_DATE)) {
             val today = LocalDate.now()
-            val dayData = consumptionRepo.observeDay(today).first()
+            val dayData = consumptionRepo.observeDay(today, profileId).first()
             val totalKcal = dayData.totals.energyKcal.toInt()
             val mealCount = dayData.entries.size
             // R&D §X.0: logStreakDays() was already computed on Dashboard/the widget
@@ -223,7 +228,7 @@ class ReminderWorker @AssistedInject constructor(
             // so this reuses that same window: with a 1-day grace period, an unlogged
             // today still returns yesterday-anchored streak length, which is exactly
             // the run that breaks at midnight if nothing is logged before then.
-            val streakAtRisk = if (mealCount == 0) logStreakDays(consumptionRepo.getAllLoggedDates(), today) else 0
+            val streakAtRisk = if (mealCount == 0) logStreakDays(consumptionRepo.getAllLoggedDates(profileId), today) else 0
             val (title, body) = if (streakAtRisk > 0)
                 localizedString(lang, R.string.notif_streak_risk_title) to
                     String.format(localizedString(lang, R.string.notif_streak_risk_body), streakAtRisk)
@@ -272,6 +277,20 @@ class ReminderWorker @AssistedInject constructor(
             }
         }
 
+        // Prescribed taper: one reminder on the morning a new step starts (never a dose
+        // of its own - the step text is the doctor's, as entered by the user).
+        if (now.hour >= 8 && !remindersRepo.wasFiredToday(K_LAST_TAPER_DATE)) {
+            withdrawalRepo.taperPlan(profileId).first()
+                ?.let { fr.scanneat.domain.engine.withdrawal.taperStepStartsOn(it, LocalDate.now()) }
+                ?.let { step ->
+                    val body = if (prefs.hideMedicationNames.first()) localizedString(lang, R.string.withdrawal_notif_body_hidden)
+                        else String.format(localizedString(lang, R.string.withdrawal_notif_body), step.dose)
+                    if (NotificationHelper.show(applicationContext, 120, localizedString(lang, R.string.withdrawal_notif_title), body, NotifChannel.MEDICATION)) {
+                        remindersRepo.markFiredToday(K_LAST_TAPER_DATE)
+                    }
+                }
+        }
+
         return Result.success()
     }
 
@@ -283,12 +302,12 @@ class ReminderWorker @AssistedInject constructor(
     ): Boolean {
         if (!on) return false
         val target = runCatching { LocalTime.parse(timeStr) }.getOrNull() ?: return false
-        // Wrap the day boundary explicitly: for targets in the evening (e.g. 22:00),
-        // target.plusHours(3) rolls over past midnight (01:00), and comparing raw
-        // LocalTime values via isBefore/isAfter breaks because "now" (still in the
-        // evening) is never isBefore an earlier-looking wrapped clock time.
-        val secondsSinceTarget = (now.toSecondOfDay() - target.toSecondOfDay()).let { if (it < 0) it + 86400 else it }
-        val dueNow = secondsSinceTarget < 3 * 3600 && !remindersRepo.wasFiredToday(lastFiredKey)
+        // The 3 h window stops at midnight: "fired today" and the medication dose
+        // count are keyed to the calendar date, so a window wrapping past midnight
+        // (23:00 target, run at 00:30) re-fired a reminder already sent - or a dose
+        // already taken - the evening before.
+        val secondsSinceTarget = now.toSecondOfDay() - target.toSecondOfDay()
+        val dueNow = secondsSinceTarget in 0 until 3 * 3600 && !remindersRepo.wasFiredToday(lastFiredKey)
         if (dueNow) {
             // Only mark "fired today" if the notification actually posted (not
             // silently skipped for a denied POST_NOTIFICATIONS permission) -
@@ -304,6 +323,7 @@ class ReminderWorker @AssistedInject constructor(
 
     companion object {
         val K_LAST_DIGEST_DATE = androidx.datastore.preferences.core.stringPreferencesKey("rem_last_digest_date")
+        val K_LAST_TAPER_DATE = androidx.datastore.preferences.core.stringPreferencesKey("rem_last_taper_date")
         private const val MEDICATION_RENOTIFY_MINUTES = 60L
         // Reserved id range for medication notifications - stays clear of the
         // fixed 101-111 ids above and the custom-reminder range (910+, see

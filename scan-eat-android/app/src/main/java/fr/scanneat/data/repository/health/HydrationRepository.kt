@@ -38,6 +38,7 @@ private val Context.hydrationDataStore by preferencesDataStore(name = "hydration
 class HydrationRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val healthConnect: HealthConnectRepository,
+    private val hcGate: HealthConnectProfileGate,
 ) {
     private val store = context.hydrationDataStore
 
@@ -116,7 +117,7 @@ class HydrationRepository @Inject constructor(
             prefs[key(date, profileId)] = next
             prune(prefs, profileId)
         }
-        if (ml > 0 && date == LocalDate.now()) healthConnect.writeHydrationDelta(ml)
+        if (ml > 0 && date == LocalDate.now() && hcGate.allows(profileId)) healthConnect.writeHydrationDelta(ml)
     }
 
     /** Set intake directly (for edit flows). */
@@ -135,6 +136,7 @@ class HydrationRepository @Inject constructor(
      * much was already imported so repeat syncs never double-count.
      */
     suspend fun syncFromHealthConnect(date: LocalDate = LocalDate.now(), profileId: String = "default") {
+        if (!hcGate.allows(profileId)) return
         val external = healthConnect.readExternalHydrationTotalMl(date)
         if (external <= 0) return
         // Additive and idempotent: water logged elsewhere (a smart bottle app) is

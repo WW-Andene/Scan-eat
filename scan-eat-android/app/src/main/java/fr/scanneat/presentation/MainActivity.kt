@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
                 ScanEatTheme(theme = theme, colorAccent = colorAccent, dyslexicFont = dyslexicFont, colorblindMode = colorblindMode, animatedBackground = animatedBackground) {
                     MainShell(
                         startOnboarding = splashViewModel.needsOnboarding,
-                        startRoute      = if (isPrivacyRationaleIntent) TopTab.Settings.route else shortcutStartRoute,
+                        startRoute      = if (isPrivacyRationaleIntent) fr.scanneat.presentation.shell.AppRoutes.SETTINGS else shortcutStartRoute,
                         openScanId      = intent?.getLongExtra(fr.scanneat.notifications.NotificationHelper.EXTRA_OPEN_SCAN_ID, -1L)?.takeIf { it > 0 },
                     )
                 }

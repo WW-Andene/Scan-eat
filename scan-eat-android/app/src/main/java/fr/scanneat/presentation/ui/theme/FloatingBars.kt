@@ -273,7 +273,7 @@ val LocalBottomNavHeight = compositionLocalOf { BottomNavPillTotalHeight }
  *
  * [showBottomNavClearance] should be true only for the handful of screens
  * that are direct destinations of MainShell's bottom nav (Dashboard, Diary,
- * etc. — anything not in `HIDDEN_NAV_ROUTES`); every push-navigation
+ * etc. — anything that is a tab root, see MainShell.showNav); every push-navigation
  * sub-screen reached on top of them already hides that nav bar, so reserving
  * space for it there would just leave a dead gap at the bottom.
  */

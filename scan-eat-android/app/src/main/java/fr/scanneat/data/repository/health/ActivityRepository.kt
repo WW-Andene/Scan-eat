@@ -141,6 +141,7 @@ class ActivityRepository @Inject constructor(
     private val dao: ActivityDao,
     private val retention: fr.scanneat.data.repository.HistoryRetentionGuard,
     private val healthConnect: HealthConnectRepository,
+    private val hcGate: HealthConnectProfileGate,
 ) {
 
     fun observeByDate(date: LocalDate, profileId: String = "default"): Flow<List<ActivityEntry>> =
@@ -184,7 +185,7 @@ class ActivityRepository @Inject constructor(
         // Health Connect had zero Activité wiring at all before this - a logged
         // workout stayed invisible to it and any other app reading from it,
         // unlike weight/hydration which already mirror.
-        healthConnect.writeActivity(type, minutes.coerceAtLeast(0), kcal, Instant.ofEpochMilli(loggedAt))
+        if (hcGate.allows(profileId)) healthConnect.writeActivity(type, minutes.coerceAtLeast(0), kcal, Instant.ofEpochMilli(loggedAt))
     }
 
     suspend fun delete(id: String) = dao.delete(id)
@@ -243,7 +244,7 @@ class ActivityRepository @Inject constructor(
         // Health Connect has no update-in-place for a record it wrote (same
         // documented limitation as WeightRepository.log()), so this writes a fresh
         // record with the edited stats rather than trying to mutate the old one.
-        healthConnect.writeActivity(type, minutes.coerceAtLeast(0), kcal, Instant.ofEpochMilli(loggedAt))
+        if (hcGate.allows(profileId)) healthConnect.writeActivity(type, minutes.coerceAtLeast(0), kcal, Instant.ofEpochMilli(loggedAt))
     }
 
     suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<ActivityEntry> =
@@ -276,6 +277,7 @@ class ActivityRepository @Inject constructor(
         val zone = java.time.ZoneId.systemDefault()
         val start = LocalDate.now().minusDays(days.toLong()).atStartOfDay(zone).toInstant()
         val end = LocalDate.now().plusDays(1).atStartOfDay(zone).toInstant()
+        if (!hcGate.allows(profileId)) return
         val external = healthConnect.readExternalActivity(start, end)
         if (external.isEmpty()) return
         val alreadyImported = dao.getImportedExternalIds(profileId).toSet()

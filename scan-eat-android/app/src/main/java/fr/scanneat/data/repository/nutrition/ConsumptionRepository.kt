@@ -31,6 +31,7 @@ class ConsumptionRepository @Inject constructor(
     private val retention: fr.scanneat.data.repository.HistoryRetentionGuard,
     private val moshi: Moshi,
     private val healthConnect: HealthConnectRepository,
+    private val hcGate: fr.scanneat.data.repository.health.HealthConnectProfileGate,
     private val priceRepo: PriceRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val hydrationRepo: HydrationRepository,
@@ -121,6 +122,7 @@ class ConsumptionRepository @Inject constructor(
     }
 
     private suspend fun mirrorToHealthConnect(entry: DiaryEntry) {
+        if (!hcGate.allows(entry.profileId)) return
         val c = entry.consumed
         healthConnect.writeNutrition(
             // entry.loggedAt is a real local wall-clock LocalDateTime (see its

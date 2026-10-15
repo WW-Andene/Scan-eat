@@ -25,7 +25,7 @@ import kotlin.math.roundToInt
 // changed the rules; bumping this is what makes every stored score be
 // recomputed (ScanHistoryQueries.rescoreAllStale / rescoreStale).
 // 2.6.0: S9 (Henry equations, IBD flare-only rules) and S10 (one rule, one effect).
-const val ENGINE_VERSION = "2.6.0"
+const val ENGINE_VERSION = "2.6.2"
 
 // ============================================================================
 // SECTION 10: GLOBAL MODIFIERS, VETOES & ORCHESTRATOR

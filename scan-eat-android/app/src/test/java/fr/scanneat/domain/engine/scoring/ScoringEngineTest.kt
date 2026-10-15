@@ -479,7 +479,7 @@ class ScoringEngineTest {
     // ============================================================
 
     @Test fun `Engine version is 2_6_0`() {
-        assertEquals("2.6.0", ENGINE_VERSION)
+        assertEquals("2.6.2", ENGINE_VERSION)
     }
 
     // ============================================================

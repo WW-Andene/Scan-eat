@@ -31,7 +31,8 @@ enum class DietKey(val key: String, val labelFr: String, val labelEn: String) {
     PALEO("paleo", "Paléo", "Paleo"),
     LOW_FODMAP("low_fodmap", "Pauvre en FODMAP", "Low-FODMAP"),
     MEDITERRANEAN("mediterranean", "Méditerranéen", "Mediterranean"),
-    CARNIVORE("carnivore", "Carnivore", "Carnivore");
+    CARNIVORE("carnivore", "Carnivore", "Carnivore"),
+    NO_FREE_SUGARS("no_free_sugars", "Arrêt du sucre", "Quitting sugar");
 
     companion object {
         fun fromKey(k: String) = entries.firstOrNull { it.key == k } ?: NONE

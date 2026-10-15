@@ -1,5 +1,10 @@
 package fr.scanneat.presentation.profile
 
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
@@ -285,11 +290,13 @@ fun ProfileScreen(
             // ---- Allergens ----
             item {
                 ProfileSection(stringResource(R.string.profile_section_allergens)) {
-                    AllergenSelector(
-                        current = allergens, onSelect = { allergens = it },
-                        severities = allergenSeverities,
-                        onSeverityChange = { key, sev -> allergenSeverities = allergenSeverities + (key to sev) },
-                    )
+                    ReadOnlyIf(profile.value.sharedReadOnly) {
+                        AllergenSelector(
+                            current = allergens, onSelect = { allergens = it },
+                            severities = allergenSeverities,
+                            onSeverityChange = { key, sev -> allergenSeverities = allergenSeverities + (key to sev) },
+                        )
+                    }
                 }
             }
 
@@ -315,7 +322,7 @@ fun ProfileScreen(
             // ---- Diet ----
             item {
                 ProfileSection(stringResource(R.string.profile_section_diet)) {
-                    DietSelector(diet) { diet = it }
+                    ReadOnlyIf(profile.value.sharedReadOnly) { DietSelector(diet) { diet = it } }
                 }
             }
 
@@ -325,3 +332,14 @@ fun ProfileScreen(
 
 }
 
+/** Roadmap N8: a received profile's shared fields are shown dimmed and ignore taps. */
+@Composable
+private fun ReadOnlyIf(readOnly: Boolean, content: @Composable () -> Unit) {
+    if (!readOnly) { content(); return }
+    Box(Modifier.alpha(0.5f).semantics { disabled() }) {
+        content()
+        Box(Modifier.matchParentSize().pointerInput(Unit) {
+            awaitPointerEventScope { while (true) awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() } }
+        })
+    }
+}

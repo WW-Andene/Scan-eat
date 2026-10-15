@@ -42,7 +42,13 @@ internal data class DashboardLayout(val order: List<DashboardCard>, val hidden: 
     fun serialize(): String = order.joinToString(",") { if (it in hidden) "!${it.name}" else it.name }
 
     companion object {
-        val DEFAULT = DashboardLayout(DashboardCard.entries, emptySet())
+        /** Restructuration step 3: a calmer first screen - the detailed analytics
+         *  cards start hidden (one tap on "Personnaliser" brings each back). A
+         *  layout the user already saved is kept as it is. */
+        val DEFAULT = DashboardLayout(DashboardCard.entries, setOf(
+            DashboardCard.MICRONUTRIENTS, DashboardCard.WEEKLY_BARS, DashboardCard.BEST_WORST, DashboardCard.MONTHLY,
+            DashboardCard.WEEK_DELTA, DashboardCard.VALUE_SCORE, DashboardCard.DIVERSITY, DashboardCard.CHRONIC_GAPS,
+        ))
 
         /** Unknown names are dropped; cards missing from the stored value (added in a later version) are appended visible. */
         fun parse(csv: String): DashboardLayout {

@@ -73,6 +73,11 @@ internal fun MedicationEntryRow(
                 if (details.isNotBlank()) {
                     Text(details, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                 }
+                // Roadmap D6: supply warnings visible without opening the detail sheet.
+                if (m.active && m.isLowStock()) Text(stringResource(R.string.medication_supply_days_left, m.daysOfStockLeft() ?: 0),
+                    style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                if (m.active && m.renewalDue()) Text(stringResource(R.string.medication_notif_renewal_due),
+                    style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                 weightDeltaKg?.let { delta ->
                     val sign = if (delta >= 0) "+" else ""
                     // app-audit §J1: formatDecimal() (Locale.US) instead of a bare "%.1f".format(delta)
@@ -323,6 +328,7 @@ internal fun MedicationReminderDialog(
  * name) - shown as an honest "no detailed info available" state rather than
  * inventing content for a medication this app can't actually identify.
  */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 internal fun MedicationDetailDialog(
     medication: Medication,
@@ -335,7 +341,23 @@ internal fun MedicationDetailDialog(
 ) {
     val m = medication
     var stockText by remember(m.id) { mutableStateOf(m.stockCount?.toString() ?: "") }
-    var renewalText by remember(m.id) { mutableStateOf(m.renewalDate?.toString() ?: "") }
+    var renewal by remember(m.id) { mutableStateOf(m.renewalDate) }
+    var showRenewalPicker by remember { mutableStateOf(false) }
+    if (showRenewalPicker) {
+        val pickerState = androidx.compose.material3.rememberDatePickerState(
+            initialSelectedDateMillis = (renewal ?: java.time.LocalDate.now().plusMonths(1)).atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli(),
+        )
+        androidx.compose.material3.DatePickerDialog(
+            onDismissRequest = { showRenewalPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    pickerState.selectedDateMillis?.let { renewal = java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneOffset.UTC).toLocalDate() }
+                    showRenewalPicker = false
+                }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
+            },
+            dismissButton = { TextButton(onClick = { showRenewalPicker = false }) { Text(stringResource(R.string.common_cancel)) } },
+        ) { androidx.compose.material3.DatePicker(state = pickerState) }
+    }
     val hints = remember(dbEntry, healthConditions, language) {
         dbEntry?.let { generateMedicationHints(it, healthConditions, language) }
     }
@@ -382,18 +404,17 @@ internal fun MedicationDetailDialog(
                 OutlinedTextField(stockText, { stockText = it.filter(Char::isDigit).take(4) }, singleLine = true,
                     label = { Text(stringResource(R.string.medication_supply_stock)) },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
-                OutlinedTextField(renewalText, { renewalText = it.take(10) }, singleLine = true,
-                    label = { Text(stringResource(R.string.medication_supply_renewal)) },
-                    isError = renewalText.isNotBlank() && parseIsoDate(renewalText) == null)
-                TextButton(
-                    onClick = { onSaveSupply(stockText.toIntOrNull(), parseIsoDate(renewalText)) },
-                    enabled = renewalText.isBlank() || parseIsoDate(renewalText) != null,
-                ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = { showRenewalPicker = true }) {
+                        Text(renewal?.let { stringResource(R.string.medication_supply_renewal_on, it.format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM))) }
+                            ?: stringResource(R.string.medication_supply_renewal_set))
+                    }
+                    if (renewal != null) TextButton(onClick = { renewal = null }) { Text(stringResource(R.string.common_clear), color = OnBackground.copy(0.6f)) }
+                }
+                TextButton(onClick = { onSaveSupply(stockText.toIntOrNull(), renewal) }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
             }
         },
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = OnBackground.copy(0.6f)) } },
     )
 }
-
-private fun parseIsoDate(s: String): java.time.LocalDate? = runCatching { java.time.LocalDate.parse(s.trim()) }.getOrNull()

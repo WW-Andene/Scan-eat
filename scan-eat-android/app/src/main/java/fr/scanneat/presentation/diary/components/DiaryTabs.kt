@@ -27,6 +27,28 @@ internal enum class DiaryTab(val labelRes: Int, val icon: androidx.compose.ui.gr
 
 internal val DEFAULT_PRIMARY_DIARY_TABS = listOf(DiaryTab.MEALS, DiaryTab.WEIGHT, DiaryTab.WATER)
 
+/**
+ * Restructuration step 2: the Journal's own tabs. Weight, Activity and Sleep
+ * share the "Corps" slot (WEIGHT); Treatment and Expenses moved to the Santé
+ * and Cuisine hubs. All nine stay DiaryTab entries: they are also the A4
+ * modules a user can follow or hide.
+ */
+internal val JOURNAL_TABS = listOf(DiaryTab.MEALS, DiaryTab.WATER, DiaryTab.WEIGHT, DiaryTab.FASTING, DiaryTab.MOOD)
+internal val BODY_PARTS = listOf(DiaryTab.WEIGHT, DiaryTab.ACTIVITY, DiaryTab.SLEEP)
+
+/** The Journal tab a tracker lives in, null when it lives outside the Journal. */
+internal fun journalSlotOf(tab: DiaryTab): DiaryTab? = when (tab) {
+    in BODY_PARTS -> DiaryTab.WEIGHT
+    DiaryTab.TREATMENT, DiaryTab.EXPENSES -> null
+    else -> tab
+}
+
+/** Journal tabs hidden by the module choice - Corps only once all three body trackers are hidden. */
+internal fun hiddenJournalTabs(hiddenModules: Set<DiaryTab>): Set<DiaryTab> =
+    JOURNAL_TABS.filter { t -> if (t == DiaryTab.WEIGHT) BODY_PARTS.all { it in hiddenModules } else t in hiddenModules }.toSet()
+
+internal fun journalLabelRes(tab: DiaryTab): Int = if (tab == DiaryTab.WEIGHT) R.string.diary_tab_body else tab.labelRes
+
 /** Parses UserPreferences.diaryPrimaryTabsOrder's stored CSV of [DiaryTab] names
  *  back into an ordered list — falls back to [DEFAULT_PRIMARY_DIARY_TABS] for a
  *  blank/first-run value or anything that doesn't cleanly resolve to exactly
@@ -34,7 +56,7 @@ internal val DEFAULT_PRIMARY_DIARY_TABS = listOf(DiaryTab.MEALS, DiaryTab.WEIGHT
  *  different primary-tab count, corruption, etc). */
 internal fun parsePrimaryDiaryTabs(csv: String): List<DiaryTab> {
     if (csv.isBlank()) return DEFAULT_PRIMARY_DIARY_TABS
-    val parsed = csv.split(",").mapNotNull { name -> DiaryTab.entries.firstOrNull { it.name == name.trim() } }.distinct()
+    val parsed = csv.split(",").mapNotNull { name -> DiaryTab.entries.firstOrNull { it.name == name.trim() }?.let(::journalSlotOf) }.distinct()
     return if (parsed.size == DEFAULT_PRIMARY_DIARY_TABS.size) parsed else DEFAULT_PRIMARY_DIARY_TABS
 }
 
@@ -59,7 +81,7 @@ internal fun serializeHiddenModules(hidden: Set<DiaryTab>): String = hidden.filt
  * filled by the next followed tab not already shown, overflow keeps the rest.
  */
 internal fun visibleDiaryTabs(primary: List<DiaryTab>, hidden: Set<DiaryTab>): Pair<List<DiaryTab>, List<DiaryTab>> {
-    val followed = DiaryTab.entries.filter { it !in hidden }
+    val followed = JOURNAL_TABS.filter { it !in hidden }
     val kept = primary.filter { it !in hidden }.toMutableList()
     followed.filter { it !in kept }.forEach { if (kept.size < primary.size) kept += it }
     return kept to followed.filter { it !in kept }

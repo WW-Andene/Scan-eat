@@ -123,7 +123,9 @@ class UserPreferences @Inject constructor(
         val KEY_HIDE_MED_NAMES       = booleanPreferencesKey("hide_medication_names")
         val KEY_RETENTION_PENDING    = booleanPreferencesKey("retention_warning_pending")
         val KEY_RETENTION_ACK        = booleanPreferencesKey("retention_trim_acknowledged")
+        val KEY_HC_PROFILE           = stringPreferencesKey("health_connect_profile_id")
         val KEY_DASHBOARD_LAYOUT     = stringPreferencesKey("dashboard_layout")
+        val KEY_HOME_SHORTCUTS       = stringPreferencesKey("home_shortcuts")
     }
 
     // ---- API / app settings ----
@@ -198,12 +200,17 @@ class UserPreferences @Inject constructor(
     val retentionWarningPending: Flow<Boolean> = storeData.map { it[KEY_RETENTION_PENDING] ?: false }.distinctUntilChanged()
     val retentionTrimAcknowledged: Flow<Boolean> = storeData.map { it[KEY_RETENTION_ACK] ?: false }.distinctUntilChanged()
     suspend fun setRetentionWarningPending(on: Boolean) = store.edit { it[KEY_RETENTION_PENDING] = on }
+    /** The one profile Health Connect data is read into and written from (the phone owner's). */
+    val healthConnectProfileId: Flow<String> = storeData.map { it[KEY_HC_PROFILE] ?: "default" }.distinctUntilChanged()
+    suspend fun setHealthConnectProfileId(id: String) = store.edit { it[KEY_HC_PROFILE] = id }
     suspend fun acknowledgeRetentionTrim() = store.edit { it[KEY_RETENTION_ACK] = true; it[KEY_RETENTION_PENDING] = false }
 
     val hiddenModules: Flow<String> = storeData.map { it[KEY_HIDDEN_MODULES] ?: "" }.distinctUntilChanged()
     suspend fun setHiddenModules(csv: String) = store.edit { it[KEY_HIDDEN_MODULES] = csv }
     val dashboardLayout: Flow<String> = storeData.map { it[KEY_DASHBOARD_LAYOUT] ?: "" }.distinctUntilChanged()
     suspend fun setDashboardLayout(csv: String) = store.edit { it[KEY_DASHBOARD_LAYOUT] = csv }
+    val homeShortcuts: Flow<String> = storeData.map { it[KEY_HOME_SHORTCUTS] ?: "" }.distinctUntilChanged()
+    suspend fun setHomeShortcuts(csv: String) = store.edit { it[KEY_HOME_SHORTCUTS] = csv }
 
     /** Custom drag-and-drop order for the bottom nav's tabs — see [KEY_NAV_TAB_ORDER]. */
     val navTabOrder: Flow<String> = storeData.map { it[KEY_NAV_TAB_ORDER] ?: "" }.distinctUntilChanged()

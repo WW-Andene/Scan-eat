@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.dashboard
 
+import compose.icons.tablericons.Settings
 import compose.icons.tablericons.History
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ShieldCheck
@@ -73,6 +74,9 @@ fun DashboardScreen(
     onOpenFoodSearch: () -> Unit = {},
     onOpenPantry: () -> Unit = {},
     onOpenSymptoms: () -> Unit = {},
+    onOpenWithdrawal: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
+    onNavigate: (String) -> Unit = {},
     // Restructuration audit (§XI): generalized from the previous single-purpose
     // onOpenExpenses (which hardcoded "EXPENSES") - OtherTrackersCard's
     // Water/Fasting/Treatment glance stats now deep-link the same way
@@ -95,6 +99,8 @@ fun DashboardScreen(
     val dashboardLayout = viewModel.dashboardLayout.collectAsStateWithLifecycle().value
     val hiddenModules = viewModel.hiddenModules.collectAsStateWithLifecycle().value
     var showLayoutEditor by remember { mutableStateOf(false) }
+    var showShortcutsEditor by remember { mutableStateOf(false) }
+    val homeShortcuts = viewModel.homeShortcuts.collectAsStateWithLifecycle().value
     val snackbarHostState = remember { SnackbarHostState() }
     var loggingScan by remember { mutableStateOf<ScanResult?>(null) }
     // User-reported: tapping a GapCloser/ChronicGap suggestion chip logged it to the
@@ -133,6 +139,9 @@ fun DashboardScreen(
         actions = {
             IconButton(onClick = onOpenMySafety) {
                 Icon(compose.icons.TablerIcons.ShieldCheck, stringResource(R.string.my_safety_title), tint = OnBackground)
+            }
+            IconButton(onClick = onOpenSettings) {
+                Icon(compose.icons.TablerIcons.Settings, stringResource(R.string.tab_settings), tint = OnBackground)
             }
         },
         showBottomNavClearance = isTabRoot,
@@ -281,33 +290,9 @@ fun DashboardScreen(
                 item { fr.scanneat.presentation.dashboard.cards.WhatsNewCard(onDismiss = { viewModel.dismissWhatsNew() }) }
             }
 
-            // ---- Feature tiles — meal-planning tools only; daily logging tasks
-            // (weight, fasting, water, activity) live in Journal now, and Profile's
-            // canonical entry point is Journal's top bar, not a Dashboard tile. ----
-            item {
-                // User-reported: this Text added its own extra Modifier.padding(horizontal
-                // = Spacing.L) on top of the LazyColumn's own Spacing.L, so "Fonctionnalités"
-                // read further right than "Scan récent" below it - the only other bare
-                // (non-card) section title on this screen, which correctly inherits just
-                // the LazyColumn's single Spacing.L. Removed to match.
-                Text(stringResource(R.string.dashboard_features_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
-            }
-            item {
-                DashboardFeatureTilesGrid(
-                    onOpenRecipes = onOpenRecipes,
-                    onOpenTemplates = onOpenTemplates,
-                    onOpenMealPlan = onOpenMealPlan,
-                    onOpenGrocery = onOpenGrocery,
-                    onOpenCustomFoods = onOpenCustomFoods,
-                    onOpenFavorites = onOpenFavorites,
-                    onOpenCalendar = onOpenCalendar,
-                    onOpenHistory = onOpenHistory,
-                    onOpenFoodSearch = onOpenFoodSearch,
-                    onOpenSeasonalProduce = onOpenSeasonalProduce,
-                    onOpenPantry = onOpenPantry,
-                    onOpenSymptoms = onOpenSymptoms,
-                )
-            }
+            // Restructuration step 3: 4 shortcuts the user picks, instead of a 13-tile
+            // grid - every tool is in the Cuisine / Santé tabs anyway.
+            item { HomeShortcutsRow(homeShortcuts, onOpen = onNavigate, onEdit = { showShortcutsEditor = true }) }
 
             // ---- Recent scans ----
             item {
@@ -356,6 +341,9 @@ fun DashboardScreen(
         }
     }
 
+    if (showShortcutsEditor) {
+        HomeShortcutsDialog(homeShortcuts, onSave = { viewModel.setHomeShortcuts(it); showShortcutsEditor = false }, onDismiss = { showShortcutsEditor = false })
+    }
     if (showLayoutEditor) {
         DashboardLayoutDialog(dashboardLayout, onChange = viewModel::setDashboardLayout, onDismiss = { showLayoutEditor = false })
     }

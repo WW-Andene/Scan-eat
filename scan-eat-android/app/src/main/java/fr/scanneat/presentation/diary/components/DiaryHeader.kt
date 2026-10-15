@@ -66,7 +66,7 @@ internal fun ColumnScope.DiaryTabRow(
                 // forced to Modifier.weight(1f) before that (see history) - a full
                 // horizontally-scrollable 7-tab row still didn't reliably fit any phone
                 // width, which is why only 3 are direct buttons here, not all 7.
-                val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs && it !in hiddenTabs }
+                val overflowTabs = JOURNAL_TABS.filter { it !in primaryTabs && it !in hiddenTabs }
 
                 // User-requested: hold-to-arm-then-tap-to-replace instead of a
                 // continuous drag. A continuous drag out of the "more" dropdown
@@ -144,7 +144,7 @@ internal fun ColumnScope.DiaryTabRow(
                                 // enough on its own (same as every primary tab button when
                                 // scrolled off-screen) without forcing that scroll.
                                 if (overflowActive) {
-                                    Icon(activeTab.icon, contentDescription = stringResource(activeTab.labelRes), tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
+                                    Icon(activeTab.icon, contentDescription = stringResource(journalLabelRes(activeTab)), tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                                 } else {
                                     Text(
                                         stringResource(R.string.diary_tab_more),
@@ -213,7 +213,7 @@ private fun HoldToArmMenuItem(
         // labelLarge (14sp), internally. bodyLarge read as noticeably bigger
         // than every other menu/dropdown in the app.
         Text(
-            stringResource(tab.labelRes),
+            stringResource(journalLabelRes(tab)),
             style = MaterialTheme.typography.labelLarge,
             color = OnBackground,
             modifier = Modifier.weight(1f).padding(vertical = Spacing.S),
@@ -242,7 +242,7 @@ private fun DiaryTabButton(
         ) {
             Icon(tab.icon, contentDescription = null, tint = if (isActive) AccentCoral else OnBackground.copy(0.7f), modifier = Modifier.size(IconSize.Inline))
             Text(
-                stringResource(tab.labelRes),
+                stringResource(journalLabelRes(tab)),
                 style = MaterialTheme.typography.labelMedium,
                 color = if (isActive) AccentCoral else OnBackground.copy(0.7f),
                 fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,

@@ -99,7 +99,7 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // Since v17: savedSearchFilters - Recherche's new named filter presets
 // (SavedSearchFilter, its own small DataStore file), same "wire it in from
 // the start" discipline.
-const val BACKUP_FORMAT_VERSION = 17
+const val BACKUP_FORMAT_VERSION = 18
 
 data class ProfileBackup(
     val name: String,
@@ -125,6 +125,11 @@ data class ProfileBackup(
     val pregnancyStartDate: String? = null,
     // Roadmap N6: allergen key -> AllergenSeverity name; absent in older backups.
     val allergenSeverities: Map<String, String> = emptyMap(),
+    // Since v18: body-composition levels (BodyCompositionLevel names) and the
+    // N8 read-only flag of a received profile - previously lost on restore.
+    val fatLevel: String? = null,
+    val muscleLevel: String? = null,
+    val sharedReadOnly: Boolean = false,
 )
 
 // apiMode/serverUrl were dropped with the AI/server features; Moshi skips them
@@ -145,6 +150,10 @@ data class SettingsBackup(
     val activityBestStreak: Int = 0,
     val budgetWeeklyEuros: Double? = null,
     val budgetPerMealEuros: Double? = null,
+    // Since v18.
+    val voiceScoreAnnounce: Boolean = false,
+    val hideMedicationNames: Boolean = false,
+    val hiddenModules: String = "",
 )
 
 data class HydrationEntryBackup(val date: String, val ml: Int)

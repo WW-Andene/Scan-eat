@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.settings
 
+import compose.icons.tablericons.ChevronDown
+import compose.icons.tablericons.ChevronUp
+import androidx.compose.runtime.saveable.rememberSaveable
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -61,6 +64,11 @@ fun SettingsScreen(
     val hiddenModulesCsv = viewModel.hiddenModules.collectAsStateWithLifecycle()
     val hideMedNames = viewModel.hideMedicationNames.collectAsStateWithLifecycle()
     val retentionPending = viewModel.retentionWarningPending.collectAsStateWithLifecycle()
+    val hcIsActiveProfile = viewModel.healthConnectIsActiveProfile.collectAsStateWithLifecycle()
+    // Restructuration step 4: 5 collapsible groups instead of 21 sections in a row.
+    var openGroupsCsv by rememberSaveable { mutableStateOf("0") }
+    val openGroups = openGroupsCsv.split(',').mapNotNull { it.toIntOrNull() }.toSet()
+    fun toggleGroup(i: Int) { openGroupsCsv = (if (i in openGroups) openGroups - i else openGroups + i).joinToString(",") }
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
@@ -138,152 +146,149 @@ fun SettingsScreen(
                 }
             }
 
-            // ---- Profile — first thing in Réglages, not buried at the bottom ----
-            item { ProfileSection(onOpenProfile) }
-
-            // ---- Reminders — MealRemindersCard was only ever embedded inline in
-            // Diary and Medication, so there was no way to reach it from Settings
-            // even though the underlying reminder system covers meals, hydration,
-            // weigh-ins, activity, and fasting targets app-wide. ----
-            item { RemindersSection(onOpenReminders) }
-            // Roadmap C11: medication names out of notifications entirely.
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.settings_hide_med_names), color = OnBackground)
-                        Text(stringResource(R.string.settings_hide_med_names_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                    }
-                    Switch(checked = hideMedNames.value, onCheckedChange = viewModel::setHideMedicationNames)
-                }
+            item { SettingsGroupHeader(stringResource(R.string.settings_group_profile), expanded = 0 in openGroups, onToggle = { toggleGroup(0) }) }
+            if (0 in openGroups) {
+                // ---- Profile — first thing in Réglages, not buried at the bottom ----
+                item { ProfileSection(onOpenProfile) }
+                // ---- Premium — everything else is free; this gates Biolism (metabolism)
+                // and photo scanning. ----
+                item { PremiumSection(isPremium.value, onSetPremium = viewModel::setIsPremium) }
             }
-
-            // Roadmap A4: tracked modules.
-            item {
-                SettingsSection(stringResource(R.string.settings_modules), icon = compose.icons.TablerIcons.Adjustments) {
-                    val hidden = fr.scanneat.presentation.diary.components.parseHiddenModules(hiddenModulesCsv.value)
-                    fr.scanneat.presentation.diary.components.ModulesSelector(hidden) {
-                        viewModel.setHiddenModules(fr.scanneat.presentation.diary.components.serializeHiddenModules(it))
+            item { SettingsGroupHeader(stringResource(R.string.settings_group_notifications), expanded = 1 in openGroups, onToggle = { toggleGroup(1) }) }
+            if (1 in openGroups) {
+                // ---- Reminders — MealRemindersCard was only ever embedded inline in
+                // Diary and Medication, so there was no way to reach it from Settings
+                // even though the underlying reminder system covers meals, hydration,
+                // weigh-ins, activity, and fasting targets app-wide. ----
+                item { RemindersSection(onOpenReminders) }
+                // Roadmap C11: medication names out of notifications entirely.
+                item {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_hide_med_names), color = OnBackground)
+                            Text(stringResource(R.string.settings_hide_med_names_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                        }
+                        Switch(checked = hideMedNames.value, onCheckedChange = viewModel::setHideMedicationNames)
                     }
                 }
             }
-
-            // Roadmap A1/N2: data sources and methodology.
-            item { fr.scanneat.presentation.settings.components.SourcesSection(onOpenSources) }
-
-            // ---- Premium — everything else is free; this gates Biolism (metabolism)
-            // and photo scanning. ----
-            item { PremiumSection(isPremium.value, onSetPremium = viewModel::setIsPremium) }
-
-            // Fix 4: Language toggle
-            item { LanguageSection(language.value, onLanguageChange = viewModel::setLanguage) }
-
-            // Fix 4: Theme toggle - renamed to "Affichage" (see ThemeSection's own
-            // doc comment); brightness/contrast presets only, Prism moved out.
-            item { ThemeSection(theme.value, onThemeChange = viewModel::setTheme) }
-
-            // User-requested: Prism is a full alternate visual identity, not a
-            // brightness/contrast preset - its own "Thème" card.
-            item { PrismThemeSection(theme.value, onThemeChange = viewModel::setTheme) }
-
-            // User-reported: "thème et affichage sont deux choses séparées" -
-            // the animated-background toggle used to live inside ThemeSection
-            // itself, under that same (mislabeled) header. Its own section now.
-            item { DisplaySection(animatedBackground.value, onAnimatedBackgroundChange = viewModel::setAnimatedBackground) }
-
-            // User-requested: color accent is independent from the theme's own
-            // brightness/contrast (see ThemeSection's own doc comment) - its own
-            // section rather than folded into the row above.
-            item { ColorSection(colorAccent.value, onColorAccentChange = viewModel::setColorAccent) }
-
-            // ---- Units — was only reachable from Profile despite being an app-wide
-            // preference also consumed by Weight/Biolism; users looking for it under
-            // Réglages (where every other display preference lives) found nothing. ----
-            item { UnitsSection(useImperialWeight.value, onChange = viewModel::setUseImperialWeight) }
-            item {
-                CurrencySection(currencySymbol.value, onChange = { newSymbol ->
-                    val factor = fr.scanneat.domain.engine.expense.currencyConversionFactor(currencySymbol.value, newSymbol)
-                    if (factor != null && factor != 1.0) pendingCurrencyChange = newSymbol to factor
-                    else viewModel.setCurrencySymbol(newSymbol)
-                })
+            item { SettingsGroupHeader(stringResource(R.string.settings_group_display), expanded = 2 in openGroups, onToggle = { toggleGroup(2) }) }
+            if (2 in openGroups) {
+                // Roadmap A4: tracked modules.
+                item {
+                    SettingsSection(stringResource(R.string.settings_modules), icon = compose.icons.TablerIcons.Adjustments) {
+                        val hidden = fr.scanneat.presentation.diary.components.parseHiddenModules(hiddenModulesCsv.value)
+                        fr.scanneat.presentation.diary.components.ModulesSelector(hidden) {
+                            viewModel.setHiddenModules(fr.scanneat.presentation.diary.components.serializeHiddenModules(it))
+                        }
+                    }
+                }
+                // Fix 4: Language toggle
+                item { LanguageSection(language.value, onLanguageChange = viewModel::setLanguage) }
+                // Fix 4: Theme toggle - renamed to "Affichage" (see ThemeSection's own
+                // doc comment); brightness/contrast presets only, Prism moved out.
+                item { ThemeSection(theme.value, onThemeChange = viewModel::setTheme) }
+                // User-requested: Prism is a full alternate visual identity, not a
+                // brightness/contrast preset - its own "Thème" card.
+                item { PrismThemeSection(theme.value, onThemeChange = viewModel::setTheme) }
+                // User-reported: "thème et affichage sont deux choses séparées" -
+                // the animated-background toggle used to live inside ThemeSection
+                // itself, under that same (mislabeled) header. Its own section now.
+                item { DisplaySection(animatedBackground.value, onAnimatedBackgroundChange = viewModel::setAnimatedBackground) }
+                // User-requested: color accent is independent from the theme's own
+                // brightness/contrast (see ThemeSection's own doc comment) - its own
+                // section rather than folded into the row above.
+                item { ColorSection(colorAccent.value, onColorAccentChange = viewModel::setColorAccent) }
+                // ---- Units — was only reachable from Profile despite being an app-wide
+                // preference also consumed by Weight/Biolism; users looking for it under
+                // Réglages (where every other display preference lives) found nothing. ----
+                item { UnitsSection(useImperialWeight.value, onChange = viewModel::setUseImperialWeight) }
+                item {
+                    CurrencySection(currencySymbol.value, onChange = { newSymbol ->
+                        val factor = fr.scanneat.domain.engine.expense.currencyConversionFactor(currencySymbol.value, newSymbol)
+                        if (factor != null && factor != 1.0) pendingCurrencyChange = newSymbol to factor
+                        else viewModel.setCurrencySymbol(newSymbol)
+                    })
+                }
+                // ---- Biolism display depth (R&D §X.0) ----
+                item { BiolismDisplaySection(biolismAdvancedView.value, onChange = viewModel::setBiolismAdvancedView) }
+                // ---- Accessibility ----
+                item {
+                    AccessibilitySection(
+                        dyslexicFont = dyslexicFont.value, onDyslexicFontChange = viewModel::setDyslexicFont,
+                        colorblindMode = colorblindMode.value, onColorblindModeChange = viewModel::setColorblindMode,
+                        voiceScoreAnnounce = voiceScoreAnnounce.value, onVoiceScoreAnnounceChange = viewModel::setVoiceScoreAnnounce,
+                    )
+                }
             }
-
-            // ---- Biolism display depth (R&D §X.0) ----
-            item { BiolismDisplaySection(biolismAdvancedView.value, onChange = viewModel::setBiolismAdvancedView) }
-
-            // ---- Accessibility ----
-            item {
-                AccessibilitySection(
-                    dyslexicFont = dyslexicFont.value, onDyslexicFontChange = viewModel::setDyslexicFont,
-                    colorblindMode = colorblindMode.value, onColorblindModeChange = viewModel::setColorblindMode,
-                    voiceScoreAnnounce = voiceScoreAnnounce.value, onVoiceScoreAnnounceChange = viewModel::setVoiceScoreAnnounce,
-                )
+            item { SettingsGroupHeader(stringResource(R.string.settings_group_data), expanded = 3 in openGroups, onToggle = { toggleGroup(3) }) }
+            if (3 in openGroups) {
+                // Roadmap N9: offline product database.
+                item { fr.scanneat.presentation.settings.components.OfflinePackSection(viewModel.offlinePack) }
+                // Roadmap C12: automatic weekly encrypted backup.
+                item { fr.scanneat.presentation.settings.components.AutoBackupSection() }
+                // Backup — local export/import, no cloud account required
+                item {
+                    BackupSection(
+                        backupState = backupState.value,
+                        dataStats = dataStats.value,
+                        language = language.value,
+                        onExport = { passphrase -> viewModel.prepareExport(passphrase) },
+                        onImport = { importLauncher.launch(arrayOf("application/json")) },
+                        onClearBackupState = { viewModel.clearBackupState() },
+                        onConfirmImport = { json, passphrase -> viewModel.confirmImport(json, passphrase) },
+                        onSubmitPassphrase = { json, passphrase -> viewModel.previewImportWithPassphrase(json, passphrase) },
+                        onPrepareCsvExport = { viewModel.prepareCsvExport() },
+                        onPrepareBiolismCsvExport = { viewModel.prepareBiolismCsvExport() },
+                        onPrepareWeightCsvExport = { viewModel.prepareWeightCsvExport() },
+                        onPrepareActivityCsvExport = { viewModel.prepareActivityCsvExport() },
+                        onPrepareHydrationCsvExport = { viewModel.prepareHydrationCsvExport() },
+                        onPrepareMedicationCsvExport = { viewModel.prepareMedicationCsvExport() },
+                        onPrepareFastingCsvExport = { viewModel.prepareFastingCsvExport() },
+                        onPreparePricesCsvExport = { viewModel.preparePricesCsvExport() },
+                        onPrepareCustomFoodsCsvExport = { viewModel.prepareCustomFoodsCsvExport() },
+                        onPrepareMealTemplatesCsvExport = { viewModel.prepareMealTemplatesCsvExport() },
+                        onPrepareRecipesCsvExport = { viewModel.prepareRecipesCsvExport() },
+                        onPrepareScanHistoryCsvExport = { viewModel.prepareScanHistoryCsvExport() },
+                        onPrepareMedicationsCsvExport = { viewModel.prepareMedicationsCsvExport() },
+                        onPrepareSymptomCsvExport = { viewModel.prepareSymptomCsvExport() },
+                        onPreparePantryCsvExport = { viewModel.preparePantryCsvExport() },
+                        onPrepareReport = { viewModel.preparePdfReport() },
+                    )
+                }
+                // Data reset section
+                item { DataResetSection(onShowResetDialog = { showResetDialog = true }) }
+                // Health Connect — platform weight sync
+                item {
+                    HealthConnectSection(
+                        availability = healthConnectAvailability.value,
+                        connected = healthConnectConnected.value,
+                        onConnect = { healthConnectLauncher.launch(viewModel.healthConnectPermissions) },
+                        isActiveProfile = hcIsActiveProfile.value,
+                        onLinkActiveProfile = viewModel::linkHealthConnectToActiveProfile,
+                    )
+                }
             }
-
-            // Roadmap N9: offline product database.
-            item { fr.scanneat.presentation.settings.components.OfflinePackSection(viewModel.offlinePack) }
-
-            // Roadmap C12: automatic weekly encrypted backup.
-            item { fr.scanneat.presentation.settings.components.AutoBackupSection() }
-
-            // Backup — local export/import, no cloud account required
-            item {
-                BackupSection(
-                    backupState = backupState.value,
-                    dataStats = dataStats.value,
-                    language = language.value,
-                    onExport = { passphrase -> viewModel.prepareExport(passphrase) },
-                    onImport = { importLauncher.launch(arrayOf("application/json")) },
-                    onClearBackupState = { viewModel.clearBackupState() },
-                    onConfirmImport = { json, passphrase -> viewModel.confirmImport(json, passphrase) },
-                    onSubmitPassphrase = { json, passphrase -> viewModel.previewImportWithPassphrase(json, passphrase) },
-                    onPrepareCsvExport = { viewModel.prepareCsvExport() },
-                    onPrepareBiolismCsvExport = { viewModel.prepareBiolismCsvExport() },
-                    onPrepareWeightCsvExport = { viewModel.prepareWeightCsvExport() },
-                    onPrepareActivityCsvExport = { viewModel.prepareActivityCsvExport() },
-                    onPrepareHydrationCsvExport = { viewModel.prepareHydrationCsvExport() },
-                    onPrepareMedicationCsvExport = { viewModel.prepareMedicationCsvExport() },
-                    onPrepareFastingCsvExport = { viewModel.prepareFastingCsvExport() },
-                    onPreparePricesCsvExport = { viewModel.preparePricesCsvExport() },
-                    onPrepareCustomFoodsCsvExport = { viewModel.prepareCustomFoodsCsvExport() },
-                    onPrepareMealTemplatesCsvExport = { viewModel.prepareMealTemplatesCsvExport() },
-                    onPrepareRecipesCsvExport = { viewModel.prepareRecipesCsvExport() },
-                    onPrepareScanHistoryCsvExport = { viewModel.prepareScanHistoryCsvExport() },
-                    onPrepareMedicationsCsvExport = { viewModel.prepareMedicationsCsvExport() },
-                    onPrepareSymptomCsvExport = { viewModel.prepareSymptomCsvExport() },
-                    onPreparePantryCsvExport = { viewModel.preparePantryCsvExport() },
-                    onPrepareReport = { viewModel.preparePdfReport() },
-                )
+            item { SettingsGroupHeader(stringResource(R.string.settings_group_about), expanded = 4 in openGroups, onToggle = { toggleGroup(4) }) }
+            if (4 in openGroups) {
+                // Roadmap A1/N2: data sources and methodology.
+                item { fr.scanneat.presentation.settings.components.SourcesSection(onOpenSources) }
+                // About
+                item {
+                    AboutSection(
+                        onShowLicenses = { showLicensesDialog = true },
+                        onNoCrashLog = { coroutineScope.launch { snackbarHostState.showSnackbar(noCrashLogMessage) } },
+                        theme = theme.value,
+                        language = language.value,
+                        colorblindMode = colorblindMode.value,
+                        recentScanSummaries = recentScanSummaries.value,
+                    )
+                }
+                // Legal — every claim this app makes (scores, personal adjustments, hints,
+                // metabolisme estimates, medication tracking) is a heuristic or a published
+                // formula substituted with the user's own numbers, not a medical opinion.
+                item { LegalSection() }
             }
-
-            // Data reset section
-            item { DataResetSection(onShowResetDialog = { showResetDialog = true }) }
-
-            // Health Connect — platform weight sync
-            item {
-                HealthConnectSection(
-                    availability = healthConnectAvailability.value,
-                    connected = healthConnectConnected.value,
-                    onConnect = { healthConnectLauncher.launch(viewModel.healthConnectPermissions) },
-                )
-            }
-
-            // About
-            item {
-                AboutSection(
-                    onShowLicenses = { showLicensesDialog = true },
-                    onNoCrashLog = { coroutineScope.launch { snackbarHostState.showSnackbar(noCrashLogMessage) } },
-                    theme = theme.value,
-                    language = language.value,
-                    colorblindMode = colorblindMode.value,
-                    recentScanSummaries = recentScanSummaries.value,
-                )
-            }
-
-            // Legal — every claim this app makes (scores, personal adjustments, hints,
-            // metabolisme estimates, medication tracking) is a heuristic or a published
-            // formula substituted with the user's own numbers, not a medical opinion.
-            item { LegalSection() }
-
             item { Spacer(Modifier.height(48.dp)) }
         }
     }
@@ -334,5 +339,16 @@ fun SettingsScreen(
                 pendingCurrencyChange = null
             },
         )
+    }
+}
+
+@Composable
+private fun SettingsGroupHeader(title: String, expanded: Boolean, onToggle: () -> Unit) {
+    Surface(onClick = onToggle, color = androidx.compose.ui.graphics.Color.Transparent, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.heightIn(min = 48.dp).padding(vertical = Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                color = OnBackground, modifier = Modifier.weight(1f))
+            Icon(if (expanded) compose.icons.TablerIcons.ChevronUp else compose.icons.TablerIcons.ChevronDown, null, tint = OnBackground.copy(0.5f))
+        }
     }
 }

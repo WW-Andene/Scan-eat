@@ -347,6 +347,10 @@ class SettingsViewModel @Inject constructor(
     // Health Connect
     // ─────────────────────────────────────────────────────────────────────────
     val healthConnectPermissions: Set<String> get() = HealthConnectRepository.PERMISSIONS
+    /** True when the active profile is the one Health Connect syncs with. */
+    val healthConnectIsActiveProfile: StateFlow<Boolean> = kotlinx.coroutines.flow.combine(prefs.healthConnectProfileId, prefs.activeProfileId) { hc, active -> hc == active }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    fun linkHealthConnectToActiveProfile() = guardedLaunch { prefs.setHealthConnectProfileId(prefs.activeProfileId.first()) }
 
     private val _healthConnectAvailability = MutableStateFlow(HealthConnectAvailability.UNSUPPORTED)
     val healthConnectAvailability: StateFlow<HealthConnectAvailability> = _healthConnectAvailability.asStateFlow()

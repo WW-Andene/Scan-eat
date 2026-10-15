@@ -18,7 +18,7 @@ import fr.scanneat.domain.model.Product
  * medication-name lookup in this app already has - see MedicationViewModel's
  * own detectInteractions doc comment) actually match the relevant drug class.
  *
- * Deliberately narrow (10 interactions, not an exhaustive pharmacology
+ * Deliberately narrow (11 interactions, not an exhaustive pharmacology
  * database this app has no legitimate data source for) - each one is a
  * textbook-level, broadly-cited interaction, not a judgment call. Every
  * caution ends by pointing to a pharmacist/doctor, same line
@@ -47,7 +47,7 @@ import fr.scanneat.domain.model.Product
 // same fix pattern.
 // STATIN, QUINOLONE_TETRACYCLINE, METRONIDAZOLE - Roadmap A7 additions, each
 // with its European source next to its caution below.
-private enum class FoodInteractionDrugClass { ANTICOAGULANT_VKA, MAOI, STATIN_OR_CCB, ACE_INHIBITOR_SARTAN, LEVOTHYROXINE, STATIN, QUINOLONE_TETRACYCLINE, METRONIDAZOLE, ENZYME_INDUCTION_SENSITIVE, HYPOKALEMIA_SENSITIVE }
+private enum class FoodInteractionDrugClass { ANTICOAGULANT_VKA, MAOI, STATIN_OR_CCB, ACE_INHIBITOR_SARTAN, LEVOTHYROXINE, STATIN, QUINOLONE_TETRACYCLINE, METRONIDAZOLE, ENZYME_INDUCTION_SENSITIVE, HYPOKALEMIA_SENSITIVE, DISULFIRAM }
 
 private data class DrugKeywordGroup(val drugClass: FoodInteractionDrugClass, val keywords: List<String>)
 
@@ -141,6 +141,10 @@ private val DRUG_KEYWORD_GROUPS: List<DrugKeywordGroup> = listOf(
             "furosemide", "lasilix", "bumetanide", "burinex", "hydrochlorothiazide", "esidrex", "indapamide", "fludex",
             "digoxine", "digoxin",
         ),
+    ),
+    DrugKeywordGroup(
+        FoodInteractionDrugClass.DISULFIRAM,
+        listOf("disulfirame", "disulfiram", "esperal"),
     ),
     DrugKeywordGroup(
         FoodInteractionDrugClass.LEVOTHYROXINE,
@@ -256,6 +260,15 @@ private val FOOD_CAUTIONS: List<FoodCaution> = listOf(
         listOf("reglisse", "glycyrrhizine", "acide glycyrrhizique", "liquorice", "licorice"),
         "Contient de la réglisse : en excès, elle fait baisser le potassium, ce qui s'ajoute à l'effet de votre diurétique ou augmente le risque de toxicité de la digoxine — limitez-en la consommation et demandez conseil à votre médecin (règlement UE 1169/2011, avis SCF 2003).",
         "Contains liquorice: in excess it lowers potassium, adding to your diuretic's effect or raising the risk of digoxin toxicity — keep it occasional and ask your doctor (EU Regulation 1169/2011, SCF 2003 opinion).",
+    ),
+    // SmPC Espéral (disulfiram, ANSM): any alcohol, including in food, sauces,
+    // medicines and cosmetics, triggers the antabuse reaction - so, unlike
+    // metronidazole above, even wine vinegar and "alcohol-free" drinks count.
+    FoodCaution(
+        FoodInteractionDrugClass.DISULFIRAM,
+        listOf("alcool", "vin", "biere", "cidre", "rhum", "vodka", "whisky", "liqueur", "champagne", "pastis", "porto", "kirsch", "cognac", "calvados", "vinaigre de vin", "sans alcool"),
+        "Peut contenir de l'alcool : avec le disulfirame (Espéral), même une petite quantité (sauce, dessert, vinaigre de vin, boisson « sans alcool ») provoque une réaction antabuse (bouffées de chaleur, vomissements, malaise) — évitez-le et demandez conseil à votre médecin.",
+        "May contain alcohol: with disulfiram (Antabuse/Espéral), even a small amount (sauce, dessert, wine vinegar, \"alcohol-free\" drink) triggers a disulfiram reaction (flushing, vomiting, feeling unwell) — avoid it and ask your doctor.",
     ),
 ).map { it.copy(foodKeywords = it.foodKeywords.map(::normalizeForMatching), excludePhrases = it.excludePhrases.map(::normalizeForMatching)) }
 

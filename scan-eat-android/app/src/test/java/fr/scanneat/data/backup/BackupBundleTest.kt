@@ -70,6 +70,18 @@ class BackupBundleTest {
     }
 
     @Test
+    fun `v18 profile and settings fields round-trip`() {
+        val p = ProfileBackup("A", "FEMALE", 30, 165.0, 60.0, null, "MODERATELY_ACTIVE", "MAINTAIN", "none", emptyList(), false,
+            fatLevel = "LOW", muscleLevel = "HIGH", sharedReadOnly = true)
+        val s = SettingsBackup("fr", "dark", false, "none", voiceScoreAnnounce = true, hideMedicationNames = true, hiddenModules = "sleep")
+        val b = sampleBundle().copy(profile = p, settings = s)
+        assertEquals(b, adapter.fromJson(adapter.toJson(b)))
+        // A v17 backup without the new keys still reads, with defaults.
+        val old = adapter.fromJson(adapter.toJson(b).replace("\"sharedReadOnly\":true", "\"x\":0"))!!
+        assertFalse(old.profile!!.sharedReadOnly)
+    }
+
+    @Test
     fun `empty bundle round-trips to empty lists, not nulls`() {
         val empty = BackupBundle(
             exportedAtMs = 0L, appVersionName = "0.1.0",

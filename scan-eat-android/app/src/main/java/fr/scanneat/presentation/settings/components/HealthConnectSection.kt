@@ -22,9 +22,18 @@ import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-internal fun HealthConnectSection(availability: HealthConnectAvailability, connected: Boolean, onConnect: () -> Unit) {
+internal fun HealthConnectSection(
+    availability: HealthConnectAvailability, connected: Boolean, onConnect: () -> Unit,
+    isActiveProfile: Boolean = true, onLinkActiveProfile: () -> Unit = {},
+) {
     SettingsSection(stringResource(R.string.settings_section_health_connect), icon = Icons.Default.HealthAndSafety) {
         Text(stringResource(R.string.settings_healthconnect_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+        // Health Connect holds one person's data: only the linked profile syncs.
+        if (isActiveProfile) Text(stringResource(R.string.settings_healthconnect_profile_linked), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+        else Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            Text(stringResource(R.string.settings_healthconnect_profile_other), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+            TextButton(onClick = onLinkActiveProfile) { Text(stringResource(R.string.settings_healthconnect_profile_link), color = AccentCoral) }
+        }
         when (availability) {
             HealthConnectAvailability.AVAILABLE -> {
                 if (connected) {

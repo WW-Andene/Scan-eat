@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.biolism
 
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -32,7 +33,7 @@ private enum class BiolismTab(@androidx.annotation.StringRes val labelRes: Int) 
 }
 
 @Composable
-fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
+fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel(), onBack: (() -> Unit)? = null) {
     val profile   = gateViewModel.profile.collectAsStateWithLifecycle()
     val onboarded = gateViewModel.onboarded.collectAsStateWithLifecycle()
 
@@ -57,8 +58,9 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
     // extraContent slot, same mechanism Journal's own tab row uses.
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.tab_biolism), color = OnBackground) },
-        hasNavigationIcon = false,
-        showBottomNavClearance = true,
+        navigationIcon = { onBack?.let { IconButton(onClick = it) { Icon(compose.icons.TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } } },
+        hasNavigationIcon = onBack != null,
+        showBottomNavClearance = onBack == null,
         extraContent = {
             Text(stringResource(R.string.biolism_subtitle), style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
             Spacer(Modifier.height(Spacing.M))

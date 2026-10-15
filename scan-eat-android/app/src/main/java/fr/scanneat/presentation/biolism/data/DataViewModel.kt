@@ -31,6 +31,7 @@ class DataViewModel @Inject constructor(
     prefs: UserPreferences,
 ) : ActionFailureViewModel() {
 
+    private val activeProfileId = prefs.activeProfileId
     private val nutritionProfile = prefs.profile
 
     val profile  = repo.profile.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BiolismProfile())
@@ -71,7 +72,7 @@ class DataViewModel @Inject constructor(
     // double-count a logged session) since these are two genuinely different,
     // independently-logged activities, not two views of the same one - see
     // DailyEnergyCard's own doc comment on why met.tdeeDay itself stays excluded.
-    val todayActivityKcal: StateFlow<Int> = today.flatMapLatest { activityRepo.observeByDate(it) }
+    val todayActivityKcal: StateFlow<Int> = combine(today, activeProfileId) { d, id -> d to id }.flatMapLatest { (d, id) -> activityRepo.observeByDate(d, id) }
         .map { entries -> entries.sumOf { it.kcalBurned } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
@@ -157,8 +158,8 @@ class DataViewModel @Inject constructor(
     // Dashboard's WeeklyInsightCard already renders, just recomputed against
     // this ViewModel's own inputs instead of duplicating the formula.
     val crossInsight: StateFlow<CrossTrackerInsight> = combine(
-        today.flatMapLatest { consumptionRepo.observeRange(it.minusDays(6), it) },
-        weightRepo.observeSummary(30),
+        combine(today, activeProfileId) { d, id -> d to id }.flatMapLatest { (d, id) -> consumptionRepo.observeRange(d.minusDays(6), d, id) },
+        activeProfileId.flatMapLatest { id -> weightRepo.observeSummary(30, id) },
         nutritionProfile,
     ) { weekEntries, weightSummary, nutriProfile ->
         val targets = if (hasMinimalProfile(nutriProfile)) dailyTargets(nutriProfile) else null
