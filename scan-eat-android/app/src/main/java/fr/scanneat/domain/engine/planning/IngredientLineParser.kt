@@ -144,6 +144,8 @@ private fun matchFood(text: String): FoodEntry? {
     for (size in words.size downTo 1) {
         for (start in 0..words.size - size) {
             val phrase = words.subList(start, start + size).joinToString(" ")
+            // A lone "sauce" names no sauce: "sauce xyzzy" must not become a random sauce of the table.
+            if (phrase == "sauce" || phrase == "sauces") continue
             // Singular form too ("oeufs" -> "oeuf", "tomates" -> "tomate").
             val hit = searchFoodDB(phrase, limit = 1).firstOrNull()
                 ?: phrase.takeIf { it.endsWith("s") || it.endsWith("x") }?.let { searchFoodDB(it.dropLast(1), limit = 1).firstOrNull() }
@@ -164,6 +166,12 @@ private val EXACT_INDEX: Map<String, FoodEntry> by lazy {
 private fun key(s: String) = norm(s).replace("'", " ").replace(WHITESPACE, " ").trim()
 
 private fun exactFood(phrase: String): FoodEntry? = EXACT_INDEX[key(phrase)]
+
+/** Whole-name match only (name or alias, singular tried too) - no partial word windows. */
+fun findFoodExact(name: String): FoodEntry? {
+    val n = norm(name).trim()
+    return exactFood(n) ?: exactFood(n.split(WHITESPACE).joinToString(" ") { w -> if (w.length > 3 && (w.endsWith("s") || w.endsWith("x"))) w.dropLast(1) else w })
+}
 
 fun ParsedIngredient.toRecipeComponent(): RecipeComponent? {
     val f = food ?: return null

@@ -82,4 +82,7 @@ data class FoodEntry(
     /** A recipe ingredient (flour, salt, gelatine, spices...) rather than something
      *  eaten on its own - never offered as an "eat this" suggestion. */
     val cookingIngredient: Boolean = false,
+    /** What a composed dish or sauce is defined by (FoodDbComposedDishes) - fed to
+     *  toProduct() as ingredients so allergen and diet checks can run on it. */
+    val typicalIngredients: List<String> = emptyList(),
 )
