@@ -274,7 +274,7 @@ fun TrackerScreen(
 
 @Composable
 private fun EmptyProfilePrompt() {
-    ScanEatCard(contentPadding = PaddingValues(Spacing.XXL)) {
+    ScanEatCard(contentPadding = PaddingValues(Spacing.L)) {
         // User-instructed: header-to-content gap here didn't match the app's
         // standard Spacing.S convention for this exact role (already
         // established in BiolismProfileOverviewCard.kt / DayDetailCard.kt).

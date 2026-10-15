@@ -19,7 +19,7 @@ internal fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, curr
     // Tapping the row now opens the edit dialog - previously the only action
     // available on a logged entry was delete, so a mistyped price or name
     // could only be fixed by deleting and re-adding it from scratch.
-    ScanEatCard(contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), onClick = onEdit) {
+    ScanEatCard(contentPadding = PaddingValues(Spacing.M), onClick = onEdit) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnBackground, maxLines = 1)

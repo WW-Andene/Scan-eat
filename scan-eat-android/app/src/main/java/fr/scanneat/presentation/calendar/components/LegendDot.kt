@@ -15,10 +15,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 
 @Composable
 internal fun LegendDot(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Box(Modifier.size(8.dp).clip(CircleShape).background(color))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
     }

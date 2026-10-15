@@ -74,7 +74,7 @@ fun ReceiptScanScreen(onBack: () -> Unit, viewModel: ReceiptScanViewModel = hilt
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(Icons.Rounded.CameraAlt, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(48.dp))
+                    Icon(Icons.Rounded.CameraAlt, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.EmptyState))
                     Spacer(Modifier.height(Spacing.M))
                     Text(stringResource(R.string.receipt_scan_no_camera_body), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.8f))
                     Spacer(Modifier.height(Spacing.L))
@@ -89,7 +89,7 @@ fun ReceiptScanScreen(onBack: () -> Unit, viewModel: ReceiptScanViewModel = hilt
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(Icons.Rounded.CameraAlt, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(48.dp))
+                    Icon(Icons.Rounded.CameraAlt, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.EmptyState))
                     Spacer(Modifier.height(Spacing.M))
                     Text(stringResource(R.string.receipt_scan_permission_body), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.8f))
                     Spacer(Modifier.height(Spacing.L))
@@ -123,7 +123,7 @@ fun ReceiptScanScreen(onBack: () -> Unit, viewModel: ReceiptScanViewModel = hilt
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(TablerIcons.FileInvoice, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(48.dp))
+                    Icon(TablerIcons.FileInvoice, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.EmptyState))
                     Spacer(Modifier.height(Spacing.M))
                     Text(
                         stringResource(if (s is ReceiptScanState.NoLinesFound) R.string.receipt_scan_no_lines_body else R.string.receipt_scan_error_body),

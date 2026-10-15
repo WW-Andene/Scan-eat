@@ -38,7 +38,7 @@ internal fun DisplayModeButton(mode: SearchDisplayMode, onClick: () -> Unit) {
         // which is blue under the Lazulite color-accent (Theme.kt).
         colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentCoral),
     ) {
-        Icon(Icons.Rounded.SwapHoriz, null, modifier = Modifier.size(IconSize.Small))
+        Icon(Icons.Rounded.SwapHoriz, null, modifier = Modifier.size(IconSize.Compact))
         Spacer(Modifier.width(Spacing.XS))
         Text(stringResource(R.string.foodsearch_mode_button, stringResource(modeLabel(mode))), style = MaterialTheme.typography.labelMedium)
     }

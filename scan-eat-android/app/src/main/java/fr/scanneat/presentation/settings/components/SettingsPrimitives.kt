@@ -65,7 +65,7 @@ internal fun SettingsSection(title: String, icon: ImageVector? = null, content: 
 
 @Composable
 internal fun SaveButtonRow(saved: Boolean, onSave: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         ScanEatPrimaryButton(onClick = onSave) {
             Text(stringResource(R.string.common_save))
         }

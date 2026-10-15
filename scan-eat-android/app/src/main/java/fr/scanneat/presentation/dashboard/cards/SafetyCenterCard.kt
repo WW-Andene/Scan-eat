@@ -43,7 +43,7 @@ internal fun SafetyCenterCard(warnings: List<DashboardSafetyWarning>) {
     if (warnings.isEmpty()) return
     ScanEatCard(
         contentPadding = PaddingValues(Spacing.L),
-        verticalArrangement = Arrangement.spacedBy(Spacing.SM),
+        verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Text(
             stringResource(R.string.dashboard_safety_center_title, warnings.size),
@@ -52,7 +52,7 @@ internal fun SafetyCenterCard(warnings: List<DashboardSafetyWarning>) {
         warnings.forEach { warning ->
             val (message, tint) = buildMessage(warning)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = tint, modifier = androidx.compose.ui.Modifier.size(IconSize.Small))
+                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = tint, modifier = androidx.compose.ui.Modifier.size(IconSize.Compact))
                 Text(message, style = MaterialTheme.typography.labelMedium, color = tint)
             }
         }

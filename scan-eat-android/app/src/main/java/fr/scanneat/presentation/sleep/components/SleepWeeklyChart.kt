@@ -59,7 +59,7 @@ internal fun SleepWeeklyChart(weeklyDuration: List<Pair<LocalDate, Double>>, goa
                         Modifier
                             .weight(1f)
                             .fillMaxHeight(if (frac == 0f) 0.05f else frac.coerceAtLeast(0.05f))
-                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                            .clip(RoundedCornerShape(topStart = CardRadius.BADGE, topEnd = CardRadius.BADGE))
                             .background(color)
                             .semantics { contentDescription = barDescription },
                         contentAlignment = Alignment.TopCenter,

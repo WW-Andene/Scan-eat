@@ -57,7 +57,7 @@ internal fun AssignSlotDialog(
                                 Modifier.fillMaxWidth().clickable { onPickRecipe(recipe) }.padding(vertical = Spacing.S),
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                             ) {
-                                Icon(TablerIcons.ClipboardList, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                                Icon(TablerIcons.ClipboardList, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
                                 Text(recipe.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface)
                             }
                         }
@@ -69,7 +69,7 @@ internal fun AssignSlotDialog(
                                 Modifier.fillMaxWidth().clickable { onPickTemplate(template) }.padding(vertical = Spacing.S),
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                                Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
                                 Text(template.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface)
                             }
                         }

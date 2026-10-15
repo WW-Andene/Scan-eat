@@ -35,6 +35,7 @@ import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.dispWeight
 import kotlin.math.roundToInt
+import fr.scanneat.presentation.ui.theme.IconSize
 
 @Composable
 internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?, goalTargets: DailyTargets? = null, goalWeightKg: Double? = null, useImperial: Boolean = false) {
@@ -51,7 +52,7 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
             Text(stringResource(R.string.diary_totals_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             if (isLowCarbDiet) {
                 IconButton(onClick = { showLowCarbInfo = true }) {
-                    Icon(Icons.Rounded.Info, stringResource(R.string.diary_low_carb_hint_cd), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Info, stringResource(R.string.diary_low_carb_hint_cd), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
                 }
             }
         }

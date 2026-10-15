@@ -27,7 +27,7 @@ internal fun DataResetSection(onShowResetDialog: () -> Unit) {
     SettingsSection(stringResource(R.string.settings_section_reset), icon = TablerIcons.Trash) {
         Text(stringResource(R.string.settings_reset_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         ScanEatOutlinedButton(onClick = onShowResetDialog) {
-            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
             Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_reset_button), color = semanticRed())
         }
@@ -59,7 +59,7 @@ internal fun ResetConfirmDialog(
                     ResetTarget.SCANS -> {
                         Text(stringResource(R.string.settings_reset_confirm_body), style = MaterialTheme.typography.bodySmall, color = semanticRed())
                         TextButton(onClick = onConfirmClearScans) {
-                            Icon(TablerIcons.Barcode, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Small))
+                            Icon(TablerIcons.Barcode, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
                             Spacer(Modifier.width(Spacing.XS))
                             // Was the same "Yes, clear everything" label shared by all three
                             // tiers - a user confirming "clear scan history" read a button
@@ -71,7 +71,7 @@ internal fun ResetConfirmDialog(
                     ResetTarget.FASTING -> {
                         Text(stringResource(R.string.settings_reset_confirm_body_fasting), style = MaterialTheme.typography.bodySmall, color = semanticRed())
                         TextButton(onClick = onConfirmClearFasting) {
-                            Icon(Icons.Default.Timer, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Small))
+                            Icon(Icons.Default.Timer, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
                             Spacer(Modifier.width(Spacing.XS))
                             Text(stringResource(R.string.settings_reset_confirm_button_fasting), color = semanticRed(), fontWeight = FontWeight.Bold)
                         }
@@ -79,7 +79,7 @@ internal fun ResetConfirmDialog(
                     ResetTarget.ALL -> {
                         Text(stringResource(R.string.settings_reset_confirm_body_all), style = MaterialTheme.typography.bodySmall, color = semanticRed(), fontWeight = FontWeight.Bold)
                         TextButton(onClick = onConfirmClearAll) {
-                            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Small))
+                            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
                             Spacer(Modifier.width(Spacing.XS))
                             Text(stringResource(R.string.settings_reset_confirm_button), color = semanticRed(), fontWeight = FontWeight.Bold)
                         }
@@ -87,18 +87,18 @@ internal fun ResetConfirmDialog(
                     null -> {
                         Text(stringResource(R.string.settings_reset_dialog_body), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
                         TextButton(onClick = { onSetPendingReset(ResetTarget.SCANS) }) {
-                            Icon(TablerIcons.Barcode, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Small))
+                            Icon(TablerIcons.Barcode, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
                             Spacer(Modifier.width(Spacing.XS))
                             Text(stringResource(R.string.settings_reset_clear_scans), color = semanticRed())
                         }
                         TextButton(onClick = { onSetPendingReset(ResetTarget.FASTING) }) {
-                            Icon(Icons.Default.Timer, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Small))
+                            Icon(Icons.Default.Timer, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
                             Spacer(Modifier.width(Spacing.XS))
                             Text(stringResource(R.string.settings_reset_clear_fasting), color = semanticRed())
                         }
                         HorizontalDivider(color = OnBackground.copy(0.1f))
                         TextButton(onClick = { onSetPendingReset(ResetTarget.ALL) }) {
-                            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Small))
+                            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Compact))
                             Spacer(Modifier.width(Spacing.XS))
                             Text(stringResource(R.string.settings_reset_clear_all), color = semanticRed(), fontWeight = FontWeight.Bold)
                         }

@@ -42,10 +42,11 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.util.formatDecimal
 import kotlin.math.abs
+import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
 internal fun PillarsSection(pillars: ScoreAudit.Pillars) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Text(stringResource(R.string.result_pillars_title), style = MaterialTheme.typography.titleSmall,
             color = OnBackground, fontWeight = FontWeight.SemiBold)
         listOf(pillars.processing, pillars.nutritionalDensity, pillars.negativeNutrients,
@@ -98,7 +99,7 @@ private fun PillarRow(pillar: PillarScore) {
         Spacer(Modifier.height(Spacing.XS))
         LinearProgressIndicator(
             progress   = { ratio },
-            modifier   = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+            modifier   = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(CardRadius.BADGE)),
             color      = color,
             trackColor = SurfaceVariant,
         )

@@ -36,6 +36,7 @@ import fr.scanneat.presentation.ui.theme.semanticGreen
 import java.time.Month
 import java.time.format.TextStyle
 import java.util.Locale
+import fr.scanneat.presentation.ui.theme.PillShape
 
 /**
  * 4x3 real month grid (Jan-Dec) replacing the previous chevron one-month
@@ -126,7 +127,7 @@ private fun SeasonMonthCell(
                 fontWeight = if (isSelected || isHighlighted) FontWeight.Bold else FontWeight.Normal,
             )
             if (isCurrent) {
-                Box(Modifier.size(4.dp).clip(RoundedCornerShape(50)).background(Gold))
+                Box(Modifier.size(4.dp).clip(PillShape).background(Gold))
             }
         }
     }

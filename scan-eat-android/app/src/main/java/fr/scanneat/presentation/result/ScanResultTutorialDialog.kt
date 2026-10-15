@@ -29,6 +29,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
+import fr.scanneat.presentation.ui.theme.PillShape
 
 /**
  * User-requested: an interactive walkthrough shown over a *real* scan result
@@ -91,7 +92,7 @@ private fun StepDots(total: Int, active: Int) {
             Box(
                 Modifier
                     .size(if (i == active) 24.dp else 8.dp, 8.dp)
-                    .clip(RoundedCornerShape(50))
+                    .clip(PillShape)
                     .background(if (i == active) AccentCoral else OnBackground.copy(0.2f)),
             )
         }

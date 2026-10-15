@@ -59,7 +59,7 @@ internal fun FoodEntryRow(
     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.SM),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Row(
@@ -130,14 +130,14 @@ internal fun FoodEntryRow(
                 Icon(
                     TablerIcons.Edit, stringResource(R.string.common_edit),
                     tint = OnSurface.copy(0.5f),
-                    modifier = Modifier.size(IconSize.Small),
+                    modifier = Modifier.size(IconSize.Compact),
                 )
             }
             IconButton(onClick = onDelete) {
                 Icon(
                     TablerIcons.X, stringResource(R.string.common_delete),
                     tint = OnSurface.copy(0.5f),
-                    modifier = Modifier.size(IconSize.Small),
+                    modifier = Modifier.size(IconSize.Compact),
                 )
             }
         }

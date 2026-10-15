@@ -70,7 +70,7 @@ private fun MacroRing(label: String, value: Int, unit: String, pct: Float?, colo
             )
             Text(value.toString(), style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground, fontWeight = FontWeight.Bold)
         }
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Spacing.XS))
         // Previously only the current total was shown ("120g") with no indication of
         // the profile-derived target it's being measured against, even though the
         // ring's own fill % was silently computed from that same target — the number

@@ -23,6 +23,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.IconSize
 
 @Composable
 internal fun ScanPermissionRequestColumn(
@@ -38,7 +39,7 @@ internal fun ScanPermissionRequestColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(TablerIcons.Camera, null, tint = OnBackground, modifier = Modifier.size(64.dp))
+        Icon(TablerIcons.Camera, null, tint = OnBackground, modifier = Modifier.size(IconSize.Hero))
         Spacer(Modifier.height(Spacing.L))
         Text(stringResource(R.string.scan_camera_permission_title), style = MaterialTheme.typography.titleMedium,
             color = OnBackground, textAlign = TextAlign.Center)

@@ -26,7 +26,7 @@ internal fun CaffeineBudgetCard(c: CaffeineBudget) {
     ScanEatCard(
         emphasis = CardEmphasis.SECONDARY,
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         Text(stringResource(R.string.diary_caffeine_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         Text(stringResource(R.string.diary_caffeine_total, c.totalMg.roundToInt(), c.limitMg.roundToInt()),

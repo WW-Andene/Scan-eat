@@ -347,7 +347,7 @@ private fun MacroContributionCard(nutrition: NutritionPer100g) {
                 Text(row.label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(48.dp))
                 LinearProgressIndicator(
                     progress = { pct },
-                    modifier = Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)),
+                    modifier = Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(CardRadius.BADGE)),
                     color = when {
                         pct >= 0.5f && row.positiveWhenHigh -> semanticGreen()
                         pct >= 0.5f -> semanticAmber()

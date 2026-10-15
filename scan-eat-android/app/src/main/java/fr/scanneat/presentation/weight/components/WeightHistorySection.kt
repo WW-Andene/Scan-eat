@@ -140,7 +140,7 @@ internal fun WeightSummaryCard(
             HorizontalDivider(color = OnSurface.copy(0.08f))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.weight_logging_streak_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                Surface(shape = RoundedCornerShape(50), color = ChipBackgroundAccent) {
+                Surface(shape = PillShape, color = ChipBackgroundAccent) {
                     Row(
                         modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                         verticalAlignment = Alignment.CenterVertically,
@@ -223,7 +223,7 @@ internal fun WeeklyAverageCard(thisWeek: Double, lastWeek: Double, useImperial: 
                     Text(stringResource(R.string.weight_vs_last_week, sharedDispWeight(lastWeek, useImperial)), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 }
             }
-            Surface(shape = RoundedCornerShape(50), color = dColor.copy(0.15f)) {
+            Surface(shape = PillShape, color = dColor.copy(0.15f)) {
                 val sign = if (delta >= 0) "+" else ""
                 Text(
                     "$sign${(if (useImperial) delta * KG_TO_LB else delta).formatDecimal()} ${if (useImperial) "lb" else "kg"}",
@@ -265,10 +265,10 @@ internal fun WeightEntryRow(entry: WeightEntry, delta: Double?, useImperial: Boo
             }
             Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
             IconButton(onClick = onEdit) {
-                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
             }
             IconButton(onClick = onDelete) {
-                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
             }
         }
     }

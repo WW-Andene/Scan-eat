@@ -71,7 +71,7 @@ internal fun ScanHistoryRow(
                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
                     Text(
                         scan.audit.grade.label,
-                        modifier = Modifier.padding(horizontal = Spacing.SM, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.S),
                         style = MaterialTheme.typography.labelLarge,
                         color = gradeColor, fontWeight = FontWeight.Bold,
                     )
@@ -97,12 +97,12 @@ internal fun ScanHistoryRow(
                     // more severe signal than a personal diet/allergen conflict.
                     if (recalled) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticRed(), modifier = Modifier.size(IconSize.Micro))
+                            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticRed(), modifier = Modifier.size(IconSize.Tiny))
                             Text(stringResource(R.string.history_item_recalled), style = MaterialTheme.typography.labelSmall, color = semanticRed(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     } else if (warning != null) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Micro))
+                            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Tiny))
                             Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
@@ -125,7 +125,7 @@ internal fun ScanHistoryRow(
                 )
             }
             IconButton(onClick = onDelete) {
-                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
             }
             Icon(TablerIcons.ChevronRight, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
         }

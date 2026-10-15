@@ -36,7 +36,7 @@ internal fun ScanHistoryCard(scan: ScanResult, warning: String? = null, onItemCl
             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
                 Text(
                     scan.audit.grade.label,
-                    modifier   = Modifier.padding(horizontal = Spacing.SM, vertical = 8.dp),
+                    modifier   = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.S),
                     style      = MaterialTheme.typography.labelLarge,
                     color      = gradeColor,
                     fontWeight = FontWeight.Bold,
@@ -56,7 +56,7 @@ internal fun ScanHistoryCard(scan: ScanResult, warning: String? = null, onItemCl
                 // of a conflict the Result screen had already flagged for that product.
                 if (warning != null) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Micro))
+                        Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Tiny))
                         Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }

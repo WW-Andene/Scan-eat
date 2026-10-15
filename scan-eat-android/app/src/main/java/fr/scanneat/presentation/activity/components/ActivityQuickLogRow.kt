@@ -57,7 +57,7 @@ internal fun ActivityQuickLogRow(
                 val label = if (subLabel != null) "$typeLabel · $subLabel · ${entry.minutes} min" else "$typeLabel · ${entry.minutes} min"
                 SuggestionChip(
                     onClick = { onQuickLog(entry) },
-                    icon = { Icon(TablerIcons.Plus, contentDescription = null, modifier = Modifier.size(IconSize.Micro)) },
+                    icon = { Icon(TablerIcons.Plus, contentDescription = null, modifier = Modifier.size(IconSize.Tiny)) },
                     label = { Text(label, style = MaterialTheme.typography.labelMedium) },
                     shape = RoundedCornerShape(CardRadius.BADGE),
                     colors = SuggestionChipDefaults.suggestionChipColors(

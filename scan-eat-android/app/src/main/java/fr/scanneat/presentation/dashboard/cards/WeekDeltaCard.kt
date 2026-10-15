@@ -37,7 +37,7 @@ internal fun WeekDeltaCard(delta: WeekOverWeekDelta) {
     ) {
         Icon(
             if (delta.kcal >= 0) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
-            null, tint = color, modifier = Modifier.size(IconSize.Small),
+            null, tint = color, modifier = Modifier.size(IconSize.Compact),
         )
         Text(
             stringResource(R.string.dashboard_week_delta, "$sign${delta.kcal.roundToInt()}"),

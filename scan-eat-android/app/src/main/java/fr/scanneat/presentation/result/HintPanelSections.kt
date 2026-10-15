@@ -36,6 +36,7 @@ import fr.scanneat.presentation.ui.theme.gradeColor
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.semanticRed
+import fr.scanneat.presentation.ui.theme.PillShape
 
 /** Grade badge + numeric score + verdict, at the top of the hint panel. */
 @Composable
@@ -88,7 +89,7 @@ internal fun PillarBar(pillar: PillarSummary) {
             progress = { ratio },
             color = color,
             trackColor = OnBackground.copy(0.1f),
-            modifier = Modifier.fillMaxWidth().padding(top = Spacing.T2).height(8.dp).clip(RoundedCornerShape(50)),
+            modifier = Modifier.fillMaxWidth().padding(top = Spacing.T2).height(8.dp).clip(PillShape),
         )
     }
 }
@@ -119,7 +120,7 @@ internal fun ImprovementTipsSection(title: String, tips: List<ImprovementTip>) {
             val accent = severityColor(tip.severity, red, amber, neutral)
             Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = Spacing.S)) {
                 Box(
-                    modifier = Modifier.padding(top = 2.dp).size(8.dp).clip(RoundedCornerShape(50)).background(accent),
+                    modifier = Modifier.padding(top = Spacing.T2).size(8.dp).clip(PillShape).background(accent),
                 )
                 Text(
                     tip.reason,

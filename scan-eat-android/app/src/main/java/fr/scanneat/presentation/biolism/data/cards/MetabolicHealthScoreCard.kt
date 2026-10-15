@@ -108,7 +108,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = scoreColor.copy(0.15f)) {
             Text(
                 "$overallScore / 100",
-                modifier = Modifier.padding(horizontal = Spacing.SM, vertical = Spacing.T2),
+                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                 style = MaterialTheme.typography.labelSmall,
                 color = scoreColor,
                 fontWeight = FontWeight.Bold,

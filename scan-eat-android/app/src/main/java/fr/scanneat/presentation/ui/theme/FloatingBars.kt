@@ -191,6 +191,9 @@ fun FloatingTopBar(
     Column(
         modifier
             .fillMaxWidth()
+            // Same max width as the bottom nav pill on tablets, centered.
+            .wrapContentWidth(Alignment.CenterHorizontally)
+            .widthIn(max = FloatingPillMaxWidth)
             .windowInsetsPadding(WindowInsets.statusBars)
             // User-reported: outer margin ratio should be 1(sides):2(top/bottom),
             // and match MainShell's bottom nav margin exactly so the header's top
@@ -204,7 +207,8 @@ fun FloatingTopBar(
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(48.dp)
+                // Same 64dp pill height as MainShell's bottom nav.
+                .height(FloatingPillHeight)
                 // User-reported: on tab-root screens (no back arrow), the leading
                 // side previously got Spacing.XS (icon-slot case) or an
                 // approximated Spacing.M spacer (~15dp, not an exact match to the
@@ -241,8 +245,14 @@ fun FloatingTopBar(
     }
 }
 
-/** FloatingTopBar's own pill height (56dp title row + FloatingChromeMargin.vertical top/bottom) — not including the device's own status-bar inset, which [FloatingScreenScaffold] adds separately. */
-val FloatingTopBarHeight = 96.dp + 16.dp   // 48dp pill + 2 × FloatingChromeMargin.vertical (32dp)
+/** Height of both floating pills: the header's title row and the bottom nav bar. */
+val FloatingPillHeight: Dp = 64.dp
+
+/** Max width of both floating pills on medium+ widths (600dp = 512 + 64 + 24). */
+val FloatingPillMaxWidth: Dp = 512.dp + 64.dp
+
+/** FloatingTopBar's own pill height (64dp title row + FloatingChromeMargin.vertical top/bottom), identical to [BottomNavPillTotalHeight] — not including the device's own status-bar inset, which [FloatingScreenScaffold] adds separately. */
+val FloatingTopBarHeight: Dp = 128.dp
 
 /** MainShell's floating bottom nav's own pill height (64dp NavigationBar + FloatingChromeMargin.vertical top/bottom) — not including the device's own navigation-bar inset. */
 val FloatingBottomNavHeight: Dp

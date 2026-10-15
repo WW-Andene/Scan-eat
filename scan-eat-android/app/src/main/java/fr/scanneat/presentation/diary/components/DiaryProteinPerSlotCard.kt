@@ -35,7 +35,7 @@ internal fun DiaryProteinPerSlotCard(bySlot: Map<MealSlot, List<DiaryEntry>>) {
     ScanEatCard(
         emphasis = CardEmphasis.SECONDARY,
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         Text(stringResource(R.string.diary_protein_per_slot_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         MealSlot.values().forEach { slot ->
@@ -45,7 +45,7 @@ internal fun DiaryProteinPerSlotCard(bySlot: Map<MealSlot, List<DiaryEntry>>) {
                     Text(slot.shortLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.width(32.dp))
                     LinearProgressIndicator(
                         progress = { (prot / maxSlotProt).toFloat().coerceIn(0f, 1f) },
-                        modifier = Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(4.dp)),
+                        modifier = Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(CardRadius.BADGE)),
                         color = AccentCoral,
                         trackColor = OnSurface.copy(0.08f),
                     )

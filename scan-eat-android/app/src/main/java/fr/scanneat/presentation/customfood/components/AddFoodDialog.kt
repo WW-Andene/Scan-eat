@@ -96,7 +96,7 @@ internal fun AddFoodDialog(
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (initial != null) R.string.customfood_edit_title else R.string.customfood_add_title), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 val kcalError = stringResource(R.string.customfood_field_kcal_invalid)
                 val macroError = stringResource(R.string.customfood_field_macro_invalid)
                 val barcodeError = stringResource(R.string.customfood_field_barcode_invalid)

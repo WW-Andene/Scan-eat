@@ -42,7 +42,7 @@ internal fun GroceryProgressRow(
         Spacer(Modifier.height(Spacing.XS))
         androidx.compose.material3.LinearProgressIndicator(
             progress = { (checked.toFloat() / total).coerceIn(0f, 1f) },
-            modifier = Modifier.fillMaxWidth().height(4.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(2.dp)),
+            modifier = Modifier.fillMaxWidth().height(4.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(CardRadius.MICRO)),
             color = semanticGreen(),
             trackColor = OnBackground.copy(0.08f),
         )

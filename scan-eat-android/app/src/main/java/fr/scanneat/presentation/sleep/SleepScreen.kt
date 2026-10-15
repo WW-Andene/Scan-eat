@@ -83,7 +83,7 @@ fun SleepScreen(
 
             // Last night / add-entry card
             item {
-                ScanEatCard(shape = RoundedCornerShape(CardRadius.PROMINENT), contentPadding = PaddingValues(Spacing.XL)) {
+                ScanEatCard(shape = RoundedCornerShape(CardRadius.PROMINENT), contentPadding = PaddingValues(Spacing.L)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                         val night = lastNight.value
                         if (night != null && night.date == java.time.LocalDate.now().minusDays(if (java.time.LocalTime.now().hour < 12) 0 else 1)) {

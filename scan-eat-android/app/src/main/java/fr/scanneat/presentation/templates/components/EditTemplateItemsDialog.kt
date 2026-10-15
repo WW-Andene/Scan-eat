@@ -48,7 +48,7 @@ internal fun EditTemplateItemsDialog(
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.templates_manage_items_title, template.name), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 if (template.items.isEmpty()) {
                     Text(stringResource(R.string.templates_no_items_yet), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 }

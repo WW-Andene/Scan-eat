@@ -226,14 +226,14 @@ fun MainShell(
             // widths it's capped so five tabs don't spread across a tablet.
             Row(
                 modifier = Modifier
-                    .then(if (isMediumOrWider) Modifier.widthIn(max = 512.dp + 64.dp) else Modifier.fillMaxWidth())
+                    .then(if (isMediumOrWider) Modifier.widthIn(max = FloatingPillMaxWidth) else Modifier.fillMaxWidth())
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
                     .shadow(elevation = 8.dp, shape = navShape)
                     .clip(navShape)
                     .hazeEffect(state = bottomNavHazeState, style = FrostedGlassStyle)
                     .glassSheen(edgeAlpha = 0.28f, shape = navShape)
-                    .height(64.dp),
+                    .height(FloatingPillHeight),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically,
             ) {

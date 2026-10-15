@@ -56,7 +56,7 @@ internal fun HydrationQuickAddRow(useImperial: Boolean, onAdd: (Int) -> Unit) {
         items(CONTAINER_PRESETS_ML, key = { it }) { ml ->
             SuggestionChip(
                 onClick = { onAdd(ml) },
-                icon = { Icon(TablerIcons.Plus, contentDescription = null, modifier = Modifier.size(IconSize.Micro)) },
+                icon = { Icon(TablerIcons.Plus, contentDescription = null, modifier = Modifier.size(IconSize.Tiny)) },
                 label = { Text(dispVolume(ml, useImperial), style = MaterialTheme.typography.labelMedium) },
                 shape = RoundedCornerShape(CardRadius.BADGE),
                 colors = SuggestionChipDefaults.suggestionChipColors(

@@ -41,7 +41,7 @@ internal fun AddCustomReminderDialog(onConfirm: (String, String) -> Unit, onDism
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.reminders_add_custom), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 // Was no example anywhere for what to type here (unlike the time field's
                 // sensible pre-filled "09:00" default) - a first-time user had no cue what
                 // kind of thing a "custom reminder" is meant to hold.

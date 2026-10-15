@@ -68,15 +68,15 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel(), sharedPer
     // site (Diary/Medication/etc., always just one card on screen) keeps calling it
     // internally via this default, unaffected.
     val (permGranted, permDenied, onRequest) = sharedPermissionState ?: permissionState()
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         // Improvement: show next upcoming reminder time
         val nextLabel = nextReminderLabel(s)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
             if (nextLabel != null) {
-                Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.12f)) {
+                Surface(shape = PillShape, color = AccentCoral.copy(0.12f)) {
                     Row(modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        Icon(Icons.Rounded.Schedule, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Micro))
+                        Icon(Icons.Rounded.Schedule, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Tiny))
                         Text(nextLabel, style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                     }
                 }
@@ -112,7 +112,7 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel(), sharedPer
         }
         var showAddDialog by remember { mutableStateOf(false) }
         TextButton(onClick = { showAddDialog = true }, modifier = Modifier.align(Alignment.End)) {
-            Icon(TablerIcons.Plus, null, modifier = Modifier.size(IconSize.Small))
+            Icon(TablerIcons.Plus, null, modifier = Modifier.size(IconSize.Compact))
             Spacer(Modifier.width(Spacing.XS))
             Text(stringResource(R.string.reminders_add_custom), style = MaterialTheme.typography.labelMedium)
         }
@@ -167,7 +167,7 @@ fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel(), share
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
     val (permGranted, permDenied, onRequest) = sharedPermissionState ?: permissionState()
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         PermissionBanner(permGranted, permDenied, onRequest)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -201,7 +201,7 @@ fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel(), sharedPe
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
     val (permGranted, permDenied, onRequest) = sharedPermissionState ?: permissionState()
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         PermissionBanner(permGranted, permDenied, onRequest)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -234,7 +234,7 @@ fun ActivityReminderCard(viewModel: RemindersViewModel = hiltViewModel(), shared
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
     val (permGranted, permDenied, onRequest) = sharedPermissionState ?: permissionState()
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         PermissionBanner(permGranted, permDenied, onRequest)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

@@ -122,7 +122,7 @@ fun OnboardingScreen(
             ScanEatCard(
                 modifier = Modifier.padding(Spacing.XL).widthIn(max = 512.dp).heightIn(max = maxHeight - 48.dp),  // width cap: card stretched across tablets
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
-                contentPadding = PaddingValues(Spacing.XL),
+                contentPadding = PaddingValues(Spacing.L),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -211,7 +211,7 @@ fun OnboardingScreen(
                                     Box(
                                         Modifier
                                             .size(if (active) 24.dp else 8.dp, 8.dp)
-                                            .clip(RoundedCornerShape(50))
+                                            .clip(PillShape)
                                             .background(if (active) AccentCoral else OnBackground.copy(0.2f)),
                                     )
                                 }

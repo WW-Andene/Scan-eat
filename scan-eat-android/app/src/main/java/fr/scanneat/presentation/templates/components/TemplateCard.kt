@@ -153,7 +153,7 @@ internal fun TemplateCard(
         // repeatedly.
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
+                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Compact))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }
@@ -164,7 +164,7 @@ internal fun TemplateCard(
             HorizontalDivider(color = OnSurface.copy(0.07f))
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 @Composable fun M(label: String, v: Int, color: androidx.compose.ui.graphics.Color) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
                         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f))
                         Text("${v}g", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
                     }

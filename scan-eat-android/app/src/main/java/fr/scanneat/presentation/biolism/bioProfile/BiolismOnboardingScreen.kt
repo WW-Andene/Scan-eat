@@ -110,7 +110,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
         ScanEatCard(
             modifier = Modifier.padding(Spacing.XL).widthIn(max = 512.dp).heightIn(max = maxHeight - 48.dp),  // width cap: card stretched across tablets
             shape = RoundedCornerShape(CardRadius.PROMINENT),
-            contentPadding = PaddingValues(Spacing.XL),
+            contentPadding = PaddingValues(Spacing.L),
             accent = Gold,
         ) {
             // Reported: on step 2 (Mesures corporelles), the user was stuck with no
@@ -135,13 +135,13 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                                     step == i -> Gold.copy(0.5f)
                                     else -> OnBackground.copy(0.15f)
                                 },
-                                RoundedCornerShape(2.dp),
+                                RoundedCornerShape(CardRadius.MICRO),
                             ),
                         )
                     }
                 }
 
-                Icon(s.icon, null, tint = Gold, modifier = Modifier.size(32.dp))
+                Icon(s.icon, null, tint = Gold, modifier = Modifier.size(IconSize.Large))
                 Text(s.title, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                 Row {
                     Text(s.sub, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))

@@ -111,7 +111,7 @@ private fun MicroRow(label: String, value: Double, nrv: Double, unit: String, co
         )
         LinearProgressIndicator(
             progress   = { pct },
-            modifier   = Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(4.dp)),
+            modifier   = Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(CardRadius.BADGE)),
             color      = if (isLow) semanticAmber() else color,
             trackColor = OnSurface.copy(0.08f),
         )

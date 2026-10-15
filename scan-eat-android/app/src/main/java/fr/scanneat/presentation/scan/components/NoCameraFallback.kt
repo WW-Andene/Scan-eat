@@ -32,6 +32,7 @@ import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.util.hasValidGs1CheckDigit
+import fr.scanneat.presentation.ui.theme.IconSize
 
 /**
  * Full-screen fallback shown in place of the camera preview: either the device has
@@ -53,7 +54,7 @@ internal fun NoCameraFallback(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(TablerIcons.Barcode, null, tint = OnBackground, modifier = Modifier.size(64.dp))
+        Icon(TablerIcons.Barcode, null, tint = OnBackground, modifier = Modifier.size(IconSize.Hero))
         Spacer(Modifier.height(Spacing.L))
         Text(stringResource(titleRes), style = MaterialTheme.typography.titleMedium, color = OnBackground, textAlign = TextAlign.Center)
         Spacer(Modifier.height(Spacing.S))

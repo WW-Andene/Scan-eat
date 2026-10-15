@@ -80,7 +80,7 @@ internal fun FoodSearchRow(
             }
             if (onLog != null) {
                 IconButton(onClick = { onLog(item) }, modifier = Modifier.size(IconSize.Inline + Spacing.M)) {
-                    Icon(TablerIcons.Plus, stringResource(R.string.logsheet_title), tint = AccentCoral, modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.Plus, stringResource(R.string.logsheet_title), tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
                 }
             }
             // Rows with no grade (i.e. not a scanned product) expand in place instead

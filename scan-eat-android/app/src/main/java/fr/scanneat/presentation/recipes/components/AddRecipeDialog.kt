@@ -103,7 +103,7 @@ internal fun AddRecipeDialog(
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (isEdit) R.string.recipes_edit_dialog_title else R.string.recipes_add_dialog_title), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                     colors = scanEatTextFieldColors())
                 OutlinedTextField(value = servingsText, onValueChange = { servingsText = it }, label = { Text(stringResource(R.string.recipes_field_servings)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),

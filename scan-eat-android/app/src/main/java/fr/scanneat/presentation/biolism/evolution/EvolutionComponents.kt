@@ -31,6 +31,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import fr.scanneat.presentation.ui.theme.CardRadius
 
 // ── Shared chart primitives for the Evolution tab ──────────────────────────
 // Generalizes the Canvas polyline WeightScreen.kt already draws for weight
@@ -166,7 +167,7 @@ internal fun BarSparkline(values: List<Double>, color: Color, barHeight: Dp = 32
                 Modifier
                     .weight(1f)
                     .height(barDp)
-                    .background(if (isLast) color else color.copy(alpha = alpha), RoundedCornerShape(2.dp)),
+                    .background(if (isLast) color else color.copy(alpha = alpha), RoundedCornerShape(CardRadius.MICRO)),
             )
         }
     }

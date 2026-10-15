@@ -62,7 +62,7 @@ internal fun MedicationEntryRow(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.SM),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
         ) {
             Column(Modifier.weight(1f)) {
                 Text(m.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)

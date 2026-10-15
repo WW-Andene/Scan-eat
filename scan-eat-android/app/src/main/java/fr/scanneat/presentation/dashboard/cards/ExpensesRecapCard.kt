@@ -63,7 +63,7 @@ fun ExpensesRecapCard(onClick: () -> Unit, viewModel: ExpensesViewModel = hiltVi
             val pct = (weekTotal.value / budget).toFloat().coerceIn(0f, 1f)
             LinearProgressIndicator(
                 progress = { pct },
-                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(CardRadius.BADGE)),
                 color = if (weekTotal.value > budget) AccentCoral else semanticGreen(),
                 trackColor = OnSurface.copy(0.1f),
             )

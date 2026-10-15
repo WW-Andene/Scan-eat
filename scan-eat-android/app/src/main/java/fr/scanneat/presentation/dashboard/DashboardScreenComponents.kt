@@ -17,6 +17,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ScanEatCard
+import fr.scanneat.presentation.ui.theme.IconSize
 
 // Shared helper used repeatedly by the orchestrator's feature-tile rows.
 // User-reported: this used to be its own hand-rolled Surface+glassSheen+
@@ -35,7 +36,7 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
         onClick = onClick,
     ) {
-        Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(24.dp))
+        Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.8f))
     }
 }
