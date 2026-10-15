@@ -457,13 +457,18 @@ class ScanRepository @Inject constructor(
             }
             // No recognisable food: the photo may still show a label, try reading it.
             val parsed = runCatching { labelReader.parseLabel(images, lang) }.getOrNull()
-                ?: throw ProductNotFoundException(
-                    if (lang == "en") "This food wasn't recognised — search it by name instead"
-                    else "Aliment non reconnu — recherchez-le plutôt par son nom",
-                )
+                ?: run {
+                    lookUpByName(images, lang)
+                    throw ProductNotFoundException(
+                        if (lang == "en") "This food wasn't recognised — search it by name instead"
+                        else "Aliment non reconnu — recherchez-le plutôt par son nom",
+                    )
+                }
             return@ioCatching ScanResult(parsed.product, scoreProduct(parsed.product, lang), parsed.warnings, ScanSource.ON_DEVICE_OCR, parsed.barcode, needsOcrReview = true)
         }
-        val parsed = labelReader.parseLabel(images, lang)
+        // No barcode and no readable label table: many products (bakery, market
+        // stalls, loose goods) only carry a name - look it up before giving up.
+        val parsed = try { labelReader.parseLabel(images, lang) } catch (e: ProductNotFoundException) { lookUpByName(images, lang); throw e }
         ScanResult(
             product  = parsed.product,
             audit    = scoreProduct(parsed.product, lang),
@@ -472,6 +477,37 @@ class ScanRepository @Inject constructor(
             barcode  = parsed.barcode,
             needsOcrReview = true,
         )
+    }
+
+    /**
+     * Reads the biggest text of the photo as a product name and throws
+     * [ProductNameCandidates] when Open Food Facts (by name) or the built-in
+     * dish table has something for it; returns normally when nothing matched.
+     */
+    private suspend fun lookUpByName(images: List<ImagePayload>, lang: String) {
+        val names = runCatching { fr.scanneat.domain.engine.nutrition.productNameCandidates(labelReader.readLines(images)) }.getOrDefault(emptyList())
+        if (names.isEmpty()) return
+        val en = lang == "en"
+        val options = mutableListOf<ScanResult>()
+        for (q in names.take(2)) {
+            options += runCatching { offLookup.searchOffProducts(q, lang, limit = 5) }.getOrDefault(emptyList())
+            if (options.isNotEmpty()) break
+        }
+        val dish = names.firstNotNullOfOrNull { n -> fr.scanneat.domain.engine.nutrition.identifyDish(n)?.let { n to it } }
+        dish?.let { (n, m) ->
+            val (food, note) = when (m) {
+                is fr.scanneat.domain.engine.nutrition.DishMatch.Exact -> m.food to
+                    (if (en) "Generic dish from the built-in food table (CIQUAL), not this exact product" else "Plat générique de la table d'aliments (CIQUAL), pas ce produit précis")
+                is fr.scanneat.domain.engine.nutrition.DishMatch.Composed -> m.food to
+                    ((if (en) "Estimate: " else "Estimation : ") + m.describe() +
+                        (if (en) " — typical proportions, adjust the portion if needed" else " — proportions types, à ajuster si besoin"))
+                is fr.scanneat.domain.engine.nutrition.DishMatch.Partial -> m.food to
+                    (if (en) "Only \"${m.food.name}\" was recognised, not: ${m.missing.joinToString(", ")}" else "Seul « ${m.food.name} » a été reconnu, pas : ${m.missing.joinToString(", ")}")
+            }
+            val product = food.toProduct(100.0).copy(name = if (m is fr.scanneat.domain.engine.nutrition.DishMatch.Exact) food.name else n)
+            options += ScanResult(product = product, audit = scoreProduct(product, lang), warnings = listOf(note), source = ScanSource.MANUAL, barcode = null)
+        }
+        if (options.isNotEmpty()) throw ProductNameCandidates(names.first(), options.distinctBy { it.barcode ?: it.product.name }.take(6))
     }
 
     // ---- Open Food Facts ----

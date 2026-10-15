@@ -2422,4 +2422,7 @@
     <string name="result_ns_gap_worse">Why a stricter grade than the Nutri-Score?</string>
     <string name="result_ns_gap_better">Why a better grade than the Nutri-Score?</string>
     <string name="result_ns_gap_footer">The Nutri-Score (Santé publique France) rates the nutrient profile per 100 g. The Scan\'eat grade adds processing, additives and ingredient quality.</string>
+    <string name="scan_name_choose_title">Product read: "%1$s"</string>
+    <string name="scan_name_choose_off">Open Food Facts product found by name</string>
+    <string name="scan_name_choose_none">None of these</string>
 </resources>
