@@ -56,7 +56,9 @@ fun MainShell(
     val backStack       = navController.currentBackStackEntryAsState()
     val currentRoute    = backStack.value?.destination?.route
 
-    val showNav = HIDDEN_NAV_ROUTES.none { currentRoute == it }
+    // Only tab roots show the bottom nav: every pushed screen has its own back arrow
+    // (the old deny-list missed Pantry, Symptoms, Ma sécurité, Settings...).
+    val showNav = currentRoute in TAB_ROOT_ROUTES
     val bottomNavHazeState = remember { HazeState() }
     // User-instructed: popup menus (ScanEatDropdownMenu) get real backdrop
     // blur - the same FrostedGlassStyle/hazeEffect treatment the header/

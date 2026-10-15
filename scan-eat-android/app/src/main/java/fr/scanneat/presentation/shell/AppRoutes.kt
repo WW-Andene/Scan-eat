@@ -33,6 +33,8 @@ object AppRoutes {
     const val RECEIPT_SCAN = "receipt_scan"
     const val PANTRY = "pantry"
     const val SYMPTOMS = "symptoms"
+    const val COOKING = "cooking"
+    const val HEALTH = "health"
     const val WITHDRAWAL = "withdrawal"
     const val NONFOOD_HISTORY = "nonfood_history"
     const val RECALLS = "recalls"

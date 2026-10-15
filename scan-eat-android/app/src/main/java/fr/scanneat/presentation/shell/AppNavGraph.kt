@@ -123,7 +123,7 @@ fun AppNavGraph(
             // controls already had (see ScanScreen.kt) silently went nowhere.
             ScanScreen(
                 onResultReady = { id -> navController.navigate(AppRoutes.result(id, fresh = true)) { launchSingleTop = true } },
-                onOpenSettings = { navController.switchToTab(TopTab.Settings.route) },
+                onOpenSettings = { navController.openSettings() },
             )
         }
 
@@ -174,36 +174,35 @@ fun AppNavGraph(
                 // OtherTrackersCard's tappable Water/Fasting/Treatment glance
                 // stats, same deep-link mechanism, just a caller-supplied
                 // DiaryTab name instead of a hardcoded "EXPENSES".
-                onOpenDiaryTab       = { tab ->
-                    // currentBackStackEntry right after switchToTab() IS the Diary entry
-                    // just created/restored - no separate getBackStackEntry(route) lookup
-                    // (which throws if Diary was never visited this session - the crash
-                    // this used to hit tapping this widget from a fresh Dashboard launch) needed.
-                    navController.switchToTab(TopTab.Diary.route)
-                    // User-reported: tapping a Dashboard glance card (e.g. "Expenses"),
-                    // leaving Diary, and tapping the SAME card again didn't re-select that
-                    // tab - it took two taps. DiaryScreen's activeTab is rememberSaveable
-                    // (correctly restored across tab-switch navigation, see its own doc
-                    // comment), so a repeat deep-link with the identical tab NAME as the
-                    // already-restored value produced the same String key here -
-                    // LaunchedEffect(pendingTab) only re-runs when its key actually
-                    // CHANGES, so the second identical dispatch silently no-opped instead
-                    // of re-forcing the tab switch. Suffixing a monotonic timestamp makes
-                    // every dispatch a genuinely new key, so the effect always re-fires -
-                    // DiaryScreen's own LaunchedEffect strips this suffix back off before
-                    // parsing the DiaryTab.
-                    navController.currentBackStackEntry?.savedStateHandle?.set("diary_selected_tab", "$tab|${System.nanoTime()}")
-                },
+                onOpenDiaryTab       = { tab -> navController.openDiaryTab(tab) },
                 onOpenScan           = { navController.switchToTab(TopTab.Scan.route) },
+                onOpenSettings       = { navController.openSettings() },
             )
         }
 
-        composable(TopTab.Biolism.route) {
+        composable(AppRoutes.BIOLISM) {
             PremiumGate(
                 title = { Text(stringResource(R.string.tab_biolism), color = OnBackground) },
                 lockedMessage = stringResource(R.string.settings_premium_required_biolism),
-                onOpenSettings = { navController.switchToTab(TopTab.Settings.route) },
-            ) { BiolismScreen() }
+                onOpenSettings = { navController.openSettings() },
+                onBack = { navController.popBackStack() },
+            ) { BiolismScreen(onBack = { navController.popBackStack() }) }
+        }
+
+        // ── Hubs (Restructuration): one tab per domain, one tap to each tool ──
+        composable(TopTab.Cooking.route) {
+            fr.scanneat.presentation.hub.CookingHub(
+                navigate = { navController.navigate(it) },
+                openDiaryTab = { navController.openDiaryTab(it) },
+                onOpenSettings = { navController.openSettings() },
+            )
+        }
+        composable(TopTab.Health.route) {
+            fr.scanneat.presentation.hub.HealthHub(
+                navigate = { navController.navigate(it) },
+                openDiaryTab = { navController.openDiaryTab(it) },
+                onOpenSettings = { navController.openSettings() },
+            )
         }
 
         composable(AppRoutes.FOOD_SEARCH) {
@@ -272,10 +271,12 @@ fun AppNavGraph(
             fr.scanneat.presentation.nonfood.NonFoodHistoryScreen(onBack = { navController.popBackStack() })
         }
 
-        composable(TopTab.Settings.route) {
+        composable(AppRoutes.SETTINGS) {
             SettingsScreen(
-                onBack = {},
-                isTabRoot = true,
+                // Settings can be the start destination (privacy-rationale intent):
+                // nothing to pop then, so go home instead of doing nothing.
+                onBack = { if (!navController.popBackStack()) navController.switchToTab(TopTab.Dashboard.route) },
+                isTabRoot = false,
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onOpenReminders = { navController.navigate(AppRoutes.REMINDERS) },
                 onOpenSources = { navController.navigate(AppRoutes.SOURCES) },
@@ -437,6 +438,20 @@ internal fun NavHostController.switchToTab(route: String, collapseFirst: Boolean
         launchSingleTop = true
         restoreState = true
     }
+}
+
+/** Settings is a pushed screen now (gear icon on the hubs and Home), no longer a tab. */
+internal fun NavHostController.openSettings() = navigate(AppRoutes.SETTINGS) { launchSingleTop = true }
+
+/**
+ * Opens one Journal sub-tab (Water, Treatment, Expenses...) from anywhere.
+ * currentBackStackEntry right after switchToTab() IS the Diary entry. The
+ * timestamp suffix makes a repeated deep-link to the same tab a new key, so
+ * DiaryScreen's LaunchedEffect re-fires (it strips the suffix before parsing).
+ */
+internal fun NavHostController.openDiaryTab(tab: String) {
+    switchToTab(TopTab.Diary.route)
+    currentBackStackEntry?.savedStateHandle?.set("diary_selected_tab", "$tab|${System.nanoTime()}")
 }
 
 /** See PlanningSwitcherMenu's doc comment - a plain push, same as reaching any of these from Dashboard. */

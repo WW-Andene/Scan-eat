@@ -7,7 +7,7 @@ import compose.icons.tablericons.Barcode
 import compose.icons.tablericons.Book
 import compose.icons.tablericons.ChartBar
 import compose.icons.tablericons.Heart
-import compose.icons.tablericons.Settings
+import androidx.compose.material.icons.rounded.Restaurant
 import fr.scanneat.R
 
 // F32 (docs/design-audit-step11-icons-illustration-dataviz-copy.md): pilot
@@ -26,11 +26,13 @@ sealed class TopTab(val route: String, @StringRes val labelRes: Int, val icon: I
     data object Scan      : TopTab(AppRoutes.SCAN,      R.string.tab_scan,      TablerIcons.Barcode)
     data object Diary     : TopTab(AppRoutes.DIARY,     R.string.tab_diary,     TablerIcons.Book)
     data object Dashboard : TopTab(AppRoutes.DASHBOARD, R.string.tab_dashboard, TablerIcons.ChartBar)
-    data object Biolism   : TopTab(AppRoutes.BIOLISM,   R.string.tab_biolism,   TablerIcons.Heart)
-    data object Settings  : TopTab(AppRoutes.SETTINGS,  R.string.tab_settings,  TablerIcons.Settings)
+    // Restructuration: Cuisine and Santé hubs replace the Métabolisme and
+    // Réglages tabs - Métabolisme lives in Santé, Réglages behind the gear icon.
+    data object Cooking   : TopTab(AppRoutes.COOKING,   R.string.tab_cooking,   androidx.compose.material.icons.Icons.Rounded.Restaurant)
+    data object Health    : TopTab(AppRoutes.HEALTH,    R.string.tab_health,    TablerIcons.Heart)
 }
 
-val TOP_TABS = listOf(TopTab.Dashboard, TopTab.Diary, TopTab.Scan, TopTab.Biolism, TopTab.Settings)
+val TOP_TABS = listOf(TopTab.Dashboard, TopTab.Diary, TopTab.Scan, TopTab.Cooking, TopTab.Health)
 
 /** Parses UserPreferences.navTabOrder's stored CSV of [TopTab.route]s back into
  *  an ordered list of [TOP_TABS] — falls back to [TOP_TABS]'s own default order
@@ -48,29 +50,3 @@ fun serializeTopTabOrder(tabs: List<TopTab>): String = tabs.joinToString(",") { 
 
 // Tab root routes — bottom nav visible, back arrow hidden
 val TAB_ROOT_ROUTES = TOP_TABS.map { it.route }.toSet()
-
-// Routes where the entire bottom nav is hidden (full-screen modals). Every
-// full-screen nested route pushed on top of a tab (see AppNavGraph's
-// composable(AppRoutes.X) calls) belongs here - missing one means the tab bar
-// stays visible underneath that screen's own TopAppBar back arrow, showing
-// two navigation affordances for the same "go back" action at once.
-val HIDDEN_NAV_ROUTES = setOf(
-    AppRoutes.ONBOARDING, AppRoutes.RESULT, AppRoutes.SCAN_PROFILE,
-    AppRoutes.RECIPES, AppRoutes.TEMPLATES, AppRoutes.MEAL_PLAN,
-    AppRoutes.GROCERY, AppRoutes.CUSTOM_FOODS, AppRoutes.SCAN_HISTORY,
-    // Was missing — Favorites is its own separately-pushed route (AppNavGraph),
-    // not a tab root, so the bottom nav stayed visible underneath its own
-    // TopAppBar back arrow, showing two "go back" affordances at once.
-    AppRoutes.FAVORITES,
-    // Same gap, reintroduced for Calendar — it's also a full-screen nested route
-    // with its own TopAppBar back arrow (reachable from Dashboard/Diary).
-    AppRoutes.CALENDAR,
-    // Same gap again for Reminders (reachable from Settings) — RemindersScreen
-    // renders its own FloatingScreenScaffold with a back arrow exactly like
-    // every route above it, so leaving it out left the bottom nav visible
-    // underneath that back arrow too.
-    AppRoutes.REMINDERS,
-    // Same gap again for Food Search (reachable from Dashboard) — same
-    // own-Scaffold-with-back-arrow pattern as every route above it.
-    AppRoutes.FOOD_SEARCH,
-)

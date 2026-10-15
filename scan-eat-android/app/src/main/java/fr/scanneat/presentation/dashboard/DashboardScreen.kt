@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.dashboard
 
+import compose.icons.tablericons.Settings
 import compose.icons.tablericons.History
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ShieldCheck
@@ -74,6 +75,7 @@ fun DashboardScreen(
     onOpenPantry: () -> Unit = {},
     onOpenSymptoms: () -> Unit = {},
     onOpenWithdrawal: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     // Restructuration audit (§XI): generalized from the previous single-purpose
     // onOpenExpenses (which hardcoded "EXPENSES") - OtherTrackersCard's
     // Water/Fasting/Treatment glance stats now deep-link the same way
@@ -134,6 +136,9 @@ fun DashboardScreen(
         actions = {
             IconButton(onClick = onOpenMySafety) {
                 Icon(compose.icons.TablerIcons.ShieldCheck, stringResource(R.string.my_safety_title), tint = OnBackground)
+            }
+            IconButton(onClick = onOpenSettings) {
+                Icon(compose.icons.TablerIcons.Settings, stringResource(R.string.tab_settings), tint = OnBackground)
             }
         },
         showBottomNavClearance = isTabRoot,

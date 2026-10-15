@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.premium
 
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WorkspacePremium
@@ -49,6 +50,7 @@ fun PremiumGate(
     title: @Composable () -> Unit,
     lockedMessage: String,
     onOpenSettings: () -> Unit,
+    onBack: (() -> Unit)? = null,
     viewModel: PremiumGateViewModel = hiltViewModel(),
     content: @Composable () -> Unit,
 ) {
@@ -58,8 +60,9 @@ fun PremiumGate(
     } else {
         FloatingScreenScaffold(
             title = title,
-            hasNavigationIcon = false,
-            showBottomNavClearance = true,
+            navigationIcon = { onBack?.let { androidx.compose.material3.IconButton(onClick = it) { androidx.compose.material3.Icon(compose.icons.TablerIcons.ArrowLeft, androidx.compose.ui.res.stringResource(fr.scanneat.R.string.common_back), tint = fr.scanneat.presentation.ui.theme.OnBackground) } } },
+            hasNavigationIcon = onBack != null,
+            showBottomNavClearance = onBack == null,
         ) { padding ->
             // User-reported: the locked state rendered EmptyListState bare, with no
             // background at all - every unlocked screen behind this gate (Biolism)
