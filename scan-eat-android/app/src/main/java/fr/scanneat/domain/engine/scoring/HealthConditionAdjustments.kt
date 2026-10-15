@@ -77,6 +77,10 @@ internal fun checkHealthConditions(
     }
     checkCancerDepressionEpilepsyConditions(product, conditions, lang, alcoholHit, isSugarSweetenedBeverage, adjustments)
     checkMigraineCondition(product, conditions, lang, alcoholHit, adjustments)
+    checkAddictionConditions(product, conditions, lang, alcoholHit, adjustments)?.let { reason ->
+        veto = true
+        dietReason = dietReason ?: reason
+    }
     checkGastrointestinalConditions(product, conditions, lang, alcoholHit, adjustments)
     checkNutrientSourceConditions(product, conditions, lang, adjustments)
 

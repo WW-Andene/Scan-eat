@@ -2345,4 +2345,9 @@
     <string name="withdrawal_notif_title">New taper step</string>
     <string name="withdrawal_notif_body">New step today: %1$s, per your doctor\'s plan.</string>
     <string name="withdrawal_notif_body_hidden">A new step of your plan starts today.</string>
+    <string name="condition_smoker">Smoker</string>
+    <string name="condition_tobacco_quit">Quitting tobacco</string>
+    <string name="condition_alcohol_quit">Quitting alcohol</string>
+    <string name="profile_condition_group_addiction">Tobacco and alcohol</string>
+    <string name="withdrawal_med_cautions_title">To review with your medicines</string>
 </resources>

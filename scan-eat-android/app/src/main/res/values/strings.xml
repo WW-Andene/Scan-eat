@@ -2349,4 +2349,9 @@
     <string name="withdrawal_notif_title">Changement de palier</string>
     <string name="withdrawal_notif_body">Nouveau palier aujourd\'hui : %1$s, selon le plan de votre médecin.</string>
     <string name="withdrawal_notif_body_hidden">Un nouveau palier de votre plan commence aujourd\'hui.</string>
+    <string name="condition_smoker">Fumeur</string>
+    <string name="condition_tobacco_quit">Arrêt du tabac</string>
+    <string name="condition_alcohol_quit">Arrêt de l\'alcool</string>
+    <string name="profile_condition_group_addiction">Tabac et alcool</string>
+    <string name="withdrawal_med_cautions_title">À surveiller avec vos traitements</string>
 </resources>

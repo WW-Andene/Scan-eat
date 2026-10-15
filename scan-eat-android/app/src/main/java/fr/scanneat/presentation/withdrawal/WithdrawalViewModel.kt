@@ -22,6 +22,7 @@ import javax.inject.Inject
 class WithdrawalViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val repo: WithdrawalRepository,
+    medicationRepo: fr.scanneat.data.repository.health.MedicationRepository,
 ) : ActionFailureViewModel() {
     private val profileId = prefs.activeProfileId
 
@@ -37,6 +38,13 @@ class WithdrawalViewModel @Inject constructor(
             plan?.let { tobaccoStats(it, log, n, last) }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** Medicines to review with the doctor for the quitting-tobacco/alcohol conditions. */
+    val medicationCautions: StateFlow<List<String>> = profileId.flatMapLatest { id ->
+        combine(prefs.profile, medicationRepo.observeAll(id), prefs.language) { p, meds, lang ->
+            fr.scanneat.domain.engine.medication.conditionMedicationCautions(p.healthConditions, meds.filter { it.active }.map { it.name }, lang)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val taperPlan: StateFlow<TaperPlan?> = profileId.flatMapLatest { repo.taperPlan(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

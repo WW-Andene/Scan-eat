@@ -259,6 +259,20 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
         noteEn = "Prioritises olive, fish, vegetables, legumes, whole grains. No hard bans.",
     ),
 
+    // WHO 2015 guideline "Sugars intake for adults and children": free sugars =
+    // mono- and disaccharides added by the manufacturer, cook or consumer, plus
+    // sugars naturally present in honey, syrups, fruit juices and fruit juice
+    // concentrates. Sugars inside whole fruit, vegetables and milk are not free
+    // sugars and stay allowed; sweeteners aren't sugars and aren't flagged.
+    DietKey.NO_FREE_SUGARS to DietDef(
+        forbidden = listOf(
+            b("(?<!sans )sucres?(?! (?:ajout|naturellement|de lait))|sucre de canne|cassonade|vergeoise|rapadura|sucre inverti|saccharose|dextrose|glucose|fructose|sirop(?: de [a-zà-ÿ'-]+)*|m[eé]lasse|miel|maltose|jus de fruits?|jus concentr[eé]|concentr[eé] de jus|pur jus|jus (?:de |d')(?!citron|lime)[a-zà-ÿ]+"),
+            b("(?<!no )(?<!no added )sugars?|cane sugar|brown sugar|invert sugar|sucrose|dextrose|glucose|fructose|(?:[a-z]+ )?syrup|molasses|honey|maltose|fruit juice|juice concentrate"),
+        ),
+        noteFr = "OMS 2015 : exclut les sucres libres (sucres ajoutés, miel, sirops, jus de fruits). Les sucres des fruits entiers, légumes et du lait restent permis ; les édulcorants ne sont pas comptés.",
+        noteEn = "WHO 2015: excludes free sugars (added sugars, honey, syrups, fruit juices). Sugars in whole fruit, vegetables and milk stay allowed; sweeteners aren't counted.",
+    ),
+
     DietKey.CARNIVORE to DietDef(
         forbidden = listOf(
             b("wheat|flour|sugar|fruits?|vegetables?|cereals?|rice|quinoa|corn|beans?|lentils?|peas?|soy|soya|peanuts?|vegetable oil|olive oil"),

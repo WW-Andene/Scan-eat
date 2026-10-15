@@ -37,6 +37,7 @@ fun WithdrawalScreen(viewModel: WithdrawalViewModel = hiltViewModel(), onBack: (
     val stats = viewModel.tobaccoStats.collectAsStateWithLifecycle()
     val taper = viewModel.taperPlan.collectAsStateWithLifecycle()
     val now = viewModel.now.collectAsStateWithLifecycle()
+    val cautions = viewModel.medicationCautions.collectAsStateWithLifecycle()
     var editTaper by remember { mutableStateOf(false) }
 
     FloatingScreenScaffold(
@@ -54,6 +55,12 @@ fun WithdrawalScreen(viewModel: WithdrawalViewModel = hiltViewModel(), onBack: (
                 val s = stats.value
                 if (p == null || s == null) TobaccoSetupCard(viewModel::startTobacco)
                 else TobaccoCard(p, s, now.value, onAdd = { viewModel.cigarette(1) }, onRemove = { viewModel.cigarette(-1) }, onStop = viewModel::stopTobacco)
+            }
+            if (cautions.value.isNotEmpty()) item {
+                Card {
+                    TitleText(stringResource(R.string.withdrawal_med_cautions_title))
+                    cautions.value.forEach { Hint(it, AccentCoral) }
+                }
             }
             item { TaperCard(taper.value, onEdit = { editTaper = true }, onDelete = viewModel::deleteTaper) }
             item { Spacer(Modifier.height(Spacing.XXL)) }

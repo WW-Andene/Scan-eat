@@ -124,6 +124,14 @@ fun MedicationScreen(
                     }
                 }) { warning -> MedicationInteractionWarningBanner(warning) }
             }
+            // Quitting tobacco / alcohol (profile conditions): medicines to review with the doctor.
+            val conditionCautions = fr.scanneat.domain.engine.medication.conditionMedicationCautions(
+                healthConditions.value, medications.value.filter { it.active }.map { it.name }, language.value)
+            items(conditionCautions) { c ->
+                ScanEatCard(shape = androidx.compose.foundation.shape.RoundedCornerShape(CardRadius.CONTROL)) {
+                    Text(c, style = MaterialTheme.typography.bodySmall, color = AccentCoral)
+                }
+            }
 
             // Today's adherence summary: compact chip row showing taken/not-taken per medication.
             // Previously you had to scroll through the full list to see overall adherence — no aggregate view existed.
