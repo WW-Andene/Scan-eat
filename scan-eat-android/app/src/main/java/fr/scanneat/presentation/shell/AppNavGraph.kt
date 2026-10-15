@@ -168,6 +168,7 @@ fun AppNavGraph(
                 onOpenFoodSearch     = { navController.navigate(AppRoutes.FOOD_SEARCH) },
                 onOpenPantry         = { navController.navigate(AppRoutes.PANTRY) },
                 onOpenSymptoms       = { navController.navigate(AppRoutes.SYMPTOMS) },
+                onOpenWithdrawal     = { navController.navigate(AppRoutes.WITHDRAWAL) },
                 // Restructuration audit (§XI): generalized from the previous
                 // Expenses-only onOpenExpenses - now also drives
                 // OtherTrackersCard's tappable Water/Fasting/Treatment glance
@@ -220,6 +221,10 @@ fun AppNavGraph(
 
         // User-requested: a symptom journal correlated against the diary -
         // see SymptomScreen/SymptomViewModel's own doc comments.
+        // Tobacco cessation and prescribed-taper follow-up - see WithdrawalScreen.
+        composable(AppRoutes.WITHDRAWAL) {
+            fr.scanneat.presentation.withdrawal.WithdrawalScreen(onBack = { navController.popBackStack() })
+        }
         composable(AppRoutes.SYMPTOMS) {
             fr.scanneat.presentation.symptom.SymptomScreen(onBack = { navController.popBackStack() })
         }

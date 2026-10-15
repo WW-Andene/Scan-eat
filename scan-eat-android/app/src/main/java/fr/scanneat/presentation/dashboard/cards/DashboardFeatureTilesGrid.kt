@@ -10,6 +10,8 @@ import androidx.compose.material.icons.rounded.Eco
 import androidx.compose.material.icons.rounded.EventNote
 import androidx.compose.material.icons.rounded.Fastfood
 import androidx.compose.material.icons.rounded.Kitchen
+import androidx.compose.material.icons.rounded.SmokeFree
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +50,7 @@ fun DashboardFeatureTilesGrid(
     onOpenSeasonalProduce: () -> Unit,
     onOpenPantry: () -> Unit,
     onOpenSymptoms: () -> Unit,
+    onOpenWithdrawal: () -> Unit = {},
 ) {
     // Column, not bare sibling Rows - a LazyColumn `item {}` slot has no implicit
     // vertical-stack layout of its own (unlike the LazyColumn itself), so multiple
@@ -103,6 +106,11 @@ fun DashboardFeatureTilesGrid(
         // see SymptomScreen's own doc comment. Was the last empty weighted
         // spacer slot in this grid.
         FeatureTile(TablerIcons.Heart, stringResource(R.string.dashboard_tile_symptoms), Modifier.weight(1f), onClick = onOpenSymptoms)
+    }
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        FeatureTile(Icons.Rounded.SmokeFree, stringResource(R.string.dashboard_tile_withdrawal), Modifier.weight(1f), onClick = onOpenWithdrawal)
+        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.weight(1f))
     }
     }
 }

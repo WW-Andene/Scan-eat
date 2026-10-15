@@ -41,6 +41,7 @@ class ReminderWorker @AssistedInject constructor(
     private val medicationRepo: MedicationRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val hydrationRepo: HydrationRepository,
+    private val withdrawalRepo: fr.scanneat.data.repository.withdrawal.WithdrawalRepository,
     private val pantryRepo: fr.scanneat.data.repository.pantry.PantryRepository,
     private val moodRepo: MoodRepository,
     private val sleepRepo: SleepRepository,
@@ -276,6 +277,20 @@ class ReminderWorker @AssistedInject constructor(
             }
         }
 
+        // Prescribed taper: one reminder on the morning a new step starts (never a dose
+        // of its own - the step text is the doctor's, as entered by the user).
+        if (now.hour >= 8 && !remindersRepo.wasFiredToday(K_LAST_TAPER_DATE)) {
+            withdrawalRepo.taperPlan(profileId).first()
+                ?.let { fr.scanneat.domain.engine.withdrawal.taperStepStartsOn(it, LocalDate.now()) }
+                ?.let { step ->
+                    val body = if (prefs.hideMedicationNames.first()) localizedString(lang, R.string.withdrawal_notif_body_hidden)
+                        else String.format(localizedString(lang, R.string.withdrawal_notif_body), step.dose)
+                    if (NotificationHelper.show(applicationContext, 120, localizedString(lang, R.string.withdrawal_notif_title), body, NotifChannel.MEDICATION)) {
+                        remindersRepo.markFiredToday(K_LAST_TAPER_DATE)
+                    }
+                }
+        }
+
         return Result.success()
     }
 
@@ -308,6 +323,7 @@ class ReminderWorker @AssistedInject constructor(
 
     companion object {
         val K_LAST_DIGEST_DATE = androidx.datastore.preferences.core.stringPreferencesKey("rem_last_digest_date")
+        val K_LAST_TAPER_DATE = androidx.datastore.preferences.core.stringPreferencesKey("rem_last_taper_date")
         private const val MEDICATION_RENOTIFY_MINUTES = 60L
         // Reserved id range for medication notifications - stays clear of the
         // fixed 101-111 ids above and the custom-reminder range (910+, see

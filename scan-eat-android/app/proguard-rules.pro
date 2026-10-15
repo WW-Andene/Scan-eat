@@ -17,6 +17,7 @@
 -keep class fr.scanneat.data.repository.scan.LlmIngredientDto { *; }
 -keep class fr.scanneat.data.repository.scan.LlmNutritionDto { *; }
 -keep class fr.scanneat.data.repository.scan.ScoreSnapshot { *; }
+-keep class fr.scanneat.data.repository.withdrawal.WithdrawalRepository$* { *; }
 -keep class fr.scanneat.data.repository.scan.NameOnlyDto { *; }
 -keep class fr.scanneat.data.repository.nutrition.CustomFoodRepository$CustomFoodJson { *; }
 # BackupBundle (data.backup.**) is Moshi-reflection-serialized for the whole
