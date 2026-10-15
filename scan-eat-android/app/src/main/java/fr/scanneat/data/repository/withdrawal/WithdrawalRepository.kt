@@ -116,6 +116,17 @@ class WithdrawalRepository @Inject constructor(
         else p[k("caf_taper", profileId)] = cafAdapter.toJson(CaffeineTaperJson(t.startDate.toString(), t.startMg, t.targetMg, t.weeks))
     }
 
+    // ---- Alcohol-free challenge ----
+    fun alcoholChallenge(profileId: String): Flow<fr.scanneat.domain.engine.withdrawal.AlcoholChallenge?> = data.map { p ->
+        p[k("alc_challenge", profileId)]?.split('|')?.takeIf { it.size == 2 }?.let { (d, n) ->
+            runCatching { fr.scanneat.domain.engine.withdrawal.AlcoholChallenge(LocalDate.parse(d), n.toInt()) }.getOrNull()
+        }
+    }.distinctUntilChanged()
+
+    suspend fun setAlcoholChallenge(profileId: String, c: fr.scanneat.domain.engine.withdrawal.AlcoholChallenge?) = store.edit { p ->
+        if (c == null) p.remove(k("alc_challenge", profileId)) else p[k("alc_challenge", profileId)] = "${c.startDate}|${c.days}"
+    }
+
     // ---- Backup ----
     suspend fun exportForBackup(profileId: String): fr.scanneat.data.backup.WithdrawalBackup? {
         val plan = tobaccoPlan(profileId).first()
@@ -123,13 +134,16 @@ class WithdrawalRepository @Inject constructor(
         val last = data.first()[k("tob_last", profileId)]?.toLongOrNull()
         val taper = taperPlan(profileId).first()
         val caf = caffeineTaper(profileId).first()
-        if (plan == null && log.isEmpty() && taper == null && caf == null) return null
+        val alc = alcoholChallenge(profileId).first()
+        if (plan == null && log.isEmpty() && taper == null && caf == null && alc == null) return null
         return fr.scanneat.data.backup.WithdrawalBackup(
             tobacco = plan?.let { fr.scanneat.data.backup.TobaccoPlanBackup(it.startDate.toString(), it.baselinePerDay, it.packPriceEuros, it.cigarettesPerPack, it.targetPerDay) },
             tobaccoLog = log.mapKeys { it.key.toString() },
             lastSmokeMs = last,
             taper = taper?.let { t -> fr.scanneat.data.backup.TaperPlanBackup(t.medicationName, t.sortedSteps.map { fr.scanneat.data.backup.TaperStepBackup(it.startDate.toString(), it.dose) }, t.note) },
             caffeine = caf?.let { fr.scanneat.data.backup.CaffeineTaperBackup(it.startDate.toString(), it.startMg, it.targetMg, it.weeks) },
+            alcoholChallengeStart = alc?.startDate?.toString(),
+            alcoholChallengeDays = alc?.days,
         )
     }
 
@@ -144,6 +158,7 @@ class WithdrawalRepository @Inject constructor(
         setTaperPlan(profileId, b.taper?.let { t ->
             TaperPlan(t.medicationName, t.steps.mapNotNull { s -> runCatching { TaperStep(LocalDate.parse(s.startDate), s.dose) }.getOrNull() }, t.note)
         }?.takeIf { it.steps.isNotEmpty() })
+        setAlcoholChallenge(profileId, b.alcoholChallengeStart?.let { d -> runCatching { fr.scanneat.domain.engine.withdrawal.AlcoholChallenge(LocalDate.parse(d), b.alcoholChallengeDays ?: 30) }.getOrNull() })
         setCaffeineTaper(profileId, b.caffeine?.let { c -> runCatching { fr.scanneat.domain.engine.withdrawal.CaffeineTaper(LocalDate.parse(c.startDate), c.startMg, c.targetMg, c.weeks) }.getOrNull() })
     }
 

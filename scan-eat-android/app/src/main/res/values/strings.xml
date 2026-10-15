@@ -2407,4 +2407,14 @@
     <string name="withdrawal_caffeine_plan">De %1$d à %2$d mg par jour, jusqu\'au %3$s</string>
     <string name="withdrawal_caffeine_tip">Une baisse progressive évite le plus souvent les maux de tête et la fatigue d\'un arrêt brutal. Le décaféiné et les tisanes aident à garder le geste.</string>
     <string name="diary_caffeine_plan_cap">Plafond du jour de votre plan de réduction (Santé › Sevrage)</string>
+    <string name="withdrawal_alcohol_title">Défi sans alcool</string>
+    <string name="withdrawal_alcohol_intro">Choisissez une durée. Les jours sans alcool sont comptés automatiquement à partir de votre Journal : il suffit d\'y noter ce que vous buvez.</string>
+    <string name="withdrawal_alcohol_days">%1$d jours</string>
+    <string name="withdrawal_alcohol_progress">Jour %1$d sur %2$d — %3$d jour(s) sans alcool</string>
+    <string name="withdrawal_alcohol_done">Défi terminé : %1$d jour(s) sans alcool sur %2$d</string>
+    <string name="withdrawal_alcohol_streak">Série en cours : %1$d jour(s) sans alcool</string>
+    <string name="withdrawal_alcohol_slips">Alcool noté le : %1$s</string>
+    <string name="withdrawal_alcohol_from_diary">D\'après les boissons notées dans le Journal.</string>
+    <string name="withdrawal_alcohol_safety">Après une consommation régulière importante, arrêter d\'un coup peut provoquer un sevrage dangereux (tremblements, convulsions, delirium) : parlez-en d\'abord à un médecin. Alcool Info Service, gratuit et anonyme, 7j/7.</string>
+    <string name="withdrawal_alcohol_call">Appeler le 0 980 980 930</string>
 </resources>

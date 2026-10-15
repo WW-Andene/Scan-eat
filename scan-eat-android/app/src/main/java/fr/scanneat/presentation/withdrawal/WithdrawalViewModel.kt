@@ -23,6 +23,7 @@ class WithdrawalViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val repo: WithdrawalRepository,
     medicationRepo: fr.scanneat.data.repository.health.MedicationRepository,
+    consumptionRepo: fr.scanneat.data.repository.nutrition.ConsumptionRepository,
 ) : ActionFailureViewModel() {
     private val profileId = prefs.activeProfileId
 
@@ -52,6 +53,18 @@ class WithdrawalViewModel @Inject constructor(
         repo.setCaffeineTaper(profileId.first(), fr.scanneat.domain.engine.withdrawal.CaffeineTaper(LocalDate.now(), startMg, targetMg, weeks))
     }
     fun stopCaffeineTaper() = guardedLaunch { repo.setCaffeineTaper(profileId.first(), null) }
+
+    val alcoholChallenge: StateFlow<Pair<fr.scanneat.domain.engine.withdrawal.AlcoholChallenge, fr.scanneat.domain.engine.withdrawal.AlcoholChallengeStatus>?> =
+        profileId.flatMapLatest { id ->
+            repo.alcoholChallenge(id).flatMapLatest { c ->
+                if (c == null) flowOf(null)
+                else consumptionRepo.observeRange(c.startDate, c.endDate, id).map { entries ->
+                    c to fr.scanneat.domain.engine.withdrawal.alcoholChallengeStatus(c, entries, LocalDate.now())
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    fun startAlcoholChallenge(days: Int) = guardedLaunch { repo.setAlcoholChallenge(profileId.first(), fr.scanneat.domain.engine.withdrawal.AlcoholChallenge(LocalDate.now(), days)) }
+    fun stopAlcoholChallenge() = guardedLaunch { repo.setAlcoholChallenge(profileId.first(), null) }
 
     val taperPlan: StateFlow<TaperPlan?> = profileId.flatMapLatest { repo.taperPlan(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

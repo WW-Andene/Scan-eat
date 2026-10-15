@@ -39,6 +39,7 @@ fun WithdrawalScreen(viewModel: WithdrawalViewModel = hiltViewModel(), onBack: (
     val now = viewModel.now.collectAsStateWithLifecycle()
     val cautions = viewModel.medicationCautions.collectAsStateWithLifecycle()
     val caffeine = viewModel.caffeineTaper.collectAsStateWithLifecycle()
+    val alcohol = viewModel.alcoholChallenge.collectAsStateWithLifecycle()
     var editTaper by remember { mutableStateOf(false) }
 
     FloatingScreenScaffold(
@@ -57,6 +58,7 @@ fun WithdrawalScreen(viewModel: WithdrawalViewModel = hiltViewModel(), onBack: (
                 if (p == null || s == null) TobaccoSetupCard(viewModel::startTobacco)
                 else TobaccoCard(p, s, now.value, onAdd = { viewModel.cigarette(1) }, onRemove = { viewModel.cigarette(-1) }, onStop = viewModel::stopTobacco)
             }
+            item { AlcoholChallengeCard(alcohol.value, viewModel::startAlcoholChallenge, viewModel::stopAlcoholChallenge) }
             item { CaffeineCard(caffeine.value, viewModel::startCaffeineTaper, viewModel::stopCaffeineTaper) }
             if (cautions.value.isNotEmpty()) item {
                 Card {
@@ -273,5 +275,30 @@ private fun CaffeineCard(plan: CaffeineTaper?, onStart: (Int, Int, Int) -> Unit,
             Hint(stringResource(R.string.withdrawal_caffeine_tip))
             TextButton(onClick = onStop) { Text(stringResource(R.string.withdrawal_tobacco_stop), color = OnBackground.copy(0.6f)) }
         }
+    }
+}
+
+@Composable
+private fun AlcoholChallengeCard(state: Pair<AlcoholChallenge, AlcoholChallengeStatus>?, onStart: (Int) -> Unit, onStop: () -> Unit) {
+    val uri = LocalUriHandler.current
+    Card {
+        TitleText(stringResource(R.string.withdrawal_alcohol_title))
+        if (state == null) {
+            Hint(stringResource(R.string.withdrawal_alcohol_intro))
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                listOf(7, 30, 60).forEach { d -> OutlinedButton(onClick = { onStart(d) }) { Text(stringResource(R.string.withdrawal_alcohol_days, d)) } }
+            }
+        } else {
+            val (c, st) = state
+            Text(if (st.finished) stringResource(R.string.withdrawal_alcohol_done, st.alcoholFreeDays, c.days)
+                else stringResource(R.string.withdrawal_alcohol_progress, st.dayNumber, c.days, st.alcoholFreeDays),
+                style = MaterialTheme.typography.bodyLarge, color = OnBackground)
+            if (!st.finished) Hint(stringResource(R.string.withdrawal_alcohol_streak, st.currentStreak))
+            if (st.daysWithAlcohol.isNotEmpty()) Hint(stringResource(R.string.withdrawal_alcohol_slips, st.daysWithAlcohol.joinToString(", ") { it.format(dateFmt) }), AccentCoral)
+            Hint(stringResource(R.string.withdrawal_alcohol_from_diary), OnBackground.copy(0.4f))
+            TextButton(onClick = onStop) { Text(stringResource(R.string.withdrawal_tobacco_stop), color = OnBackground.copy(0.6f)) }
+        }
+        Hint(stringResource(R.string.withdrawal_alcohol_safety), AccentCoral)
+        OutlinedButton(onClick = { runCatching { uri.openUri("tel:0980980930") } }) { Text(stringResource(R.string.withdrawal_alcohol_call)) }
     }
 }

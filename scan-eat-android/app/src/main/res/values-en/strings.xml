@@ -2403,4 +2403,14 @@
     <string name="withdrawal_caffeine_plan">From %1$d to %2$d mg a day, until %3$s</string>
     <string name="withdrawal_caffeine_tip">A gradual cut usually avoids the headaches and tiredness of an abrupt stop. Decaf and herbal teas help keep the habit.</string>
     <string name="diary_caffeine_plan_cap">Today\'s cap from your reduction plan (Health › Quitting)</string>
+    <string name="withdrawal_alcohol_title">Alcohol-free challenge</string>
+    <string name="withdrawal_alcohol_intro">Pick a length. Alcohol-free days are counted automatically from your Journal: just log what you drink there.</string>
+    <string name="withdrawal_alcohol_days">%1$d days</string>
+    <string name="withdrawal_alcohol_progress">Day %1$d of %2$d — %3$d alcohol-free day(s)</string>
+    <string name="withdrawal_alcohol_done">Challenge over: %1$d alcohol-free day(s) out of %2$d</string>
+    <string name="withdrawal_alcohol_streak">Current streak: %1$d alcohol-free day(s)</string>
+    <string name="withdrawal_alcohol_slips">Alcohol logged on: %1$s</string>
+    <string name="withdrawal_alcohol_from_diary">Based on the drinks logged in the Journal.</string>
+    <string name="withdrawal_alcohol_safety">After regular heavy drinking, stopping all at once can cause a dangerous withdrawal (tremors, seizures, delirium): talk to a doctor first. Alcool Info Service (France), free and anonymous, 7 days a week.</string>
+    <string name="withdrawal_alcohol_call">Call 0 980 980 930</string>
 </resources>

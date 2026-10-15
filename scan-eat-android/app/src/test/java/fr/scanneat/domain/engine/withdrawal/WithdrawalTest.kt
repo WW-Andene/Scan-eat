@@ -67,4 +67,17 @@ class WithdrawalTest {
         assertEquals(400.0, fr.scanneat.domain.engine.nutrition.caffeineBudget(p, emptyList(), 500)!!.limitMg, 0.0)
         assertNull(fr.scanneat.domain.engine.nutrition.caffeineBudget(p, emptyList(), null))
     }
+
+    @Test fun `alcohol challenge counts alcohol-free days from the diary`() {
+        val n0 = fr.scanneat.domain.model.NutritionPer100g(energyKcal = 0.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 0.0, sugarsG = 0.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.0)
+        fun e(day: Long, vol: Double?) = fr.scanneat.domain.model.DiaryEntry(date = start.plusDays(day), mealSlot = fr.scanneat.domain.model.MealSlot.DINNER,
+            productName = "x", portionG = 250.0, nutrition = n0.copy(alcoholPercentVol = vol), source = fr.scanneat.domain.model.ScanSource.MANUAL)
+        val c = AlcoholChallenge(start, 7)
+        val st = alcoholChallengeStatus(c, listOf(e(1, 5.0), e(2, 0.0), e(3, null)), start.plusDays(4))
+        assertEquals(5, st.dayNumber)
+        assertEquals(4, st.alcoholFreeDays)
+        assertEquals(3, st.currentStreak)       // days 2, 3, 4
+        assertFalse(st.finished)
+        assertTrue(alcoholChallengeStatus(c, emptyList(), start.plusDays(10)).finished)
+    }
 }
