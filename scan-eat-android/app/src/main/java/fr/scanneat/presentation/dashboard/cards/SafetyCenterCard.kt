@@ -81,4 +81,8 @@ private fun buildMessage(warning: DashboardSafetyWarning): Pair<String, androidx
     is DashboardSafetyWarning.MedicationFood -> warning.message to semanticAmber()
     is DashboardSafetyWarning.PantryExpiry ->
         stringResource(R.string.dashboard_safety_pantry_expiry, warning.itemNames.size, warning.itemNames.take(3).joinToString(", ")) to semanticAmber()
+    is DashboardSafetyWarning.MedicationSupply -> listOfNotNull(
+        warning.lowStock.takeIf { it.isNotEmpty() }?.let { stringResource(R.string.dashboard_safety_low_stock, it.joinToString(", ")) },
+        warning.renewalDue.takeIf { it.isNotEmpty() }?.let { stringResource(R.string.dashboard_safety_renewal, it.joinToString(", ")) },
+    ).joinToString("\n") to semanticAmber()
 }

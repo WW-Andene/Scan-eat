@@ -191,6 +191,7 @@ fun AppNavGraph(
                 onOpenDiaryTab       = { tab -> navController.openDiaryTab(tab) },
                 onOpenScan           = { navController.switchToTab(TopTab.Scan.route) },
                 onOpenSettings       = { navController.openSettings() },
+                onNavigate           = { navController.navigate(it) },
             )
         }
 

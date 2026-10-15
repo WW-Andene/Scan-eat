@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard
 
+import fr.scanneat.data.repository.health.isLowStock
+import fr.scanneat.data.repository.health.renewalDue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -214,6 +216,11 @@ class DashboardViewModel @Inject constructor(
     internal val hiddenModules: StateFlow<Set<fr.scanneat.presentation.diary.components.DiaryTab>> = prefs.hiddenModules
         .map { fr.scanneat.presentation.diary.components.parseHiddenModules(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+    internal val homeShortcuts: StateFlow<List<HomeShortcut>> = prefs.homeShortcuts.map { HomeShortcut.parse(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeShortcut.DEFAULT)
+    internal fun setHomeShortcuts(list: List<HomeShortcut>) {
+        viewModelScope.launch { runCatching { prefs.setHomeShortcuts(HomeShortcut.serialize(list)) } }
+    }
     internal fun setDashboardLayout(layout: DashboardLayout) {
         viewModelScope.launch { runCatching { prefs.setDashboardLayout(layout.serialize()) } }
     }
@@ -291,6 +298,8 @@ class DashboardViewModel @Inject constructor(
                 todayDiaryEntries = inputs.dailySummary.entries,
                 lang = lang,
                 expiringPantryItemNames = expiringPantryNames,
+                lowStockMedicationNames = inputs.meds.filter { it.active && it.isLowStock() }.map { it.name },
+                renewalDueMedicationNames = inputs.meds.filter { it.active && it.renewalDue() }.map { it.name },
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

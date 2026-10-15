@@ -39,6 +39,8 @@ sealed class DashboardSafetyWarning {
      *  ever shown inside the Pantry screen's own banner, never surfaced here
      *  alongside every other "worth a second look today" check. */
     data class PantryExpiry(val itemNames: List<String>) : DashboardSafetyWarning()
+    /** Roadmap D6, on Accueil since the restructuring: a box running low or a prescription to renew. */
+    data class MedicationSupply(val lowStock: List<String>, val renewalDue: List<String>) : DashboardSafetyWarning()
 }
 
 fun buildDashboardSafetyWarnings(
@@ -50,6 +52,8 @@ fun buildDashboardSafetyWarnings(
     todayDiaryEntries: List<DiaryEntry>,
     lang: String,
     expiringPantryItemNames: List<String> = emptyList(),
+    lowStockMedicationNames: List<String> = emptyList(),
+    renewalDueMedicationNames: List<String> = emptyList(),
 ): List<DashboardSafetyWarning> {
     val activeMedNamesSet = activeMedicationNames.toSet()
     // Same activity-relevant drug classes (beta-blocker/anticoagulant/diuretic/
@@ -83,5 +87,8 @@ fun buildDashboardSafetyWarnings(
     val pantryExpiry = if (expiringPantryItemNames.isEmpty()) emptyList()
         else listOf(DashboardSafetyWarning.PantryExpiry(expiringPantryItemNames))
 
-    return overtraining + overhydration + medInteractions + medFood + pantryExpiry
+    val supply = if (lowStockMedicationNames.isEmpty() && renewalDueMedicationNames.isEmpty()) emptyList()
+        else listOf(DashboardSafetyWarning.MedicationSupply(lowStockMedicationNames, renewalDueMedicationNames))
+
+    return overtraining + overhydration + medInteractions + medFood + pantryExpiry + supply
 }

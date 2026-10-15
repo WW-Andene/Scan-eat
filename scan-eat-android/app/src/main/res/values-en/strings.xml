@@ -2377,4 +2377,8 @@
     <string name="hub_recalls_sub">Official product recalls</string>
     <string name="hub_sources_sub">Where the data and guidelines come from</string>
     <string name="diary_tab_body">Body</string>
+    <string name="home_shortcuts_title">Shortcuts</string>
+    <string name="home_shortcuts_hint">Pick up to %1$d tools to keep on Home. All of them stay in Cooking and Health.</string>
+    <string name="dashboard_safety_low_stock">Low stock: %1$s</string>
+    <string name="dashboard_safety_renewal">Prescription to renew: %1$s</string>
 </resources>

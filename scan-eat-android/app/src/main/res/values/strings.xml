@@ -2381,4 +2381,8 @@
     <string name="hub_recalls_sub">Rappels officiels de produits</string>
     <string name="hub_sources_sub">D\'où viennent les données et les repères</string>
     <string name="diary_tab_body">Corps</string>
+    <string name="home_shortcuts_title">Raccourcis</string>
+    <string name="home_shortcuts_hint">Choisissez jusqu\'à %1$d outils à garder sur l\'Accueil. Tous restent dans Cuisine et Santé.</string>
+    <string name="dashboard_safety_low_stock">Stock bas : %1$s</string>
+    <string name="dashboard_safety_renewal">Ordonnance à renouveler : %1$s</string>
 </resources>
