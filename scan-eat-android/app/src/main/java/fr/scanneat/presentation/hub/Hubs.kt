@@ -10,6 +10,8 @@ import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material.icons.rounded.SmokeFree
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Bell
 import compose.icons.tablericons.Book
@@ -52,20 +54,43 @@ fun CookingHub(navigate: (String) -> Unit, openDiaryTab: (String) -> Unit, onOpe
 
 /** Santé: treatments, symptoms, safety, and the metabolism module. */
 @Composable
-fun HealthHub(navigate: (String) -> Unit, openDiaryTab: (String) -> Unit, onOpenSettings: () -> Unit) = HubScreen(
+fun HealthHub(
+    navigate: (String) -> Unit, openDiaryTab: (String) -> Unit, onOpenSettings: () -> Unit,
+    viewModel: HealthHubViewModel = androidx.hilt.navigation.compose.hiltViewModel(),
+) {
+    val st = viewModel.status.collectAsStateWithLifecycle().value
+    val treatmentStatus = when {
+        st.dosesLeftToday == null -> null
+        st.dosesLeftToday > 0 -> stringResource(R.string.hub_status_doses_left, st.dosesLeftToday)
+        else -> stringResource(R.string.hub_status_doses_done)
+    }?.let { if (st.supplyAlert) it + " · " + stringResource(R.string.hub_status_supply) else it }
+        ?: if (st.supplyAlert) stringResource(R.string.hub_status_supply) else null
+    val quitStatus = listOfNotNull(
+        st.smokeFreeDays?.let { stringResource(R.string.hub_status_smoke_free, it) },
+        st.taperStep?.let { stringResource(R.string.hub_status_taper_step, it.first, it.second) },
+    ).joinToString(" · ").ifBlank { null }
+    val recallStatus = if (st.recalledProducts > 0) stringResource(R.string.hub_status_recalls, st.recalledProducts) else null
+    HealthHubContent(navigate, onOpenSettings, treatmentStatus, st.supplyAlert || (st.dosesLeftToday ?: 0) > 0, quitStatus, recallStatus)
+}
+
+@Composable
+private fun HealthHubContent(
+    navigate: (String) -> Unit, onOpenSettings: () -> Unit,
+    treatmentStatus: String?, treatmentAlert: Boolean, quitStatus: String?, recallStatus: String?,
+) = HubScreen(
     title = R.string.tab_health,
     onOpenSettings = onOpenSettings,
     groups = listOf(
         HubGroup(R.string.hub_group_followup, listOf(
-            HubEntry(TablerIcons.Pill, R.string.diary_tab_treatment, R.string.hub_treatment_sub) { navigate(AppRoutes.TREATMENT) },
+            HubEntry(TablerIcons.Pill, R.string.diary_tab_treatment, R.string.hub_treatment_sub, treatmentStatus, treatmentAlert) { navigate(AppRoutes.TREATMENT) },
             HubEntry(TablerIcons.Heart, R.string.dashboard_tile_symptoms, R.string.hub_symptoms_sub) { navigate(AppRoutes.SYMPTOMS) },
-            HubEntry(Icons.Rounded.SmokeFree, R.string.dashboard_tile_withdrawal, R.string.hub_withdrawal_sub) { navigate(AppRoutes.WITHDRAWAL) },
+            HubEntry(Icons.Rounded.SmokeFree, R.string.dashboard_tile_withdrawal, R.string.hub_withdrawal_sub, quitStatus) { navigate(AppRoutes.WITHDRAWAL) },
             HubEntry(Icons.Rounded.MonitorHeart, R.string.tab_biolism, R.string.hub_biolism_sub) { navigate(AppRoutes.BIOLISM) },
         )),
         HubGroup(R.string.hub_group_safety, listOf(
             HubEntry(TablerIcons.ShieldCheck, R.string.my_safety_title, R.string.hub_safety_sub) { navigate(AppRoutes.MY_SAFETY) },
             HubEntry(Icons.Rounded.Warning, R.string.reactions_title, R.string.hub_reactions_sub) { navigate(AppRoutes.REACTIONS) },
-            HubEntry(TablerIcons.Bell, R.string.recalls_title, R.string.hub_recalls_sub) { navigate(AppRoutes.RECALLS) },
+            HubEntry(TablerIcons.Bell, R.string.recalls_title, R.string.hub_recalls_sub, recallStatus, alert = recallStatus != null) { navigate(AppRoutes.RECALLS) },
         )),
         HubGroup(R.string.hub_group_info, listOf(
             HubEntry(Icons.Rounded.PictureAsPdf, R.string.hub_report_title, R.string.hub_report_sub) { navigate(AppRoutes.DOCTOR_REPORT) },

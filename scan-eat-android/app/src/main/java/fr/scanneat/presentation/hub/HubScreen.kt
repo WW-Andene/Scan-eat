@@ -18,7 +18,8 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
 /** One tool in a hub: icon, title, one-line description. */
-data class HubEntry(val icon: ImageVector, val title: Int, val subtitle: Int, val onClick: () -> Unit)
+/** [status]: live one-liner shown under the description (null = none); [alert] colours it. */
+data class HubEntry(val icon: ImageVector, val title: Int, val subtitle: Int, val status: String? = null, val alert: Boolean = false, val onClick: () -> Unit)
 data class HubGroup(val label: Int, val entries: List<HubEntry>)
 
 /**
@@ -69,6 +70,7 @@ private fun HubRow(e: HubEntry) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(e.title), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
                 Text(stringResource(e.subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.55f))
+                e.status?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = if (e.alert) AccentCoral else Gold) }
             }
             Icon(TablerIcons.ChevronRight, null, tint = OnBackground.copy(0.3f), modifier = Modifier.size(IconSize.Compact))
         }

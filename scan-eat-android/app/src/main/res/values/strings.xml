@@ -2392,4 +2392,10 @@
     <string name="settings_group_about">À propos</string>
     <string name="hub_report_title">Rapport pour le médecin</string>
     <string name="hub_report_sub">PDF des 30 derniers jours : traitements, symptômes, repas, poids</string>
+    <string name="hub_status_doses_left">%1$d prise(s) restante(s) aujourd\'hui</string>
+    <string name="hub_status_doses_done">Prises du jour faites</string>
+    <string name="hub_status_supply">stock ou ordonnance à surveiller</string>
+    <string name="hub_status_smoke_free">%1$d jour(s) sans tabac</string>
+    <string name="hub_status_taper_step">palier %1$d sur %2$d</string>
+    <string name="hub_status_recalls">%1$d produit(s) rappelé(s) parmi les vôtres</string>
 </resources>
