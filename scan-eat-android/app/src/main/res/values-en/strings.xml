@@ -2427,4 +2427,8 @@
     <string name="scan_name_choose_none">None of these</string>
     <string name="menu_scan_typical_allergens">In this dish\'s usual recipe: %1$s — ask the restaurant</string>
     <string name="menu_scan_estimate">Estimate: %1$s (%2$d/100), based on %3$s (CIQUAL table)</string>
+    <string name="scan_name_none_found">No product found for this name.</string>
+    <string name="scan_name_other_texts">Other texts read on the photo:</string>
+    <string name="scan_name_fix">Fix the name</string>
+    <string name="scan_name_search">Search</string>
 </resources>

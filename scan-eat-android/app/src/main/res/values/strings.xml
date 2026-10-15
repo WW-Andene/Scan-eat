@@ -2431,4 +2431,8 @@
     <string name="scan_name_choose_none">Aucun ne correspond</string>
     <string name="menu_scan_typical_allergens">Dans la recette habituelle de ce plat : %1$s — demandez au restaurant</string>
     <string name="menu_scan_estimate">Estimation : %1$s (%2$d/100), d\'après %3$s (table CIQUAL)</string>
+    <string name="scan_name_none_found">Aucun produit trouvé pour ce nom.</string>
+    <string name="scan_name_other_texts">Autres textes lus sur la photo :</string>
+    <string name="scan_name_fix">Corriger le nom</string>
+    <string name="scan_name_search">Chercher</string>
 </resources>

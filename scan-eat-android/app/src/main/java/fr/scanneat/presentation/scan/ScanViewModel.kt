@@ -559,7 +559,7 @@ class ScanViewModel @Inject constructor(
                             // was built for). Both best-effort only - findNonConsumableViaObf/
                             // Opf already swallow their own network errors, and neither runs
                             // offline (no point trying a network call we already know will fail).
-                            e is fr.scanneat.data.repository.scan.ProductNameCandidates -> ScanUiState.ChooseProduct(e.query, e.options)
+                            e is fr.scanneat.data.repository.scan.ProductNameCandidates -> ScanUiState.ChooseProduct(e.query, e.options, e.otherNames)
                             e is ProductNotFoundException && barcode != null && online -> {
                                 val obfEntry = scanRepo.findNonConsumableViaObf(barcode)
                                 val opfEntry = obfEntry ?: scanRepo.findNonConsumableViaOpf(barcode)
@@ -623,6 +623,19 @@ class ScanViewModel @Inject constructor(
             if (r == null) { _state.value = ScanUiState.Error(genericErrorMessage(lang)); return@launch }
             _state.value = ScanUiState.Success(r, s.persistedId)
             announceScoreIfEnabled(r)
+        }
+    }
+
+    /** The user picked another text read on the photo, or typed the right name: search again. */
+    fun searchByName(name: String) {
+        val s = _state.value as? ScanUiState.ChooseProduct ?: return
+        val q = name.trim().takeIf { it.length >= 2 } ?: return
+        _state.value = s.copy(searching = true)
+        viewModelScope.launch {
+            val lang = prefs.language.first()
+            val options = runCatching { scanRepo.findByName(listOf(q), lang) }
+                .onFailure { if (it is CancellationException) throw it }.getOrDefault(emptyList())
+            _state.value = ScanUiState.ChooseProduct(q, options, (listOf(s.query) + s.otherNames).filter { it != q }.distinct())
         }
     }
 

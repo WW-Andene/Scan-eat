@@ -487,6 +487,17 @@ class ScanRepository @Inject constructor(
     private suspend fun lookUpByName(images: List<ImagePayload>, lang: String) {
         val names = runCatching { fr.scanneat.domain.engine.nutrition.productNameCandidates(labelReader.readLines(images)) }.getOrDefault(emptyList())
         if (names.isEmpty()) return
+        val options = findByName(names, lang)
+        // Even with no match, offer the texts read so the user can pick or correct one.
+        throw ProductNameCandidates(names.first(), options, names.drop(1))
+    }
+
+    /**
+     * Products for a name: Open Food Facts by name (online, first name with
+     * results among [names]) and the matching dish of the built-in table.
+     * Also used when the user corrects or picks another text read on the photo.
+     */
+    suspend fun findByName(names: List<String>, lang: String): List<ScanResult> {
         val en = lang == "en"
         val options = mutableListOf<ScanResult>()
         for (q in names.take(2)) {
@@ -507,7 +518,7 @@ class ScanRepository @Inject constructor(
             val product = food.toProduct(100.0).copy(name = if (m is fr.scanneat.domain.engine.nutrition.DishMatch.Exact) food.name else n)
             options += ScanResult(product = product, audit = scoreProduct(product, lang), warnings = listOf(note), source = ScanSource.MANUAL, barcode = null)
         }
-        if (options.isNotEmpty()) throw ProductNameCandidates(names.first(), options.distinctBy { it.barcode ?: it.product.name }.take(6))
+        return options.distinctBy { it.barcode ?: it.product.name }.take(6)
     }
 
     // ---- Open Food Facts ----

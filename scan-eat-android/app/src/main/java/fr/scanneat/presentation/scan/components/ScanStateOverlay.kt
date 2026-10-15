@@ -109,6 +109,7 @@ internal fun BoxScope.ScanStateOverlay(
     onCancelOcrReview: () -> Unit = {},
     onChooseFood: (String?) -> Unit = {},
     onChooseProduct: (fr.scanneat.domain.model.ScanResult?) -> Unit = {},
+    onSearchByName: (String) -> Unit = {},
     /** Roadmap N1: barcode of the product that was not found / is incomplete. */
     barcode: String? = null,
 ) {
@@ -121,6 +122,19 @@ internal fun BoxScope.ScanStateOverlay(
             title = { Text(stringResource(R.string.scan_name_choose_title, s.query)) },
             text = {
                 Column(Modifier.heightIn(max = 384.dp).verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    if (s.searching) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
+                    if (s.options.isEmpty() && !s.searching) Text(stringResource(R.string.scan_name_none_found), style = MaterialTheme.typography.bodySmall)
+                    // The biggest text may be a brand or a logo: offer the other texts read, and a field to correct the name.
+                    if (s.otherNames.isNotEmpty()) {
+                        Text(stringResource(R.string.scan_name_other_texts), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                        s.otherNames.forEach { n -> TextButton(onClick = { onSearchByName(n) }, enabled = !s.searching) { Text(n) } }
+                    }
+                    var typed by remember(s.query) { mutableStateOf(s.query) }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        androidx.compose.material3.OutlinedTextField(typed, { typed = it.take(80) }, singleLine = true, modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.scan_name_fix)) })
+                        TextButton(onClick = { onSearchByName(typed) }, enabled = !s.searching && typed.trim().length >= 2) { Text(stringResource(R.string.scan_name_search)) }
+                    }
                     s.options.forEach { o ->
                         Surface(onClick = { onChooseProduct(o) }, shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(Spacing.S)) {
