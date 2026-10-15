@@ -7,8 +7,8 @@ import fr.scanneat.domain.model.*
 // scoring effect here (WHO sugar/salt guidance, kidney protein load, pregnancy
 // alcohol veto, WCRF/NHS alcohol caution for cancer/depression, American
 // Migraine Foundation/National Headache Foundation trigger-food guidance for
-// chronic_migraine, Monash low-FODMAP/EU polyol-labeling/Crohn's & Colitis
-// Foundation guidance for ibs/crohn_ibd/chronic_diarrhea, and WHO iron-source
+// chronic_migraine, UEG/ESNM 2021 low-FODMAP/EU polyol-labeling/AFA Crohn RCH
+// France guidance for ibs/crohn_ibd/chronic_diarrhea, and WHO iron-source
 // guidance for anemia).
 // "thyroid_disorder", "food_allergies" and "intolerances" used to have the
 // same no-op problem (selectable in ProfileSelectors.kt, zero downstream

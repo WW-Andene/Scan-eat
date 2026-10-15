@@ -229,6 +229,7 @@ panel de diététiciens) ni distribution observée sur un panel réel. Le même 
 → Calibrer sur le jeu de vérité (S15), publier la méthode, et expliquer les divergences avec le Nutri-Score sur l'écran de résultat.
 
 ### S12. Sources non européennes là où un équivalent existe 🟡 📖
+✅ **Fait (SII, MICI)** : le régime pauvre en FODMAP cite les recommandations européennes sur le SII (UEG/ESNM 2021), Monash restant cité comme base des teneurs en FODMAP ; l'alimentation en poussée de MICI cite l'AFA Crohn RCH France (notes de score, conseils par condition, note du régime). Non fait : migraine, épilepsie, rein et diarrhée chronique citent encore des sources américaines ou britanniques, faute d'équivalent européen vérifié.
 SII : Monash (Australie). MICI : Crohn's & Colitis Foundation (États-Unis) et NHS (Royaume-Uni). Les équivalents européens existent :
 **ECCO** pour les MICI, **SNFGE / HAS** pour le SII. C'est contraire à la règle du README (« sources européennes préférées »).
 

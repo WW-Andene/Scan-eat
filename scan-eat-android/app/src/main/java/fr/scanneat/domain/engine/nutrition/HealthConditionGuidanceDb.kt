@@ -24,9 +24,9 @@ import fr.scanneat.domain.model.Ingredient
 //    deliberately framed as "if undergoing treatment", not "cancer
 //    causes/is caused by this ingredient" — no diet-causes-cancer claim
 //    is made anywhere in this file.
-//  - ibs: Monash University's Low FODMAP Diet research (the protocol NICE/
-//    British Dietetic Association guidelines recommend for IBS).
-//  - crohn_ibd: Crohn's & Colitis Foundation / NHS low-residue-during-a-flare
+//  - ibs: low-FODMAP diet per the UEG/ESNM 2021 European IBS guideline;
+//    FODMAP contents from Monash University's research.
+//  - crohn_ibd: AFA Crohn RCH France low-residue-during-a-flare
 //    guidance.
 //  - chronic_diarrhea: NHS / Mayo Clinic diarrhea-diet guidance, plus the
 //    EU's own mandatory polyol "may induce laxative effects" label warning
@@ -106,29 +106,29 @@ private val CANCER_GUIDANCE: List<ConditionGuidance> = listOf(
 // linked to IBS symptom flares.
 private val IBS_GUIDANCE: List<ConditionGuidance> = listOf(
     ConditionGuidance(listOf("oignon", "onion", "ail", "garlic"),
-        "Oignon/ail : source de fructanes, un FODMAP fréquemment associé aux poussées de symptômes du syndrome de l'intestin irritable (recherche de l'université Monash).",
-        "Onion/garlic: a fructan (FODMAP) source frequently linked to IBS symptom flares (Monash University research)."),
+        "Oignon/ail : source de fructanes, un FODMAP fréquemment associé aux poussées de symptômes du syndrome de l'intestin irritable (recommandations européennes UEG/ESNM 2021 sur le SII).",
+        "Onion/garlic: a fructan (FODMAP) source frequently linked to IBS symptom flares (UEG/ESNM 2021 European IBS guideline)."),
     ConditionGuidance(listOf("blé", "wheat", "seigle", "rye", "orge", "barley", "inuline", "inulin", "chicorée", "chicory"),
-        "Blé/seigle/orge ou inuline : sources de fructanes, un FODMAP fréquemment associé aux poussées de symptômes du SII (recherche de l'université Monash).",
-        "Wheat/rye/barley or inulin: fructan (FODMAP) sources frequently linked to IBS symptom flares (Monash University research)."),
+        "Blé/seigle/orge ou inuline : sources de fructanes, un FODMAP fréquemment associé aux poussées de symptômes du SII (recommandations européennes UEG/ESNM 2021 sur le SII).",
+        "Wheat/rye/barley or inulin: fructan (FODMAP) sources frequently linked to IBS symptom flares (UEG/ESNM 2021 European IBS guideline)."),
     ConditionGuidance(listOf("pois chiches", "chickpeas", "lentilles", "lentils"),
-        "Légumineuses (pois chiches, lentilles) : source de galacto-oligosaccharides (GOS), un FODMAP fréquemment associé aux poussées de symptômes du SII (recherche de l'université Monash).",
-        "Legumes (chickpeas, lentils): a galacto-oligosaccharide (GOS/FODMAP) source frequently linked to IBS symptom flares (Monash University research)."),
+        "Légumineuses (pois chiches, lentilles) : source de galacto-oligosaccharides (GOS), un FODMAP fréquemment associé aux poussées de symptômes du SII (recommandations européennes UEG/ESNM 2021 sur le SII).",
+        "Legumes (chickpeas, lentils): a galacto-oligosaccharide (GOS/FODMAP) source frequently linked to IBS symptom flares (UEG/ESNM 2021 European IBS guideline)."),
     ConditionGuidance(listOf("sorbitol", "mannitol", "xylitol", "maltitol", "erythritol", "isomalt", "lactitol", "polyols"),
-        "Polyol (sorbitol, mannitol, xylitol...) : mal absorbé et osmotiquement actif, un déclencheur connu des symptômes du SII (régime pauvre en FODMAP, université Monash).",
-        "Sugar alcohol (sorbitol, mannitol, xylitol...): poorly absorbed and osmotically active, a known IBS symptom trigger (Monash Low FODMAP research)."),
+        "Polyol (sorbitol, mannitol, xylitol...) : mal absorbé et osmotiquement actif, un déclencheur connu des symptômes du SII (régime pauvre en FODMAP, UEG/ESNM 2021).",
+        "Sugar alcohol (sorbitol, mannitol, xylitol...): poorly absorbed and osmotically active, a known IBS symptom trigger (UEG/ESNM 2021 European IBS guideline)."),
 )
 
-// Crohn's & Colitis Foundation / NHS "eating during a flare" guidance: whole
+// AFA Crohn RCH France "eating during a flare" guidance: whole
 // grains/bran/nuts/seeds/raw skins are the concrete insoluble-fiber sources
 // most consistently named as harder to pass through an inflamed gut.
 private val CROHN_IBD_GUIDANCE: List<ConditionGuidance> = listOf(
     ConditionGuidance(listOf("son de blé", "son d'avoine", "bran", "graines de lin", "flaxseed", "graines de chia", "chia seeds", "noix", "amandes", "nuts", "almonds", "pop-corn", "popcorn"),
-        "Fibres insolubles (son, graines, noix, pop-corn) : un régime pauvre en résidus est généralement conseillé lors d'une poussée de Crohn/MICI (Crohn's & Colitis Foundation, NHS).",
-        "Insoluble fiber (bran, seeds, nuts, popcorn): a low-residue diet is commonly advised during a Crohn's/IBD flare (Crohn's & Colitis Foundation, NHS)."),
+        "Fibres insolubles (son, graines, noix, pop-corn) : un régime pauvre en résidus est généralement conseillé lors d'une poussée de Crohn/MICI (AFA Crohn RCH France).",
+        "Insoluble fiber (bran, seeds, nuts, popcorn): a low-residue diet is commonly advised during a Crohn's/IBD flare (AFA Crohn RCH France)."),
     ConditionGuidance(listOf("pain complet", "pain intégral", "whole wheat bread", "wholegrain", "farine complète", "whole grain"),
-        "Céréales complètes : riches en fibres insolubles, généralement déconseillées lors d'une poussée de Crohn/MICI au profit d'un régime pauvre en résidus (Crohn's & Colitis Foundation, NHS).",
-        "Whole grains: high in insoluble fiber, commonly discouraged during a Crohn's/IBD flare in favor of a low-residue diet (Crohn's & Colitis Foundation, NHS)."),
+        "Céréales complètes : riches en fibres insolubles, généralement déconseillées lors d'une poussée de Crohn/MICI au profit d'un régime pauvre en résidus (AFA Crohn RCH France).",
+        "Whole grains: high in insoluble fiber, commonly discouraged during a Crohn's/IBD flare in favor of a low-residue diet (AFA Crohn RCH France)."),
 )
 
 // NHS / Mayo Clinic diarrhea-diet guidance, plus the EU's own mandatory
