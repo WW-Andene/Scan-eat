@@ -12,6 +12,8 @@ sealed class ScanUiState {
     data class  ReviewOcr(val result: ScanResult, val persistedId: Long) : ScanUiState()
     /** Roadmap C16: food recognised from a photo - the user confirms it or picks one of the other best matches. */
     data class  ChooseFood(val result: ScanResult, val persistedId: Long) : ScanUiState()
+    /** No barcode, no label table: products found by the name read on the photo, to pick from. */
+    data class  ChooseProduct(val query: String, val options: List<ScanResult>, val otherNames: List<String> = emptyList(), val searching: Boolean = false) : ScanUiState()
     data class  Error(val message: String, val needsPhoto: Boolean = false) : ScanUiState()
     /** Barcode matched the medication lookup DB instead of a food product - offer to save it to Traitement rather than running it through food scoring. */
     data class  MedicationFound(val entry: MedicationDbEntry) : ScanUiState()

@@ -31,10 +31,12 @@ internal fun CaffeineBudgetCard(c: CaffeineBudget) {
         Text(stringResource(R.string.diary_caffeine_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         Text(stringResource(R.string.diary_caffeine_total, c.totalMg.roundToInt(), c.limitMg.roundToInt()),
             style = MaterialTheme.typography.bodyMedium, color = if (c.over) AccentCoral else OnSurface)
-        LinearProgressIndicator(progress = { (c.totalMg / c.limitMg).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth(),
+        LinearProgressIndicator(progress = { if (c.limitMg <= 0) (if (c.totalMg > 0) 1f else 0f) else (c.totalMg / c.limitMg).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth(),
             color = if (c.over) AccentCoral else MaterialTheme.colorScheme.primary)
         if (c.highSingleDoses.isNotEmpty()) Text(stringResource(R.string.diary_caffeine_single_dose, c.highSingleDoses.joinToString(", ")),
             style = MaterialTheme.typography.bodySmall, color = AccentCoral)
+        if (c.fromReductionPlan) Text(stringResource(R.string.diary_caffeine_plan_cap),
+            style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
         if (c.estimatedMg > 0) Text(stringResource(R.string.diary_caffeine_estimated, c.estimatedMg.roundToInt()),
             style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
         Text(stringResource(R.string.diary_caffeine_source), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))

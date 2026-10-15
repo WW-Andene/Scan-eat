@@ -188,6 +188,7 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
   chaque niveau avec l'avis EFSA correspondant.
 
 ### S8. Bonus et malus sans fondement sourcé 🟠 📖
+✅ **Fait** : bio affiché mais à 0 point (AFSSA 2003 : pas de différence nutritionnelle significative) ; allégations de santé affichées sans pénalité (règlement 1924/2006 : beaucoup sont autorisées) ; origine « UE et non UE » sans bonus ; tout produit sans huile exclu des 3 points « huiles nommées » (plus seulement 7 catégories) ; micronutriments ajoutés (fer, vitamines, sels de calcium… listés dans les ingrédients) exclus du bonus ; seuil de 7,5 % des VNR par 100 mL pour les boissons (annexe XIII). Moteur 2.7.0 (test `S8BonusesTest`).
 - **Bio +2** dans un score **nutritionnel** : l'EFSA et l'ANSES ne relèvent pas de différence nutritionnelle significative.
 - **Allégations de santé -3** : pénalise aussi les allégations **autorisées** par le règlement 1924/2006.
 - **Origine +2** pour toute origine déclarée, y compris « UE et non UE ».
@@ -222,12 +223,14 @@ via le tag `E322I`. Cela gonfle le **nombre d'additifs** (seuil NOVA « ≤ 2 ad
 → Une règle = un effet ; tests de cohérence « bonus affiché = points comptés ».
 
 ### S11. Grades non calibrés 🟡 📖
+✅ **Partiellement fait** : quand la note Scan'eat et le Nutri-Score de l'emballage s'écartent de 2 lettres ou plus, l'écran de résultat explique pourquoi à partir du calcul (plafond appliqué, transformation NOVA, additifs, huile de palme, qualité des ingrédients ; dans l'autre sens, peu transformé ou seuils de catégorie) (test `NutriScoreGapTest`). Reste : calibrer les seuils des grades sur le jeu de vérité (S15), qui demande un panel de produits réels et une validation par des diététiciens.
 Sept grades (A+ à F) à seuils linéaires (85/70/55/40/25/10), sans calibration publiée contre une référence (Nutri-Score,
 panel de diététiciens) ni distribution observée sur un panel réel. Le même produit peut afficher un Nutri-Score A et un
 « C » Scan'eat sans explication.
 → Calibrer sur le jeu de vérité (S15), publier la méthode, et expliquer les divergences avec le Nutri-Score sur l'écran de résultat.
 
 ### S12. Sources non européennes là où un équivalent existe 🟡 📖
+✅ **Fait (SII, MICI)** : le régime pauvre en FODMAP cite les recommandations européennes sur le SII (UEG/ESNM 2021), Monash restant cité comme base des teneurs en FODMAP ; l'alimentation en poussée de MICI cite l'AFA Crohn RCH France (notes de score, conseils par condition, note du régime). Non fait : migraine, épilepsie, rein et diarrhée chronique citent encore des sources américaines ou britanniques, faute d'équivalent européen vérifié.
 SII : Monash (Australie). MICI : Crohn's & Colitis Foundation (États-Unis) et NHS (Royaume-Uni). Les équivalents européens existent :
 **ECCO** pour les MICI, **SNFGE / HAS** pour le SII. C'est contraire à la règle du README (« sources européennes préférées »).
 

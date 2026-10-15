@@ -247,8 +247,8 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
             // product was silently misclassified as FODMAP-violating.
             b("bl[eé]|froment|seigle|orge|oignon|ail|pomme(?! de terre)|poire|mangue|past[eè]que|miel|sirop d'agave|sirop de ma[iï]s|fructose|inuline|chicor[eé]e|artichaut|lait(?! sans lactose)|lactose|fromage frais|yaourt|l[eé]gume sec|haricot|lentille|pois chiche|sorbitol|mannitol|xylitol|maltitol"),
         ),
-        noteFr = "Référence Monash. Exclut oligosaccharides, disaccharides, monosaccharides et polyols mal absorbés.",
-        noteEn = "Monash University reference. Excludes poorly absorbed oligos, disaccharides, monosaccharides and polyols.",
+        noteFr = "Teneurs : base de l'université Monash ; régime recommandé dans le SII par les recommandations européennes UEG/ESNM 2021. Exclut oligosaccharides, disaccharides, monosaccharides et polyols mal absorbés.",
+        noteEn = "Contents: Monash University database; diet recommended for IBS by the UEG/ESNM 2021 European guideline. Excludes poorly absorbed oligos, disaccharides, monosaccharides and polyols.",
     ),
 
     DietKey.MEDITERRANEAN to DietDef(

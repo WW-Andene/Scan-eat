@@ -1,0 +1,55 @@
+name: Prune workflow runs
+
+# Keeps the most recent workflow runs (all workflows together) and deletes
+# the older ones, so the Actions history and its logs/artifacts stay small.
+on:
+  schedule:
+    - cron: "17 3 * * *"   # every day at 03:17 UTC
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: Number of most recent runs to keep
+        default: "50"
+
+# Deleting runs needs actions: write; nothing else is touched.
+permissions:
+  actions: write
+
+concurrency:
+  group: prune-workflow-runs
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete runs older than the most recent ones
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          KEEP: ${{ github.event.inputs.keep || '50' }}
+          CURRENT_RUN: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          case "$KEEP" in ''|*[!0-9]*) echo "keep must be a number, got '$KEEP'"; exit 1 ;; esac
+
+          # Every run, newest first (the API's own order), as "id status".
+          gh api --paginate "repos/$REPO/actions/runs?per_page=100" \
+            --jq '.workflow_runs[] | "\(.id) \(.status)"' > runs.txt
+          total=$(wc -l < runs.txt)
+          echo "Runs found: $total, keeping the $KEEP most recent."
+
+          # Skip the first $KEEP lines; of the rest, never delete a run that
+          # isn't finished yet, nor this run itself.
+          tail -n +"$((KEEP + 1))" runs.txt | while read -r id status; do
+            if [ "$status" != "completed" ] || [ "$id" = "$CURRENT_RUN" ]; then
+              echo "Skipping run $id ($status)"
+              continue
+            fi
+            if gh api -X DELETE "repos/$REPO/actions/runs/$id" --silent; then
+              echo "Deleted run $id"
+            else
+              echo "Could not delete run $id, continuing"
+            fi
+          done
+          echo "Done."

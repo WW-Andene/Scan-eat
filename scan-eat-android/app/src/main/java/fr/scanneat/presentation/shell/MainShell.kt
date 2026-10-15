@@ -48,6 +48,11 @@ fun MainShell(
     openScanId: Long? = null,
 ) {
     val navController   = rememberNavController()
+    // Settings is a pushed screen, not a tab: as a start destination its back
+    // arrow had nothing to return to. Start on Accueil and push it on top.
+    if (startRoute == AppRoutes.SETTINGS && !startOnboarding) {
+        androidx.compose.runtime.LaunchedEffect(Unit) { navController.navigate(AppRoutes.SETTINGS) { launchSingleTop = true } }
+    }
     if (openScanId != null && !startOnboarding) {
         androidx.compose.runtime.LaunchedEffect(openScanId) {
             navController.navigate(AppRoutes.result(openScanId)) { launchSingleTop = true }
@@ -197,7 +202,7 @@ fun MainShell(
                         navController    = navController,
                         startDestination = when {
                             startOnboarding    -> AppRoutes.ONBOARDING
-                            startRoute != null -> startRoute
+                            startRoute != null && startRoute != AppRoutes.SETTINGS -> startRoute
                             else               -> TopTab.Dashboard.route
                         },
                         // Readable-width cap on medium+ widths: list/card screens

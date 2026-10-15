@@ -11,7 +11,7 @@ import fr.scanneat.domain.model.ProductCategory
 internal val FOOD_DB_GRAINS_AND_PROTEINS: List<FoodEntry> = listOf(
     // Céréales / féculents
     FoodEntry("riz blanc cuit",  130.0, 2.7, 28.0, 0.3, 0.4, saturatedFatG = 0.1, sugarsG = 0.1, aliases = listOf("riz cuit", "white rice"), category = ProductCategory.GRAIN),
-    FoodEntry("pâtes cuites",    140.0, 5.0, 28.0, 1.0, 1.8, saturatedFatG = 0.2, sugarsG = 0.8, aliases = listOf("pates", "pasta"), category = ProductCategory.GRAIN),
+    FoodEntry("pâtes cuites",    140.0, 5.0, 28.0, 1.0, 1.8, saturatedFatG = 0.2, sugarsG = 0.8, aliases = listOf("pates", "pasta", "spaghetti", "spaghettis", "tagliatelles", "penne", "fusilli", "macaronis", "coquillettes"), category = ProductCategory.GRAIN, typicalIngredients = listOf("pâtes de blé dur")),
     FoodEntry("pain blanc",      260.0, 8.0, 50.0, 2.5, 2.7, saturatedFatG = 0.6, sugarsG = 4.0, aliases = listOf("pain", "bread"), category = ProductCategory.GRAIN),
     FoodEntry("pain complet",    240.0, 9.0, 45.0, 3.0, 6.5, saturatedFatG = 0.6, sugarsG = 3.0, ironMg = 2.5, magnesiumMg = 76.0, aliases = listOf("whole wheat bread"), category = ProductCategory.GRAIN),
     FoodEntry("baguette",        265.0, 8.0, 55.0, 1.0, 2.3, saturatedFatG = 0.2, sugarsG = 3.0, category = ProductCategory.GRAIN),

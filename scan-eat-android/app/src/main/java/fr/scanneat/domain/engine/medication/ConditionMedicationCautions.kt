@@ -10,7 +10,7 @@ private val CYP1A2_TOBACCO_SENSITIVE = listOf(
     "clozapine", "leponex", "olanzapine", "zyprexa", "theophylline", "dilatrane", "theostat", "xanthium",
 ).map(::normalizeForMatching)
 
-private val DISULFIRAM = listOf("disulfirame", "disulfiram", "esperal").map(::normalizeForMatching)
+private val DISULFIRAM = listOf("disulfirame", "disulfiram", "esperal", "antabuse", "antabus").map(::normalizeForMatching)
 
 /**
  * Medication cautions for the "quitting tobacco" / "quitting alcohol"

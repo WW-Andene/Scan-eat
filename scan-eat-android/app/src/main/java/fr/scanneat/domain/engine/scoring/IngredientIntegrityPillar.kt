@@ -52,7 +52,7 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     // and "+2 No hidden sugars". Only the origin criterion remains; the other
     // 13 points are excluded from the score (INGREDIENT_ONLY_INTEGRITY_POINTS).
     if (product.ingredients.isEmpty()) {
-        val hasOriginInfo = product.originTransparent || !product.origin.isNullOrBlank()
+        val hasOriginInfo = product.originTransparent || (!product.origin.isNullOrBlank() && !isNonInformativeOrigin(product.origin))
         if (hasOriginInfo) {
             score += 2
             bonuses += Deduction("ingredient_integrity", (if (en) "Origin declared: " else "Origine déclarée : ") + (product.origin ?: ""), 2.0, Severity.INFO)
@@ -112,8 +112,11 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     // origin != null alone previously counted a blank-but-non-null string
     // (a real OFF data shape from partially-scraped records) as if it were
     // meaningful origin information - isNullOrBlank() requires actual content.
-    val hasOrigin = !product.origin.isNullOrBlank()
-    if (product.originTransparent || hasOrigin) {
+    // S8: "UE et non UE" / "EU and non-EU" says nothing about where the food comes from.
+    val hasOrigin = !product.origin.isNullOrBlank() && !isNonInformativeOrigin(product.origin)
+    if (!product.origin.isNullOrBlank() && !hasOrigin && !product.originTransparent) {
+        deductions += Deduction("ingredient_integrity", if (en) "Origin \"EU and non-EU\" — not informative" else "Origine « UE et non UE » — peu informative", 0.0, Severity.INFO)
+    } else if (product.originTransparent || hasOrigin) {
         score += 2
         bonuses += Deduction("ingredient_integrity", (if (en) "Origin declared: " else "Origine déclarée : ") + (product.origin?.takeIf { hasOrigin } ?: (if (en) "transparent" else "transparente")), 2.0, Severity.INFO)
     } else {
@@ -178,3 +181,14 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
 
     return PillarScore(if (en) "Ingredient Integrity" else "Intégrité des ingrédients", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
 }
+
+private val NON_INFORMATIVE_ORIGIN = Regex("""\b(?:ue|eu|union europ[eé]enne|european union)\s*(?:et|ou|and|or|/|&)\s*(?:non[- ]?(?:ue|eu)|hors (?:ue|union europ[eé]enne))""", RegexOption.IGNORE_CASE)
+
+internal fun isNonInformativeOrigin(origin: String?): Boolean = origin != null && NON_INFORMATIVE_ORIGIN.containsMatchIn(origin)
+
+/** True when the ingredient list names any oil or fat of vegetable origin, generic or specific. */
+internal fun containsAnyOil(product: Product): Boolean = product.ingredients.any { ing ->
+    val n = ing.name.lowercase()
+    GENERIC_OIL_TERMS.any { n.contains(it) } || NAMED_OIL_TERMS.any { n.contains(it) } || OIL_WORD.containsMatchIn(n)
+}
+private val OIL_WORD = Regex("""\bhuiles?\b|\boils?\b""")

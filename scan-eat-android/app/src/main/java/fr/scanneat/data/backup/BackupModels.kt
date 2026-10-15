@@ -99,7 +99,7 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // Since v17: savedSearchFilters - Recherche's new named filter presets
 // (SavedSearchFilter, its own small DataStore file), same "wire it in from
 // the start" discipline.
-const val BACKUP_FORMAT_VERSION = 18
+const val BACKUP_FORMAT_VERSION = 19
 
 data class ProfileBackup(
     val name: String,
@@ -154,6 +154,8 @@ data class SettingsBackup(
     val voiceScoreAnnounce: Boolean = false,
     val hideMedicationNames: Boolean = false,
     val hiddenModules: String = "",
+    // Since v19: Accueil shortcuts (HomeShortcut names, CSV).
+    val homeShortcuts: String = "",
 )
 
 data class HydrationEntryBackup(val date: String, val ml: Int)
@@ -206,7 +208,27 @@ data class BackupBundle(
     val savedSearchFilters: List<SavedSearchFilter> = emptyList(),
     // Roadmap N10: allergic-reaction log; absent in older backups.
     val allergicReactions: List<fr.scanneat.data.local.db.reaction.AllergicReactionEntity> = emptyList(),
+    // Since v19: the Quitting screen (tobacco plan + log, prescribed taper); absent in older backups.
+    val withdrawal: WithdrawalBackup? = null,
 )
+
+data class TobaccoPlanBackup(val startDate: String, val baselinePerDay: Int, val packPriceEuros: Double, val cigarettesPerPack: Int, val targetPerDay: Int?)
+data class TaperStepBackup(val startDate: String, val dose: String)
+data class TaperPlanBackup(val medicationName: String, val steps: List<TaperStepBackup>, val note: String)
+data class WithdrawalBackup(
+    val tobacco: TobaccoPlanBackup? = null,
+    /** ISO date -> cigarettes smoked that day. */
+    val tobaccoLog: Map<String, Int> = emptyMap(),
+    val lastSmokeMs: Long? = null,
+    /** Exported decrypted, like medications: the backup file has its own optional passphrase. */
+    val taper: TaperPlanBackup? = null,
+    val caffeine: CaffeineTaperBackup? = null,
+    val alcoholChallengeStart: String? = null,
+    val alcoholChallengeDays: Int? = null,
+    val alcoholChallengeDrinksPerWeek: Int? = null,
+)
+
+data class CaffeineTaperBackup(val startDate: String, val startMg: Int, val targetMg: Int, val weeks: Int)
 
 data class BackupSummary(
     val scanHistory: Int,

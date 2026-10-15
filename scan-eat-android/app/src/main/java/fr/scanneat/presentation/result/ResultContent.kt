@@ -205,6 +205,9 @@ internal fun ResultContent(
         // for every scan but previously never surfaced anywhere in this screen.
         val nova = fr.scanneat.domain.engine.scoring.effectiveNova(scan.product)
         ScoreBadgesRow(audit = audit, novaClass = nova?.nova, novaEstimated = !scan.product.novaDeclared)
+        // Roadmap S11: explain a Scan'eat grade 2+ letters away from the pack's Nutri-Score.
+        androidx.compose.runtime.remember(audit, language) { fr.scanneat.domain.engine.scoring.nutriScoreGap(audit, language) }
+            ?.let { fr.scanneat.presentation.result.cards.NutriScoreGapCard(it) }
 
         // Score ring(s)
         if (personalScore != null && personalScore.applicable) {

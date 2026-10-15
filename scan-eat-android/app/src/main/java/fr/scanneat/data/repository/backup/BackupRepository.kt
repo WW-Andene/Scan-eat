@@ -71,6 +71,7 @@ class BackupRepository @Inject constructor(
     private val medicationLogDao: MedicationLogDao,
     private val scanScoreHistoryDao: ScanScoreHistoryDao,
     private val priceDao: PriceDao,
+    internal val withdrawalRepo: fr.scanneat.data.repository.withdrawal.WithdrawalRepository,
     // Widened from private to internal so BackupRestore.kt's restoreDataStoreData()
     // extension function (extracted verbatim into its own sibling file, same
     // pattern as HealthConnectRepository's Ext files) can still reach these.
@@ -161,11 +162,13 @@ class BackupRepository @Inject constructor(
                 voiceScoreAnnounce = prefs.voiceScoreAnnounce.first(),
                 hideMedicationNames = prefs.hideMedicationNames.first(),
                 hiddenModules = prefs.hiddenModules.first(),
+                homeShortcuts = prefs.homeShortcuts.first(),
             ),
             reminderSettings = remindersRepo.settings.first(),
             fastingActiveStartMs = fastingStartMs,
             fastingActiveTargetHours = fastingTargetHours,
             fastingHistory = fastingHistory,
+            withdrawal = withdrawalRepo.exportForBackup(prefs.activeProfileId.first()),
             hydration = hydrationRepo.exportAll().map { (date, ml) -> HydrationEntryBackup(date.toString(), ml) },
             dayNotes = dayNotesRepo.exportAll().map { (date, text) -> DayNoteBackup(date.toString(), text) },
             mealPlanRaw = mealPlanRepo.exportRaw(),

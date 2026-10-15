@@ -5,7 +5,9 @@ import fr.scanneat.util.formatDecimal
 
 // IBS, Crohn's/IBD and chronic diarrhea all share a real, sourced trigger:
 // high-fat meals slow gastric emptying and provoke the gastrocolic reflex
-// (Monash University IBS patient guidance; Crohn's & Colitis Foundation;
+// (S12, European sources: UEG/ESNM 2021 European IBS guideline for the
+// low-FODMAP diet - Monash University remains the FODMAP content database;
+// AFA Crohn RCH France for low-residue eating during an IBD flare;
 // NHS/Mayo Clinic diarrhea-diet advice). 17.5g/100g is the UK Food
 // Standards Agency's own public "high fat" traffic-light threshold, not a
 // guess - reused here across all three conditions rather than inventing a
@@ -24,16 +26,16 @@ internal fun checkGastrointestinalConditions(
         if (fodmapHit) {
             adjustments += PersonalAdjustment(
                 points = -3.0,
-                reason = if (lang == "en") "Contains a high-FODMAP ingredient (onion/garlic/wheat/legumes) — a common IBS symptom trigger per Monash University's Low FODMAP research"
-                         else "Contient un ingrédient riche en FODMAP (oignon/ail/blé/légumineuses) — un déclencheur fréquent de symptômes du SII selon les travaux de l'université Monash sur le régime pauvre en FODMAP",
+                reason = if (lang == "en") "Contains a high-FODMAP ingredient (onion/garlic/wheat/legumes) — a common IBS symptom trigger; a low-FODMAP diet is recommended by the European IBS guideline (UEG/ESNM 2021)"
+                         else "Contient un ingrédient riche en FODMAP (oignon/ail/blé/légumineuses) — un déclencheur fréquent de symptômes du SII ; le régime pauvre en FODMAP est recommandé par les recommandations européennes sur le SII (UEG/ESNM 2021)",
                 category = AdjustmentCategory.CONDITION,
             )
         }
         if (polyolHit) {
             adjustments += PersonalAdjustment(
                 points = -3.0,
-                reason = if (lang == "en") "Contains a sugar alcohol (sorbitol/mannitol/xylitol...) — poorly absorbed and osmotically active, a known IBS trigger (Monash Low FODMAP)"
-                         else "Contient un polyol (sorbitol/mannitol/xylitol...) — mal absorbé et osmotiquement actif, un déclencheur connu du SII (régime pauvre en FODMAP, université Monash)",
+                reason = if (lang == "en") "Contains a sugar alcohol (sorbitol/mannitol/xylitol...) — poorly absorbed and osmotically active, a known IBS trigger (low-FODMAP diet, UEG/ESNM 2021)"
+                         else "Contient un polyol (sorbitol/mannitol/xylitol...) — mal absorbé et osmotiquement actif, un déclencheur connu du SII (régime pauvre en FODMAP, UEG/ESNM 2021)",
                 category = AdjustmentCategory.CONDITION,
             )
         }
@@ -55,7 +57,7 @@ internal fun checkGastrointestinalConditions(
         }
     }
     // EU "high fibre" nutrition-claim threshold (Regulation (EC) 1924/2006:
-    // ≥6g/100g) reused here, not invented - Crohn's & Colitis Foundation/NHS
+    // ≥6g/100g) reused here, not invented - AFA Crohn RCH France
     // both recommend a low-residue (low-fiber) diet during a flare, since
     // insoluble fiber is mechanically harder to pass through an inflamed gut.
     // S9: every rule below is flare-specific in its own source ("lors d'une
@@ -67,24 +69,24 @@ internal fun checkGastrointestinalConditions(
         if (highFiber) {
             adjustments += PersonalAdjustment(
                 points = -2.0,
-                reason = if (lang == "en") "High fiber (${product.nutrition.fiberG.formatDecimal(1)} g/100 g) — a low-residue diet is commonly advised during a Crohn's/IBD flare (Crohn's & Colitis Foundation, NHS)"
-                         else "Riche en fibres (${product.nutrition.fiberG.formatDecimal(1)} g/100 g) — un régime pauvre en résidus est généralement conseillé lors d'une poussée de Crohn/MICI (Crohn's & Colitis Foundation, NHS)",
+                reason = if (lang == "en") "High fiber (${product.nutrition.fiberG.formatDecimal(1)} g/100 g) — a low-residue diet is commonly advised during a Crohn's/IBD flare (AFA Crohn RCH France)"
+                         else "Riche en fibres (${product.nutrition.fiberG.formatDecimal(1)} g/100 g) — un régime pauvre en résidus est généralement conseillé lors d'une poussée de Crohn/MICI (AFA Crohn RCH France)",
                 category = AdjustmentCategory.CONDITION,
             )
         }
         if (highFat) {
             adjustments += PersonalAdjustment(
                 points = -2.0,
-                reason = if (lang == "en") "High fat (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — can worsen symptoms during a Crohn's/IBD flare (Crohn's & Colitis Foundation)"
-                         else "Riche en matières grasses (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — peut aggraver les symptômes lors d'une poussée de Crohn/MICI (Crohn's & Colitis Foundation)",
+                reason = if (lang == "en") "High fat (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — can worsen symptoms during a Crohn's/IBD flare (AFA Crohn RCH France)"
+                         else "Riche en matières grasses (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — peut aggraver les symptômes lors d'une poussée de Crohn/MICI (AFA Crohn RCH France)",
                 category = AdjustmentCategory.CONDITION,
             )
         }
         if (alcoholHit) {
             adjustments += PersonalAdjustment(
                 points = -2.0,
-                reason = if (lang == "en") "Contains alcohol — commonly advised against during a Crohn's/IBD flare (Crohn's & Colitis Foundation)"
-                         else "Contient de l'alcool — généralement déconseillé lors d'une poussée de Crohn/MICI (Crohn's & Colitis Foundation)",
+                reason = if (lang == "en") "Contains alcohol — commonly advised against during a Crohn's/IBD flare (AFA Crohn RCH France)"
+                         else "Contient de l'alcool — généralement déconseillé lors d'une poussée de Crohn/MICI (AFA Crohn RCH France)",
                 category = AdjustmentCategory.CONDITION,
             )
         }

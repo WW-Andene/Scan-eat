@@ -1,5 +1,6 @@
 package fr.scanneat.data.repository.backup
 
+import kotlinx.coroutines.flow.first
 import fr.scanneat.data.backup.BackupBundle
 import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.model.ActivityLevel
@@ -72,6 +73,7 @@ internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle)
         prefs.setVoiceScoreAnnounce(s.voiceScoreAnnounce)
         prefs.setHideMedicationNames(s.hideMedicationNames)
         prefs.setHiddenModules(s.hiddenModules)
+        if (s.homeShortcuts.isNotBlank()) prefs.setHomeShortcuts(s.homeShortcuts)
     }
     // restoreAll writes every ReminderSettings field in one transaction — the
     // previous piecemeal setBreakfast/setLunch/setDinner/setHydration/setWeight
@@ -80,6 +82,10 @@ internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle)
     // exportToJson serializing all of them.
     bundle.reminderSettings?.let { r -> remindersRepo.restoreAll(r) }
     fastingRepo.importForBackup(bundle.fastingActiveStartMs, bundle.fastingActiveTargetHours, bundle.fastingHistory)
+    // From v19 on, "no withdrawal data" in the file means none: clear what's here too.
+    if (bundle.withdrawal != null || bundle.formatVersion >= 19) {
+        withdrawalRepo.importForBackup(prefs.activeProfileId.first(), bundle.withdrawal ?: fr.scanneat.data.backup.WithdrawalBackup())
+    }
     hydrationRepo.importAll(bundle.hydration.mapNotNull { entry ->
         runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry.ml }
     })

@@ -139,7 +139,13 @@ fun Modifier.ambientGloom(
     // donner... au lieu de ton je ne sais quoi improvisé". Drawn "cover"
     // style (scaled up, centered, cropped to fill) so its own 2:1 aspect
     // ratio doesn't stretch/distort on a tall phone screen.
-    val isPrism = LocalThemeName.current == "prism"
+    val themeName = LocalThemeName.current
+    val isPrism = themeName == "prism"
+    // User-approved merge of the two background mockups ("Lampe chaude" +
+    // "Aurore"): a warm blurred lamp from above plus aurora color blobs on a
+    // dark base, under frosted glass. Dark themes only - light and contrast
+    // themes keep the plain two-blob wash for legibility.
+    val isScene = themeName !in setOf("light", "high_contrast", "low_contrast", "prism")
     val prismBitmap = if (isPrism) {
         val context = androidx.compose.ui.platform.LocalContext.current
         remember {
@@ -262,6 +268,45 @@ fun Modifier.ambientGloom(
             center = secondaryCenter,
             radius = size.width * 0.9f,
         )
+        val sceneBrushes = if (isScene) {
+            val w = size.width
+            val h = size.height
+            fun blob(color: Color, alpha: Float, cx: Float, cy: Float, r: Float) = Brush.radialGradient(
+                // Multi-stop falloff approximates a gaussian blur on every API level.
+                colorStops = arrayOf(
+                    0f to color.copy(alpha = alpha),
+                    0.35f to color.copy(alpha = alpha * 0.6f),
+                    0.7f to color.copy(alpha = alpha * 0.18f),
+                    1f to Color.Transparent,
+                ),
+                center = Offset(cx, cy),
+                radius = r,
+            )
+            val d = w * 0.05f
+            buildList {
+                // Warm lamp (A), top-center - matches the declared light source.
+                add(blob(Color(0xFFE9A45C), 0.30f, w * 0.5f + d * cos(driftPhase), -h * 0.02f, w * 0.75f))
+                add(blob(Color(0xFFF2B26A), 0.16f, w * 0.02f, h * 0.45f + d * sin(driftPhase), w * 0.45f))
+                // Aurora blobs (B).
+                add(blob(Color(0xFF3FA36B), 0.20f, w * 0.05f + d * sin(driftPhase), h * 0.08f, w * 0.6f))
+                add(blob(Color(0xFFD4F25A), 0.10f, w * 0.95f, h * 0.45f + d * cos(driftPhase), w * 0.55f))
+                add(blob(Color(0xFFB4407A), 0.16f, w * 0.05f + d * cos(driftPhase + Math.PI.toFloat()), h * 0.85f, w * 0.6f))
+                add(blob(primary, 0.20f, w * 0.95f, h * 0.95f + d * sin(driftPhase + Math.PI.toFloat()), w * 0.55f))
+                // Bokeh dots.
+                listOf(
+                    Triple(0.22f, 0.12f, 0.18f), Triple(0.78f, 0.2f, 0.12f),
+                    Triple(0.62f, 0.07f, 0.14f), Triple(0.12f, 0.3f, 0.10f),
+                ).forEach { (x, y, a) -> add(blob(Color(0xFFFFD39A), a, w * x, h * y, w * 0.08f)) }
+                // Vignette.
+                add(
+                    Brush.radialGradient(
+                        colorStops = arrayOf(0.55f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.45f)),
+                        center = Offset(w / 2f, h / 2f),
+                        radius = maxOf(w, h) * 0.75f,
+                    ),
+                )
+            }
+        } else emptyList()
         val t = timeSec
         val maxRadius = size.minDimension * 0.32f
         onDrawBehind {
@@ -315,8 +360,12 @@ fun Modifier.ambientGloom(
                 return@onDrawBehind
             }
             drawRect(base)
-            drawRect(primaryBrush)
-            drawRect(secondaryBrush)
+            if (isScene) {
+                sceneBrushes.forEach { drawRect(it) }
+            } else {
+                drawRect(primaryBrush)
+                drawRect(secondaryBrush)
+            }
             if (animated) {
                 ripples.forEach { r ->
                     val cycle = ((t + r.phaseSec) % r.periodSec) / r.periodSec

@@ -88,6 +88,9 @@ internal val FOOD_DB_CATEGORY_BY_NAME: Map<String, FoodSearchCategory> = buildMa
         "risotto", "paella", "gratin dauphinois", "soupe de légumes",
         "sandwich jambon-beurre", "burrito", "ramen", "pad thaï", "kebab",
         "taboulé", "gaspacho",
+        // Composed dishes and cooking sauces (FoodDbComposedDishes).
+        "spaghetti bolognaise", "pâtes carbonara", "hachis parmentier", "riz cantonais", "blanquette de veau",
+        "sauce tomate", "sauce bolognaise", "sauce carbonara", "sauce béchamel", "sauce pesto", "sauce au fromage", "sauce au curry",
     ).forEach { put(it, FoodSearchCategory.PREPARED_MEALS) }
 }
 
@@ -106,8 +109,10 @@ internal fun FoodEntry.toItem(isCustom: Boolean) = FoodSearchItem(
     vitCMg = vitCMg, magnesiumMg = magnesiumMg, potassiumMg = potassiumMg, zincMg = zincMg,
     vitAUg = vitAUg, b9Ug = b9Ug, vitEMg = vitEMg, vitKUg = vitKUg, b6Mg = b6Mg, sugarsG = sugarsG,
     category = if (isCustom) FoodSearchCategory.CUSTOM
-               else FOOD_DB_CATEGORY_BY_NAME[name] ?: FoodSearchCategory.OTHER,
-    grade = if (isCustom) scoreProduct(this.toProduct(), "fr").grade else FOOD_DB_GRADE_BY_NAME[name],
+               else FOOD_DB_CATEGORY_BY_NAME[name]
+                   // A dish composed for the query (identifyDish) isn't in the table.
+                   ?: if (category in fr.scanneat.domain.engine.nutrition.PREPARED_CATEGORIES) FoodSearchCategory.PREPARED_MEALS else FoodSearchCategory.OTHER,
+    grade = if (isCustom) scoreProduct(this.toProduct(), "fr").grade else FOOD_DB_GRADE_BY_NAME[name] ?: scoreProduct(this.toProduct(), "fr").grade,
 )
 
 internal fun ScanResult.toItem(): FoodSearchItem {

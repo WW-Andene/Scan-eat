@@ -40,7 +40,8 @@ val FOOD_DB: List<FoodEntry> =
         FOOD_DB_GRAINS_AND_PROTEINS +
         FOOD_DB_DAIRY_AND_LEGUMES +
         FOOD_DB_FATS_SWEETS_AND_MEALS +
-        FOOD_DB_COOKING_STAPLES
+        FOOD_DB_COOKING_STAPLES +
+        FOOD_DB_COMPOSED_DISHES
 
 // ============================================================================
 // Search
@@ -171,9 +172,13 @@ fun reconcileWithFoodDB(
 /** Convert a FoodEntry + portion to a domain Product (for scoring quick-add foods). */
 fun FoodEntry.toProduct(portionG: Double = 100.0): Product = Product(
     name        = name,
-    category    = ProductCategory.OTHER,
-    novaClass   = NovaClass.UNPROCESSED,
-    ingredients = emptyList(),
+    // Was always OTHER / NOVA 1 / no ingredients: a lasagne scored like a raw
+    // food, with no allergen check. Prepared dishes and sauces are cooked
+    // preparations (NOVA 3, estimated, not declared).
+    category    = category ?: ProductCategory.OTHER,
+    novaClass   = if (category in PREPARED_CATEGORIES) NovaClass.PROCESSED else NovaClass.UNPROCESSED,
+    novaDeclared = category !in PREPARED_CATEGORIES,
+    ingredients = typicalIngredients.map { fr.scanneat.domain.model.Ingredient(name = it, category = fr.scanneat.domain.model.IngredientCategory.FOOD) },
     nutrition   = NutritionPer100g(
         energyKcal    = kcal,
         fatG          = fatG,
@@ -204,3 +209,5 @@ fun FoodEntry.toProduct(portionG: Double = 100.0): Product = Product(
     // (unaffected for every food where typicalPortionG is null).
     weightG = typicalPortionG ?: portionG,
 )
+
+internal val PREPARED_CATEGORIES = setOf(ProductCategory.READY_MEAL, ProductCategory.SOUP, ProductCategory.CONDIMENT, ProductCategory.SANDWICH)

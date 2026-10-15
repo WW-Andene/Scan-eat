@@ -83,7 +83,10 @@ internal fun ScanViewModel.identifyFromPhotos() {
                             )
                     }
                 },
-                onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },
+                onFailure = { e ->
+                    _state.value = if (e is fr.scanneat.data.repository.scan.ProductNameCandidates) ScanUiState.ChooseProduct(e.query, e.options, e.otherNames)
+                        else ScanUiState.Error(httpFriendlyMessage(e, lang))
+                },
             )
         } finally {
             scoreMutex.unlock()

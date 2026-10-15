@@ -77,7 +77,7 @@ fun MenuScanScreen(onBack: () -> Unit, viewModel: MenuScanViewModel = hiltViewMo
                     }
                 }
                 if (!state.profileHasConstraints) item { Text(stringResource(R.string.menu_scan_no_profile), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(alpha = 0.7f)) }
-                val sorted = state.dishes.sortedByDescending { it.allergens.isNotEmpty() || it.dietConflict != null }
+                val sorted = state.dishes.sortedByDescending { it.allergens.isNotEmpty() || it.dietConflict != null || it.typicalRecipeAllergens.isNotEmpty() }
                 items(sorted, key = { it.text }) { d ->
                     val flagged = d.allergens.isNotEmpty() || d.dietConflict != null
                     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), color = if (flagged) semanticRed().copy(alpha = 0.12f) else SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -88,6 +88,9 @@ fun MenuScanScreen(onBack: () -> Unit, viewModel: MenuScanViewModel = hiltViewMo
                             Text(stringResource(R.string.menu_scan_allergens, d.allergens.joinToString(", ")), style = MaterialTheme.typography.bodySmall, color = semanticRed())
                         }
                         d.dietConflict?.let { Text(stringResource(R.string.menu_scan_diet, it), style = MaterialTheme.typography.bodySmall, color = semanticAmber()) }
+                        if (d.typicalRecipeAllergens.isNotEmpty()) Text(stringResource(R.string.menu_scan_typical_allergens, d.typicalRecipeAllergens.joinToString(", ")),
+                            style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+                        d.estimate?.let { e -> Text(stringResource(R.string.menu_scan_estimate, e.grade, e.score, e.basis), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f)) }
                     }
                 }
                 item { TextButton(onClick = viewModel::retry) { Text(stringResource(R.string.menu_scan_retry)) } }

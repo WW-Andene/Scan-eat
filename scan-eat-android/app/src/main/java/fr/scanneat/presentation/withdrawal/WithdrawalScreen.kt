@@ -38,6 +38,8 @@ fun WithdrawalScreen(viewModel: WithdrawalViewModel = hiltViewModel(), onBack: (
     val taper = viewModel.taperPlan.collectAsStateWithLifecycle()
     val now = viewModel.now.collectAsStateWithLifecycle()
     val cautions = viewModel.medicationCautions.collectAsStateWithLifecycle()
+    val caffeine = viewModel.caffeineTaper.collectAsStateWithLifecycle()
+    val alcohol = viewModel.alcoholChallenge.collectAsStateWithLifecycle()
     var editTaper by remember { mutableStateOf(false) }
 
     FloatingScreenScaffold(
@@ -56,6 +58,8 @@ fun WithdrawalScreen(viewModel: WithdrawalViewModel = hiltViewModel(), onBack: (
                 if (p == null || s == null) TobaccoSetupCard(viewModel::startTobacco)
                 else TobaccoCard(p, s, now.value, onAdd = { viewModel.cigarette(1) }, onRemove = { viewModel.cigarette(-1) }, onStop = viewModel::stopTobacco)
             }
+            item { AlcoholChallengeCard(alcohol.value, viewModel::startAlcoholChallenge, viewModel::stopAlcoholChallenge) }
+            item { CaffeineCard(caffeine.value, viewModel::startCaffeineTaper, viewModel::stopCaffeineTaper) }
             if (cautions.value.isNotEmpty()) item {
                 Card {
                     TitleText(stringResource(R.string.withdrawal_med_cautions_title))
@@ -245,4 +249,65 @@ private fun TaperEditorDialog(plan: TaperPlan?, onDismiss: () -> Unit, onSave: (
         confirmButton = { TextButton(onClick = { onSave(name, steps, note) }, enabled = name.isNotBlank() && steps.isNotEmpty()) { Text(stringResource(R.string.common_save)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } },
     )
+}
+
+@Composable
+private fun CaffeineCard(plan: CaffeineTaper?, onStart: (Int, Int, Int) -> Unit, onStop: () -> Unit) {
+    Card {
+        TitleText(stringResource(R.string.withdrawal_caffeine_title))
+        if (plan == null) {
+            var current by remember { mutableStateOf("") }
+            var target by remember { mutableStateOf("") }
+            var weeks by remember { mutableIntStateOf(3) }
+            val num = KeyboardOptions(keyboardType = KeyboardType.Number)
+            Hint(stringResource(R.string.withdrawal_caffeine_intro))
+            OutlinedTextField(current, { current = it.filter(Char::isDigit).take(4) }, label = { Text(stringResource(R.string.withdrawal_caffeine_current)) }, singleLine = true, keyboardOptions = num)
+            OutlinedTextField(target, { target = it.filter(Char::isDigit).take(4) }, label = { Text(stringResource(R.string.withdrawal_caffeine_target)) }, singleLine = true, keyboardOptions = num)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                listOf(2, 3, 4).forEach { w -> FilterChip(selected = weeks == w, onClick = { weeks = w }, label = { Text(stringResource(R.string.withdrawal_caffeine_weeks, w)) }) }
+            }
+            val c = current.toIntOrNull(); val t = target.toIntOrNull()
+            Button(onClick = { onStart(c!!, t!!, weeks) }, enabled = c != null && t != null && t < c) { Text(stringResource(R.string.withdrawal_tobacco_start)) }
+        } else {
+            val today = LocalDate.now()
+            Text(stringResource(R.string.withdrawal_caffeine_today, plan.capOn(today)), style = MaterialTheme.typography.bodyLarge, color = OnBackground)
+            Hint(stringResource(R.string.withdrawal_caffeine_plan, plan.startMg, plan.targetMg, plan.endDate.format(dateFmt)))
+            Hint(stringResource(R.string.withdrawal_caffeine_tip))
+            TextButton(onClick = onStop) { Text(stringResource(R.string.withdrawal_tobacco_stop), color = OnBackground.copy(0.6f)) }
+        }
+    }
+}
+
+@Composable
+private fun AlcoholChallengeCard(state: Pair<AlcoholChallenge, AlcoholChallengeStatus>?, onStart: (Int, Int?) -> Unit, onStop: () -> Unit) {
+    val uri = LocalUriHandler.current
+    Card {
+        TitleText(stringResource(R.string.withdrawal_alcohol_title))
+        if (state == null) {
+            Hint(stringResource(R.string.withdrawal_alcohol_intro))
+            var perWeek by remember { mutableStateOf("") }
+            OutlinedTextField(perWeek, { perWeek = it.filter(Char::isDigit).take(3) }, singleLine = true,
+                label = { Text(stringResource(R.string.withdrawal_alcohol_per_week)) },
+                supportingText = { Text(stringResource(R.string.withdrawal_alcohol_per_week_hint)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                listOf(7, 30, 60).forEach { d -> OutlinedButton(onClick = { onStart(d, perWeek.toIntOrNull()) }) { Text(stringResource(R.string.withdrawal_alcohol_days, d)) } }
+            }
+        } else {
+            val (c, st) = state
+            Text(if (st.finished) stringResource(R.string.withdrawal_alcohol_done, st.alcoholFreeDays, c.days)
+                else stringResource(R.string.withdrawal_alcohol_progress, st.dayNumber, c.days, st.alcoholFreeDays),
+                style = MaterialTheme.typography.bodyLarge, color = OnBackground)
+            if (!st.finished) Hint(stringResource(R.string.withdrawal_alcohol_streak, st.currentStreak))
+            st.kcalAvoided?.let {
+                Text(stringResource(R.string.withdrawal_alcohol_kcal, it), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                Hint(stringResource(if (st.baselineFromDiary) R.string.withdrawal_alcohol_kcal_diary else R.string.withdrawal_alcohol_kcal_declared), OnBackground.copy(0.4f))
+            } ?: Hint(stringResource(R.string.withdrawal_alcohol_kcal_unknown), OnBackground.copy(0.4f))
+            if (st.daysWithAlcohol.isNotEmpty()) Hint(stringResource(R.string.withdrawal_alcohol_slips, st.daysWithAlcohol.joinToString(", ") { it.format(dateFmt) }), AccentCoral)
+            Hint(stringResource(R.string.withdrawal_alcohol_from_diary), OnBackground.copy(0.4f))
+            TextButton(onClick = onStop) { Text(stringResource(R.string.withdrawal_tobacco_stop), color = OnBackground.copy(0.6f)) }
+        }
+        Hint(stringResource(R.string.withdrawal_alcohol_safety), AccentCoral)
+        OutlinedButton(onClick = { runCatching { uri.openUri("tel:0980980930") } }) { Text(stringResource(R.string.withdrawal_alcohol_call)) }
+    }
 }

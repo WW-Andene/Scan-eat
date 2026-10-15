@@ -441,6 +441,8 @@ fun ScanScreen(
             onConfirmOcrReview = { viewModel.confirmOcrReview(it) },
             onCancelOcrReview = { viewModel.cancelOcrReview() },
             onChooseFood = { viewModel.chooseFood(it) },
+            onChooseProduct = { viewModel.chooseProduct(it) },
+            onSearchByName = { viewModel.searchByName(it) },
             barcode = barcode.value,
         )
     }
